@@ -16,13 +16,13 @@
  */
 %>
 <%@ page import="org.labkey.api.util.URLHelper"%>
-<%@ page import="org.labkey.genotyping.GalaxyManager" %>
-<%@ page import="org.labkey.genotyping.GalaxySettings" %>
+<%@ page import="org.labkey.genotyping.GenotypingManager" %>
+<%@ page import="org.labkey.genotyping.GenotypingFolderSettings" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     GenotypingController.MySettingsForm form = (GenotypingController.MySettingsForm)getModelBean();
-    GalaxySettings settings = GalaxyManager.get().getSettings(getViewContext().getContainer());
+    GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getViewContext().getContainer());
     String serverURL = settings.getGalaxyURL();
     String preferencesHTML = "your user preferences page";
 

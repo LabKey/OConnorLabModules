@@ -16,7 +16,7 @@
  */
 %>
 <%@ page import="org.labkey.genotyping.GenotypingController"%>
-<%@ page import="org.labkey.genotyping.GalaxySettings" %>
+<%@ page import="org.labkey.genotyping.GenotypingFolderSettings" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     GenotypingController.AdminForm form = (GenotypingController.AdminForm)getModelBean();
@@ -53,7 +53,7 @@
 
         if (query)
         {
-            var parts = query.split('<%=GalaxySettings.SEPARATOR%>');
+            var parts = query.split('<%=GenotypingFolderSettings.SEPARATOR%>');
             html = parts[0] + '.' + parts[1] + '.' + parts[2];
         }
         else
@@ -83,7 +83,7 @@
             <td>External source of DNA reference sequences&nbsp;&nbsp;</td>
             <td><div id="sequencesQueryDiv"></div></td>
             <td>
-                <%=textLink("configure", "#", "chooseView('Choose DNA reference sequences query', 'Select a query that represents an external source of DNA reference sequences.  This query will be used periodically to replace the reference sequences that link to results.', '" + GalaxySettings.SEPARATOR + "', function(query){updateSequencesQuery(query);});return false;", "id")%>
+                <%=textLink("configure", "#", "chooseView('Choose DNA reference sequences query', 'Select a query that represents an external source of DNA reference sequences.  This query will be used periodically to replace the reference sequences that link to results.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateSequencesQuery(query);});return false;", "id")%>
                 <input type="hidden" name="sequencesQuery" id="sequencesQuery">
             </td>
         </tr>
@@ -91,7 +91,7 @@
             <td>Runs</td>
             <td><div id="runsQueryDiv"></div></td>
             <td>
-                <%=textLink("configure", "#", "chooseView('Choose runs query', 'Select a query where runs are stored.', '" + GalaxySettings.SEPARATOR + "', function(query){updateRunsQuery(query);});return false;", "id")%>
+                <%=textLink("configure", "#", "chooseView('Choose runs query', 'Select a query where runs are stored.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateRunsQuery(query);});return false;", "id")%>
                 <input type="hidden" name="runsQuery" id="runsQuery">
             </td>
         </tr>
@@ -99,7 +99,7 @@
             <td>Samples</td>
             <td><div id="samplesQueryDiv"></div></td>
             <td>
-                <%=textLink("configure", "#", "chooseView('Choose samples query', 'Select a query that provides a list of samples.  This query is filtered by the library number specified in the run to produce the sample.txt file.', '" + GalaxySettings.SEPARATOR + "', function(query){updateSamplesQuery(query);});return false;", "id")%>
+                <%=textLink("configure", "#", "chooseView('Choose samples query', 'Select a query that provides a list of samples.  This query is filtered by the library number specified in the run to produce the sample.txt file.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateSamplesQuery(query);});return false;", "id")%>
                 <input type="hidden" name="samplesQuery" id="samplesQuery">
             </td>
         </tr>

@@ -55,7 +55,7 @@ public class GalaxyLoadPipelineProvider extends PipelineProvider
     {
         public boolean accept(File file)
         {
-            return file.getName().equalsIgnoreCase(GalaxyManager.MATCHES_FILE_NAME);
+            return file.getName().equalsIgnoreCase(GenotypingManager.MATCHES_FILE_NAME);
         }
     }
 }

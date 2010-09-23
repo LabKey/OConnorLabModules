@@ -18,11 +18,11 @@
       <ns:column columnName="Alleles" wrappedColumnName="RowId">
         <ns:isUnselectable>true</ns:isUnselectable>
         <ns:fk>
-          <ns:fkDbSchema>galaxy</ns:fkDbSchema>
-          <ns:fkTable>Junction</ns:fkTable>
+          <ns:fkDbSchema>genotyping</ns:fkDbSchema>
+          <ns:fkTable>AllelesJunction</ns:fkTable>
           <ns:fkColumnName>RowId</ns:fkColumnName>
           <ns:fkMultiValued>junction</ns:fkMultiValued>
-          <ns:fkJunctionLookup>AlleleId</ns:fkJunctionLookup>
+          <ns:fkJunctionLookup>SequenceId</ns:fkJunctionLookup>
         </ns:fk>
       </ns:column>
     </ns:columns>
@@ -30,23 +30,33 @@
   <ns:table tableName="ReadsJunction" tableDbType="TABLE">
     <ns:columns>
       <ns:column columnName="MatchId"/>
+        <ns:fk>
+          <ns:fkDbSchema>genotyping</ns:fkDbSchema>
+          <ns:fkTable>Matches</ns:fkTable>
+          <ns:fkColumnName>RowId</ns:fkColumnName>
+        </ns:fk>
       <ns:column columnName="ReadId"/>
+        <ns:fk>
+          <ns:fkDbSchema>genotyping</ns:fkDbSchema>
+          <ns:fkTable>Reads</ns:fkTable>
+          <ns:fkColumnName>RowId</ns:fkColumnName>
+        </ns:fk>
     </ns:columns>
   </ns:table>
   <ns:table tableName="AllelesJunction" tableDbType="TABLE">
     <ns:columns>
       <ns:column columnName="MatchId">
         <ns:fk>
-          <ns:fkColumnName>RowId</ns:fkColumnName>
+          <ns:fkDbSchema>genotyping</ns:fkDbSchema>
           <ns:fkTable>Matches</ns:fkTable>
-          <ns:fkDbSchema>galaxy</ns:fkDbSchema>
+          <ns:fkColumnName>RowId</ns:fkColumnName>
         </ns:fk>
       </ns:column>
       <ns:column columnName="SequenceId">
         <ns:fk>
-          <ns:fkColumnName>RowId</ns:fkColumnName>
+          <ns:fkDbSchema>genotyping</ns:fkDbSchema>
           <ns:fkTable>Sequences</ns:fkTable>
-          <ns:fkDbSchema>galaxy</ns:fkDbSchema>
+          <ns:fkColumnName>RowId</ns:fkColumnName>
         </ns:fk>
       </ns:column>
     </ns:columns>

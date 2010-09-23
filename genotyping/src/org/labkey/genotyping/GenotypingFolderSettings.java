@@ -18,9 +18,17 @@ package org.labkey.genotyping;
 /**
  * User: adam
  * Date: Sep 10, 2010
- * Time: 2:54:31 PM
+ * Time: 11:10:44 AM
  */
-public interface GalaxyUserSettings
+public interface GenotypingFolderSettings
 {
-    String getGalaxyKey();
+    String SEPARATOR = "~";
+
+    String getGalaxyURL();
+
+    String getSequencesQuery();
+
+    String getRunsQuery();
+
+    String getSamplesQuery();
 }

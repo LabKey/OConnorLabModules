@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.labkey.genotyping;
+package org.labkey.genotyping.galaxy;
 
 /**
  * User: adam
  * Date: Sep 10, 2010
- * Time: 11:10:44 AM
+ * Time: 2:54:31 PM
  */
-public interface GalaxySettings
+public interface GalaxyUserSettings
 {
-    String SEPARATOR = "~";
-
-    String getGalaxyURL();
-
-    String getSequencesQuery();
-
-    String getRunsQuery();
-
-    String getSamplesQuery();
+    String getGalaxyKey();
 }

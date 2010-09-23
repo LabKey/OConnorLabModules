@@ -77,9 +77,9 @@ public class GalaxyLoadJob extends PipelineJob
         {
             // TODO: Container, Run
 
-            File sourceSamples = new File(_dir, GalaxyManager.SAMPLES_FILE_NAME);
-            File sourceMatches = new File(_dir, GalaxyManager.MATCHES_FILE_NAME);
-            File sourceReads = new File(_dir, GalaxyManager.READS_FILE_NAME);
+            File sourceSamples = new File(_dir, GenotypingManager.SAMPLES_FILE_NAME);
+            File sourceMatches = new File(_dir, GenotypingManager.MATCHES_FILE_NAME);
+            File sourceReads = new File(_dir, GenotypingManager.READS_FILE_NAME);
 
             DbSchema schema = GenotypingSchema.getInstance().getSchema();
 
@@ -102,7 +102,7 @@ public class GalaxyLoadJob extends PipelineJob
                     reads = createTempTable(sourceReads, schema, null);
 
                     QueryContext ctx = new QueryContext(schema, samples, matches, reads);
-                    JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/galaxy/view/galaxyQuery.jsp", ctx);
+                    JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/galaxy/view/mhcQuery.jsp", ctx);
                     String sql = jspQuery.render();
 
                     // TODO

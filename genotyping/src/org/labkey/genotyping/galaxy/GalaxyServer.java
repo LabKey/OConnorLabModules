@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.labkey.genotyping;
+package org.labkey.genotyping.galaxy;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -30,6 +30,8 @@ import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.view.NotFoundException;
+import org.labkey.genotyping.GenotypingManager;
+import org.labkey.genotyping.GenotypingFolderSettings;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -63,7 +65,7 @@ public class GalaxyServer
     // Throws NotFoundException if either galaxy URL (admin responsibility) or web API key (user responsibility) isn't configured.
     public static GalaxyServer get(Container c, User user)
     {
-        GalaxySettings settings = GalaxyManager.get().getSettings(c);
+        GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
 
         if (null == settings.getGalaxyURL())
         {
@@ -71,7 +73,7 @@ public class GalaxyServer
             throw new NotFoundException("Galaxy server URL is not configured. " + advice);
         }
 
-        GalaxyUserSettings userSettings = GalaxyManager.get().getUserSettings(c, user);
+        GalaxyUserSettings userSettings = GenotypingManager.get().getUserSettings(c, user);
 
         if (null == userSettings.getGalaxyKey())
             throw new NotFoundException("You must first configure a Galaxy web API key using the \"my settings\" link");

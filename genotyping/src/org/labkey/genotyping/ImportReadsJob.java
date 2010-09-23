@@ -92,7 +92,7 @@ public class ImportReadsJob extends PipelineJob
         if (false)
         {
         // TODO: add container filter
-        GalaxySettings settings = GalaxyManager.get().getSettings(getContainer());
+        GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
         TableInfo runs = GenotypingController.getTableInfo(settings.getRunsQuery(), getContainer(), getUser());
         @SuppressWarnings({"unchecked"}) Map<String, Object> map = Table.selectObject(runs, _run.getRun(), Map.class);
         Integer sampleLibrary = (Integer)map.get("run_sample_library");

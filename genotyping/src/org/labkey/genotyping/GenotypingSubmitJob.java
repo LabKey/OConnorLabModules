@@ -33,6 +33,7 @@ import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.api.writer.FastaWriter;
 import org.labkey.api.writer.ResultSetFastaGenerator;
+import org.labkey.genotyping.galaxy.GalaxyServer;
 
 import javax.servlet.ServletException;
 import java.io.File;
@@ -173,7 +174,7 @@ public class GenotypingSubmitJob extends PipelineJob
         props.put("url", GenotypingController.getWorkflowCompleteURL(getContainer(), _run.getRun(), _analysisDir).getURIString());
         props.put("dir", _analysisDir.getName());
         props.put("run", String.valueOf(_run));
-        File propXml = new File(_analysisDir, GalaxyManager.PROPERTIES_FILE_NAME);
+        File propXml = new File(_analysisDir, GenotypingManager.PROPERTIES_FILE_NAME);
         OutputStream os = new FileOutputStream(propXml);
         props.storeToXML(os, null);
         os.close();
@@ -183,10 +184,10 @@ public class GenotypingSubmitJob extends PipelineJob
     private List<Integer> writeSamples() throws SQLException, ServletException, IOException
     {
         info("Writing sample file");
-        GalaxySettings settings = GalaxyManager.get().getSettings(getContainer());
+        GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
         String samplesQuery = settings.getSamplesQuery();
 
-        String[] parts = samplesQuery.split(GalaxySettings.SEPARATOR);
+        String[] parts = samplesQuery.split(GenotypingFolderSettings.SEPARATOR);
         String schemaName = parts[0];
         String queryName = parts[1];
         String viewName = parts.length > 2 ? parts[2] : null;

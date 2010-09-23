@@ -22,25 +22,26 @@ import org.labkey.api.data.PropertyManager;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.security.User;
+import org.labkey.genotyping.galaxy.GalaxyUserSettings;
 
 import java.util.Map;
 
-public class GalaxyManager
+public class GenotypingManager
 {
-    private static final Logger LOG = Logger.getLogger(GalaxyManager.class);
-    private static final GalaxyManager _instance = new GalaxyManager();
+    private static final Logger LOG = Logger.getLogger(GenotypingManager.class);
+    private static final GenotypingManager _instance = new GenotypingManager();
 
     public static final String PROPERTIES_FILE_NAME = "properties.xml";
     public static final String SAMPLES_FILE_NAME = "samples.txt";
     public static final String READS_FILE_NAME = "reads.txt";
     public static final String MATCHES_FILE_NAME = "matches.txt";
 
-    private GalaxyManager()
+    private GenotypingManager()
     {
         // prevent external construction with a private default constructor
     }
 
-    public static GalaxyManager get()
+    public static GenotypingManager get()
     {
         return _instance;
     }
@@ -51,7 +52,7 @@ public class GalaxyManager
     private static final String RUNS_QUERY = "RunsQuery";
     private static final String SAMPLES_QUERY = "SamplesQuery";
 
-    public void saveSettings(Container c, GalaxySettings settings)
+    public void saveSettings(Container c, GenotypingFolderSettings settings)
     {
         PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(c.getId(), SYSTEM_CATEGORY, true);
         map.put(GALAXY_URL, settings.getGalaxyURL());
@@ -61,9 +62,9 @@ public class GalaxyManager
         PropertyManager.saveProperties(map);
     }
 
-    public GalaxySettings getSettings(final Container c)
+    public GenotypingFolderSettings getSettings(final Container c)
     {
-        return new GalaxySettings() {
+        return new GenotypingFolderSettings() {
             private final Map<String, String> map = PropertyManager.getProperties(c.getId(), SYSTEM_CATEGORY);
 
             @Override
@@ -117,7 +118,7 @@ public class GalaxyManager
 
     public GenotypingRun getRun(Container c, User user, int runId)
     {
-        GalaxySettings settings = GalaxyManager.get().getSettings(c);
+        GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
         TableInfo runs = GenotypingController.getTableInfo(settings.getRunsQuery(), c, user);
         GenotypingRun run = Table.selectObject(runs, runId, GenotypingRun.class);
 

@@ -65,6 +65,8 @@ import org.labkey.api.view.VBox;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartView;
+import org.labkey.genotyping.galaxy.GalaxyServer;
+import org.labkey.genotyping.galaxy.GalaxyUserSettings;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
@@ -151,8 +153,8 @@ public class GenotypingController extends SpringActionController
 
     private DataRegion getDataRegion()
     {
-        DbSchema schema = GenotypingSchema.getInstance().getSchema();
-        TableInfo tinfoMatches = schema.getTable("Matches");
+        GenotypingSchema gt = GenotypingSchema.getInstance();
+        TableInfo tinfoMatches = gt.getMatchesTable();
         List<ColumnInfo> columns = new ArrayList<ColumnInfo>();
         columns.addAll(tinfoMatches.getColumns("SampleId,Reads,Percent,AverageLength,PosReads,NegReads,PosExtReads,NegExtReads"));
 
@@ -243,7 +245,7 @@ public class GenotypingController extends SpringActionController
         {
             long startTime = System.currentTimeMillis();
 
-            GalaxySettings settings = GalaxyManager.get().getSettings(getContainer());
+            GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
             String sequenceSource = settings.getSequencesQuery();
 
             SimpleFilter viewFilter = getViewFilter(sequenceSource);
@@ -289,7 +291,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static class AdminForm extends ReturnUrlForm implements GalaxySettings, HasViewContext
+    public static class AdminForm extends ReturnUrlForm implements GenotypingFolderSettings, HasViewContext
     {
         private String _galaxyURL;
         private String _sequencesQuery;
@@ -300,7 +302,7 @@ public class GenotypingController extends SpringActionController
         public void setViewContext(ViewContext context)
         {
             Container c = context.getContainer();
-            GalaxySettings settings = GalaxyManager.get().getSettings(c);
+            GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
             _galaxyURL = settings.getGalaxyURL();
             _sequencesQuery = settings.getSequencesQuery();
             _runsQuery = settings.getRunsQuery();
@@ -370,7 +372,7 @@ public class GenotypingController extends SpringActionController
 
     public static SimpleFilter getViewFilter(String query, Container c, User user)
     {
-        String[] parts = query.split(GalaxySettings.SEPARATOR);
+        String[] parts = query.split(GenotypingFolderSettings.SEPARATOR);
         String schemaName = parts[0];
         String queryName = parts[1];
         String viewName = parts.length > 2 ? parts[2] : null;
@@ -414,7 +416,7 @@ public class GenotypingController extends SpringActionController
 
     public static UserSchema getUserSchema(String query, Container c, User user)
     {
-        String[] parts = query.split(GalaxySettings.SEPARATOR);
+        String[] parts = query.split(GenotypingFolderSettings.SEPARATOR);
         String schemaName = parts[0];
 
         return QueryService.get().getUserSchema(user, c, schemaName);
@@ -423,7 +425,7 @@ public class GenotypingController extends SpringActionController
 
     public static TableInfo getTableInfo(String query, Container c, User user)
     {
-        String[] parts = query.split(GalaxySettings.SEPARATOR);
+        String[] parts = query.split(GenotypingFolderSettings.SEPARATOR);
         String queryName = parts[1];
 
         UserSchema schema = getUserSchema(query, c, user);
@@ -467,17 +469,17 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(AdminForm form, boolean reshow, BindException errors) throws Exception
         {
-            GalaxySettings currentSettings = GalaxyManager.get().getSettings(getContainer());
+            GenotypingFolderSettings currentSettings = GenotypingManager.get().getSettings(getContainer());
             VBox vbox = new VBox();
 
             if (null != currentSettings.getSequencesQuery())
             {
-                WebPartView replaceSequences = new JspView("/org/labkey/galaxy/view/replaceSequences.jsp");
+                WebPartView replaceSequences = new JspView("/org/labkey/genotyping/view/replaceSequences.jsp");
                 replaceSequences.setTitle("Replace Sequences");
                 vbox.addView(replaceSequences);
             }
 
-            WebPartView configure = new JspView<AdminForm>("/org/labkey/galaxy/view/admin.jsp", form, errors);
+            WebPartView configure = new JspView<AdminForm>("/org/labkey/genotyping/view/admin.jsp", form, errors);
             configure.setTitle("Configuration");
             vbox.addView(configure);
 
@@ -487,7 +489,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public boolean handlePost(AdminForm form, BindException errors) throws Exception
         {
-            GalaxyManager.get().saveSettings(getContainer(), form);
+            GenotypingManager.get().saveSettings(getContainer(), form);
             return true;
         }
 
@@ -500,7 +502,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            return root.addChild("Galaxy Admin");
+            return root.addChild("Genotyping Admin");
         }
     }
 
@@ -514,7 +516,7 @@ public class GenotypingController extends SpringActionController
         {
             Container c = context.getContainer();
             User user = context.getUser();
-            GalaxyUserSettings settings = GalaxyManager.get().getUserSettings(c, user);
+            GalaxyUserSettings settings = GenotypingManager.get().getUserSettings(c, user);
             _galaxyKey = settings.getGalaxyKey();
         }
 
@@ -592,13 +594,13 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(MySettingsForm form, boolean reshow, BindException errors) throws Exception
         {
-            return new JspView<MySettingsForm>("/org/labkey/galaxy/view/mySettings.jsp", form, errors);
+            return new JspView<MySettingsForm>("/org/labkey/genotyping/view/mySettings.jsp", form, errors);
         }
 
         @Override
         public boolean handlePost(MySettingsForm form, BindException errors) throws Exception
         {
-            GalaxyManager.get().saveUserSettings(getContainer(), getUser(), form);
+            GenotypingManager.get().saveUserSettings(getContainer(), getUser(), form);
             return true;
         }
 
@@ -824,7 +826,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(SubmitToGalaxyForm form, boolean reshow, BindException errors) throws Exception
         {
-            GalaxySettings settings = GalaxyManager.get().getSettings(getContainer());
+            GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
             TableInfo runs = getTableInfo(settings.getRunsQuery());
             List<Integer> runNums = Arrays.asList(Table.executeArray(runs, "run_num", null, new Sort("-run_num"), Integer.class));
 
@@ -840,7 +842,7 @@ public class GenotypingController extends SpringActionController
                 });
             views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), "sequences", "dnasequences"));
 
-            return new JspView<SubmitToGalaxyBean>("/org/labkey/galaxy/view/submit.jsp", new SubmitToGalaxyBean(runNums, views, form.getReadsPath()), errors);
+            return new JspView<SubmitToGalaxyBean>("/org/labkey/genotyping/view/submit.jsp", new SubmitToGalaxyBean(runNums, views, form.getReadsPath()), errors);
         }
 
         @Override
@@ -853,7 +855,7 @@ public class GenotypingController extends SpringActionController
                 return false;
             }
 
-            GenotypingRun run = GalaxyManager.get().getRun(getContainer(), getUser(), form.getRun());
+            GenotypingRun run = GenotypingManager.get().getRun(getContainer(), getUser(), form.getRun());
             ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
             PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
             PipelineJob prepareRunJob = new ImportReadsJob(vbi, root, new File(form.getReadsPath()), run);
@@ -981,7 +983,7 @@ public class GenotypingController extends SpringActionController
             // Manual upload of results; pipeline provider posts to this action with properties.xml file.
             File matches = form.getValidatedSingleFile(getContainer());
             File pipelineDir = matches.getParentFile();
-            File properties = new File(pipelineDir, GalaxyManager.PROPERTIES_FILE_NAME);
+            File properties = new File(pipelineDir, GenotypingManager.PROPERTIES_FILE_NAME);
 
             // Load properties to determine the run.
             Properties props = new Properties();
