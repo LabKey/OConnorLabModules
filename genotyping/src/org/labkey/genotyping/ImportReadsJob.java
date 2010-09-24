@@ -145,7 +145,7 @@ public class ImportReadsJob extends PipelineJob
             columns.add(new ColumnDescriptor("run", Integer.class, _run.getRun()));
             loader.setColumns(columns.toArray(new ColumnDescriptor[columns.size()]));
 
-            TableInfo ti = GenotypingSchema.getInstance().getReadsTable();
+            TableInfo ti = GenotypingSchema.get().getReadsTable();
 
             // TODO: Just for testing
             Table.delete(ti, new SimpleFilter("run", _run.getRun()));

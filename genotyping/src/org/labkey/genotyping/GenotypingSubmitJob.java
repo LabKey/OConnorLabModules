@@ -132,7 +132,7 @@ public class GenotypingSubmitJob extends PipelineJob
 
     private void writeReads(List<Integer> mids) throws IOException, SQLException, ServletException
     {
-        TableInfo ti = GenotypingSchema.getInstance().getReadsTable();
+        TableInfo ti = GenotypingSchema.get().getReadsTable();
         SimpleFilter filter = new SimpleFilter("run", _run.getRun());
         filter.addInClause("mid", mids);
 
@@ -260,7 +260,7 @@ public class GenotypingSubmitJob extends PipelineJob
         SimpleFilter viewFilter = GenotypingController.getViewFilter(sequencesView);
 
         // TODO: add container filter
-        TableInfo ti = GenotypingSchema.getInstance().getSequencesTable();
+        TableInfo ti = GenotypingSchema.get().getSequencesTable();
         ResultSet rs = Table.select(ti, ti.getColumns("Uid,AlleleName,Sequence"), viewFilter, null);
 
         FastaWriter fw = new FastaWriter(new ResultSetFastaGenerator(rs) {

@@ -73,12 +73,12 @@ public class GenotypingModule extends DefaultModule
     @Override
     public Set<String> getSchemaNames()
     {
-        return Collections.singleton("galaxy");
+        return Collections.singleton(GenotypingSchema.get().getSchemaName());
     }
 
     @Override
     public Set<DbSchema> getSchemasToTest()
     {
-        return PageFlowUtil.set(GenotypingSchema.getInstance().getSchema());
+        return PageFlowUtil.set(GenotypingSchema.get().getSchema());
     }
 }

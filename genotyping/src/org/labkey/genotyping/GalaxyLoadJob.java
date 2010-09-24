@@ -96,7 +96,7 @@ public class GalaxyLoadJob extends PipelineJob
             File sourceMatches = new File(_dir, GenotypingManager.MATCHES_FILE_NAME);
             File sourceReads = new File(_dir, GenotypingManager.READS_FILE_NAME);
 
-            DbSchema schema = GenotypingSchema.getInstance().getSchema();
+            DbSchema schema = GenotypingSchema.get().getSchema();
 
             Table.TempTableInfo samples = null;
             Table.TempTableInfo matches = null;
@@ -152,7 +152,7 @@ public class GalaxyLoadJob extends PipelineJob
                             row.put("PosExtReads", rs.getInt("pos_ext_reads"));
                             row.put("NegExtReads", rs.getInt("neg_ext_reads"));
 
-                            Map<String, Object> matchOut = Table.insert(getUser(), GenotypingSchema.getInstance().getMatchesTable(), row);
+                            Map<String, Object> matchOut = Table.insert(getUser(), GenotypingSchema.get().getMatchesTable(), row);
 
                             String[] alleles = allelesString.split(",");
 
@@ -167,13 +167,13 @@ public class GalaxyLoadJob extends PipelineJob
                                     if (null == alleleId)
                                     {
                                         singleAllele.put("allele", allele);
-                                        Map<String, Object> alleleOut = Table.insert(getUser(), GenotypingSchema.getInstance().getAllelesTable(), singleAllele);
+                                        Map<String, Object> alleleOut = Table.insert(getUser(), GenotypingSchema.get().getAllelesTable(), singleAllele);
                                         alleleId = (Integer)alleleOut.get("RowId");
                                         alleleToId.put(allele, alleleId);
                                     }
 
                                     singleJunction.put("AlleleId", alleleId);
-                                    Table.insert(getUser(), GenotypingSchema.getInstance().getJunctionTable(), singleJunction);
+                                    Table.insert(getUser(), GenotypingSchema.get().getJunctionTable(), singleJunction);
                                 }
                             }
                         }
@@ -187,7 +187,7 @@ public class GalaxyLoadJob extends PipelineJob
                 setStatus("IMPORTING UNMATCHED SEQUENCES");
                 info("Importing unmatched sequences");
                 SQLFragment sql = new SQLFragment("INSERT INTO ");
-                sql.append(GenotypingSchema.getInstance().getReadsTable());
+                sql.append(GenotypingSchema.get().getReadsTable());
                 sql.append(" SELECT mid, sequence FROM ");
                 sql.append(reads);
                 sql.append(" reads LEFT OUTER JOIN ");

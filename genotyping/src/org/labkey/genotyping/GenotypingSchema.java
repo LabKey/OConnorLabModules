@@ -24,7 +24,7 @@ public class GenotypingSchema
 {
     private static final GenotypingSchema _instance = new GenotypingSchema();
 
-    public static GenotypingSchema getInstance()
+    public static GenotypingSchema get()
     {
         return _instance;
     }
@@ -33,12 +33,17 @@ public class GenotypingSchema
     {
         // private contructor to prevent instantiation from
         // outside this class: this singleton should only be
-        // accessed via org.labkey.galaxy.GalaxySchema.getInstance()
+        // accessed via org.labkey.genotyping.GenotypingSchema.getInstance()
+    }
+
+    public String getSchemaName()
+    {
+        return "genotyping";
     }
 
     public DbSchema getSchema()
     {
-        return DbSchema.get("genotyping");
+        return DbSchema.get(getSchemaName());
     }
 
     public SqlDialect getSqlDialect()

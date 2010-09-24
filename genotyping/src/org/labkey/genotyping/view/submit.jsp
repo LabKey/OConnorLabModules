@@ -33,7 +33,7 @@
             }
         %></select></td></tr>
         <tr><td>&nbsp;</td></tr>
-        <tr><td colspan="2"><%=generateButton("Add New MHC Analysis", "", "addNewAnalysis();return false;")%> <%=PageFlowUtil.generateButton("Delete Last MHC Analysis", "", "", "id=\"delete\"")%></td></tr>
+        <tr><td colspan="2"><%=generateButton("Add New MHC Analysis", "", "addNewAnalysis();return false;")%> <%=PageFlowUtil.generateButton("Delete Last MHC Analysis", "#", "return deleteLastAnalysis();", "id=\"delete\"")%></td></tr>
         <tr><td>
             <input type="hidden" name="readyToSubmit" value="1">
             <input type="hidden" name="readsPath" value="<%=h(bean.getReadsPath())%>">
@@ -42,7 +42,8 @@
     </table>
 </form>
 <script type="text/javascript">
-    var analysisCount = -1;
+    var rowsPerAnalysis = 2;
+    var analysisCount = 0;
 
     updateDeleteButton();
 
@@ -51,11 +52,11 @@
         var table = document.getElementById('analysesTable');
         analysisCount++;
 
-        var newRow = table.insertRow(3 + analysisCount * 2);
+        var newRow = table.insertRow(1 + analysisCount * rowsPerAnalysis);
         var titleCell = newRow.insertCell(0);
-        titleCell.innerHTML = 'MHC Analysis #' + (analysisCount + 1);
+        titleCell.innerHTML = 'MHC Analysis #' + analysisCount;
 
-        newRow = table.insertRow(4 + analysisCount * 2);
+        newRow = table.insertRow(2 + analysisCount * rowsPerAnalysis);
         newRow.insertCell(0).innerHTML = 'Reference Sequences:';
         newRow.insertCell(1).innerHTML = '<select name="sequencesViews"><%
             for (CustomView view : bean.getSequencesViews())
@@ -64,42 +65,34 @@
             %><option><%=h(null == name ? "[all]" : name)%><\/option><%
             }
         %><\/select>';
-        table.insertRow(5 + analysisCount * 2).insertCell(0).innertHTML = '&nbsp;';
+        table.insertRow(3 + analysisCount * rowsPerAnalysis).insertCell(0).innertHTML = '&nbsp;';
 
         updateDeleteButton();
     }
 
     function deleteLastAnalysis()
     {
-        var table = document.getElementById('analysesTable');
-        table.deleteRow(3 + analysisCount * 2);
-        table.deleteRow(3 + analysisCount * 2);
-        table.deleteRow(3 + analysisCount * 2);
-        analysisCount--;
-        updateDeleteButton();
+        if (analysisCount > 0)
+        {
+            var table = document.getElementById('analysesTable');
+            table.deleteRow(1 + analysisCount * rowsPerAnalysis);
+            table.deleteRow(1 + analysisCount * rowsPerAnalysis);
+            table.deleteRow(1 + analysisCount * rowsPerAnalysis);
+            analysisCount--;
+            updateDeleteButton();
+        }
+
+        return false;
     }
 
+    // Just gray the button; deleteLastAnalysis() will check analysisCount > 0 before deleting.
     function updateDeleteButton()
     {
         var btn = document.getElementById('delete');
 
-        if (analysisCount < 0)
-            disable(btn);
+        if (analysisCount > 0)
+            btn.className = "labkey-button";
         else
-            enable(btn);
-    }
-
-    function enable(btn)
-    {
-        btn.className = "labkey-button";
-        btn.href = "javascript:deleteLastAnalysis();";
-        btn.disabled = false;
-    }
-
-    function disable(btn)
-    {
-        btn.className = "labkey-disabled-button";
-        btn.href = "javascript:return false;";
-        btn.disabled = true;
+            btn.className = "labkey-disabled-button";
     }
 </script>

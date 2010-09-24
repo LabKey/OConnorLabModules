@@ -153,7 +153,7 @@ public class GenotypingController extends SpringActionController
 
     private DataRegion getDataRegion()
     {
-        GenotypingSchema gt = GenotypingSchema.getInstance();
+        GenotypingSchema gt = GenotypingSchema.get();
         TableInfo tinfoMatches = gt.getMatchesTable();
         List<ColumnInfo> columns = new ArrayList<ColumnInfo>();
         columns.addAll(tinfoMatches.getColumns("SampleId,Reads,Percent,AverageLength,PosReads,NegReads,PosExtReads,NegExtReads"));
@@ -260,7 +260,7 @@ public class GenotypingController extends SpringActionController
                 ResultSetIterator iter = ResultSetIterator.get(rs);
 
                 // To be safe, we wait until successful select from the external source before deleting exiting sequences.
-                TableInfo destination = GenotypingSchema.getInstance().getSequencesTable();
+                TableInfo destination = GenotypingSchema.get().getSequencesTable();
                 Table.execute(destination.getSchema(), "DELETE FROM " + destination, null);
 
                 while (iter.hasNext())
