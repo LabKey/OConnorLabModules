@@ -20,7 +20,7 @@
         <ns:fk>
           <ns:fkDbSchema>genotyping</ns:fkDbSchema>
           <ns:fkTable>AllelesJunction</ns:fkTable>
-          <ns:fkColumnName>RowId</ns:fkColumnName>
+          <ns:fkColumnName>MatchId</ns:fkColumnName>
           <ns:fkMultiValued>junction</ns:fkMultiValued>
           <ns:fkJunctionLookup>SequenceId</ns:fkJunctionLookup>
         </ns:fk>

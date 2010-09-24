@@ -72,13 +72,13 @@
     });
 </script>
 
-<form action="admin.post" method="post">
+<form <%=formAction(GenotypingController.AdminAction.class, Method.Post)%>>
     <table>
         <%=formatMissedErrorsInTable("form", 3)%>
         <tr><td><b>Configure Galaxy</b></td></tr>
         <tr><td>Galaxy server home page URL</td><td><input size="40" name="galaxyURL" value="<%=h(form.getGalaxyURL())%>"></td></tr>
         <tr><td>&nbsp;</td></tr>
-        <tr><td><b>Configure Queries</b></td></tr>
+        <tr><td><b>Configure Genotyping Queries</b></td></tr>
         <tr>
             <td>External source of DNA reference sequences&nbsp;&nbsp;</td>
             <td><div id="sequencesQueryDiv"></div></td>

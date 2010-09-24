@@ -27,6 +27,7 @@ import org.labkey.api.query.CustomView;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.UserSchema;
+import org.labkey.api.settings.AppProps;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.ActionURL;
@@ -124,6 +125,7 @@ public class GenotypingSubmitJob extends PipelineJob
         setStatus(COMPLETE_STATUS);
     }
 
+
     private void updateAnalysisRecord()
     {
         //To change body of created methods use File | Settings | File Templates.
@@ -174,6 +176,12 @@ public class GenotypingSubmitJob extends PipelineJob
         props.put("url", GenotypingController.getWorkflowCompleteURL(getContainer(), _run.getRun(), _analysisDir).getURIString());
         props.put("dir", _analysisDir.getName());
         props.put("run", String.valueOf(_run));
+
+        // Tell Galaxy "workflow complete" task to write a file when the workflow is done.  In many dev mode configurations
+        // the Galaxy server can't communicate via HTTP with the LabKey server, so we'll watch for this file as a backup plan.
+        if (AppProps.getInstance().isDevMode())
+            props.put("completeFilename", "galaxy_complete.txt");
+
         File propXml = new File(_analysisDir, GenotypingManager.PROPERTIES_FILE_NAME);
         OutputStream os = new FileOutputStream(propXml);
         props.storeToXML(os, null);

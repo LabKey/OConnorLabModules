@@ -19,6 +19,8 @@ genotyping/src/org/labkey/genotyping/GenotypingSchema.java -text
 genotyping/src/org/labkey/genotyping/GenotypingSubmitJob.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsJob.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsPipelineProvider.java -text
+genotyping/src/org/labkey/genotyping/galaxy/GalaxyFolderSettings.java -text
+genotyping/src/org/labkey/genotyping/galaxy/GalaxyManager.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyServer.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyUserSettings.java -text
 genotyping/src/org/labkey/genotyping/view/admin.jsp -text

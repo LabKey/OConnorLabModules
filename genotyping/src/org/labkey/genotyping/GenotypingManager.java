@@ -22,7 +22,6 @@ import org.labkey.api.data.PropertyManager;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.security.User;
-import org.labkey.genotyping.galaxy.GalaxyUserSettings;
 
 import java.util.Map;
 
@@ -46,16 +45,14 @@ public class GenotypingManager
         return _instance;
     }
 
-    private static final String SYSTEM_CATEGORY = "GalaxySettings";
-    private static final String GALAXY_URL = "GalaxyURL";
+    private static final String FOLDER_CATEGORY = "GenotypingSettings";
     private static final String REFERENCE_SEQUENCES_QUERY = "SequencesQuery";
     private static final String RUNS_QUERY = "RunsQuery";
     private static final String SAMPLES_QUERY = "SamplesQuery";
 
     public void saveSettings(Container c, GenotypingFolderSettings settings)
     {
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(c.getId(), SYSTEM_CATEGORY, true);
-        map.put(GALAXY_URL, settings.getGalaxyURL());
+        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(c.getId(), FOLDER_CATEGORY, true);
         map.put(REFERENCE_SEQUENCES_QUERY, settings.getSequencesQuery());
         map.put(RUNS_QUERY, settings.getRunsQuery());
         map.put(SAMPLES_QUERY, settings.getSamplesQuery());
@@ -65,13 +62,7 @@ public class GenotypingManager
     public GenotypingFolderSettings getSettings(final Container c)
     {
         return new GenotypingFolderSettings() {
-            private final Map<String, String> map = PropertyManager.getProperties(c.getId(), SYSTEM_CATEGORY);
-
-            @Override
-            public String getGalaxyURL()
-            {
-                return map.get(GALAXY_URL);
-            }
+            private final Map<String, String> map = PropertyManager.getProperties(c.getId(), FOLDER_CATEGORY);
 
             @Override
             public String getSequencesQuery()
@@ -93,35 +84,10 @@ public class GenotypingManager
         };
     }
 
-    private static final String USER_CATEGORY = "GalaxyUserSettings";
-    private static final String GALAXY_KEY = "GalaxyKey";
-
-    public void saveUserSettings(Container c, User user, GalaxyUserSettings userSettings)
-    {
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(user.getUserId(), c.getId(), USER_CATEGORY, true);
-        map.put(GALAXY_KEY, userSettings.getGalaxyKey());
-        PropertyManager.saveProperties(map);
-    }
-
-    public GalaxyUserSettings getUserSettings(final Container c, final User user)
-    {
-        return new GalaxyUserSettings() {
-            private final Map<String, String> map = PropertyManager.getProperties(user.getUserId(), c.getId(), USER_CATEGORY);
-
-            @Override
-            public String getGalaxyKey()
-            {
-                return map.get(GALAXY_KEY);
-            }
-        };
-    }
-
     public GenotypingRun getRun(Container c, User user, int runId)
     {
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
         TableInfo runs = GenotypingController.getTableInfo(settings.getRunsQuery(), c, user);
-        GenotypingRun run = Table.selectObject(runs, runId, GenotypingRun.class);
-
-        return run;
+        return Table.selectObject(runs, runId, GenotypingRun.class);
     }
 }

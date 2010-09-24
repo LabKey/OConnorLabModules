@@ -24,8 +24,6 @@ public interface GenotypingFolderSettings
 {
     String SEPARATOR = "~";
 
-    String getGalaxyURL();
-
     String getSequencesQuery();
 
     String getRunsQuery();
