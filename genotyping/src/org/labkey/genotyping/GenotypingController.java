@@ -31,8 +31,6 @@ import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DisplayColumn;
 import org.labkey.api.data.LookupColumn;
 import org.labkey.api.data.RenderContext;
-import org.labkey.api.data.ResultSetIterator;
-import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.TSVGridWriter;
 import org.labkey.api.data.Table;
@@ -46,7 +44,6 @@ import org.labkey.api.query.CustomView;
 import org.labkey.api.query.DetailsURL;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryService;
-import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermissionClass;
 import org.labkey.api.security.User;
@@ -54,7 +51,6 @@ import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.PageFlowUtil;
-import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.GridView;
@@ -69,6 +65,7 @@ import org.labkey.genotyping.galaxy.GalaxyFolderSettings;
 import org.labkey.genotyping.galaxy.GalaxyManager;
 import org.labkey.genotyping.galaxy.GalaxyServer;
 import org.labkey.genotyping.galaxy.GalaxyUserSettings;
+import org.labkey.genotyping.sequences.SequenceManager;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
@@ -87,7 +84,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -240,52 +236,13 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermissionClass(AdminPermission.class)
-    public class ReplaceSequencesAction extends SimpleRedirectAction
+    public class LoadSequencesAction extends SimpleRedirectAction
     {
         @Override
         public ActionURL getRedirectURL(Object o) throws Exception
         {
             long startTime = System.currentTimeMillis();
-
-            GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
-            String sequenceSource = settings.getSequencesQuery();
-
-            SimpleFilter viewFilter = getViewFilter(sequenceSource);
-            viewFilter.addCondition("file_active", 1);
-            TableInfo source = getTableInfo(sequenceSource);
-
-            ResultSet rs = null;
-
-            try
-            {
-                rs = Table.select(source, Table.ALL_COLUMNS, viewFilter, null);
-                ResultSetIterator iter = ResultSetIterator.get(rs);
-
-                // To be safe, we wait until successful select from the external source before deleting exiting sequences.
-                TableInfo destination = GenotypingSchema.get().getSequencesTable();
-                Table.execute(destination.getSchema(), "DELETE FROM " + destination, null);
-
-                while (iter.hasNext())
-                {
-                    Map<String, Object> map = iter.next();
-                    Map<String, Object> inMap = new HashMap<String, Object>(map.size() * 2);
-
-                    // TODO: ResultSetIterator should have a way to map column names
-                    for (Map.Entry<String, Object> entry : map.entrySet())
-                    {
-                        String key = entry.getKey().replaceAll("_", "");
-                        inMap.put(key, entry.getValue());
-                    }
-
-                    inMap.put("container", getContainer());
-                    Table.insert(getUser(), destination, inMap);
-                }
-            }
-            finally
-            {
-                ResultSetUtil.close(rs);
-            }
-
+            SequenceManager.get().loadSequences(getContainer(), getUser());
             LOG.info(DateUtil.formatDuration(System.currentTimeMillis() - startTime) + " to load");
 
             return getViewURL();
@@ -369,75 +326,6 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    private SimpleFilter getViewFilter(String query)
-    {
-        return getViewFilter(query, getContainer(), getUser());
-    }
-
-
-    public static SimpleFilter getViewFilter(String query, Container c, User user)
-    {
-        String[] parts = query.split(GenotypingFolderSettings.SEPARATOR);
-        String schemaName = parts[0];
-        String queryName = parts[1];
-        String viewName = parts.length > 2 ? parts[2] : null;
-
-        if (viewName != null)
-        {
-            CustomView baseView = QueryService.get().getCustomView(user, c, schemaName, queryName, viewName);
-
-            if (baseView != null)
-            {
-                return getViewFilter(baseView);
-            }
-            else
-            {
-                throw new IllegalStateException("Could not find view " + viewName + " on query " + queryName + " in schema " + schemaName + ".");
-            }
-        }
-
-        return new SimpleFilter();
-    }
-
-
-    public static SimpleFilter getViewFilter(CustomView baseView)
-    {
-        SimpleFilter viewFilter = new SimpleFilter(); // TODO: add container filter
-
-        // copy our saved view filter into our SimpleFilter via an ActionURL (yuck...)
-        ActionURL url = new ActionURL();
-        baseView.applyFilterAndSortToURL(url, "mockDataRegion");
-        viewFilter.addUrlFilters(url, "mockDataRegion");
-
-        return viewFilter;
-    }
-
-
-    public TableInfo getTableInfo(String query)
-    {
-        return getTableInfo(query, getContainer(), getUser());
-    }
-
-
-    public static UserSchema getUserSchema(String query, Container c, User user)
-    {
-        String[] parts = query.split(GenotypingFolderSettings.SEPARATOR);
-        String schemaName = parts[0];
-
-        return QueryService.get().getUserSchema(user, c, schemaName);
-    }
-
-
-    public static TableInfo getTableInfo(String query, Container c, User user)
-    {
-        String[] parts = query.split(GenotypingFolderSettings.SEPARATOR);
-        String queryName = parts[1];
-
-        UserSchema schema = getUserSchema(query, c, user);
-        return schema.getTable(queryName);
-    }
-
-
     private ActionURL getAdminURL()
     {
         ActionURL url = new ActionURL(AdminAction.class, getContainer());
@@ -479,9 +367,9 @@ public class GenotypingController extends SpringActionController
 
             if (null != currentSettings.getSequencesQuery())
             {
-                WebPartView replaceSequences = new JspView("/org/labkey/genotyping/view/replaceSequences.jsp");
-                replaceSequences.setTitle("Replace Sequences");
-                vbox.addView(replaceSequences);
+                WebPartView loadSequences = new JspView("/org/labkey/genotyping/view/loadSequences.jsp");
+                loadSequences.setTitle("Load Reference Sequences");
+                vbox.addView(loadSequences);
             }
 
             WebPartView configure = new JspView<AdminForm>("/org/labkey/genotyping/view/admin.jsp", form, errors);
@@ -834,7 +722,7 @@ public class GenotypingController extends SpringActionController
         public ModelAndView getView(SubmitToGalaxyForm form, boolean reshow, BindException errors) throws Exception
         {
             GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
-            TableInfo runs = getTableInfo(settings.getRunsQuery());
+            TableInfo runs = new QueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo();
             List<Integer> runNums = Arrays.asList(Table.executeArray(runs, "run_num", null, new Sort("-run_num"), Integer.class));
 
             Set<CustomView> views = new TreeSet<CustomView>(new Comparator<CustomView>() {
@@ -966,26 +854,10 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermissionClass(AdminPermission.class)
-    public class LoadAction extends FormViewAction<PipelinePathForm>
+    public class LoadAction extends SimpleRedirectAction<PipelinePathForm>
     {
-        public NavTree appendNavTrail(NavTree root)
-        {
-            return root;
-        }
-
         @Override
-        public void validateCommand(PipelinePathForm form, Errors errors)
-        {
-        }
-
-        @Override
-        public ModelAndView getView(PipelinePathForm form, boolean reshow, BindException errors) throws Exception
-        {
-            return null;
-        }
-
-        @Override
-        public boolean handlePost(PipelinePathForm form, BindException errors) throws Exception
+        public ActionURL getRedirectURL(PipelinePathForm form) throws Exception
         {
             // Manual upload of results; pipeline provider posts to this action with properties.xml file.
             File matches = form.getValidatedSingleFile(getContainer());
@@ -1002,12 +874,6 @@ public class GenotypingController extends SpringActionController
 
             submitLoadJob(run, properties.getParentFile());
 
-            return true;
-        }
-
-        @Override
-        public URLHelper getSuccessURL(PipelinePathForm form)
-        {
             return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
         }
     }
@@ -1017,7 +883,7 @@ public class GenotypingController extends SpringActionController
     {
         ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
         PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
-        PipelineJob job = new GalaxyLoadJob(vbi, root, pipelineDir, run);
+        PipelineJob job = new ImportMatchesJob(vbi, root, pipelineDir, run);
         PipelineService.get().queueJob(job);
     }
 }

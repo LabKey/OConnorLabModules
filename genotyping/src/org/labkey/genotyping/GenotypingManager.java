@@ -20,7 +20,6 @@ import org.apache.log4j.Logger;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
 import org.labkey.api.data.Table;
-import org.labkey.api.data.TableInfo;
 import org.labkey.api.security.User;
 
 import java.util.Map;
@@ -34,6 +33,7 @@ public class GenotypingManager
     public static final String SAMPLES_FILE_NAME = "samples.txt";
     public static final String READS_FILE_NAME = "reads.txt";
     public static final String MATCHES_FILE_NAME = "matches.txt";
+    public static final String SEQUENCES_FILE_NAME = "sequences.fasta";
 
     private GenotypingManager()
     {
@@ -87,7 +87,7 @@ public class GenotypingManager
     public GenotypingRun getRun(Container c, User user, int runId)
     {
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
-        TableInfo runs = GenotypingController.getTableInfo(settings.getRunsQuery(), c, user);
-        return Table.selectObject(runs, runId, GenotypingRun.class);
+        QueryHelper qHelper = new QueryHelper(c, user, settings.getRunsQuery());
+        return Table.selectObject(qHelper.getTableInfo(), runId, GenotypingRun.class);
     }
 }

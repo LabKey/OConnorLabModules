@@ -108,7 +108,8 @@ public class ImportReadsJob extends PipelineJob
         {
         // TODO: add container filter
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
-        TableInfo runs = GenotypingController.getTableInfo(settings.getRunsQuery(), getContainer(), getUser());
+        QueryHelper qHelper = new QueryHelper(getContainer(), getUser(), settings.getRunsQuery());
+        TableInfo runs = qHelper.getTableInfo();
         @SuppressWarnings({"unchecked"}) Map<String, Object> map = Table.selectObject(runs, _run.getRun(), Map.class);
         Integer sampleLibrary = (Integer)map.get("run_sample_library");
         if (null == sampleLibrary)
@@ -148,7 +149,7 @@ public class ImportReadsJob extends PipelineJob
             TableInfo ti = GenotypingSchema.get().getReadsTable();
 
             // TODO: Just for testing
-            Table.delete(ti, new SimpleFilter("run", _run.getRun()));
+            Table.delete(ti, new SimpleFilter("Run", _run.getRun()));
 
             scope = ti.getSchema().getScope();
             scope.beginTransaction();
@@ -161,7 +162,11 @@ public class ImportReadsJob extends PipelineJob
                 rowCount++;
 
                 if (0 == rowCount % 10000)
-                    info(Formats.commaf0.format(rowCount) + " reads imported");
+                {
+                    String formattedCount = Formats.commaf0.format(rowCount);
+                    info(formattedCount + " reads imported");
+                    setStatus(formattedCount + " READS");
+                }
             }
 
             scope.commitTransaction();

@@ -30,11 +30,11 @@ import java.io.FileFilter;
  * Date: Sep 16, 2010
  * Time: 10:45:54 PM
  */
-public class GalaxyLoadPipelineProvider extends PipelineProvider
+public class ImportMatchesPipelineProvider extends PipelineProvider
 {
-    public GalaxyLoadPipelineProvider(Module owningModule)
+    public ImportMatchesPipelineProvider(Module owningModule)
     {
-        super("Galaxy Load", owningModule);
+        super("Import Matches", owningModule);
         setShowActionsIfModuleInactive(true);     // TODO: Make galaxy "active"
     }
 
@@ -48,7 +48,7 @@ public class GalaxyLoadPipelineProvider extends PipelineProvider
         File[] files = directory.listFiles(new ResultsFilter());
 
         String actionId = createActionId(GenotypingController.LoadAction.class, null);
-        addAction(actionId, GenotypingController.LoadAction.class, "Load Galaxy Results", directory, files, true, false, includeAll);
+        addAction(actionId, GenotypingController.LoadAction.class, "Import Matches", directory, files, true, false, includeAll);
     }
 
     private static class ResultsFilter implements FileFilter

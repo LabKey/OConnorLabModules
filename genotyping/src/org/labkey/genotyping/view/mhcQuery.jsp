@@ -17,10 +17,10 @@
 %>
 <%@ page import="org.labkey.api.data.SQLFragment" %>
 <%@ page import="org.labkey.api.data.SqlDialect" %>
-<%@ page import="org.labkey.genotyping.GalaxyLoadJob" %>
+<%@ page import="org.labkey.genotyping.ImportMatchesJob" %>
 <%@ page extends="org.labkey.api.jsp.JspContext" %>
 <%
-    GalaxyLoadJob.QueryContext ctx = (GalaxyLoadJob.QueryContext)getModelBean();
+    ImportMatchesJob.QueryContext ctx = (ImportMatchesJob.QueryContext)getModelBean();
     SqlDialect dialect = ctx.schema.getSqlDialect();
 %>
 SELECT  sample,

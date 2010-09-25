@@ -44,8 +44,6 @@ CREATE TABLE genotyping.AllelesJunction
 
 CREATE INDEX IX_AllelesJunction ON genotyping.AllelesJunction(MatchId);
 
--- TODO: Add FK for MatchId -> Matches?
-
 -- Junction table that links each row of Matches to one or more rows in Reads table
 CREATE TABLE genotyping.ReadsJunction
 (
@@ -53,7 +51,9 @@ CREATE TABLE genotyping.ReadsJunction
     ReadId INT NOT NULL
 );
 
-CREATE INDEX IX_ReadsJunction ON genotyping.ReadsJunction(MatchId);
+-- TODO: Replace these with FKs?
+CREATE INDEX IX_ReadsJunctionMatchId ON genotyping.ReadsJunction(MatchId);
+CREATE INDEX IX_ReadsJunctionReadId ON genotyping.ReadsJunction(ReadId);
 
 CREATE TABLE genotyping.Dictionaries
 (
@@ -106,7 +106,9 @@ CREATE TABLE genotyping.Reads
     Name VARCHAR(20) NOT NULL,
     Mid INT NULL,    -- NULL == Mid could not be isolated from sequence
     Sequence VARCHAR(8000) NOT NULL,
-    Quality VARCHAR(8000) NOT NULL
+    Quality VARCHAR(8000) NOT NULL,
+
+    CONSTRAINT PK_Reads PRIMARY KEY (RowId)
 );
 
--- TODO: Add run/analysis run, index
+-- TODO: Add run/analysis run, indexes

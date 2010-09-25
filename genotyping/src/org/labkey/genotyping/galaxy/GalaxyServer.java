@@ -65,7 +65,7 @@ public class GalaxyServer
     // Throws NotFoundException if either galaxy URL (admin responsibility) or web API key (user responsibility) isn't configured.
     public static GalaxyServer get(Container c, User user)
     {
-        GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
+        GalaxyFolderSettings settings = GalaxyManager.get().getSettings(c);
 
         if (null == settings.getGalaxyURL())
         {
@@ -73,7 +73,7 @@ public class GalaxyServer
             throw new NotFoundException("Galaxy server URL is not configured. " + advice);
         }
 
-        GalaxyUserSettings userSettings = GenotypingManager.get().getUserSettings(c, user);
+        GalaxyUserSettings userSettings = GalaxyManager.get().getUserSettings(c, user);
 
         if (null == userSettings.getGalaxyKey())
             throw new NotFoundException("You must first configure a Galaxy web API key using the \"my settings\" link");

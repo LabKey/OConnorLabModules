@@ -1,4 +1,3 @@
-<%
 /*
  * Copyright (c) 2010 LabKey Corporation
  *
@@ -14,11 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-%>
-<%@ page extends="org.labkey.api.jsp.JspBase" %>
-<form action="replaceSequences.post" method="post">
-    <table>
-        <tr><td>This will replace all your sequences.</td></tr>
-        <tr><td><%=generateSubmitButton("Replace Sequences")%></td></tr>
-    </table>
-</form>
+package org.labkey.genotyping.sequences;
+
+/**
+ * User: adam
+ * Date: Aug 13, 2010
+ * Time: 9:47:00 AM
+ */
+public class Allele
+{
+    private final String _name;
+    private final byte[] _sequence;
+
+    public Allele(String header, byte[] body)
+    {
+        _name = header;
+        _sequence = body;
+    }
+
+    @Override
+    public String toString()
+    {
+        return _name + "\t" + new String(_sequence);
+    }
+}

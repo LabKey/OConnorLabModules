@@ -19,12 +19,7 @@ package org.labkey.genotyping.galaxy;
 import org.apache.log4j.Logger;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
-import org.labkey.api.data.Table;
-import org.labkey.api.data.TableInfo;
 import org.labkey.api.security.User;
-import org.labkey.genotyping.GenotypingController;
-import org.labkey.genotyping.GenotypingFolderSettings;
-import org.labkey.genotyping.GenotypingRun;
 
 import java.util.Map;
 

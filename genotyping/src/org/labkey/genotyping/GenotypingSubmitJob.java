@@ -15,7 +15,6 @@
  */
 package org.labkey.genotyping;
 
-import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TSVWriter;
@@ -23,18 +22,13 @@ import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
-import org.labkey.api.query.CustomView;
-import org.labkey.api.query.FieldKey;
-import org.labkey.api.query.QueryService;
-import org.labkey.api.query.UserSchema;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
-import org.labkey.api.writer.FastaWriter;
-import org.labkey.api.writer.ResultSetFastaGenerator;
 import org.labkey.genotyping.galaxy.GalaxyServer;
+import org.labkey.genotyping.sequences.SequenceManager;
 
 import javax.servlet.ServletException;
 import java.io.File;
@@ -43,13 +37,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * User: adam
@@ -138,14 +128,14 @@ public class GenotypingSubmitJob extends PipelineJob
         SimpleFilter filter = new SimpleFilter("run", _run.getRun());
         filter.addInClause("mid", mids);
 
-        final ResultSet rs = Table.select(ti, ti.getColumns("readname,mid,sequence"), filter, null);
+        final ResultSet rs = Table.select(ti, ti.getColumns("name,mid,sequence"), filter, null);
 
         // Need a custom writer since TSVGridWriter does not work in background threads
         TSVWriter writer = new TSVWriter() {
             @Override
             protected void write()
             {
-                _pw.println("readname\tmid\tsequence");
+                _pw.println("name\tmid\tsequence");
 
                 try
                 {
@@ -193,16 +183,10 @@ public class GenotypingSubmitJob extends PipelineJob
     {
         info("Writing sample file");
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
-        String samplesQuery = settings.getSamplesQuery();
-
-        String[] parts = samplesQuery.split(GenotypingFolderSettings.SEPARATOR);
-        String schemaName = parts[0];
-        String queryName = parts[1];
-        String viewName = parts.length > 2 ? parts[2] : null;
-
+        QueryHelper qHelper = new QueryHelper(getContainer(), getUser(), settings.getSamplesQuery());
         SimpleFilter extraFilter = new SimpleFilter("library_number", _run.getSampleLibrary());
 
-        final ResultSet rs = select(schemaName, queryName, viewName, extraFilter);
+        final ResultSet rs = qHelper.select(extraFilter);
         final List<Integer> mids = new LinkedList<Integer>();
 
         // Need a custom writer since TSVGridWriter does not work in background threads
@@ -238,54 +222,11 @@ public class GenotypingSubmitJob extends PipelineJob
     }
 
 
-    // TODO: Add support for filter & sort, move to QueryService
-    private ResultSet select(String schemaName, String queryName, String viewName, SimpleFilter extraFilter) throws SQLException
-    {
-        QueryService qs = QueryService.get();
-        UserSchema schema = qs.getUserSchema(getUser(), getContainer(), schemaName);
-        CustomView view = qs.getCustomView(getUser(), getContainer(), schemaName, queryName, viewName);
-        TableInfo ti = schema.getTable(queryName);
-
-        Map<FieldKey, ColumnInfo> map = qs.getColumns(ti, view.getColumns());
-        Set<FieldKey> fieldKeys = new HashSet<FieldKey>();
-
-        for (ColumnInfo col : map.values())
-        {
-            col.getRenderer().addQueryFieldKeys(fieldKeys);
-        }
-
-        map = qs.getColumns(ti, fieldKeys);
-        Collection<ColumnInfo> cols = map.values();
-
-        return qs.select(ti, cols, extraFilter, null);
-    }
-
-
     private void writeFasta() throws SQLException, IOException
     {
         info("Writing FASTA file");
-        CustomView sequencesView = QueryService.get().getCustomView(getUser(), getContainer(), "sequences", "dnasequences", _sequencesViewName);
-        SimpleFilter viewFilter = GenotypingController.getViewFilter(sequencesView);
-
-        // TODO: add container filter
-        TableInfo ti = GenotypingSchema.get().getSequencesTable();
-        ResultSet rs = Table.select(ti, ti.getColumns("Uid,AlleleName,Sequence"), viewFilter, null);
-
-        FastaWriter fw = new FastaWriter(new ResultSetFastaGenerator(rs) {
-            @Override
-            public String getHeader(ResultSet rs) throws SQLException
-            {
-                return rs.getString("Uid") + "|" + rs.getString("AlleleName");
-            }
-
-            @Override
-            public String getSequence(ResultSet rs) throws SQLException
-            {
-                return rs.getString("Sequence");
-            }
-        });
-
-        fw.write(new File(_analysisDir, "ref_seq.fasta"));
+        File fastaFile = new File(_analysisDir, GenotypingManager.SEQUENCES_FILE_NAME);
+        SequenceManager.get().writeFasta(getContainer(), getUser(), _sequencesViewName, fastaFile);
     }
 
 

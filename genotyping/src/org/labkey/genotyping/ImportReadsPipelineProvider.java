@@ -54,7 +54,7 @@ public class ImportReadsPipelineProvider extends PipelineProvider
     {
         public boolean accept(File file)
         {
-            return file.getName().equalsIgnoreCase("reads.txt");
+            return file.getName().equalsIgnoreCase(GenotypingManager.READS_FILE_NAME);
         }
     }
 }

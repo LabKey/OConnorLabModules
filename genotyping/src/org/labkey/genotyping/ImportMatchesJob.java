@@ -49,17 +49,17 @@ import java.util.Set;
  * Date: Sep 20, 2010
  * Time: 12:11:53 PM
  */
-public class GalaxyLoadJob extends PipelineJob
+public class ImportMatchesJob extends PipelineJob
 {
     private File _dir;
     private int _run;
 
-    public GalaxyLoadJob(ViewBackgroundInfo info, PipeRoot root, File pipelineDir, int run)
+    public ImportMatchesJob(ViewBackgroundInfo info, PipeRoot root, File pipelineDir, int run)
     {
-        super("Galaxy Load", info, root);
+        super("Import Matches", info, root);
         _dir = pipelineDir;
         _run = run;
-        setLogFile(new File(_dir, FileUtil.makeFileNameWithTimestamp("galaxy_load", "log")));
+        setLogFile(new File(_dir, FileUtil.makeFileNameWithTimestamp("import_matches", "log")));
 
         if (!_dir.exists())
             throw new IllegalArgumentException("Pipeline directory does not exist: " + _dir.getAbsolutePath());
@@ -79,7 +79,7 @@ public class GalaxyLoadJob extends PipelineJob
     @Override
     public String getDescription()
     {
-        return "Galaxy load job";
+        return "Import matches";
     }
 
 
