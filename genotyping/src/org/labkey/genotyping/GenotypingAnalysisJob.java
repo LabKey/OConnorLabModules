@@ -46,7 +46,7 @@ import java.util.Properties;
  * Date: Sep 10, 2010
  * Time: 9:43:21 PM
  */
-public class GenotypingSubmitJob extends PipelineJob
+public class GenotypingAnalysisJob extends PipelineJob
 {
     private final File _dir;
     private final GenotypingRun _run;
@@ -54,9 +54,9 @@ public class GenotypingSubmitJob extends PipelineJob
     private final String _sequencesViewName;
     private final File _analysisDir;
 
-    public GenotypingSubmitJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, int analysisIndex, String sequencesViewName)
+    public GenotypingAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, int analysisIndex, String sequencesViewName)
     {
-        super("Genotyping Submit", info, root);
+        super("Genotyping Analysis", info, root);
         _dir = reads.getParentFile();
         _run = run;
         _analysisIndex = analysisIndex;
@@ -69,7 +69,7 @@ public class GenotypingSubmitJob extends PipelineJob
 
         _analysisDir.mkdir();
 
-        setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("genotyping_submit", "log")));
+        setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("genotyping_analysis", "log")));
         info("Creating analysis directory: " + _analysisDir.getName());
     }
 
@@ -84,7 +84,7 @@ public class GenotypingSubmitJob extends PipelineJob
     @Override
     public String getDescription()
     {
-        return "Galaxy submit job";
+        return "Genotyping analysis";
     }
 
 
@@ -106,12 +106,12 @@ public class GenotypingSubmitJob extends PipelineJob
         }
         catch (Exception e)
         {
-            error("Galaxy submit failed", e);
+            error("Genotyping analysis failed", e);
             setStatus(ERROR_STATUS);
             return;
         }
 
-        info("Galaxy submit job complete");
+        info("Genotyping analysis job complete");
         setStatus(COMPLETE_STATUS);
     }
 
@@ -128,7 +128,7 @@ public class GenotypingSubmitJob extends PipelineJob
         SimpleFilter filter = new SimpleFilter("run", _run.getRun());
         filter.addInClause("mid", mids);
 
-        final ResultSet rs = Table.select(ti, ti.getColumns("name,mid,sequence"), filter, null);
+        final ResultSet rs = Table.select(ti, ti.getColumns("name,mid,sequence,quality"), filter, null);
 
         // Need a custom writer since TSVGridWriter does not work in background threads
         TSVWriter writer = new TSVWriter() {
@@ -141,7 +141,7 @@ public class GenotypingSubmitJob extends PipelineJob
                 {
                     while (rs.next())
                     {
-                        _pw.println(rs.getString(1) + "\t" + rs.getInt(2) + "\t" + rs.getString(3));
+                        _pw.println(rs.getString(1) + "\t" + rs.getInt(2) + "\t" + rs.getString(3) + "\t" + rs.getString(4));
                     }
                 }
                 catch (SQLException e)
@@ -165,12 +165,12 @@ public class GenotypingSubmitJob extends PipelineJob
         Properties props = new Properties();
         props.put("url", GenotypingController.getWorkflowCompleteURL(getContainer(), _run.getRun(), _analysisDir).getURIString());
         props.put("dir", _analysisDir.getName());
-        props.put("run", String.valueOf(_run));
+        props.put("run", String.valueOf(_run.getRun()));
 
         // Tell Galaxy "workflow complete" task to write a file when the workflow is done.  In many dev mode configurations
         // the Galaxy server can't communicate via HTTP with the LabKey server, so we'll watch for this file as a backup plan.
         if (AppProps.getInstance().isDevMode())
-            props.put("completeFilename", "galaxy_complete.txt");
+            props.put("completeFilename", "analysis_complete.txt");
 
         File propXml = new File(_analysisDir, GenotypingManager.PROPERTIES_FILE_NAME);
         OutputStream os = new FileOutputStream(propXml);

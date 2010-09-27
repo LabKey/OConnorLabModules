@@ -63,7 +63,6 @@ import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartView;
 import org.labkey.genotyping.galaxy.GalaxyFolderSettings;
 import org.labkey.genotyping.galaxy.GalaxyManager;
-import org.labkey.genotyping.galaxy.GalaxyServer;
 import org.labkey.genotyping.galaxy.GalaxyUserSettings;
 import org.labkey.genotyping.sequences.SequenceManager;
 import org.springframework.validation.BindException;
@@ -84,9 +83,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
@@ -128,7 +125,6 @@ public class GenotypingController extends SpringActionController
             GridView grid = new GridView(dr, new RenderContext(getViewContext()));
             HtmlView links = new HtmlView(PageFlowUtil.textLink("load results", new ActionURL(LoadAction.class, getContainer())) + " " +
                                           PageFlowUtil.textLink("export results", new ActionURL(TsvAction.class, getContainer())) + " " +
-                                          PageFlowUtil.textLink("test galaxy api", new ActionURL(GalaxyAction.class, getContainer())) + " " +
                                           PageFlowUtil.textLink("admin", getAdminURL()) + " " +
                                           PageFlowUtil.textLink("my settings", getMySettingsURL()));
 
@@ -140,12 +136,6 @@ public class GenotypingController extends SpringActionController
         {
             return null;
         }
-    }
-
-
-    private GalaxyServer getGalaxyServer()
-    {
-        return GalaxyServer.get(getContainer(), getUser());
     }
 
 
@@ -243,7 +233,7 @@ public class GenotypingController extends SpringActionController
         {
             long startTime = System.currentTimeMillis();
             SequenceManager.get().loadSequences(getContainer(), getUser());
-            LOG.info(DateUtil.formatDuration(System.currentTimeMillis() - startTime) + " to load");
+            LOG.info(DateUtil.formatDuration(System.currentTimeMillis() - startTime) + " to load sequences");
 
             return getViewURL();
         }
@@ -513,133 +503,12 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(ReadPermission.class)
-    public class GalaxyAction extends SimpleViewAction
-    {
-        @Override
-        public ModelAndView getView(Object o, BindException errors) throws Exception
-        {
-            VBox views = new VBox();
-
-            GalaxyServer server = getGalaxyServer();
-            List<GalaxyServer.DataLibrary> libraries = server.getDataLibraries();
-            HtmlView librariesView = display(libraries);
-            librariesView.setTitle("Existing Data Libraries");
-            views.addView(librariesView);
-
-            Set<String> existingNames = new HashSet<String>();
-            for (GalaxyServer.DataLibrary library : libraries)
-                existingNames.add(library.getName());
-
-            String newName = null;
-
-            for (int i = 1; i < 1000; i++)
-            {
-                newName = "api_test" + i;
-
-                if (!existingNames.contains(newName))
-                    break;
-            }
-
-            GalaxyServer.DataLibrary newLibrary = server.createLibrary(newName, "This is my test description", "And here's the synopsis!");
-            HtmlView createView = new HtmlView(getHtml(newLibrary));
-            createView.setTitle("Here's the data library I just created");
-            views.addView(createView);
-
-            GalaxyServer.Folder root = newLibrary.getRootFolder();
-            GalaxyServer.Folder newSubfolder = root.createFolder("SubFolder1", "Description for sub folder 1");
-            GalaxyServer.Folder newSubfolder2 = newSubfolder.createFolder("SubFolder2", "Description for sub folder 2");
-            HtmlView subfolderView = new HtmlView(getHtml(newSubfolder) + getHtml(newSubfolder2));
-            subfolderView.setTitle("Here are a couple new subfolders");
-            views.addView(subfolderView);
-
-            root.uploadFromImportDirectory("test", "txt", null, true);
-
-            List<GalaxyServer.DataLibrary> newLibraries = server.getDataLibraries();
-            HtmlView newLibrariesView = display(newLibraries);
-            newLibrariesView.setTitle("Existing Data Libraries: post create and import");
-            views.addView(newLibrariesView);
-
-            return views;
-        }
-
-        @Override
-        public NavTree appendNavTrail(NavTree root)
-        {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        private HtmlView display(List<GalaxyServer.DataLibrary> libraries) throws IOException
-        {
-            StringBuilder html = new StringBuilder();
-
-            for (GalaxyServer.DataLibrary library : libraries)
-            {
-                html.append(getHtml(library));
-
-                List<GalaxyServer.LibraryItem> libraryItems = library.getChildren();
-
-                for (GalaxyServer.LibraryItem libraryItem : libraryItems)
-                {
-                    html.append(getHtml(libraryItem));
-                }
-            }
-
-            return new HtmlView(html.toString());
-        }
-
-        private String getHtml(GalaxyServer.DataLibrary library)
-        {
-            return library.getName() + ": " + library.getId() + "<br>\n";
-        }
-
-        private String getHtml(GalaxyServer.LibraryItem item) throws IOException
-        {
-            StringBuilder html = new StringBuilder();
-            html.append("&nbsp;&nbsp;&nbsp;");
-            html.append(item.getName()).append(": ").append(item.getId()).append(" (").append(item.getType()).append(")<br>\n");
-
-            if (item.getType() == GalaxyServer.ItemType.LibraryFile)
-            {
-                Map<String, Object> info = ((GalaxyServer.File)item).getProperties();
-
-                for (Map.Entry<String, Object> entry : info.entrySet())
-                {
-                    html.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-                    html.append(entry.getKey());
-                    html.append(": ");
-                    html.append(entry.getValue());
-                    html.append("<br>\n");
-                }
-            }
-
-            return html.toString();
-        }
-    }
-
-
-    public static class GalaxyPipelineForm extends PipelinePathForm
-    {
-        private Integer _run;
-
-        public Integer getRun()
-        {
-            return _run;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setRun(Integer run)
-        {
-            _run = run;
-        }
-    }
-
-
-    public static class SubmitToGalaxyForm extends GalaxyPipelineForm
+    public static class SubmitAnalysisForm extends PipelinePathForm
     {
         private boolean _readyToSubmit = false;
         private String[] _sequencesViews;
         private String _readsPath;
+        private Integer _run;
 
         public boolean isReadyToSubmit()
         {
@@ -672,16 +541,27 @@ public class GenotypingController extends SpringActionController
         {
             _readsPath = readsPath;
         }
+
+        public Integer getRun()
+        {
+            return _run;
+        }
+
+        @SuppressWarnings({"UnusedDeclaration"})
+        public void setRun(Integer run)
+        {
+            _run = run;
+        }
     }
 
 
-    public static class SubmitToGalaxyBean
+    public static class SubmitAnalysisBean
     {
         private List<Integer> _runs;
         private Collection<CustomView> _sequencesViews;
         private String _readsPath;
 
-        private SubmitToGalaxyBean(List<Integer> runs, Collection<CustomView> sequenceViews, String readsPath)
+        private SubmitAnalysisBean(List<Integer> runs, Collection<CustomView> sequenceViews, String readsPath)
         {
             _runs = runs;
             _sequencesViews = sequenceViews;
@@ -706,10 +586,10 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermissionClass(AdminPermission.class)
-    public class ImportReadsAction extends FormViewAction<SubmitToGalaxyForm>
+    public class ImportReadsAction extends FormViewAction<SubmitAnalysisForm>
     {
         @Override
-        public void validateCommand(SubmitToGalaxyForm form, Errors errors)
+        public void validateCommand(SubmitAnalysisForm form, Errors errors)
         {
             if (form.isReadyToSubmit())
             {
@@ -719,7 +599,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public ModelAndView getView(SubmitToGalaxyForm form, boolean reshow, BindException errors) throws Exception
+        public ModelAndView getView(SubmitAnalysisForm form, boolean reshow, BindException errors) throws Exception
         {
             GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
             TableInfo runs = new QueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo();
@@ -737,11 +617,11 @@ public class GenotypingController extends SpringActionController
                 });
             views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), "sequences", "dnasequences"));
 
-            return new JspView<SubmitToGalaxyBean>("/org/labkey/genotyping/view/submit.jsp", new SubmitToGalaxyBean(runNums, views, form.getReadsPath()), errors);
+            return new JspView<SubmitAnalysisBean>("/org/labkey/genotyping/view/submit.jsp", new SubmitAnalysisBean(runNums, views, form.getReadsPath()), errors);
         }
 
         @Override
-        public boolean handlePost(SubmitToGalaxyForm form, BindException errors) throws Exception
+        public boolean handlePost(SubmitAnalysisForm form, BindException errors) throws Exception
         {
             if (!form.isReadyToSubmit())
             {
@@ -760,7 +640,7 @@ public class GenotypingController extends SpringActionController
 
             for (int i = 0; null != sequencesViews && i < sequencesViews.length; i++)
             {
-                PipelineJob analysisJob = new GenotypingSubmitJob(vbi, root, new File(form.getReadsPath()), run, i, sequencesViews[i]);
+                PipelineJob analysisJob = new GenotypingAnalysisJob(vbi, root, new File(form.getReadsPath()), run, i, sequencesViews[i]);
                 PipelineService.get().queueJob(analysisJob);
             }
 
@@ -768,7 +648,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public URLHelper getSuccessURL(SubmitToGalaxyForm form)
+        public URLHelper getSuccessURL(SubmitAnalysisForm form)
         {
             return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
         }
@@ -801,7 +681,7 @@ public class GenotypingController extends SpringActionController
             int run = form.getRun();
             File pipelineDir = new File(form.getPath());
 
-            // TODO: Verify that path and run match -- just look in properties file?
+            // TODO: Verify that container path and analysis # match -- just look in properties file?
             // TODO: verify that run is pending
 
             submitLoadJob(run, pipelineDir);
@@ -846,6 +726,7 @@ public class GenotypingController extends SpringActionController
             return _path;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setPath(String path)
         {
             _path = path;

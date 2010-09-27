@@ -42,7 +42,7 @@ SELECT  sample,
     ) read_count ON read_count.mid = reads.mid
     INNER JOIN
     (
-        SELECT read_name, <%=dialect.getGroupConcatAggregateFunction(new SQLFragment("hit_name"))%> AS Alleles, AVG(seq_length) AS Avg_Length,
+        SELECT read_name, <%=dialect.getGroupConcatAggregateFunction(new SQLFragment("hit_name"), false, true)%> AS Alleles, AVG(seq_length) AS Avg_Length,
             CASE WHEN direction = '+' THEN 1 ELSE 0 END AS pos_reads,
             CASE WHEN direction = '-' THEN 1 ELSE 0 END AS neg_reads,
             CASE WHEN direction = '+ext' THEN 1 ELSE 0 END AS pos_ext_reads,

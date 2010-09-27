@@ -20,7 +20,7 @@
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
-    GenotypingController.SubmitToGalaxyBean bean = (GenotypingController.SubmitToGalaxyBean)getModelBean();
+    GenotypingController.SubmitAnalysisBean bean = (GenotypingController.SubmitAnalysisBean)getModelBean();
 %>
 <form <%=formAction(GenotypingController.ImportReadsAction.class, Method.Post)%>>
     <table id="analysesTable">

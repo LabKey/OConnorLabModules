@@ -3,6 +3,7 @@ package org.labkey.genotyping.sequences;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ResultSetIterator;
 import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.Sort;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.security.User;
@@ -35,16 +36,19 @@ public class SequenceManager
         // prevent external construction with a private default constructor
     }
 
+
     public static SequenceManager get()
     {
         return _instance;
     }
 
+
     public void loadSequences(Container c, User user) throws SQLException
     {
-        // TODO: Add new dictionary
-
-        int dictionary = getCurrentDictionary();
+        Map<String, Object> dictionary = new HashMap<String, Object>();
+        dictionary.put("container", c);
+        Table.insert(user, GenotypingSchema.get().getDictionariesTable(), dictionary);
+        int dictionaryId = getCurrentDictionary(c);
 
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
         QueryHelper qHelper = new QueryHelper(c, user, settings.getSequencesQuery());
@@ -74,7 +78,7 @@ public class SequenceManager
                     inMap.put(key, entry.getValue());
                 }
 
-                inMap.put("dictionary", dictionary);
+                inMap.put("dictionary", dictionaryId);
                 Table.insert(user, destination, inMap);
             }
         }
@@ -89,11 +93,9 @@ public class SequenceManager
     {
         QueryHelper qHelper = new QueryHelper(c, user, "sequences", "dnasequences", sequencesViewName);
         SimpleFilter viewFilter = qHelper.getViewFilter();
-
-        viewFilter.addCondition("Dictionary", getCurrentDictionary());
-
+        viewFilter.addCondition("Dictionary", getCurrentDictionary(c));
         TableInfo ti = GenotypingSchema.get().getSequencesTable();
-        ResultSet rs = Table.select(ti, ti.getColumns("RowId,AlleleName,Sequence"), viewFilter, null);   // TODO: ORDER BY RowID?
+        ResultSet rs = Table.select(ti, ti.getColumns("RowId,AlleleName,Sequence"), viewFilter, new Sort("RowId"));
 
         try
         {
@@ -120,8 +122,10 @@ public class SequenceManager
     }
 
 
-    public int getCurrentDictionary()
+    private int getCurrentDictionary(Container c) throws SQLException
     {
-        return 1;
+        return Table.executeSingleton(GenotypingSchema.get().getSchema(),
+                "SELECT CAST(COUNT(*) AS INT) FROM " + GenotypingSchema.get().getDictionariesTable() + " WHERE Container = ?",
+                new Object[]{c}, Integer.class);
     }
 }

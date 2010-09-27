@@ -5,6 +5,7 @@ genotyping/module.properties -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.00-0.01.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.00-0.01.sql -text
 genotyping/resources/schemas/genotyping.xml -text
+genotyping/src/org/labkey/genotyping/GenotypingAnalysisJob.java -text
 genotyping/src/org/labkey/genotyping/GenotypingContainerListener.java -text
 genotyping/src/org/labkey/genotyping/GenotypingController.java -text
 genotyping/src/org/labkey/genotyping/GenotypingFolderSettings.java -text
@@ -12,7 +13,6 @@ genotyping/src/org/labkey/genotyping/GenotypingManager.java -text
 genotyping/src/org/labkey/genotyping/GenotypingModule.java -text
 genotyping/src/org/labkey/genotyping/GenotypingRun.java -text
 genotyping/src/org/labkey/genotyping/GenotypingSchema.java -text
-genotyping/src/org/labkey/genotyping/GenotypingSubmitJob.java -text
 genotyping/src/org/labkey/genotyping/ImportMatchesJob.java -text
 genotyping/src/org/labkey/genotyping/ImportMatchesPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsJob.java -text

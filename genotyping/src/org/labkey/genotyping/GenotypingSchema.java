@@ -51,6 +51,11 @@ public class GenotypingSchema
         return getSchema().getSqlDialect();
     }
 
+    public TableInfo getDictionariesTable()
+    {
+        return getSchema().getTable("Dictionaries");
+    }
+
     public TableInfo getSequencesTable()
     {
         return getSchema().getTable("Sequences");
