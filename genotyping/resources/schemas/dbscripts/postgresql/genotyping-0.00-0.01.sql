@@ -19,9 +19,22 @@ SELECT core.fn_dropifexists('*', 'genotyping', 'SCHEMA', NULL);
 
 CREATE SCHEMA genotyping;
 
+CREATE TABLE genotyping.Analyses
+(
+    RowId SERIAL,
+    Container ENTITYID NOT NULL,
+    CreatedBy USERID NOT NULL,
+    Created TIMESTAMP NOT NULL,
+    SampleIds VARCHAR(2000) NULL,  -- CSV of sample ids; NULL => all samples in library
+    Path VARCHAR(1000) NULL,
+
+    CONSTRAINT PK_Analyses PRIMARY KEY (RowId)
+);
+
 CREATE TABLE genotyping.Matches
 (
     RowId SERIAL,
+    Analysis INT NOT NULL,
     SampleId VARCHAR(200) NOT NULL,
     Reads INT NOT NULL,
     Percent REAL NOT NULL,

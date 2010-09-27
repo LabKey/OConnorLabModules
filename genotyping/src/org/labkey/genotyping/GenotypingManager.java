@@ -22,6 +22,7 @@ import org.labkey.api.data.PropertyManager;
 import org.labkey.api.data.Table;
 import org.labkey.api.security.User;
 
+import java.sql.SQLException;
 import java.util.Map;
 
 public class GenotypingManager
@@ -89,5 +90,10 @@ public class GenotypingManager
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
         QueryHelper qHelper = new QueryHelper(c, user, settings.getRunsQuery());
         return Table.selectObject(qHelper.getTableInfo(), runId, GenotypingRun.class);
+    }
+
+    public GenotypingAnalysis createAnalysis(Container c, User user, GenotypingRun run) throws SQLException
+    {
+        return Table.insert(user, GenotypingSchema.get().getAnalsysesTable(), new GenotypingAnalysis(c, run));
     }
 }

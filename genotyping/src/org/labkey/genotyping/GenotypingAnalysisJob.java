@@ -24,6 +24,7 @@ import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.util.FileUtil;
+import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
@@ -50,19 +51,19 @@ public class GenotypingAnalysisJob extends PipelineJob
 {
     private final File _dir;
     private final GenotypingRun _run;
-    private final int _analysisIndex;
+    private final GenotypingAnalysis _analysis;
     private final String _sequencesViewName;
     private final File _analysisDir;
 
-    public GenotypingAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, int analysisIndex, String sequencesViewName)
+    public GenotypingAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, GenotypingAnalysis analysis, String sequencesViewName) throws SQLException
     {
-        super("Genotyping Analysis", info, root);
+        super(null, info, root);      // No pipeline provider
         _dir = reads.getParentFile();
         _run = run;
-        _analysisIndex = analysisIndex;
+        _analysis = analysis;
         _sequencesViewName = sequencesViewName;
 
-        _analysisDir = new File(_dir, "analysis_" + (_analysisIndex + 1));
+        _analysisDir = new File(_dir, "analysis_" + _analysis.getRowId());
 
         if (_analysisDir.exists())
             throw new IllegalArgumentException("Analysis directory already exists: " + _analysisDir.getPath());
@@ -71,6 +72,8 @@ public class GenotypingAnalysisJob extends PipelineJob
 
         setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("genotyping_analysis", "log")));
         info("Creating analysis directory: " + _analysisDir.getName());
+        _analysis.setPath(_analysisDir.getAbsolutePath());
+        Table.update(getUser(), GenotypingSchema.get().getAnalsysesTable(), PageFlowUtil.map("path", _analysis.getPath()), _analysis.getRowId());
     }
 
 
@@ -84,7 +87,7 @@ public class GenotypingAnalysisJob extends PipelineJob
     @Override
     public String getDescription()
     {
-        return "Genotyping analysis";
+        return "Genotyping analysis " + _analysis.getRowId();
     }
 
 
@@ -125,7 +128,7 @@ public class GenotypingAnalysisJob extends PipelineJob
     private void writeReads(List<Integer> mids) throws IOException, SQLException, ServletException
     {
         TableInfo ti = GenotypingSchema.get().getReadsTable();
-        SimpleFilter filter = new SimpleFilter("run", _run.getRun());
+        SimpleFilter filter = new SimpleFilter("run", _analysis.getRun());
         filter.addInClause("mid", mids);
 
         final ResultSet rs = Table.select(ti, ti.getColumns("name,mid,sequence,quality"), filter, null);
@@ -163,9 +166,9 @@ public class GenotypingAnalysisJob extends PipelineJob
     {
         info("Writing properties file");
         Properties props = new Properties();
-        props.put("url", GenotypingController.getWorkflowCompleteURL(getContainer(), _run.getRun(), _analysisDir).getURIString());
+        props.put("url", GenotypingController.getWorkflowCompleteURL(getContainer(), _analysis).getURIString());
         props.put("dir", _analysisDir.getName());
-        props.put("run", String.valueOf(_run.getRun()));
+        props.put("analysis", String.valueOf(_analysis.getRowId()));
 
         // Tell Galaxy "workflow complete" task to write a file when the workflow is done.  In many dev mode configurations
         // the Galaxy server can't communicate via HTTP with the LabKey server, so we'll watch for this file as a backup plan.
@@ -234,7 +237,7 @@ public class GenotypingAnalysisJob extends PipelineJob
     {
         info("Sending files to Galaxy");
 
-        GalaxyServer.DataLibrary library = server.createLibrary(_dir.getName() + "_" + (_analysisIndex + 1), "Run " + _run, "A genotyping experiment");
+        GalaxyServer.DataLibrary library = server.createLibrary(_dir.getName() + "_" + _analysis.getRowId(), "Analysis " + _analysis.getRowId(), "An MHC genotyping analysis");
         GalaxyServer.Folder root = library.getRootFolder();
         root.uploadFromImportDirectory(_analysisDir.getName(), "txt", null, false);
     }

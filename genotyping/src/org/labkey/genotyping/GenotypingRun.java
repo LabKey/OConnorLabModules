@@ -15,6 +15,8 @@
  */
 package org.labkey.genotyping;
 
+import org.labkey.api.util.MemTracker;
+
 /**
  * User: adam
  * Date: Sep 22, 2010
@@ -24,6 +26,11 @@ public class GenotypingRun
 {
     private int _run;
     private int _sampleLibrary;
+
+    public GenotypingRun()
+    {
+        assert MemTracker.put(this);
+    }
 
     public int getRun()
     {

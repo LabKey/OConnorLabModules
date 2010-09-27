@@ -80,4 +80,9 @@ public class GenotypingSchema
     {
         return getSchema().getTable("Junction");
     }
+
+    public TableInfo getAnalsysesTable()
+    {
+        return getSchema().getTable("Analyses");
+    }
 }

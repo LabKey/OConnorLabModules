@@ -123,8 +123,7 @@ public class GenotypingController extends SpringActionController
         {
             DataRegion dr = getDataRegion();
             GridView grid = new GridView(dr, new RenderContext(getViewContext()));
-            HtmlView links = new HtmlView(PageFlowUtil.textLink("load results", new ActionURL(LoadAction.class, getContainer())) + " " +
-                                          PageFlowUtil.textLink("export results", new ActionURL(TsvAction.class, getContainer())) + " " +
+            HtmlView links = new HtmlView(PageFlowUtil.textLink("export results", new ActionURL(TsvAction.class, getContainer())) + " " +
                                           PageFlowUtil.textLink("admin", getAdminURL()) + " " +
                                           PageFlowUtil.textLink("my settings", getMySettingsURL()));
 
@@ -640,7 +639,8 @@ public class GenotypingController extends SpringActionController
 
             for (int i = 0; null != sequencesViews && i < sequencesViews.length; i++)
             {
-                PipelineJob analysisJob = new GenotypingAnalysisJob(vbi, root, new File(form.getReadsPath()), run, i, sequencesViews[i]);
+                GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run);
+                PipelineJob analysisJob = new GenotypingAnalysisJob(vbi, root, new File(form.getReadsPath()), run, analysis, sequencesViews[i]);
                 PipelineService.get().queueJob(analysisJob);
             }
 
@@ -661,11 +661,11 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static ActionURL getWorkflowCompleteURL(Container c, int run, File path)
+    public static ActionURL getWorkflowCompleteURL(Container c, GenotypingAnalysis analysis)
     {
         ActionURL url = new ActionURL(WorkflowCompleteAction.class, c);
-        url.addParameter("run", run);
-        url.addParameter("path", path.getAbsolutePath());
+        url.addParameter("analysis", analysis.getRowId());
+        url.addParameter("path", analysis.getPath());
         return url;
     }
 

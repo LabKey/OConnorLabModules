@@ -80,8 +80,8 @@ public class ImportReadsJob extends PipelineJob
         try
         {
             updateRunRecord();
+            importMetrics();
             importReads();
-            loadMetrics();
         }
         catch (Exception e)
         {
@@ -93,12 +93,6 @@ public class ImportReadsJob extends PipelineJob
         info("Import reads and metrics complete");
         setStatus(COMPLETE_STATUS);
     }
-
-    private void loadMetrics()
-    {
-        // TODO
-    }
-
 
     private void updateRunRecord() throws SQLException
     {
@@ -119,6 +113,12 @@ public class ImportReadsJob extends PipelineJob
         in.put("reads", _reads.getPath());
         // TODO  update sff and sequence view name
         }
+    }
+
+
+    private void importMetrics()
+    {
+        // TODO
     }
 
 
@@ -158,18 +158,20 @@ public class ImportReadsJob extends PipelineJob
 
             for (Map<String, Object> map : loader)
             {
+                Integer mid = (Integer)map.get("mid");
+
+                if (0 == mid)
+                    map.put("mid", null);
+
                 Table.insert(getUser(), ti, map);
                 rowCount++;
 
                 if (0 == rowCount % 10000)
-                {
-                    String formattedCount = Formats.commaf0.format(rowCount);
-                    info(formattedCount + " reads imported");
-                    setStatus(formattedCount + " READS");
-                }
+                    logReadsProgress("", rowCount);
             }
 
             scope.commitTransaction();
+            logReadsProgress("Importing " + _reads.getName() + " complete: ", rowCount);
         }
         finally
         {
@@ -178,5 +180,13 @@ public class ImportReadsJob extends PipelineJob
             if (null != loader)
                 loader.close();
         }
+    }
+
+
+    private void logReadsProgress(String prefix, int count)
+    {
+        String formattedCount = Formats.commaf0.format(count);
+        info(prefix + formattedCount + " reads imported");
+        setStatus(formattedCount + " READS");
     }
 }
