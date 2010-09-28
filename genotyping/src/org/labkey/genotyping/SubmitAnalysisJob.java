@@ -47,14 +47,14 @@ import java.util.Properties;
  * Date: Sep 10, 2010
  * Time: 9:43:21 PM
  */
-public class GenotypingAnalysisJob extends PipelineJob
+public class SubmitAnalysisJob extends PipelineJob
 {
     private final File _dir;
     private final GenotypingRun _run;
     private final GenotypingAnalysis _analysis;
     private final File _analysisDir;
 
-    public GenotypingAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, GenotypingAnalysis analysis) throws SQLException
+    public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, GenotypingAnalysis analysis) throws SQLException
     {
         super(null, info, root);      // No pipeline provider
         _dir = reads.getParentFile();
@@ -68,7 +68,7 @@ public class GenotypingAnalysisJob extends PipelineJob
 
         _analysisDir.mkdir();
 
-        setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("genotyping_analysis", "log")));
+        setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")));
         info("Creating analysis directory: " + _analysisDir.getName());
         _analysis.setPath(_analysisDir.getAbsolutePath());
         Table.update(getUser(), GenotypingSchema.get().getAnalsysesTable(), PageFlowUtil.map("path", _analysis.getPath()), _analysis.getRowId());
@@ -107,12 +107,12 @@ public class GenotypingAnalysisJob extends PipelineJob
         }
         catch (Exception e)
         {
-            error("Genotyping analysis failed", e);
+            error("Submitting genotyping analysis failed", e);
             setStatus(ERROR_STATUS);
             return;
         }
 
-        info("Genotyping analysis job complete");
+        info("Submitting genotyping analysis job complete");
         setStatus(COMPLETE_STATUS);
     }
 
@@ -136,7 +136,7 @@ public class GenotypingAnalysisJob extends PipelineJob
             @Override
             protected void write()
             {
-                _pw.println("name\tmid\tsequence");
+                _pw.println("name\tmid\tsequence\tquality");
 
                 try
                 {

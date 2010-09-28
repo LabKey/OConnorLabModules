@@ -76,6 +76,11 @@ public class GenotypingSchema
         return getSchema().getTable("AllelesJunction");
     }
 
+    public TableInfo getReadsJunctionTable()
+    {
+        return getSchema().getTable("ReadsJunction");
+    }
+
     public TableInfo getAnalsysesTable()
     {
         return getSchema().getTable("Analyses");

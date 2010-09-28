@@ -117,17 +117,13 @@ public class ImportAnalysisJob extends PipelineJob
                     QueryContext ctx = new QueryContext(schema, samples, matches, reads);
                     JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
                     String sql = jspQuery.render();
-
-                    Map<String, Object> singleAllele = new HashMap<String, Object>();   // Map to reuse for each insertion to Alleles
                     Map<String, Object> alleleJunctionMap = new HashMap<String, Object>(); // Map to reuse for each insertion to AllelesJunction
-                    Map<String, Integer> alleleToId = new HashMap<String, Integer>();
+                    Map<String, Object> readJunctionMap = new HashMap<String, Object>();   // Map to reuse for each insertion to ReadsJunction
 
                     setStatus("IMPORTING RESULTS");
                     info("Executing query to join results");
                     rs = Table.executeQuery(schema, sql, null);
-
                     info("Importing results");
-
                     Map<String, Integer> sequences = SequenceManager.get().getSequences(getContainer(), getUser(), _analysis.getSequenceDictionary(), _analysis.getSequencesView());
 
                     while (rs.next())
@@ -136,7 +132,6 @@ public class ImportAnalysisJob extends PipelineJob
 
                         if (null != sampleId)
                         {
-                            String allelesString = rs.getString("alleles");
                             Map<String, Object> row = new HashMap<String, Object>();
                             row.put("Analysis", _analysis.getRowId());
                             row.put("SampleId", sampleId);
@@ -149,12 +144,15 @@ public class ImportAnalysisJob extends PipelineJob
                             row.put("NegExtReads", rs.getInt("neg_ext_reads"));
 
                             Map<String, Object> matchOut = Table.insert(getUser(), GenotypingSchema.get().getMatchesTable(), row);
+                            int matchId = (Integer)matchOut.get("RowId");
 
+                            // Insert all the alleles in this group into AllelesJunction table
+                            String allelesString = rs.getString("alleles");
                             String[] alleles = allelesString.split(",");
 
                             if (alleles.length > 0)
                             {
-                                alleleJunctionMap.put("MatchId", matchOut.get("RowId"));
+                                alleleJunctionMap.put("MatchId", matchId);
 
                                 for (String allele : alleles)
                                 {
@@ -166,6 +164,21 @@ public class ImportAnalysisJob extends PipelineJob
 
                                     alleleJunctionMap.put("SequenceId", sequenceId);
                                     Table.insert(getUser(), GenotypingSchema.get().getAllelesJunctionTable(), alleleJunctionMap);
+                                }
+                            }
+
+                            // Insert RowIds for all the reads underlying this group into ReadsJunction table
+                            String readIdsString = rs.getString("ReadIds");
+                            String[] readIds = readIdsString.split(",");
+
+                            if (readIds.length > 0)
+                            {
+                                readJunctionMap.put("MatchId", matchId);
+
+                                for (String readId : readIds)
+                                {
+                                    readJunctionMap.put("ReadId", Integer.parseInt(readId));
+                                    Table.insert(getUser(), GenotypingSchema.get().getReadsJunctionTable(), readJunctionMap);
                                 }
                             }
                         }
@@ -189,13 +202,13 @@ public class ImportAnalysisJob extends PipelineJob
         }
         catch (Exception e)
         {
-            error("Galaxy load failed", e);
+            error("Analysis import failed", e);
             setStatus(ERROR_STATUS);
             return;
         }
 
         setStatus(COMPLETE_STATUS);
-        info("Successfully loaded genotyping matches in " + DateUtil.formatDuration(System.currentTimeMillis() - startTime));
+        info("Successfully imported genotyping analysis in " + DateUtil.formatDuration(System.currentTimeMillis() - startTime));
     }
 
 

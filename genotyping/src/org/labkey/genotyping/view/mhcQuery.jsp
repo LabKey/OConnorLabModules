@@ -31,7 +31,8 @@ SELECT  sample,
         CAST(SUM(pos_reads) AS INT) AS pos_reads,
         CAST(SUM(neg_reads) AS INT) AS neg_reads,
         CAST(SUM(pos_ext_reads) AS INT) AS pos_ext_reads,
-        CAST(SUM(neg_ext_reads) AS INT) AS neg_ext_reads
+        CAST(SUM(neg_ext_reads) AS INT) AS neg_ext_reads,
+        <%=dialect.getGroupConcatAggregateFunction(new SQLFragment("rowid"), true, false)%> AS ReadIds
     FROM <%=ctx.samples%> samples
     INNER JOIN <%=ctx.reads%> reads ON samples.mid_num = reads.mid
     INNER JOIN

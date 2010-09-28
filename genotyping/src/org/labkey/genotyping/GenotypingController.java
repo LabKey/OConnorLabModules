@@ -640,7 +640,7 @@ public class GenotypingController extends SpringActionController
             for (int i = 0; null != sequencesViews && i < sequencesViews.length; i++)
             {
                 GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, sequencesViews[i]);
-                PipelineJob analysisJob = new GenotypingAnalysisJob(vbi, root, new File(form.getReadsPath()), run, analysis);
+                PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, new File(form.getReadsPath()), run, analysis);
                 PipelineService.get().queueJob(analysisJob);
             }
 
