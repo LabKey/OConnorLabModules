@@ -14,8 +14,8 @@ genotyping/src/org/labkey/genotyping/GenotypingManager.java -text
 genotyping/src/org/labkey/genotyping/GenotypingModule.java -text
 genotyping/src/org/labkey/genotyping/GenotypingRun.java -text
 genotyping/src/org/labkey/genotyping/GenotypingSchema.java -text
-genotyping/src/org/labkey/genotyping/ImportMatchesJob.java -text
-genotyping/src/org/labkey/genotyping/ImportMatchesPipelineProvider.java -text
+genotyping/src/org/labkey/genotyping/ImportAnalysisJob.java -text
+genotyping/src/org/labkey/genotyping/ImportAnalysisPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsJob.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/QueryHelper.java -text

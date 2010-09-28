@@ -52,16 +52,14 @@ public class GenotypingAnalysisJob extends PipelineJob
     private final File _dir;
     private final GenotypingRun _run;
     private final GenotypingAnalysis _analysis;
-    private final String _sequencesViewName;
     private final File _analysisDir;
 
-    public GenotypingAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, GenotypingAnalysis analysis, String sequencesViewName) throws SQLException
+    public GenotypingAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, GenotypingAnalysis analysis) throws SQLException
     {
         super(null, info, root);      // No pipeline provider
         _dir = reads.getParentFile();
         _run = run;
         _analysis = analysis;
-        _sequencesViewName = sequencesViewName;
 
         _analysisDir = new File(_dir, "analysis_" + _analysis.getRowId());
 
@@ -87,7 +85,7 @@ public class GenotypingAnalysisJob extends PipelineJob
     @Override
     public String getDescription()
     {
-        return "Genotyping analysis " + _analysis.getRowId();
+        return "Submit genotyping analysis " + _analysis.getRowId();
     }
 
 
@@ -229,7 +227,7 @@ public class GenotypingAnalysisJob extends PipelineJob
     {
         info("Writing FASTA file");
         File fastaFile = new File(_analysisDir, GenotypingManager.SEQUENCES_FILE_NAME);
-        SequenceManager.get().writeFasta(getContainer(), getUser(), _sequencesViewName, fastaFile);
+        SequenceManager.get().writeFasta(getContainer(), getUser(), _analysis.getSequencesView(), fastaFile);
     }
 
 

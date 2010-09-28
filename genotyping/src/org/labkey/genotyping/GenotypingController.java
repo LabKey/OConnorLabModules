@@ -614,7 +614,7 @@ public class GenotypingController extends SpringActionController
                         return (null == name1 ? "[all]": name1).compareTo((null == name2 ? "[all]": name2));
                     }
                 });
-            views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), "sequences", "dnasequences"));
+            views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), "sequences", "sequences"));
 
             return new JspView<SubmitAnalysisBean>("/org/labkey/genotyping/view/submit.jsp", new SubmitAnalysisBean(runNums, views, form.getReadsPath()), errors);
         }
@@ -639,8 +639,8 @@ public class GenotypingController extends SpringActionController
 
             for (int i = 0; null != sequencesViews && i < sequencesViews.length; i++)
             {
-                GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run);
-                PipelineJob analysisJob = new GenotypingAnalysisJob(vbi, root, new File(form.getReadsPath()), run, analysis, sequencesViews[i]);
+                GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, sequencesViews[i]);
+                PipelineJob analysisJob = new GenotypingAnalysisJob(vbi, root, new File(form.getReadsPath()), run, analysis);
                 PipelineService.get().queueJob(analysisJob);
             }
 
@@ -671,20 +671,20 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresNoPermission
-    public class WorkflowCompleteAction extends SimpleViewAction<RunForm>
+    public class WorkflowCompleteAction extends SimpleViewAction<AnalysisForm>
     {
         @Override
-        public ModelAndView getView(RunForm form, BindException errors) throws Exception
+        public ModelAndView getView(AnalysisForm form, BindException errors) throws Exception
         {
-            LOG.info("Galaxy claims to be complete with run " + form.getRun());
+            LOG.info("Galaxy claims to be complete with analysis " + form.getAnalysis());
 
-            int run = form.getRun();
+            int analysisId = form.getAnalysis();
             File pipelineDir = new File(form.getPath());
 
             // TODO: Verify that container path and analysis # match -- just look in properties file?
-            // TODO: verify that run is pending
+            // TODO: verify that analysis is pending
 
-            submitLoadJob(run, pipelineDir);
+            submitLoadJob(analysisId, pipelineDir);
 
             // Plain text response back to Galaxy
             HttpServletResponse response = getViewContext().getResponse();
@@ -705,20 +705,20 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static class RunForm
+    public static class AnalysisForm
     {
-        private int _run;
+        private int _analysis;
         private String _path;
 
-        public int getRun()
+        public int getAnalysis()
         {
-            return _run;
+            return _analysis;
         }
 
         @SuppressWarnings({"UnusedDeclaration"})
-        public void setRun(int run)
+        public void setAnalysis(int analysis)
         {
-            _run = run;
+            _analysis = analysis;
         }
 
         public String getPath()
@@ -740,10 +740,9 @@ public class GenotypingController extends SpringActionController
         @Override
         public ActionURL getRedirectURL(PipelinePathForm form) throws Exception
         {
-            // Manual upload of results; pipeline provider posts to this action with properties.xml file.
+            // Manual upload of results; pipeline provider posts to this action with matches file.
             File matches = form.getValidatedSingleFile(getContainer());
-            File pipelineDir = matches.getParentFile();
-            File properties = new File(pipelineDir, GenotypingManager.PROPERTIES_FILE_NAME);
+            File properties = new File(matches.getParentFile(), GenotypingManager.PROPERTIES_FILE_NAME);
 
             // Load properties to determine the run.
             Properties props = new Properties();
@@ -751,20 +750,20 @@ public class GenotypingController extends SpringActionController
             props.loadFromXML(is);
             is.close();
 
-            Integer run = Integer.parseInt((String)props.get("run"));
-
-            submitLoadJob(run, properties.getParentFile());
+            Integer analysisId = Integer.parseInt((String)props.get("analysis"));
+            submitLoadJob(analysisId, properties.getParentFile());
 
             return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
         }
     }
 
 
-    private void submitLoadJob(int run, File pipelineDir) throws IOException
+    private void submitLoadJob(int analysisId, File pipelineDir) throws IOException
     {
+        GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(getContainer(), analysisId);
         ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
         PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
-        PipelineJob job = new ImportMatchesJob(vbi, root, pipelineDir, run);
+        PipelineJob job = new ImportAnalysisJob(vbi, root, pipelineDir, analysis);
         PipelineService.get().queueJob(job);
     }
 }

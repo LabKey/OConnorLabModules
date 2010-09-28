@@ -17,10 +17,10 @@
 %>
 <%@ page import="org.labkey.api.data.SQLFragment" %>
 <%@ page import="org.labkey.api.data.SqlDialect" %>
-<%@ page import="org.labkey.genotyping.ImportMatchesJob" %>
+<%@ page import="org.labkey.genotyping.ImportAnalysisJob" %>
 <%@ page extends="org.labkey.api.jsp.JspContext" %>
 <%
-    ImportMatchesJob.QueryContext ctx = (ImportMatchesJob.QueryContext)getModelBean();
+    ImportAnalysisJob.QueryContext ctx = (ImportAnalysisJob.QueryContext)getModelBean();
     SqlDialect dialect = ctx.schema.getSqlDialect();
 %>
 SELECT  sample,
@@ -42,24 +42,14 @@ SELECT  sample,
     ) read_count ON read_count.mid = reads.mid
     INNER JOIN
     (
-        SELECT read_name, <%=dialect.getGroupConcatAggregateFunction(new SQLFragment("hit_name"), false, true)%> AS Alleles, AVG(seq_length) AS Avg_Length,
+        SELECT read_name, <%=dialect.getGroupConcatAggregateFunction(new SQLFragment("match"), false, true)%> AS Alleles, AVG(length) AS Avg_Length,
             CASE WHEN direction = '+' THEN 1 ELSE 0 END AS pos_reads,
             CASE WHEN direction = '-' THEN 1 ELSE 0 END AS neg_reads,
             CASE WHEN direction = '+ext' THEN 1 ELSE 0 END AS pos_ext_reads,
             CASE WHEN direction = '-ext' THEN 1 ELSE 0 END AS neg_ext_reads
-        FROM (<%
-
-        StringBuilder sql = new StringBuilder("SELECT * FROM " + ctx.matches + " matches ORDER BY hit_name");
-
-        // Add a ridiculously high limit to appease SQL Server
-        if (!dialect.allowSortOnSubqueryWithoutLimit())
-            dialect.limitRows(sql, 100000);
-
-        out.print(sql);
-
-        %>) sorted
+        FROM <%=ctx.matches%>
         GROUP BY read_name, direction
-    ) matches ON matches.read_name = reads.read_name
+    ) matches ON matches.read_name = reads.name
 GROUP BY sample, alleles, total_reads
 HAVING COUNT(*) > 1
 ORDER BY sample, alleles

@@ -71,14 +71,9 @@ public class GenotypingSchema
         return getSchema().getTable("Matches");
     }
 
-    public TableInfo getAllelesTable()
+    public TableInfo getAllelesJunctionTable()
     {
-        return getSchema().getTable("Alleles");
-    }
-
-    public TableInfo getJunctionTable()
-    {
-        return getSchema().getTable("Junction");
+        return getSchema().getTable("AllelesJunction");
     }
 
     public TableInfo getAnalsysesTable()

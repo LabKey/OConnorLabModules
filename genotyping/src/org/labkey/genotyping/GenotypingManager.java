@@ -92,8 +92,13 @@ public class GenotypingManager
         return Table.selectObject(qHelper.getTableInfo(), runId, GenotypingRun.class);
     }
 
-    public GenotypingAnalysis createAnalysis(Container c, User user, GenotypingRun run) throws SQLException
+    public GenotypingAnalysis createAnalysis(Container c, User user, GenotypingRun run, String sequencesViewName) throws SQLException
     {
-        return Table.insert(user, GenotypingSchema.get().getAnalsysesTable(), new GenotypingAnalysis(c, run));
+        return Table.insert(user, GenotypingSchema.get().getAnalsysesTable(), new GenotypingAnalysis(c, run, sequencesViewName));
+    }
+
+    public GenotypingAnalysis getAnalysis(Container c, int analysisId)
+    {
+        return Table.selectObject(GenotypingSchema.get().getAnalsysesTable(), c, analysisId, GenotypingAnalysis.class);
     }
 }

@@ -91,19 +91,17 @@ public class SequenceManager
 
     public void writeFasta(Container c, User user, String sequencesViewName, File destination) throws SQLException, IOException
     {
-        QueryHelper qHelper = new QueryHelper(c, user, "sequences", "dnasequences", sequencesViewName);
-        SimpleFilter viewFilter = qHelper.getViewFilter();
-        viewFilter.addCondition("Dictionary", getCurrentDictionary(c));
-        TableInfo ti = GenotypingSchema.get().getSequencesTable();
-        ResultSet rs = Table.select(ti, ti.getColumns("RowId,AlleleName,Sequence"), viewFilter, new Sort("RowId"));
+        ResultSet rs = null;
 
         try
         {
+            rs = selectSequences(c, user, getCurrentDictionary(c), sequencesViewName, "AlleleName,Sequence");
+
             FastaWriter fw = new FastaWriter(new ResultSetFastaGenerator(rs) {
                 @Override
                 public String getHeader(ResultSet rs) throws SQLException
                 {
-                    return rs.getString("RowId") + "|" + rs.getString("AlleleName");
+                    return rs.getString("AlleleName");
                 }
 
                 @Override
@@ -122,10 +120,72 @@ public class SequenceManager
     }
 
 
-    private int getCurrentDictionary(Container c) throws SQLException
+    public int getCurrentDictionary(Container c) throws SQLException
     {
-        return Table.executeSingleton(GenotypingSchema.get().getSchema(),
-                "SELECT CAST(COUNT(*) AS INT) FROM " + GenotypingSchema.get().getDictionariesTable() + " WHERE Container = ?",
+        Integer max = Table.executeSingleton(GenotypingSchema.get().getSchema(),
+                "SELECT MAX(RowId) FROM " + GenotypingSchema.get().getDictionariesTable() + " WHERE Container = ?",
                 new Object[]{c}, Integer.class);
+
+        if (null == max)
+            throw new IllegalStateException("You must load reference sequences before initiating an analysis");
+
+        return max;
+    }
+
+
+    public Map<String, Integer> getSequences(Container c, User user, int dictionary, String sequencesViewName) throws SQLException
+    {
+        ResultSet rs = null;
+        HashMap<String, Integer> sequences = new HashMap<String, Integer>();
+
+        try
+        {
+            rs = selectSequences(c, user, dictionary, sequencesViewName, "AlleleName,RowId");
+
+            while(rs.next())
+            {
+                Integer previous = sequences.put(rs.getString(1), rs.getInt(2));
+
+                if (null != previous)
+                    throw new IllegalStateException("Duplicate allele name: " + rs.getString(1));
+            }
+
+            return sequences;
+        }
+        finally
+        {
+            ResultSetUtil.close(rs);
+        }
+    }
+
+    private ResultSet selectSequences(Container c, User user, int dictionary, String sequencesViewName, String columnNames) throws SQLException
+    {
+        // First, make sure that dictionary exists in this container
+        SimpleFilter filter = new SimpleFilter("RowId", dictionary);
+        filter.addCondition("Container", c);
+        TableInfo dictionaries = GenotypingSchema.get().getDictionariesTable();
+        ResultSet rs = null;
+
+        try
+        {
+            rs = Table.select(dictionaries, dictionaries.getColumns("RowId"), filter, null);
+
+            if (!rs.next())
+                throw new IllegalStateException("Sequences dictionary does not exist in this folder");
+
+            if (rs.next())
+                throw new IllegalStateException("Multiple sequence dictionaries found");
+        }
+        finally
+        {
+            ResultSetUtil.close(rs);
+        }
+
+        // Now select all sequences in this dictionary, applying the specified filter
+        QueryHelper qHelper = new QueryHelper(c, user, "sequences", "sequences", sequencesViewName);
+        SimpleFilter viewFilter = qHelper.getViewFilter();
+        viewFilter.addCondition("Dictionary", dictionary);
+        TableInfo ti = GenotypingSchema.get().getSequencesTable();
+        return Table.select(ti, ti.getColumns(columnNames), viewFilter, new Sort("RowId"));
     }
 }

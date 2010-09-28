@@ -2,7 +2,9 @@ package org.labkey.genotyping;
 
 import org.labkey.api.data.Container;
 import org.labkey.api.util.MemTracker;
+import org.labkey.genotyping.sequences.SequenceManager;
 
+import java.sql.SQLException;
 import java.util.Date;
 
 /**
@@ -18,17 +20,21 @@ public class GenotypingAnalysis
     private int _createdBy;
     private Date _created;
     private String _path;
+    private int _sequenceDictionary;
+    private String _sequencesView;
 
     public GenotypingAnalysis()
     {
         assert MemTracker.put(this);
     }
 
-    public GenotypingAnalysis(Container c, GenotypingRun run)
+    public GenotypingAnalysis(Container c, GenotypingRun run, String sequencesView) throws SQLException
     {
         this();
         setContainer(c);
         setRun(run.getRun());
+        setSequenceDictionary(SequenceManager.get().getCurrentDictionary(c));
+        setSequencesView(sequencesView);
     }
 
     public int getRowId()
@@ -89,5 +95,25 @@ public class GenotypingAnalysis
     public void setPath(String path)
     {
         _path = path;
+    }
+
+    public int getSequenceDictionary()
+    {
+        return _sequenceDictionary;
+    }
+
+    public void setSequenceDictionary(int sequenceDictionary)
+    {
+        _sequenceDictionary = sequenceDictionary;
+    }
+
+    public String getSequencesView()
+    {
+        return _sequencesView;
+    }
+
+    public void setSequencesView(String sequencesView)
+    {
+        _sequencesView = sequencesView;
     }
 }

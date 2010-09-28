@@ -22,11 +22,14 @@ CREATE SCHEMA genotyping;
 CREATE TABLE genotyping.Analyses
 (
     RowId SERIAL,
+    Run INT NOT NULL,
     Container ENTITYID NOT NULL,
     CreatedBy USERID NOT NULL,
     Created TIMESTAMP NOT NULL,
-    SampleIds VARCHAR(2000) NULL,  -- CSV of sample ids; NULL => all samples in library
+    SampleIds VARCHAR(2000) NULL,  -- CSV of sample ids; NULL => all samples in library: TODO: junction table for this
     Path VARCHAR(1000) NULL,
+    SequenceDictionary INT NOT NULL,       -- TODO: FK?
+    SequencesView VARCHAR(200) NULL,
 
     CONSTRAINT PK_Analyses PRIMARY KEY (RowId)
 );
@@ -38,7 +41,6 @@ CREATE TABLE genotyping.Matches
     SampleId VARCHAR(200) NOT NULL,
     Reads INT NOT NULL,
     Percent REAL NOT NULL,
-    Strandedness VARCHAR(5),
     AverageLength REAL NOT NULL,
     PosReads INT NOT NULL,
     NegReads INT NOT NULL,
@@ -107,10 +109,10 @@ CREATE TABLE genotyping.Sequences
     FullLength INT NOT NULL,
     AlleleFamily VARCHAR(45),
 
-    CONSTRAINT PK_Sequences PRIMARY KEY (RowId)
+    CONSTRAINT PK_Sequences PRIMARY KEY (RowId),
+    CONSTRAINT UQ_AlleleName UNIQUE (Dictionary, AlleleName),
+    CONSTRAINT UQ_Uid UNIQUE (Dictionary, Uid)
 );
-
--- TODO: Other Sequences indexes (e.g., Dictionary, Uid, AlleleName)
 
 CREATE TABLE genotyping.Reads
 (
@@ -123,5 +125,3 @@ CREATE TABLE genotyping.Reads
 
     CONSTRAINT PK_Reads PRIMARY KEY (RowId)
 );
-
--- TODO: Add run/analysis run, indexes

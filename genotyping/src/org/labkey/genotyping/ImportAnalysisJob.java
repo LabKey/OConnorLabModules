@@ -17,7 +17,6 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.DbSchema;
-import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TempTableWriter;
@@ -31,7 +30,9 @@ import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.JspTemplate;
+import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.ViewBackgroundInfo;
+import org.labkey.genotyping.sequences.SequenceManager;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -49,23 +50,23 @@ import java.util.Set;
  * Date: Sep 20, 2010
  * Time: 12:11:53 PM
  */
-public class ImportMatchesJob extends PipelineJob
+public class ImportAnalysisJob extends PipelineJob
 {
     private File _dir;
-    private int _run;
+    private GenotypingAnalysis _analysis;
 
-    public ImportMatchesJob(ViewBackgroundInfo info, PipeRoot root, File pipelineDir, int run)
+    public ImportAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File pipelineDir, GenotypingAnalysis analysis)
     {
-        super("Import Matches", info, root);
+        super("Import Analysis", info, root);
         _dir = pipelineDir;
-        _run = run;
-        setLogFile(new File(_dir, FileUtil.makeFileNameWithTimestamp("import_matches", "log")));
+        _analysis = analysis;
+        setLogFile(new File(_dir, FileUtil.makeFileNameWithTimestamp("import_analysis", "log")));
 
         if (!_dir.exists())
             throw new IllegalArgumentException("Pipeline directory does not exist: " + _dir.getAbsolutePath());
 
-        if (0 == _run)
-            throw new IllegalArgumentException("Run was not specified");
+        if (null == _analysis)
+            throw new IllegalArgumentException("Analysis was not specified");
     }
 
 
@@ -79,7 +80,7 @@ public class ImportMatchesJob extends PipelineJob
     @Override
     public String getDescription()
     {
-        return "Import matches";
+        return "Import genotyping analysis " + _analysis.getRowId();
     }
 
 
@@ -94,13 +95,12 @@ public class ImportMatchesJob extends PipelineJob
 
             File sourceSamples = new File(_dir, GenotypingManager.SAMPLES_FILE_NAME);
             File sourceMatches = new File(_dir, GenotypingManager.MATCHES_FILE_NAME);
-            File sourceReads = new File(_dir, GenotypingManager.READS_FILE_NAME);
 
             DbSchema schema = GenotypingSchema.get().getSchema();
 
             Table.TempTableInfo samples = null;
             Table.TempTableInfo matches = null;
-            Table.TempTableInfo reads = null;
+            TableInfo reads = GenotypingSchema.get().getReadsTable();
 
             try
             {
@@ -113,20 +113,13 @@ public class ImportMatchesJob extends PipelineJob
                     samples = createTempTable(sourceSamples, schema, "mid_num,sample");
                     info("Loading matches temp table");
                     matches = createTempTable(sourceMatches, schema, null);
-                    info("Loading reads temp table");
-                    reads = createTempTable(sourceReads, schema, null);
 
                     QueryContext ctx = new QueryContext(schema, samples, matches, reads);
-                    JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/galaxy/view/mhcQuery.jsp", ctx);
+                    JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
                     String sql = jspQuery.render();
 
-                    // TODO
-                    Table.execute(schema, "DELETE FROM galaxy.Junction", null);
-                    Table.execute(schema, "DELETE FROM galaxy.Matches", null);
-                    Table.execute(schema, "DELETE FROM galaxy.Alleles", null);
-
                     Map<String, Object> singleAllele = new HashMap<String, Object>();   // Map to reuse for each insertion to Alleles
-                    Map<String, Object> singleJunction = new HashMap<String, Object>(); // Map to reuse for each insertion to Junction
+                    Map<String, Object> alleleJunctionMap = new HashMap<String, Object>(); // Map to reuse for each insertion to AllelesJunction
                     Map<String, Integer> alleleToId = new HashMap<String, Integer>();
 
                     setStatus("IMPORTING RESULTS");
@@ -134,6 +127,8 @@ public class ImportMatchesJob extends PipelineJob
                     rs = Table.executeQuery(schema, sql, null);
 
                     info("Importing results");
+
+                    Map<String, Integer> sequences = SequenceManager.get().getSequences(getContainer(), getUser(), _analysis.getSequenceDictionary(), _analysis.getSequencesView());
 
                     while (rs.next())
                     {
@@ -143,6 +138,7 @@ public class ImportMatchesJob extends PipelineJob
                         {
                             String allelesString = rs.getString("alleles");
                             Map<String, Object> row = new HashMap<String, Object>();
+                            row.put("Analysis", _analysis.getRowId());
                             row.put("SampleId", sampleId);
                             row.put("Reads", rs.getInt("reads"));
                             row.put("Percent", rs.getFloat("percent"));
@@ -158,22 +154,18 @@ public class ImportMatchesJob extends PipelineJob
 
                             if (alleles.length > 0)
                             {
-                                singleJunction.put("RowId", matchOut.get("RowId"));
+                                alleleJunctionMap.put("MatchId", matchOut.get("RowId"));
 
                                 for (String allele : alleles)
                                 {
-                                    Integer alleleId = alleleToId.get(allele);
+                                    Integer sequenceId = sequences.get(allele);
 
-                                    if (null == alleleId)
-                                    {
-                                        singleAllele.put("allele", allele);
-                                        Map<String, Object> alleleOut = Table.insert(getUser(), GenotypingSchema.get().getAllelesTable(), singleAllele);
-                                        alleleId = (Integer)alleleOut.get("RowId");
-                                        alleleToId.put(allele, alleleId);
-                                    }
+                                    if (null == sequenceId)
+                                        throw new NotFoundException("Allele name \"" + allele + "\" not found in reference sequences dictionary " +
+                                                _analysis.getSequenceDictionary() + ", view \"" + _analysis.getSequencesView() + "\"");
 
-                                    singleJunction.put("AlleleId", alleleId);
-                                    Table.insert(getUser(), GenotypingSchema.get().getJunctionTable(), singleJunction);
+                                    alleleJunctionMap.put("SequenceId", sequenceId);
+                                    Table.insert(getUser(), GenotypingSchema.get().getAllelesJunctionTable(), alleleJunctionMap);
                                 }
                             }
                         }
@@ -183,31 +175,16 @@ public class ImportMatchesJob extends PipelineJob
                 {
                     ResultSetUtil.close(rs);
                 }
-
-                setStatus("IMPORTING UNMATCHED SEQUENCES");
-                info("Importing unmatched sequences");
-                SQLFragment sql = new SQLFragment("INSERT INTO ");
-                sql.append(GenotypingSchema.get().getReadsTable());
-                sql.append(" SELECT mid, sequence FROM ");
-                sql.append(reads);
-                sql.append(" reads LEFT OUTER JOIN ");
-                sql.append(matches);
-                sql.append(" matches ON reads.read_name = matches.read_name WHERE matches.read_name IS NULL");
-
-                int count = Table.execute(schema, sql);
-                info("Saved " + count + " unknown sequences");
             }
             finally
             {
                 info("Deleting temporary tables");
 
-                // Dump all the temp tables
+                // Drop the temp tables
                 if (null != samples)
                     samples.delete();
                 if (null != matches)
                     matches.delete();
-                if (null != reads)
-                    reads.delete();
             }
         }
         catch (Exception e)
@@ -218,7 +195,7 @@ public class ImportMatchesJob extends PipelineJob
         }
 
         setStatus(COMPLETE_STATUS);
-        info("Successfully loaded genotyping matching data in " + DateUtil.formatDuration(System.currentTimeMillis() - startTime));
+        info("Successfully loaded genotyping matches in " + DateUtil.formatDuration(System.currentTimeMillis() - startTime));
     }
 
 
