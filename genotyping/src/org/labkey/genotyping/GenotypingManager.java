@@ -22,8 +22,15 @@ import org.labkey.api.data.PropertyManager;
 import org.labkey.api.data.Table;
 import org.labkey.api.security.User;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Properties;
 
 public class GenotypingManager
 {
@@ -89,16 +96,63 @@ public class GenotypingManager
     {
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
         QueryHelper qHelper = new QueryHelper(c, user, settings.getRunsQuery());
-        return Table.selectObject(qHelper.getTableInfo(), runId, GenotypingRun.class);
+        GenotypingRun run = Table.selectObject(qHelper.getTableInfo(), runId, GenotypingRun.class);
+        run.setContainer(c);
+
+        return run;
     }
 
     public GenotypingAnalysis createAnalysis(Container c, User user, GenotypingRun run, String sequencesViewName) throws SQLException
     {
-        return Table.insert(user, GenotypingSchema.get().getAnalsysesTable(), new GenotypingAnalysis(c, run, sequencesViewName));
+        return Table.insert(user, GenotypingSchema.get().getAnalysesTable(), new GenotypingAnalysis(c, run, sequencesViewName));
     }
 
     public GenotypingAnalysis getAnalysis(Container c, int analysisId)
     {
-        return Table.selectObject(GenotypingSchema.get().getAnalsysesTable(), c, analysisId, GenotypingAnalysis.class);
+        return Table.selectObject(GenotypingSchema.get().getAnalysesTable(), c, analysisId, GenotypingAnalysis.class);
+    }
+
+    // Deletes all the reads, analyses, and matches associated with a run, including rows in all junction tables.
+    public void clearRun(GenotypingRun run) throws SQLException
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+        Object[] params = new Object[]{run.getRun(), run.getContainer()};
+        String runWhere = " WHERE Run = ? AND Container = ?";
+        String analysisFrom = " FROM " + gs.getAnalysesTable() + runWhere;
+        String analysisWhere = " WHERE Analysis IN (SELECT RowId" + analysisFrom + ")";
+        String matchesWhere = " WHERE MatchId IN (SELECT RowId FROM " + gs.getMatchesTable() + analysisWhere + ")";
+
+        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getAllelesJunctionTable() + matchesWhere, params);
+        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsJunctionTable() + matchesWhere, params);
+        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getMatchesTable() + analysisWhere, params);
+        Table.execute(gs.getSchema(), "DELETE" + analysisFrom, params);
+        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsTable() + " WHERE Run = ?", new Object[]{run.getRun()});
+    }
+
+    public void writeProperties(Properties props, File directory) throws IOException
+    {
+        File propXml = new File(directory, PROPERTIES_FILE_NAME);
+        OutputStream os = new FileOutputStream(propXml);
+        props.storeToXML(os, null);
+        os.close();
+    }
+
+    public Properties readProperties(File directory) throws IOException
+    {
+        if (!directory.exists())
+            throw new IllegalStateException(directory.getAbsolutePath() + " does not exist");
+
+        if (!directory.isDirectory())
+            throw new IllegalStateException(directory.getAbsolutePath() + " is not a directory");
+
+        File properties = new File(directory, PROPERTIES_FILE_NAME);
+
+        // Load properties to determine the run.
+        Properties props = new Properties();
+        InputStream is = new FileInputStream(properties);
+        props.loadFromXML(is);
+        is.close();
+
+        return props;
     }
 }

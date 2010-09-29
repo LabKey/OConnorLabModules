@@ -81,7 +81,7 @@ public class GenotypingSchema
         return getSchema().getTable("ReadsJunction");
     }
 
-    public TableInfo getAnalsysesTable()
+    public TableInfo getAnalysesTable()
     {
         return getSchema().getTable("Analyses");
     }

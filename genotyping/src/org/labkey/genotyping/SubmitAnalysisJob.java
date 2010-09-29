@@ -29,13 +29,12 @@ import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.genotyping.galaxy.GalaxyServer;
+import org.labkey.genotyping.galaxy.WorkflowCompletionMonitor;
 import org.labkey.genotyping.sequences.SequenceManager;
 
 import javax.servlet.ServletException;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
@@ -49,6 +48,7 @@ import java.util.Properties;
  */
 public class SubmitAnalysisJob extends PipelineJob
 {
+
     private final File _dir;
     private final GenotypingRun _run;
     private final GenotypingAnalysis _analysis;
@@ -71,7 +71,7 @@ public class SubmitAnalysisJob extends PipelineJob
         setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")));
         info("Creating analysis directory: " + _analysisDir.getName());
         _analysis.setPath(_analysisDir.getAbsolutePath());
-        Table.update(getUser(), GenotypingSchema.get().getAnalsysesTable(), PageFlowUtil.map("path", _analysis.getPath()), _analysis.getRowId());
+        Table.update(getUser(), GenotypingSchema.get().getAnalysesTable(), PageFlowUtil.map("path", _analysis.getPath()), _analysis.getRowId());
     }
 
 
@@ -167,16 +167,18 @@ public class SubmitAnalysisJob extends PipelineJob
         props.put("url", GenotypingController.getWorkflowCompleteURL(getContainer(), _analysis).getURIString());
         props.put("dir", _analysisDir.getName());
         props.put("analysis", String.valueOf(_analysis.getRowId()));
+        props.put("user", getUser().getEmail());
 
         // Tell Galaxy "workflow complete" task to write a file when the workflow is done.  In many dev mode configurations
         // the Galaxy server can't communicate via HTTP with the LabKey server, so we'll watch for this file as a backup plan.
         if (AppProps.getInstance().isDevMode())
-            props.put("completeFilename", "analysis_complete.txt");
+        {
+            File completionFile = new File(_analysisDir, "analysis_complete.txt");
+            WorkflowCompletionMonitor.get().monitor(completionFile);
+            props.put("completeFilename", completionFile.getName());
+        }
 
-        File propXml = new File(_analysisDir, GenotypingManager.PROPERTIES_FILE_NAME);
-        OutputStream os = new FileOutputStream(propXml);
-        props.storeToXML(os, null);
-        os.close();
+        GenotypingManager.get().writeProperties(props, _analysisDir);
     }
 
 
@@ -217,7 +219,7 @@ public class SubmitAnalysisJob extends PipelineJob
             }
         };
 
-        File samplesFile = new File(_analysisDir, "samples.txt");
+        File samplesFile = new File(_analysisDir, GenotypingManager.SAMPLES_FILE_NAME);
         writer.write(samplesFile);
         return mids;
     }

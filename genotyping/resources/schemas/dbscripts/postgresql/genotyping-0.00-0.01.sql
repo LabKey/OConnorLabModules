@@ -19,57 +19,6 @@ SELECT core.fn_dropifexists('*', 'genotyping', 'SCHEMA', NULL);
 
 CREATE SCHEMA genotyping;
 
-CREATE TABLE genotyping.Analyses
-(
-    RowId SERIAL,
-    Run INT NOT NULL,
-    Container ENTITYID NOT NULL,
-    CreatedBy USERID NOT NULL,
-    Created TIMESTAMP NOT NULL,
-    SampleIds VARCHAR(2000) NULL,  -- CSV of sample ids; NULL => all samples in library: TODO: junction table for this
-    Path VARCHAR(1000) NULL,
-    SequenceDictionary INT NOT NULL,       -- TODO: FK?
-    SequencesView VARCHAR(200) NULL,
-
-    CONSTRAINT PK_Analyses PRIMARY KEY (RowId)
-);
-
-CREATE TABLE genotyping.Matches
-(
-    RowId SERIAL,
-    Analysis INT NOT NULL,
-    SampleId VARCHAR(200) NOT NULL,
-    Reads INT NOT NULL,
-    Percent REAL NOT NULL,
-    AverageLength REAL NOT NULL,
-    PosReads INT NOT NULL,
-    NegReads INT NOT NULL,
-    PosExtReads INT NOT NULL,
-    NegExtReads INT NOT NULL,
-
-    CONSTRAINT PK_Matches PRIMARY KEY (RowId)
-);
-
--- Junction table that links each row of Matches to one or more allele sequences in Sequences table
-CREATE TABLE genotyping.AllelesJunction
-(
-    MatchId INT NOT NULL,
-    SequenceId INT NOT NULL
-);
-
-CREATE INDEX IX_AllelesJunction ON genotyping.AllelesJunction(MatchId);
-
--- Junction table that links each row of Matches to one or more rows in Reads table
-CREATE TABLE genotyping.ReadsJunction
-(
-    MatchId INT NOT NULL,
-    ReadId INT NOT NULL
-);
-
--- TODO: Replace these with FKs?
-CREATE INDEX IX_ReadsJunctionMatchId ON genotyping.ReadsJunction(MatchId);
-CREATE INDEX IX_ReadsJunctionReadId ON genotyping.ReadsJunction(ReadId);
-
 CREATE TABLE genotyping.Dictionaries
 (
     RowId SERIAL,
@@ -111,7 +60,8 @@ CREATE TABLE genotyping.Sequences
 
     CONSTRAINT PK_Sequences PRIMARY KEY (RowId),
     CONSTRAINT UQ_AlleleName UNIQUE (Dictionary, AlleleName),
-    CONSTRAINT UQ_Uid UNIQUE (Dictionary, Uid)
+    CONSTRAINT UQ_Uid UNIQUE (Dictionary, Uid),
+    CONSTRAINT FK_Sequences_Dictionary FOREIGN KEY (Dictionary) REFERENCES genotyping.Dictionaries(RowId)
 );
 
 CREATE TABLE genotyping.Reads
@@ -124,4 +74,57 @@ CREATE TABLE genotyping.Reads
     Quality VARCHAR(8000) NOT NULL,
 
     CONSTRAINT PK_Reads PRIMARY KEY (RowId)
+);
+
+CREATE TABLE genotyping.Analyses
+(
+    RowId SERIAL,
+    Run INT NOT NULL,
+    Container ENTITYID NOT NULL,
+    CreatedBy USERID NOT NULL,
+    Created TIMESTAMP NOT NULL,
+    SampleIds VARCHAR(2000) NULL,  -- CSV of sample ids; NULL => all samples in library: TODO: junction table for this
+    Path VARCHAR(1000) NULL,
+    SequenceDictionary INT NOT NULL,
+    SequencesView VARCHAR(200) NULL,
+
+    CONSTRAINT PK_Analyses PRIMARY KEY (RowId),
+    CONSTRAINT FK_Analyses_Dictionaries FOREIGN KEY (SequenceDictionary) REFERENCES genotyping.Dictionaries(RowId)
+);
+
+CREATE TABLE genotyping.Matches
+(
+    RowId SERIAL,
+    Analysis INT NOT NULL,
+    SampleId VARCHAR(200) NOT NULL,
+    Reads INT NOT NULL,
+    Percent REAL NOT NULL,
+    AverageLength REAL NOT NULL,
+    PosReads INT NOT NULL,
+    NegReads INT NOT NULL,
+    PosExtReads INT NOT NULL,
+    NegExtReads INT NOT NULL,
+
+    CONSTRAINT PK_Matches PRIMARY KEY (RowId),
+    CONSTRAINT FK_Matches_Analyses FOREIGN KEY (Analysis) REFERENCES genotyping.Analyses(RowId)
+);
+
+-- Junction table that links each row of Matches to one or more allele sequences in Sequences table
+CREATE TABLE genotyping.AllelesJunction
+(
+    MatchId INT NOT NULL,
+    SequenceId INT NOT NULL,
+
+    CONSTRAINT FK_AllelesJunction_Matches FOREIGN KEY (MatchId) REFERENCES genotyping.Matches(RowId),
+    CONSTRAINT FK_AllelesJunction_Reads FOREIGN KEY (SequenceId) REFERENCES genotyping.Sequences(RowId)
+);
+
+-- Junction table that links each row of Matches to one or more rows in Reads table
+CREATE TABLE genotyping.ReadsJunction
+(
+    MatchId INT NOT NULL,
+    ReadId INT NOT NULL,
+
+    CONSTRAINT FK_ReadsJunction_Matches FOREIGN KEY (MatchId) REFERENCES genotyping.Matches(RowId),
+    CONSTRAINT FK_ReadsJunction_Reads FOREIGN KEY (ReadId) REFERENCES genotyping.Reads(RowId)
 );

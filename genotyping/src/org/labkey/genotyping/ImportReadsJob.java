@@ -16,7 +16,6 @@
 package org.labkey.genotyping;
 
 import org.labkey.api.data.DbScope;
-import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.pipeline.PipeRoot;
@@ -147,9 +146,6 @@ public class ImportReadsJob extends PipelineJob
             loader.setColumns(columns.toArray(new ColumnDescriptor[columns.size()]));
 
             TableInfo ti = GenotypingSchema.get().getReadsTable();
-
-            // TODO: Just for testing
-            Table.delete(ti, new SimpleFilter("Run", _run.getRun()));
 
             scope = ti.getSchema().getScope();
             scope.beginTransaction();

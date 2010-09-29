@@ -15,6 +15,7 @@
  */
 package org.labkey.genotyping;
 
+import org.labkey.api.data.Container;
 import org.labkey.api.util.MemTracker;
 
 /**
@@ -26,6 +27,7 @@ public class GenotypingRun
 {
     private int _run;
     private int _sampleLibrary;
+    private Container _container;
 
     public GenotypingRun()
     {
@@ -52,8 +54,17 @@ public class GenotypingRun
         _sampleLibrary = sampleLibrary;
     }
 
+    public Container getContainer()
+    {
+        return _container;
+    }
 
-    // Methods below are used to translate to/from column names in lists 
+    public void setContainer(Container container)
+    {
+        _container = container;
+    }
+
+// Methods below are used to translate to/from column names in lists
 
     public int getRun_sample_library()
     {

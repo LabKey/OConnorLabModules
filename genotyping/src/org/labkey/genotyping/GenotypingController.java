@@ -47,6 +47,8 @@ import org.labkey.api.query.QueryService;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermissionClass;
 import org.labkey.api.security.User;
+import org.labkey.api.security.UserManager;
+import org.labkey.api.security.ValidEmail;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.util.DateUtil;
@@ -71,9 +73,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -630,6 +630,10 @@ public class GenotypingController extends SpringActionController
             }
 
             GenotypingRun run = GenotypingManager.get().getRun(getContainer(), getUser(), form.getRun());
+
+            // TODO: Just for testing -- delete all previous analyses, reads, matches, etc. associated with this run.
+            GenotypingManager.get().clearRun(run);
+
             ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
             PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
             PipelineJob prepareRunJob = new ImportReadsJob(vbi, root, new File(form.getReadsPath()), run);
@@ -679,12 +683,26 @@ public class GenotypingController extends SpringActionController
             LOG.info("Galaxy claims to be complete with analysis " + form.getAnalysis());
 
             int analysisId = form.getAnalysis();
-            File pipelineDir = new File(form.getPath());
+            File analysisDir = new File(form.getPath());
 
-            // TODO: Verify that container path and analysis # match -- just look in properties file?
-            // TODO: verify that analysis is pending
+            User user = getUser();
 
-            submitLoadJob(analysisId, pipelineDir);
+            if (user.isGuest())
+            {
+                Properties props = GenotypingManager.get().readProperties(analysisDir);
+                String email = (String)props.get("user");
+
+                if (null != email)
+                {
+                    // Possible that user doesn't exist or changed email (e.g., re-loading an old analysis)
+                    User test = UserManager.getUser(new ValidEmail(email));
+
+                    if (null != test)
+                        user = test;
+                }
+            }
+
+            submitLoadJob(analysisId, analysisDir, user);
 
             // Plain text response back to Galaxy
             HttpServletResponse response = getViewContext().getResponse();
@@ -742,26 +760,26 @@ public class GenotypingController extends SpringActionController
         {
             // Manual upload of results; pipeline provider posts to this action with matches file.
             File matches = form.getValidatedSingleFile(getContainer());
-            File properties = new File(matches.getParentFile(), GenotypingManager.PROPERTIES_FILE_NAME);
+            File analysisDir = matches.getParentFile();
 
             // Load properties to determine the run.
-            Properties props = new Properties();
-            InputStream is = new FileInputStream(properties);
-            props.loadFromXML(is);
-            is.close();
+            Properties props = GenotypingManager.get().readProperties(analysisDir);
 
             Integer analysisId = Integer.parseInt((String)props.get("analysis"));
-            submitLoadJob(analysisId, properties.getParentFile());
+            submitLoadJob(analysisId, analysisDir, getUser());
 
             return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
         }
     }
 
 
-    private void submitLoadJob(int analysisId, File pipelineDir) throws IOException
+    // TODO: Verify that file path and analysis # match -- just look in properties file?
+    // TODO: verify that analysis is pending, synchronously
+
+    private void submitLoadJob(int analysisId, File pipelineDir, User user) throws IOException
     {
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(getContainer(), analysisId);
-        ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
+        ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), user, getViewContext().getActionURL());
         PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
         PipelineJob job = new ImportAnalysisJob(vbi, root, pipelineDir, analysis);
         PipelineService.get().queueJob(job);

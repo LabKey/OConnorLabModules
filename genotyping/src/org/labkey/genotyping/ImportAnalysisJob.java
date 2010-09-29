@@ -215,20 +215,30 @@ public class ImportAnalysisJob extends PipelineJob
     // columnNames: comma-separated list of column names to include; null means include all columns
     private Table.TempTableInfo createTempTable(File file, DbSchema schema, @Nullable String columnNames) throws IOException, SQLException
     {
-        Reader isr = new BufferedReader(new FileReader(file));
-        TabLoader loader = new TabLoader(isr, true);         // TODO: Constructor that takes an inputstream
+        Reader reader = null;
 
-        // Load only the specified columns
-        if (null != columnNames)
+        try
         {
-            Set<String> includeNames = PageFlowUtil.set(columnNames.split(","));
+            reader = new BufferedReader(new FileReader(file));
+            TabLoader loader = new TabLoader(reader, true);         // TODO: Constructor that takes an inputstream
 
-            for (ColumnDescriptor descriptor : loader.getColumns())
-                descriptor.load = includeNames.contains(descriptor.name);
+            // Load only the specified columns
+            if (null != columnNames)
+            {
+                Set<String> includeNames = PageFlowUtil.set(columnNames.split(","));
+
+                for (ColumnDescriptor descriptor : loader.getColumns())
+                    descriptor.load = includeNames.contains(descriptor.name);
+            }
+
+            TempTableWriter ttw = new TempTableWriter(loader);
+            return ttw.loadTempTable(schema);
         }
-
-        TempTableWriter ttw = new TempTableWriter(loader);
-        return ttw.loadTempTable(schema);
+        finally
+        {
+            if (null != reader)
+                reader.close();
+        }
     }
 
     public static class QueryContext
