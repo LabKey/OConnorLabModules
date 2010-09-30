@@ -109,16 +109,16 @@ public class WorkflowCompletionMonitor implements ShutdownListener
                     {
                         try
                         {
-                            // Load properties from properties.xml
+                            // Load analysis properties
                             Properties props = GenotypingManager.get().readProperties(file.getParentFile());
 
                             // GET the provided URL to signal LabKey Server that the workflow is complete
                             String url = (String)props.get("url");
                             String analysisId = (String)props.get("analysis");
-                            LOG.info("Analysis " + analysisId + " complete; attempting to signal LabKey Server at " + url);
+                            LOG.info("Detected completion file for analysis " + analysisId + "; attempting to signal LabKey Server at " + url);
                             InputStream is = (InputStream)new URL(url).getContent();
                             BufferedReader r = new BufferedReader(new InputStreamReader(is));
-                            LOG.info("LabKey response to analysis " + analysisId + " completion: " + r.readLine());
+                            LOG.info("LabKey response to analysis " + analysisId + " completion: \"" + r.readLine() + "\"");
                             r.close();
                             is.close();
                         }

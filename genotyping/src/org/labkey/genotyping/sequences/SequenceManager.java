@@ -1,5 +1,6 @@
 package org.labkey.genotyping.sequences;
 
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ResultSetIterator;
 import org.labkey.api.data.SimpleFilter;
@@ -89,7 +90,7 @@ public class SequenceManager
     }
 
 
-    public void writeFasta(Container c, User user, String sequencesViewName, File destination) throws SQLException, IOException
+    public void writeFasta(Container c, User user, @Nullable String sequencesViewName, File destination) throws SQLException, IOException
     {
         ResultSet rs = null;
 

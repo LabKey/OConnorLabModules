@@ -83,10 +83,10 @@ CREATE TABLE genotyping.Analyses
     Container ENTITYID NOT NULL,
     CreatedBy USERID NOT NULL,
     Created TIMESTAMP NOT NULL,
-    SampleIds VARCHAR(2000) NULL,  -- CSV of sample ids; NULL => all samples in library: TODO: junction table for this
     Path VARCHAR(1000) NULL,
+    Description VARCHAR(8000) NULL,
     SequenceDictionary INT NOT NULL,
-    SequencesView VARCHAR(200) NULL,
+    SequencesView VARCHAR(200) NULL,  -- NULL => default view
 
     CONSTRAINT PK_Analyses PRIMARY KEY (RowId),
     CONSTRAINT FK_Analyses_Dictionaries FOREIGN KEY (SequenceDictionary) REFERENCES genotyping.Dictionaries(RowId)
@@ -107,6 +107,14 @@ CREATE TABLE genotyping.Matches
 
     CONSTRAINT PK_Matches PRIMARY KEY (RowId),
     CONSTRAINT FK_Matches_Analyses FOREIGN KEY (Analysis) REFERENCES genotyping.Analyses(RowId)
+);
+
+CREATE TABLE genotyping.AnalysisSamples
+(
+    Analysis INT NOT NULL,
+    SampleId VARCHAR(200) NOT NULL,
+
+    CONSTRAINT FK_AnalysisSamples_Analyses FOREIGN KEY (Analysis) REFERENCES genotyping.Analyses(RowId)    
 );
 
 -- Junction table that links each row of Matches to one or more allele sequences in Sequences table

@@ -55,7 +55,7 @@ public class ImportReadsJob extends PipelineJob
         super("Import Reads", info, root);
         _reads = reads;
         _run = run;
-        setLogFile(new File(_reads.getParent(), FileUtil.makeFileNameWithTimestamp("import_reads", "log")));
+        setLogFile(new File(_reads.getParentFile(), FileUtil.makeFileNameWithTimestamp("import_reads", "log")));
     }
 
 
@@ -69,7 +69,7 @@ public class ImportReadsJob extends PipelineJob
     @Override
     public String getDescription()
     {
-        return "Import reads";
+        return "Import reads for run " + _run.getRun();
     }
 
 
@@ -183,6 +183,6 @@ public class ImportReadsJob extends PipelineJob
     {
         String formattedCount = Formats.commaf0.format(count);
         info(prefix + formattedCount + " reads imported");
-        setStatus(formattedCount + " READS");
+        setStatus(formattedCount + " READS");    // Doesn't actually work... we're in one big transaction, so this doesn't update.
     }
 }

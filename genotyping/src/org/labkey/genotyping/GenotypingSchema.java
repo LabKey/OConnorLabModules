@@ -85,4 +85,9 @@ public class GenotypingSchema
     {
         return getSchema().getTable("Analyses");
     }
+
+    public TableInfo getAnalysisSamplesTable()
+    {
+        return getSchema().getTable("AnalysisSamples");
+    }
 }

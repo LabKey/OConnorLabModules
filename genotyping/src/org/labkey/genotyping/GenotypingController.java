@@ -506,6 +506,7 @@ public class GenotypingController extends SpringActionController
     {
         private boolean _readyToSubmit = false;
         private String[] _sequencesViews;
+        private String[] _descriptions;
         private String _readsPath;
         private Integer _run;
 
@@ -529,6 +530,16 @@ public class GenotypingController extends SpringActionController
         public void setSequencesViews(String[] sequencesViews)
         {
             _sequencesViews = sequencesViews;
+        }
+
+        public String[] getDescriptions()
+        {
+            return _descriptions;
+        }
+
+        public void setDescriptions(String[] descriptions)
+        {
+            _descriptions = descriptions;
         }
 
         public String getReadsPath()
@@ -584,6 +595,9 @@ public class GenotypingController extends SpringActionController
     }
 
 
+    // NULL view name means use default view; need a placeholder string to display and post from the form
+    public static final String DEFAULT_VIEW_PLACEHOLDER = "[default]";
+
     @RequiresPermissionClass(AdminPermission.class)
     public class ImportReadsAction extends FormViewAction<SubmitAnalysisForm>
     {
@@ -611,7 +625,7 @@ public class GenotypingController extends SpringActionController
                         String name1 = c1.getName();
                         String name2 = c2.getName();
 
-                        return (null == name1 ? "[all]": name1).compareTo((null == name2 ? "[all]": name2));
+                        return (null == name1 ? DEFAULT_VIEW_PLACEHOLDER : name1).compareTo((null == name2 ? DEFAULT_VIEW_PLACEHOLDER : name2));
                     }
                 });
             views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), "sequences", "sequences"));
@@ -640,10 +654,12 @@ public class GenotypingController extends SpringActionController
             PipelineService.get().queueJob(prepareRunJob);
 
             String[] sequencesViews = form.getSequencesViews();
+            String[] descriptions = form.getDescriptions();
 
             for (int i = 0; null != sequencesViews && i < sequencesViews.length; i++)
             {
-                GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, sequencesViews[i]);
+                String sequencesView = DEFAULT_VIEW_PLACEHOLDER.equals(sequencesViews[i]) ? null : sequencesViews[i];
+                GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, null == descriptions ? null : descriptions[i], sequencesView);
                 PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, new File(form.getReadsPath()), run, analysis);
                 PipelineService.get().queueJob(analysisJob);
             }
@@ -702,13 +718,13 @@ public class GenotypingController extends SpringActionController
                 }
             }
 
-            submitLoadJob(analysisId, analysisDir, user);
+            importAnalysis(analysisId, analysisDir, user);
 
             // Plain text response back to Galaxy
             HttpServletResponse response = getViewContext().getResponse();
             response.setContentType("text/plain");
             PrintWriter out = response.getWriter();
-            out.print("Job to load results has been queued");
+            out.print("Import analysis job has been queued");
             out.close();
             response.flushBuffer();
 
@@ -766,7 +782,7 @@ public class GenotypingController extends SpringActionController
             Properties props = GenotypingManager.get().readProperties(analysisDir);
 
             Integer analysisId = Integer.parseInt((String)props.get("analysis"));
-            submitLoadJob(analysisId, analysisDir, getUser());
+            importAnalysis(analysisId, analysisDir, getUser());
 
             return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
         }
@@ -774,9 +790,9 @@ public class GenotypingController extends SpringActionController
 
 
     // TODO: Verify that file path and analysis # match -- just look in properties file?
-    // TODO: verify that analysis is pending, synchronously
+    // TODO: synchronously verify that analysis hasn't already been loaded 
 
-    private void submitLoadJob(int analysisId, File pipelineDir, User user) throws IOException
+    private void importAnalysis(int analysisId, File pipelineDir, User user) throws IOException
     {
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(getContainer(), analysisId);
         ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), user, getViewContext().getActionURL());

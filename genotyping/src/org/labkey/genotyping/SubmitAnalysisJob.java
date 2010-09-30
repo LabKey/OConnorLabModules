@@ -123,68 +123,10 @@ public class SubmitAnalysisJob extends PipelineJob
     }
 
 
-    private void writeReads(List<Integer> mids) throws IOException, SQLException, ServletException
-    {
-        TableInfo ti = GenotypingSchema.get().getReadsTable();
-        SimpleFilter filter = new SimpleFilter("run", _analysis.getRun());
-        filter.addInClause("mid", mids);
-
-        final ResultSet rs = Table.select(ti, ti.getColumns("name,mid,sequence,quality"), filter, null);
-
-        // Need a custom writer since TSVGridWriter does not work in background threads
-        TSVWriter writer = new TSVWriter() {
-            @Override
-            protected void write()
-            {
-                _pw.println("name\tmid\tsequence\tquality");
-
-                try
-                {
-                    while (rs.next())
-                    {
-                        _pw.println(rs.getString(1) + "\t" + rs.getInt(2) + "\t" + rs.getString(3) + "\t" + rs.getString(4));
-                    }
-                }
-                catch (SQLException e)
-                {
-                    throw new RuntimeSQLException(e);
-                }
-                finally
-                {
-                    ResultSetUtil.close(rs);
-                }
-            }
-        };
-
-        writer.write(new File(_analysisDir, "reads.txt"));
-    }
-
-
-    private void writeProperties() throws IOException
-    {
-        info("Writing properties file");
-        Properties props = new Properties();
-        props.put("url", GenotypingController.getWorkflowCompleteURL(getContainer(), _analysis).getURIString());
-        props.put("dir", _analysisDir.getName());
-        props.put("analysis", String.valueOf(_analysis.getRowId()));
-        props.put("user", getUser().getEmail());
-
-        // Tell Galaxy "workflow complete" task to write a file when the workflow is done.  In many dev mode configurations
-        // the Galaxy server can't communicate via HTTP with the LabKey server, so we'll watch for this file as a backup plan.
-        if (AppProps.getInstance().isDevMode())
-        {
-            File completionFile = new File(_analysisDir, "analysis_complete.txt");
-            WorkflowCompletionMonitor.get().monitor(completionFile);
-            props.put("completeFilename", completionFile.getName());
-        }
-
-        GenotypingManager.get().writeProperties(props, _analysisDir);
-    }
-
-
     private List<Integer> writeSamples() throws SQLException, ServletException, IOException
     {
         info("Writing sample file");
+        setStatus("WRITING SAMPLES");
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
         QueryHelper qHelper = new QueryHelper(getContainer(), getUser(), settings.getSamplesQuery());
         SimpleFilter extraFilter = new SimpleFilter("library_number", _run.getSampleLibrary());
@@ -225,9 +167,72 @@ public class SubmitAnalysisJob extends PipelineJob
     }
 
 
+    private void writeReads(List<Integer> mids) throws IOException, SQLException, ServletException
+    {
+        info("Writing reads file");
+        setStatus("WRITING READS");
+        TableInfo ti = GenotypingSchema.get().getReadsTable();
+        SimpleFilter filter = new SimpleFilter("run", _analysis.getRun());
+        filter.addInClause("mid", mids);
+
+        final ResultSet rs = Table.select(ti, ti.getColumns("name,mid,sequence,quality"), filter, null);
+
+        // Need a custom writer since TSVGridWriter does not work in background threads
+        TSVWriter writer = new TSVWriter() {
+            @Override
+            protected void write()
+            {
+                _pw.println("name\tmid\tsequence\tquality");
+
+                try
+                {
+                    while (rs.next())
+                    {
+                        _pw.println(rs.getString(1) + "\t" + rs.getInt(2) + "\t" + rs.getString(3) + "\t" + rs.getString(4));
+                    }
+                }
+                catch (SQLException e)
+                {
+                    throw new RuntimeSQLException(e);
+                }
+                finally
+                {
+                    ResultSetUtil.close(rs);
+                }
+            }
+        };
+
+        writer.write(new File(_analysisDir, "reads.txt"));
+    }
+
+
+    private void writeProperties() throws IOException
+    {
+        info("Writing properties file");
+        setStatus("WRITING PROPERTIES");
+        Properties props = new Properties();
+        props.put("url", GenotypingController.getWorkflowCompleteURL(getContainer(), _analysis).getURIString());
+        props.put("dir", _analysisDir.getName());
+        props.put("analysis", String.valueOf(_analysis.getRowId()));
+        props.put("user", getUser().getEmail());
+
+        // Tell Galaxy "workflow complete" task to write a file when the workflow is done.  In many dev mode configurations
+        // the Galaxy server can't communicate via HTTP with the LabKey server, so we'll watch for this file as a backup plan.
+        if (AppProps.getInstance().isDevMode())
+        {
+            File completionFile = new File(_analysisDir, "analysis_complete.txt");
+            WorkflowCompletionMonitor.get().monitor(completionFile);
+            props.put("completeFilename", completionFile.getName());
+        }
+
+        GenotypingManager.get().writeProperties(props, _analysisDir);
+    }
+
+
     private void writeFasta() throws SQLException, IOException
     {
         info("Writing FASTA file");
+        setStatus("WRITING FASTA");
         File fastaFile = new File(_analysisDir, GenotypingManager.SEQUENCES_FILE_NAME);
         SequenceManager.get().writeFasta(getContainer(), getUser(), _analysis.getSequencesView(), fastaFile);
     }
@@ -236,9 +241,25 @@ public class SubmitAnalysisJob extends PipelineJob
     private void sendFilesToGalaxy(GalaxyServer server) throws IOException
     {
         info("Sending files to Galaxy");
+        setStatus("SENDING TO GALAXY");
 
-        GalaxyServer.DataLibrary library = server.createLibrary(_dir.getName() + "_" + _analysis.getRowId(), "Analysis " + _analysis.getRowId(), "An MHC genotyping analysis");
+        GalaxyServer.DataLibrary library = server.createLibrary(_dir.getName() + "_" + _analysis.getRowId(), "MHC Analysis " + _analysis.getRowId(), "An MHC genotyping analysis");
         GalaxyServer.Folder root = library.getRootFolder();
-        root.uploadFromImportDirectory(_analysisDir.getName(), "txt", null, false);
+        root.uploadFromImportDirectory(_dir.getName() + "/" + _analysisDir.getName(), "txt", null, true);
+
+        // Hack for testing without invoking the entire galaxy workflow: if it exists, link the matches.txt file
+        // in /matches into the data library.
+        if (AppProps.getInstance().isDevMode())
+        {
+            File matchesDir = new File(_dir, "matches");
+
+            if (matchesDir.exists())
+            {
+                File matchesFile = new File(matchesDir, GenotypingManager.MATCHES_FILE_NAME);
+
+                if (matchesFile.exists())
+                    root.uploadFromImportDirectory(_dir.getName() + "/matches", "txt", null, true);
+            }
+        }
     }
 }

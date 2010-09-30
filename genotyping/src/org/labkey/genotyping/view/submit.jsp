@@ -42,30 +42,36 @@
     </table>
 </form>
 <script type="text/javascript">
-    var rowsPerAnalysis = 2;
+    var rowsPerAnalysis = 4;
     var analysisCount = 0;
 
     updateDeleteButton();
 
     function addNewAnalysis()
     {
-        var table = document.getElementById('analysesTable');
         analysisCount++;
+        var table = document.getElementById('analysesTable');
+        var currentRow = (analysisCount - 1) * rowsPerAnalysis + 3;
 
-        var newRow = table.insertRow(1 + analysisCount * rowsPerAnalysis);
+        var newRow = table.insertRow(currentRow++);
         var titleCell = newRow.insertCell(0);
-        titleCell.innerHTML = 'MHC Analysis #' + analysisCount;
+        titleCell.innerHTML = '<b>MHC Analysis #' + analysisCount + '</b>';
 
-        newRow = table.insertRow(2 + analysisCount * rowsPerAnalysis);
+        newRow = table.insertRow(currentRow++);
         newRow.insertCell(0).innerHTML = 'Reference Sequences:';
         newRow.insertCell(1).innerHTML = '<select name="sequencesViews"><%
             for (CustomView view : bean.getSequencesViews())
             {
                 String name = view.getName();
-            %><option><%=h(null == name ? "[all]" : name)%><\/option><%
+            %><option><%=h(null == name ? GenotypingController.DEFAULT_VIEW_PLACEHOLDER : name)%><\/option><%
             }
         %><\/select>';
-        table.insertRow(3 + analysisCount * rowsPerAnalysis).insertCell(0).innertHTML = '&nbsp;';
+
+        newRow = table.insertRow(currentRow++);
+        newRow.insertCell(0).innerHTML = 'Description:';
+        newRow.insertCell(1).innerHTML = '<textarea cols="40" rows="5" name="descriptions"/>';
+
+        table.insertRow(currentRow++).insertCell(0).innerHTML = '&nbsp;';
 
         updateDeleteButton();
     }
@@ -75,9 +81,11 @@
         if (analysisCount > 0)
         {
             var table = document.getElementById('analysesTable');
-            table.deleteRow(1 + analysisCount * rowsPerAnalysis);
-            table.deleteRow(1 + analysisCount * rowsPerAnalysis);
-            table.deleteRow(1 + analysisCount * rowsPerAnalysis);
+            var currentRow = (analysisCount - 1) * rowsPerAnalysis + 3
+
+            for (var i = 0; i < rowsPerAnalysis; i++)
+                table.deleteRow(currentRow);
+
             analysisCount--;
             updateDeleteButton();
         }

@@ -30,8 +30,6 @@ import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.view.NotFoundException;
-import org.labkey.genotyping.GenotypingManager;
-import org.labkey.genotyping.GenotypingFolderSettings;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -288,7 +286,6 @@ public class GalaxyServer
             super(ItemType.LibraryFolder, parent, json);
         }
 
-        // TODO: implement link vs. copy
         public List<File> uploadFromImportDirectory(String serverPath, String fileType, @Nullable String dbKey, boolean linkData) throws IOException
         {
             JSONWriter writer = new JSONStringer();
@@ -299,6 +296,7 @@ public class GalaxyServer
             writer.key("dbkey").value(null != dbKey ? dbKey : "?");
             writer.key("upload_option").value("upload_directory");
             writer.key("create_type").value("file");
+            writer.key("link_data_only").value(linkData ? "Yes" : "No");
             writer.endObject();
 
             String json = post(getId() + "/contents", writer.toString());

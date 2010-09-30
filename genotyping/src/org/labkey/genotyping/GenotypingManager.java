@@ -17,6 +17,7 @@
 package org.labkey.genotyping;
 
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
 import org.labkey.api.data.Table;
@@ -102,9 +103,9 @@ public class GenotypingManager
         return run;
     }
 
-    public GenotypingAnalysis createAnalysis(Container c, User user, GenotypingRun run, String sequencesViewName) throws SQLException
+    public GenotypingAnalysis createAnalysis(Container c, User user, GenotypingRun run, @Nullable String description, @Nullable String sequencesViewName) throws SQLException
     {
-        return Table.insert(user, GenotypingSchema.get().getAnalysesTable(), new GenotypingAnalysis(c, run, sequencesViewName));
+        return Table.insert(user, GenotypingSchema.get().getAnalysesTable(), new GenotypingAnalysis(c, run, description, sequencesViewName));
     }
 
     public GenotypingAnalysis getAnalysis(Container c, int analysisId)
@@ -125,6 +126,7 @@ public class GenotypingManager
         Table.execute(gs.getSchema(), "DELETE FROM " + gs.getAllelesJunctionTable() + matchesWhere, params);
         Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsJunctionTable() + matchesWhere, params);
         Table.execute(gs.getSchema(), "DELETE FROM " + gs.getMatchesTable() + analysisWhere, params);
+        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getAnalysisSamplesTable() + analysisWhere, params);
         Table.execute(gs.getSchema(), "DELETE" + analysisFrom, params);
         Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsTable() + " WHERE Run = ?", new Object[]{run.getRun()});
     }

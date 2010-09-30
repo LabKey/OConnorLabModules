@@ -1,5 +1,6 @@
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.util.MemTracker;
 import org.labkey.genotyping.sequences.SequenceManager;
@@ -20,19 +21,21 @@ public class GenotypingAnalysis
     private int _createdBy;
     private Date _created;
     private String _path;
+    private @Nullable String _description;
     private int _sequenceDictionary;
-    private String _sequencesView;
+    private @Nullable String _sequencesView;
 
     public GenotypingAnalysis()
     {
         assert MemTracker.put(this);
     }
 
-    public GenotypingAnalysis(Container c, GenotypingRun run, String sequencesView) throws SQLException
+    public GenotypingAnalysis(Container c, GenotypingRun run, @Nullable String description, @Nullable String sequencesView) throws SQLException
     {
         this();
         setContainer(c);
         setRun(run.getRun());
+        setDescription(description);
         setSequenceDictionary(SequenceManager.get().getCurrentDictionary(c));
         setSequencesView(sequencesView);
     }
@@ -97,6 +100,17 @@ public class GenotypingAnalysis
         _path = path;
     }
 
+    @Nullable
+    public String getDescription()
+    {
+        return _description;
+    }
+
+    public void setDescription(@Nullable String description)
+    {
+        _description = description;
+    }
+
     public int getSequenceDictionary()
     {
         return _sequenceDictionary;
@@ -107,12 +121,12 @@ public class GenotypingAnalysis
         _sequenceDictionary = sequenceDictionary;
     }
 
-    public String getSequencesView()
+    public @Nullable String getSequencesView()
     {
         return _sequencesView;
     }
 
-    public void setSequencesView(String sequencesView)
+    public void setSequencesView(@Nullable String sequencesView)
     {
         _sequencesView = sequencesView;
     }
