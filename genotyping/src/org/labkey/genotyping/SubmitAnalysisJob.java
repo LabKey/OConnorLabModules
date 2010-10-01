@@ -48,7 +48,6 @@ import java.util.Properties;
  */
 public class SubmitAnalysisJob extends PipelineJob
 {
-
     private final File _dir;
     private final GenotypingRun _run;
     private final GenotypingAnalysis _analysis;

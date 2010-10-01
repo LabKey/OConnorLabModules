@@ -36,7 +36,7 @@ public class GenotypingAnalysis
         setContainer(c);
         setRun(run.getRun());
         setDescription(description);
-        setSequenceDictionary(SequenceManager.get().getCurrentDictionary(c));
+        setSequenceDictionary(SequenceManager.get().getCurrentDictionary(c).getRowId());
         setSequencesView(sequencesView);
     }
 

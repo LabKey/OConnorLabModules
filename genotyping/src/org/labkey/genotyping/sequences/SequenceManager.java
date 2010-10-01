@@ -1,5 +1,6 @@
 package org.labkey.genotyping.sequences;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ResultSetIterator;
@@ -49,7 +50,7 @@ public class SequenceManager
         Map<String, Object> dictionary = new HashMap<String, Object>();
         dictionary.put("container", c);
         Table.insert(user, GenotypingSchema.get().getDictionariesTable(), dictionary);
-        int dictionaryId = getCurrentDictionary(c);
+        int dictionaryId = getCurrentDictionary(c).getRowId();
 
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
         QueryHelper qHelper = new QueryHelper(c, user, settings.getSequencesQuery());
@@ -121,20 +122,33 @@ public class SequenceManager
     }
 
 
-    public int getCurrentDictionary(Container c) throws SQLException
+    // Throws IllegalStateException if references sequences have not been loaded
+    public @NotNull SequenceDictionary getCurrentDictionary(Container c) throws SQLException
+    {
+        return getCurrentDictionary(c, true);
+    }
+
+
+    // Throws or returns null, depending on value of throwIfNotLoaded flag
+    public SequenceDictionary getCurrentDictionary(Container c, boolean throwIfNotLoaded) throws SQLException
     {
         Integer max = Table.executeSingleton(GenotypingSchema.get().getSchema(),
                 "SELECT MAX(RowId) FROM " + GenotypingSchema.get().getDictionariesTable() + " WHERE Container = ?",
                 new Object[]{c}, Integer.class);
 
         if (null == max)
-            throw new IllegalStateException("You must load reference sequences before initiating an analysis");
+        {
+            if (throwIfNotLoaded)
+                throw new IllegalStateException("You must load reference sequences before initiating an analysis");
+            else
+                return null;
+        }
 
-        return max;
+        return getSequenceDictionary(c, max);
     }
 
 
-    public Map<String, Integer> getSequences(Container c, User user, int dictionary, String sequencesViewName) throws SQLException
+    public Map<String, Integer> getSequences(Container c, User user, SequenceDictionary dictionary, String sequencesViewName) throws SQLException
     {
         ResultSet rs = null;
         HashMap<String, Integer> sequences = new HashMap<String, Integer>();
@@ -159,10 +173,10 @@ public class SequenceManager
         }
     }
 
-    private ResultSet selectSequences(Container c, User user, int dictionary, String sequencesViewName, String columnNames) throws SQLException
+    private ResultSet selectSequences(Container c, User user, SequenceDictionary dictionary, String sequencesViewName, String columnNames) throws SQLException
     {
         // First, make sure that dictionary exists in this container
-        SimpleFilter filter = new SimpleFilter("RowId", dictionary);
+        SimpleFilter filter = new SimpleFilter("RowId", dictionary.getRowId());
         filter.addCondition("Container", c);
         TableInfo dictionaries = GenotypingSchema.get().getDictionariesTable();
         ResultSet rs = null;
@@ -188,5 +202,11 @@ public class SequenceManager
         viewFilter.addCondition("Dictionary", dictionary);
         TableInfo ti = GenotypingSchema.get().getSequencesTable();
         return Table.select(ti, ti.getColumns(columnNames), viewFilter, new Sort("RowId"));
+    }
+
+
+    public SequenceDictionary getSequenceDictionary(Container c, int id)
+    {
+        return Table.selectObject(GenotypingSchema.get().getDictionariesTable(), c, id, SequenceDictionary.class);
     }
 }

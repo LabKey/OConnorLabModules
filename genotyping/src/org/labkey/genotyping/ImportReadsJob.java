@@ -69,7 +69,7 @@ public class ImportReadsJob extends PipelineJob
     @Override
     public String getDescription()
     {
-        return "Import reads for run " + _run.getRun();
+        return "Import reads and metrics for run " + _run.getRun();
     }
 
 

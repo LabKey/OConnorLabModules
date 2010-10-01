@@ -32,6 +32,7 @@ import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.JspTemplate;
 import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.ViewBackgroundInfo;
+import org.labkey.genotyping.sequences.SequenceDictionary;
 import org.labkey.genotyping.sequences.SequenceManager;
 
 import java.io.BufferedReader;
@@ -124,7 +125,8 @@ public class ImportAnalysisJob extends PipelineJob
                     info("Executing query to join results");
                     rs = Table.executeQuery(schema, sql, null);
                     info("Importing results");
-                    Map<String, Integer> sequences = SequenceManager.get().getSequences(getContainer(), getUser(), _analysis.getSequenceDictionary(), _analysis.getSequencesView());
+                    SequenceDictionary dictionary = SequenceManager.get().getSequenceDictionary(getContainer(), _analysis.getSequenceDictionary());
+                    Map<String, Integer> sequences = SequenceManager.get().getSequences(getContainer(), getUser(), dictionary, _analysis.getSequencesView());
 
                     while (rs.next())
                     {

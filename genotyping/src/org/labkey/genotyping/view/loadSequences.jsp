@@ -21,22 +21,43 @@
 <%@ page import="org.labkey.genotyping.QueryHelper" %>
 <%@ page import="org.labkey.api.security.User" %>
 <%@ page import="org.labkey.api.data.Container" %>
+<%@ page import="org.labkey.api.action.ReturnUrlForm" %>
+<%@ page import="org.labkey.genotyping.sequences.SequenceDictionary" %>
+<%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
+<%@ page import="org.labkey.api.util.DateUtil" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
+    ReturnUrlForm form = (ReturnUrlForm)getModelBean();
     Container c = getViewContext().getContainer();
     User user = getViewContext().getUser();
     GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
     QueryHelper qHelper = new QueryHelper(c, user, settings.getSequencesQuery());
+    SequenceDictionary dictionary = SequenceManager.get().getCurrentDictionary(c, false);
 %>
 <form <%=formAction(GenotypingController.LoadSequencesAction.class, Method.Post)%>>
-    <table>
-        <tr>
-            <td>
-                This will load a new dictionary of DNA sequences from the source query "<%=h(qHelper)%>" and set it as the
-                dictionary of reference sequences to use for future genotyping analyses. Existing analysis runs will continue to
-                link to the sequences used at the time of their analysis.
-            </td>
-        </tr>
-        <tr><td><%=generateSubmitButton("Load Sequences")%></td></tr>
-    </table>
+    <table><tr><td>
+        <p><%
+            if (null == dictionary)
+            {
+        %>
+            <span class="labkey-error">Reference sequences have not been loaded in this folder. You must load refenerence sequences before submitting
+            genotyping analyses.</span>
+        <%
+            }
+            else
+            {
+        %>
+            Reference sequences in this folder are currently set to version <%=dictionary.getRowId()%>, loaded
+            <%=h(DateUtil.formatDateTime(dictionary.getCreated()))%> by <%=h(dictionary.getCreatedBy().getDisplayName(user))%>.
+        <%
+            }
+        %>
+        </p>
+        <p>
+            Clicking the button below will load a new dictionary of DNA sequences from the source query "<%=h(qHelper)%>" and set it as the
+            dictionary of reference sequences to use for future genotyping analyses. Existing analysis runs will continue to
+            link to the sequences used at the time of their analysis.
+        </p>
+        <%=generateSubmitButton("Load Sequences")%><%=generateReturnUrlFormField(form)%>
+    </td></tr></table>
 </form>

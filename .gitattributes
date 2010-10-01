@@ -19,6 +19,7 @@ genotyping/src/org/labkey/genotyping/ImportReadsJob.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/QueryHelper.java -text
 genotyping/src/org/labkey/genotyping/SubmitAnalysisJob.java -text
+genotyping/src/org/labkey/genotyping/SubmitAnalysisPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyFolderSettings.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyManager.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyServer.java -text
@@ -26,8 +27,9 @@ genotyping/src/org/labkey/genotyping/galaxy/GalaxyUserSettings.java -text
 genotyping/src/org/labkey/genotyping/galaxy/WorkflowCompletionMonitor.java -text
 genotyping/src/org/labkey/genotyping/sequences/Allele.java -text
 genotyping/src/org/labkey/genotyping/sequences/AlleleFastaLoader.java -text
+genotyping/src/org/labkey/genotyping/sequences/SequenceDictionary.java -text
 genotyping/src/org/labkey/genotyping/sequences/SequenceManager.java -text
-genotyping/src/org/labkey/genotyping/view/admin.jsp -text
+genotyping/src/org/labkey/genotyping/view/configure.jsp -text
 genotyping/src/org/labkey/genotyping/view/loadSequences.jsp -text
 genotyping/src/org/labkey/genotyping/view/mhcQuery.jsp -text
 genotyping/src/org/labkey/genotyping/view/mySettings.jsp -text

@@ -226,16 +226,16 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermissionClass(AdminPermission.class)
-    public class LoadSequencesAction extends SimpleRedirectAction
+    public class LoadSequencesAction extends SimpleRedirectAction<ReturnUrlForm>
     {
         @Override
-        public ActionURL getRedirectURL(Object o) throws Exception
+        public URLHelper getRedirectURL(ReturnUrlForm form) throws Exception
         {
             long startTime = System.currentTimeMillis();
             SequenceManager.get().loadSequences(getContainer(), getUser());
             LOG.info(DateUtil.formatDuration(System.currentTimeMillis() - startTime) + " to load sequences");
 
-            return getViewURL();
+            return form.getReturnURLHelper(getViewURL());
         }
     }
 
@@ -357,12 +357,12 @@ public class GenotypingController extends SpringActionController
 
             if (null != currentSettings.getSequencesQuery())
             {
-                WebPartView loadSequences = new JspView("/org/labkey/genotyping/view/loadSequences.jsp");
-                loadSequences.setTitle("Load Reference Sequences");
+                WebPartView loadSequences = new JspView<ReturnUrlForm>("/org/labkey/genotyping/view/loadSequences.jsp", form);
+                loadSequences.setTitle("Reference Sequences");
                 vbox.addView(loadSequences);
             }
 
-            WebPartView configure = new JspView<AdminForm>("/org/labkey/genotyping/view/admin.jsp", form, errors);
+            WebPartView configure = new JspView<AdminForm>("/org/labkey/genotyping/view/configure.jsp", form, errors);
             configure.setTitle("Configuration");
             vbox.addView(configure);
 
@@ -697,7 +697,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(AnalysisForm form, BindException errors) throws Exception
         {
-            LOG.info("Galaxy signaled it's complete with analysis " + form.getAnalysis());
+            LOG.info("Galaxy signaled the completion of analysis " + form.getAnalysis());
             String message;
 
             // Send any exceptions back to the Galaxy task so it can log it as well.
