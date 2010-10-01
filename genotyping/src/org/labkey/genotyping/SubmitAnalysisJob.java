@@ -217,12 +217,16 @@ public class SubmitAnalysisJob extends PipelineJob
         props.put("user", getUser().getEmail());
 
         // Tell Galaxy "workflow complete" task to write a file when the workflow is done.  In many dev mode configurations
-        // the Galaxy server can't communicate via HTTP with the LabKey server, so we'll watch for this file as a backup plan.
+        // the Galaxy server can't communicate via HTTP with LabKey Server, so watch for this file as a backup plan.
         if (AppProps.getInstance().isDevMode())
         {
             File completionFile = new File(_analysisDir, "analysis_complete.txt");
+
+            if (completionFile.exists())
+                throw new IllegalStateException("Completion file already exists: " + completionFile.getPath());
+
             WorkflowCompletionMonitor.get().monitor(completionFile);
-            props.put("completeFilename", completionFile.getName());
+            props.put("completionFilename", completionFile.getName());
         }
 
         GenotypingManager.get().writeProperties(props, _analysisDir);
@@ -243,7 +247,7 @@ public class SubmitAnalysisJob extends PipelineJob
         info("Sending files to Galaxy");
         setStatus("SENDING TO GALAXY");
 
-        GalaxyServer.DataLibrary library = server.createLibrary(_dir.getName() + "_" + _analysis.getRowId(), "MHC Analysis " + _analysis.getRowId(), "An MHC genotyping analysis");
+        GalaxyServer.DataLibrary library = server.createLibrary(_dir.getName() + "_" + _analysis.getRowId(), "MHC analysis " + _analysis.getRowId() + " for run " + _analysis.getRun(), "An MHC genotyping analysis");
         GalaxyServer.Folder root = library.getRootFolder();
         root.uploadFromImportDirectory(_dir.getName() + "/" + _analysisDir.getName(), "txt", null, true);
 

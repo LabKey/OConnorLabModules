@@ -83,6 +83,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -696,35 +697,46 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(AnalysisForm form, BindException errors) throws Exception
         {
-            LOG.info("Galaxy claims to be complete with analysis " + form.getAnalysis());
+            LOG.info("Galaxy signaled it's complete with analysis " + form.getAnalysis());
+            String message;
 
-            int analysisId = form.getAnalysis();
-            File analysisDir = new File(form.getPath());
-
-            User user = getUser();
-
-            if (user.isGuest())
+            // Send any exceptions back to the Galaxy task so it can log it as well.
+            try
             {
-                Properties props = GenotypingManager.get().readProperties(analysisDir);
-                String email = (String)props.get("user");
+                int analysisId = form.getAnalysis();
+                File analysisDir = new File(form.getPath());
 
-                if (null != email)
+                User user = getUser();
+
+                if (user.isGuest())
                 {
-                    // Possible that user doesn't exist or changed email (e.g., re-loading an old analysis)
-                    User test = UserManager.getUser(new ValidEmail(email));
+                    Properties props = GenotypingManager.get().readProperties(analysisDir);
+                    String email = (String)props.get("user");
 
-                    if (null != test)
-                        user = test;
+                    if (null != email)
+                    {
+                        // Possible that user doesn't exist or changed email (e.g., re-loading an old analysis)
+                        User test = UserManager.getUser(new ValidEmail(email));
+
+                        if (null != test)
+                            user = test;
+                    }
                 }
-            }
 
-            importAnalysis(analysisId, analysisDir, user);
+                importAnalysis(analysisId, analysisDir, user);
+                message = "Import analysis job queued at " + new Date();
+            }
+            catch (Exception e)
+            {
+                message = "Failed to queue import analysis job: " + e.getMessage();
+                LOG.error(message);
+            }
 
             // Plain text response back to Galaxy
             HttpServletResponse response = getViewContext().getResponse();
             response.setContentType("text/plain");
             PrintWriter out = response.getWriter();
-            out.print("Import analysis job has been queued");
+            out.print(message);
             out.close();
             response.flushBuffer();
 

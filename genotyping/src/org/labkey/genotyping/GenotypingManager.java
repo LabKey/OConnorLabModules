@@ -22,6 +22,7 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
 import org.labkey.api.data.Table;
 import org.labkey.api.security.User;
+import org.labkey.api.view.NotFoundException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -110,7 +111,12 @@ public class GenotypingManager
 
     public GenotypingAnalysis getAnalysis(Container c, int analysisId)
     {
-        return Table.selectObject(GenotypingSchema.get().getAnalysesTable(), c, analysisId, GenotypingAnalysis.class);
+        GenotypingAnalysis analysis = Table.selectObject(GenotypingSchema.get().getAnalysesTable(), c, analysisId, GenotypingAnalysis.class);
+
+        if (null == analysis)
+            throw new NotFoundException("Analysis " + analysisId + " not found in folder " + c.getPath());
+
+        return analysis;
     }
 
     // Deletes all the reads, analyses, and matches associated with a run, including rows in all junction tables.
