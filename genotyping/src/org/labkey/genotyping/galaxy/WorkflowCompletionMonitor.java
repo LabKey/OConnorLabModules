@@ -75,7 +75,7 @@ public class WorkflowCompletionMonitor implements ShutdownListener
     public void monitor(File completionFile)
     {
         _pendingCompletionFiles.add(completionFile);
-        LOG.info("Monitoring " + completionFile.getAbsolutePath());
+        LOG.info("Monitoring for " + completionFile.getAbsolutePath());
     }
 
 
