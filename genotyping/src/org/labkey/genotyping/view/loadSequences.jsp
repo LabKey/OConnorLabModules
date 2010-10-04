@@ -40,7 +40,7 @@
             if (null == dictionary)
             {
         %>
-            <span class="labkey-error">Reference sequences have not been loaded in this folder. You must load refenerence sequences before submitting
+            <span class="labkey-error">Reference sequences have not been loaded in this folder. You must load reference sequences before submitting
             genotyping analyses.</span>
         <%
             }

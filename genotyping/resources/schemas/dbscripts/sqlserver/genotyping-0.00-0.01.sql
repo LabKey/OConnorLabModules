@@ -44,12 +44,12 @@ CREATE TABLE genotyping.Sequences
     Locus VARCHAR(45) NULL,
     Species VARCHAR(45) NULL,
     Origin VARCHAR(45) NULL,
-    Sequence VARCHAR(8000) NOT NULL,  -- TODO: Change to TEXT once multi-valued column doesn't select all columns in target table
+    Sequence TEXT NOT NULL,
     PreviousName VARCHAR(45) NULL,
     LastEdit DATETIME NOT NULL,
     Version INT NOT NULL,
     ModifiedBy VARCHAR(45) NOT NULL,
-    Translation VARCHAR(8000),   -- TODO: Change to TEXT once multi-valued column doesn't select all columns in target table
+    Translation TEXT NULL,
     Type VARCHAR(45) NULL,
     IpdAccession VARCHAR(45) NULL,
     Reference INT NOT NULL,

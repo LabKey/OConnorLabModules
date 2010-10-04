@@ -1,5 +1,6 @@
 package org.labkey.genotyping.sequences;
 
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
@@ -79,6 +80,10 @@ public class SequenceManager
                     String key = entry.getKey().replaceAll("_", "");
                     inMap.put(key, entry.getValue());
                 }
+
+                // Skip empty sequences.  TODO: remove this check once wisconsin eliminates empty sequences
+                if (StringUtils.isBlank((String)inMap.get("sequence")))
+                    continue;
 
                 inMap.put("dictionary", dictionaryId);
                 Table.insert(user, destination, inMap);
