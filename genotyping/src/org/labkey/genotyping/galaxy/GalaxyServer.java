@@ -29,9 +29,11 @@ import org.json.JSONWriter;
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.NotFoundException;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,7 @@ import java.util.Map;
 // web API key (see User -> Preferences -> Manage your information).
 public class GalaxyServer
 {
+    private final String _serverUrl;
     private final String _baseUrl;
     private final String _key;
     private final HttpClient _client;
@@ -53,7 +56,8 @@ public class GalaxyServer
 
     public GalaxyServer(String serverUrl, String key)
     {
-        _baseUrl = (serverUrl.endsWith("/") ? serverUrl : serverUrl + "/") + "api/libraries";
+        _serverUrl = !serverUrl.endsWith("/") ? serverUrl : serverUrl.substring(0, serverUrl.length() - 1);
+        _baseUrl = _serverUrl + "/api/libraries";
         _key = key;
         _client = new HttpClient();
 
@@ -77,6 +81,12 @@ public class GalaxyServer
             throw new NotFoundException("You must first configure a Galaxy web API key using the \"my settings\" link");
 
         return new GalaxyServer(settings.getGalaxyURL(), userSettings.getGalaxyKey());
+    }
+
+
+    public String getServerUrl()
+    {
+        return _serverUrl;
     }
 
 
@@ -161,7 +171,7 @@ public class GalaxyServer
     public class Item
     {
         private final ItemType _type;
-        private final String _url;
+        private final String _apiUrl;
         private final String _name;
         private final String _id;
         private final @Nullable Item _parent;
@@ -171,11 +181,11 @@ public class GalaxyServer
             this(type, parent, json.getString("url"), json.getString("name"), json.getString("id"));
         }
 
-        private Item(@NotNull ItemType type, @Nullable Item parent, String url, String name, String id)
+        private Item(@NotNull ItemType type, @Nullable Item parent, String apiUrl, String name, String id)
         {
             _type = type;
             _parent = parent;
-            _url = url;
+            _apiUrl = apiUrl;
             _name = name;
             _id = id;
         }
@@ -190,9 +200,9 @@ public class GalaxyServer
             return _parent;
         }
 
-        public String getUrl()
+        public String getApiUrl()
         {
-            return _url;
+            return _apiUrl;
         }
 
         public String getName()
@@ -237,6 +247,11 @@ public class GalaxyServer
                 list.add(getLibraryItem(this, (JSONObject)array.get(i)));
 
             return list;
+        }
+
+        public URLHelper getURL() throws URISyntaxException
+        {
+            return new URLHelper(getServerUrl() + "/library_common/browse_library?sort=name&f-description=All&f-name=All&cntrller=library&operation=browse").addParameter("id", getId());
         }
     }
 

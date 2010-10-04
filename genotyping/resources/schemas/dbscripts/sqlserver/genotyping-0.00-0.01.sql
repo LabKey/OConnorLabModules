@@ -15,48 +15,26 @@
  */
 
 EXEC core.fn_dropifexists '*', 'galaxy', 'SCHEMA', NULL
+EXEC core.fn_dropifexists '*', 'genotyping', 'SCHEMA', NULL
 GO
 
-EXEC sp_addapprole 'galaxy', 'password'
+EXEC sp_addapprole 'genotyping', 'password'
 GO
 
-CREATE TABLE galaxy.Matches
+CREATE TABLE genotyping.Dictionaries
 (
-    RowId INT IDENTITY (1, 1) NOT NULL,
-    SampleId VARCHAR(200) NOT NULL,
-    Reads INT NOT NULL,
-    "Percent" FLOAT NOT NULL,
-    Strandedness VARCHAR(5),
-    AverageLength FLOAT NOT NULL,
-    PosReads INT NOT NULL,
-    NegReads INT NOT NULL,
-    PosExtReads INT NOT NULL,
-    NegExtReads INT NOT NULL,
-
-    CONSTRAINT PK_Matches PRIMARY KEY (RowId)
-)
-
-CREATE TABLE galaxy.Alleles
-(
-    RowId INT IDENTITY (1, 1) NOT NULL,
-    Allele VARCHAR(100) NOT NULL,
-
-    CONSTRAINT PK_Alleles PRIMARY KEY (RowId)
-)
-
-CREATE TABLE galaxy.Junction
-(
-    RowId INT NOT NULL,
-    AlleleId INT NOT NULL
-)
-
--- TODO: Add FKs for RowId -> Matches, AllelelId > Alleles
-
-CREATE INDEX IX_Junction ON galaxy.Junction(RowId)
-
-CREATE TABLE galaxy.DnaSequences
-(
+    RowId INT IDENTITY(1, 1) NOT NULL,
     Container ENTITYID NOT NULL,
+    CreatedBy USERID NOT NULL,
+    Created DATETIME NOT NULL,
+
+    CONSTRAINT PK_Dictionaries PRIMARY KEY (RowId)
+)
+
+CREATE TABLE genotyping.Sequences
+(
+    RowId INT IDENTITY(1, 1) NOT NULL,
+    Dictionary INT NOT NULL,
     Uid INT NOT NULL,
     AlleleName VARCHAR(45) NOT NULL,
     Initials VARCHAR(45) NULL,
@@ -66,12 +44,12 @@ CREATE TABLE galaxy.DnaSequences
     Locus VARCHAR(45) NULL,
     Species VARCHAR(45) NULL,
     Origin VARCHAR(45) NULL,
-    Sequence TEXT,
+    Sequence VARCHAR(8000) NOT NULL,  -- TODO: Change to TEXT once multi-valued column doesn't select all columns in target table
     PreviousName VARCHAR(45) NULL,
-    LastEdit TIMESTAMP NOT NULL,
+    LastEdit DATETIME NOT NULL,
     Version INT NOT NULL,
     ModifiedBy VARCHAR(45) NOT NULL,
-    Translation TEXT,
+    Translation VARCHAR(8000),   -- TODO: Change to TEXT once multi-valued column doesn't select all columns in target table
     Type VARCHAR(45) NULL,
     IpdAccession VARCHAR(45) NULL,
     Reference INT NOT NULL,
@@ -82,14 +60,82 @@ CREATE TABLE galaxy.DnaSequences
     FullLength INT NOT NULL,
     AlleleFamily VARCHAR(45),
 
-    CONSTRAINT PK_DnaSequences PRIMARY KEY (Uid)
+    CONSTRAINT PK_Sequences PRIMARY KEY (RowId),
+    CONSTRAINT UQ_AlleleName UNIQUE (Dictionary, AlleleName),
+    CONSTRAINT UQ_Uid UNIQUE (Dictionary, Uid),
+    CONSTRAINT FK_Sequences_Dictionary FOREIGN KEY (Dictionary) REFERENCES genotyping.Dictionaries(RowId)
 )
 
-CREATE TABLE galaxy.UnmatchedSequences
+CREATE TABLE genotyping.Reads
 (
-    Mid INT NOT NULL,
-    Sequence TEXT NOT NULL
+    RowId INT IDENTITY(1, 1) NOT NULL,          -- TODO: Make this a long?!?!?
+    Run INT NOT NULL,
+    Name VARCHAR(20) NOT NULL,
+    Mid INT NULL,    -- NULL == Mid could not be isolated from sequence
+    Sequence VARCHAR(8000) NOT NULL,
+    Quality VARCHAR(8000) NOT NULL,
+
+    CONSTRAINT PK_Reads PRIMARY KEY (RowId)
+)
+
+CREATE TABLE genotyping.Analyses
+(
+    RowId INT IDENTITY(1, 1) NOT NULL,
+    Run INT NOT NULL,
+    Container ENTITYID NOT NULL,
+    CreatedBy USERID NOT NULL,
+    Created DATETIME NOT NULL,
+    Path VARCHAR(1000) NULL,
+    Description VARCHAR(8000) NULL,
+    SequenceDictionary INT NOT NULL,
+    SequencesView VARCHAR(200) NULL,  -- NULL => default view
+
+    CONSTRAINT PK_Analyses PRIMARY KEY (RowId),
+    CONSTRAINT FK_Analyses_Dictionaries FOREIGN KEY (SequenceDictionary) REFERENCES genotyping.Dictionaries(RowId)
+)
+
+CREATE TABLE genotyping.Matches
+(
+    RowId INT IDENTITY(1, 1) NOT NULL,
+    Analysis INT NOT NULL,
+    SampleId VARCHAR(200) NOT NULL,
+    Reads INT NOT NULL,
+    "Percent" REAL NOT NULL,
+    AverageLength REAL NOT NULL,
+    PosReads INT NOT NULL,
+    NegReads INT NOT NULL,
+    PosExtReads INT NOT NULL,
+    NegExtReads INT NOT NULL,
+
+    CONSTRAINT PK_Matches PRIMARY KEY (RowId),
+    CONSTRAINT FK_Matches_Analyses FOREIGN KEY (Analysis) REFERENCES genotyping.Analyses(RowId)
+)
+
+CREATE TABLE genotyping.AnalysisSamples
+(
+    Analysis INT NOT NULL,
+    SampleId VARCHAR(200) NOT NULL,
+
+    CONSTRAINT FK_AnalysisSamples_Analyses FOREIGN KEY (Analysis) REFERENCES genotyping.Analyses(RowId)
+)
+
+-- Junction table that links each row of Matches to one or more allele sequences in Sequences table
+CREATE TABLE genotyping.AllelesJunction
+(
+    MatchId INT NOT NULL,
+    SequenceId INT NOT NULL,
+
+    CONSTRAINT FK_AllelesJunction_Matches FOREIGN KEY (MatchId) REFERENCES genotyping.Matches(RowId),
+    CONSTRAINT FK_AllelesJunction_Reads FOREIGN KEY (SequenceId) REFERENCES genotyping.Sequences(RowId)
+)
+
+-- Junction table that links each row of Matches to one or more rows in Reads table
+CREATE TABLE genotyping.ReadsJunction
+(
+    MatchId INT NOT NULL,
+    ReadId INT NOT NULL,
+
+    CONSTRAINT FK_ReadsJunction_Matches FOREIGN KEY (MatchId) REFERENCES genotyping.Matches(RowId),
+    CONSTRAINT FK_ReadsJunction_Reads FOREIGN KEY (ReadId) REFERENCES genotyping.Reads(RowId)
 )
 GO
-
--- TODO: Add run/analysis run, index

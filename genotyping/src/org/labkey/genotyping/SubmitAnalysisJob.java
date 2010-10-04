@@ -26,7 +26,7 @@ import org.labkey.api.settings.AppProps;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.ResultSetUtil;
-import org.labkey.api.view.ActionURL;
+import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.genotyping.galaxy.GalaxyServer;
 import org.labkey.genotyping.galaxy.WorkflowCompletionMonitor;
@@ -35,6 +35,7 @@ import org.labkey.genotyping.sequences.SequenceManager;
 import javax.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
@@ -53,9 +54,12 @@ public class SubmitAnalysisJob extends PipelineJob
     private final GenotypingAnalysis _analysis;
     private final File _analysisDir;
 
+    private File _completionFile = null;   // Used for dev mode only
+    private URLHelper _galaxyURL = null;
+
     public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, GenotypingAnalysis analysis) throws SQLException
     {
-        super(null, info, root);      // No pipeline provider
+        super("Submit Analysis", info, root);      // No pipeline provider
         _dir = reads.getParentFile();
         _run = run;
         _analysis = analysis;
@@ -75,9 +79,9 @@ public class SubmitAnalysisJob extends PipelineJob
 
 
     @Override
-    public ActionURL getStatusHref()
+    public URLHelper getStatusHref()
     {
-        return new ActionURL(GenotypingController.BeginAction.class, getInfo().getContainer());
+        return _galaxyURL;
     }
 
 
@@ -103,6 +107,7 @@ public class SubmitAnalysisJob extends PipelineJob
             writeProperties();
             writeFasta();
             sendFilesToGalaxy(server);
+            monitorCompletion();
         }
         catch (Exception e)
         {
@@ -219,13 +224,12 @@ public class SubmitAnalysisJob extends PipelineJob
         // the Galaxy server can't communicate via HTTP with LabKey Server, so watch for this file as a backup plan.
         if (AppProps.getInstance().isDevMode())
         {
-            File completionFile = new File(_analysisDir, "analysis_complete.txt");
+            _completionFile = new File(_analysisDir, "analysis_complete.txt");
 
-            if (completionFile.exists())
-                throw new IllegalStateException("Completion file already exists: " + completionFile.getPath());
+            if (_completionFile.exists())
+                throw new IllegalStateException("Completion file already exists: " + _completionFile.getPath());
 
-            WorkflowCompletionMonitor.get().monitor(completionFile);
-            props.put("completionFilename", completionFile.getName());
+            props.put("completionFilename", _completionFile.getName());
         }
 
         GenotypingManager.get().writeProperties(props, _analysisDir);
@@ -241,28 +245,50 @@ public class SubmitAnalysisJob extends PipelineJob
     }
 
 
-    private void sendFilesToGalaxy(GalaxyServer server) throws IOException
+    private void sendFilesToGalaxy(GalaxyServer server) throws IOException, URISyntaxException
     {
         info("Sending files to Galaxy");
         setStatus("SENDING TO GALAXY");
 
-        GalaxyServer.DataLibrary library = server.createLibrary(_dir.getName() + "_" + _analysis.getRowId(), "MHC analysis " + _analysis.getRowId() + " for run " + _analysis.getRun(), "An MHC genotyping analysis");
-        GalaxyServer.Folder root = library.getRootFolder();
-        root.uploadFromImportDirectory(_dir.getName() + "/" + _analysisDir.getName(), "txt", null, true);
-
-        // Hack for testing without invoking the entire galaxy workflow: if it exists, link the matches.txt file
-        // in /matches into the data library.
-        if (AppProps.getInstance().isDevMode())
+        try
         {
-            File matchesDir = new File(_dir, "matches");
+            GalaxyServer.DataLibrary library = server.createLibrary(_dir.getName() + "_" + _analysis.getRowId(), "MHC analysis " + _analysis.getRowId() + " for run " + _analysis.getRun(), "An MHC genotyping analysis");
+            GalaxyServer.Folder root = library.getRootFolder();
+            root.uploadFromImportDirectory(_dir.getName() + "/" + _analysisDir.getName(), "txt", null, true);
 
-            if (matchesDir.exists())
+            _galaxyURL = library.getURL();
+
+            // Hack for testing without invoking the entire galaxy workflow: if it exists, link the matches.txt file
+            // in /matches into the data library.
+            if (AppProps.getInstance().isDevMode())
             {
-                File matchesFile = new File(matchesDir, GenotypingManager.MATCHES_FILE_NAME);
+                File matchesDir = new File(_dir, "matches");
 
-                if (matchesFile.exists())
-                    root.uploadFromImportDirectory(_dir.getName() + "/matches", "txt", null, true);
+                if (matchesDir.exists())
+                {
+                    File matchesFile = new File(matchesDir, GenotypingManager.MATCHES_FILE_NAME);
+
+                    if (matchesFile.exists())
+                        root.uploadFromImportDirectory(_dir.getName() + "/matches", "txt", null, true);
+                }
             }
         }
+        catch (IOException e)
+        {
+            // Fail the job in production mode, but succeed in dev mode.  This allows us to test in an environment
+            // where Galaxy is not reachable.
+            if (!AppProps.getInstance().isDevMode())
+                throw e;
+
+            info("Could not connect to Galaxy server", e);
+        }
+    }
+
+
+    // Wait until analysis is completely prepared and has been submitted to Galaxy before monitoring
+    private void monitorCompletion()
+    {
+        if (null != _completionFile)
+            WorkflowCompletionMonitor.get().monitor(_completionFile);
     }
 }
