@@ -11,6 +11,7 @@ genotyping/src/org/labkey/genotyping/GenotypingController.java -text
 genotyping/src/org/labkey/genotyping/GenotypingFolderSettings.java -text
 genotyping/src/org/labkey/genotyping/GenotypingManager.java -text
 genotyping/src/org/labkey/genotyping/GenotypingModule.java -text
+genotyping/src/org/labkey/genotyping/GenotypingQuerySchema.java -text
 genotyping/src/org/labkey/genotyping/GenotypingRun.java -text
 genotyping/src/org/labkey/genotyping/GenotypingSchema.java -text
 genotyping/src/org/labkey/genotyping/ImportAnalysisJob.java -text

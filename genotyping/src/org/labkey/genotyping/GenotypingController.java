@@ -629,7 +629,8 @@ public class GenotypingController extends SpringActionController
                         return (null == name1 ? DEFAULT_VIEW_PLACEHOLDER : name1).compareTo((null == name2 ? DEFAULT_VIEW_PLACEHOLDER : name2));
                     }
                 });
-            views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), "sequences", "sequences"));    // TODO: Change after exposing to query
+            GenotypingSchema gs = GenotypingSchema.get();
+            views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), gs.getSchemaName(), gs.getSequencesTable().getName()));
 
             return new JspView<SubmitAnalysisBean>("/org/labkey/genotyping/view/submit.jsp", new SubmitAnalysisBean(runNums, views, form.getReadsPath()), errors);
         }

@@ -63,6 +63,7 @@ public class GenotypingModule extends DefaultModule
         PipelineService.get().registerPipelineProvider(new ImportReadsPipelineProvider(this));
         PipelineService.get().registerPipelineProvider(new SubmitAnalysisPipelineProvider(this));
         PipelineService.get().registerPipelineProvider(new ImportAnalysisPipelineProvider(this));
+        GenotypingQuerySchema.register();
     }
 
     @Override

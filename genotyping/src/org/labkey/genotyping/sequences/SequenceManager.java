@@ -202,7 +202,8 @@ public class SequenceManager
         }
 
         // Now select all sequences in this dictionary, applying the specified filter
-        QueryHelper qHelper = new QueryHelper(c, user, "sequences", "sequences", sequencesViewName);
+        GenotypingSchema gs = GenotypingSchema.get();
+        QueryHelper qHelper = new QueryHelper(c, user, gs.getSchemaName(), gs.getSequencesTable().getName(), sequencesViewName);
         SimpleFilter viewFilter = qHelper.getViewFilter();
         viewFilter.addCondition("Dictionary", dictionary.getRowId());
         TableInfo ti = GenotypingSchema.get().getSequencesTable();
