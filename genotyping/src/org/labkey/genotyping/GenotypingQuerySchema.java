@@ -85,9 +85,10 @@ public class GenotypingQuerySchema extends UserSchema
             FilteredTable table = new FilteredTable(GS.getReadsTable(), getContainer());
             table.wrapAllColumns(true);
 
-            QueryHelper qHelper = new QueryHelper(getContainer(), getUser(), GenotypingManager.get().getSettings(getContainer()).getRunsQuery());
+//
+//             QueryHelper qHelper = new QueryHelper(getContainer(), getUser(), GenotypingManager.get().getSettings(getContainer()).getRunsQuery());
 //            qHelper.select() ;
-            // TODO: Join to specified runs query, and filter on container
+            // TODO: Join to specified runs query, and filter on container... but address case where genotyping isn't enabled yet
 /*
             SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getDictionariesTable() + " d WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
             containerCondition.add(getContainer().getId());
