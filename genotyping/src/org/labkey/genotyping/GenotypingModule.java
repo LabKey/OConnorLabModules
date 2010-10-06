@@ -21,6 +21,7 @@ import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
+import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.WebPartFactory;
@@ -63,7 +64,8 @@ public class GenotypingModule extends DefaultModule
         PipelineService.get().registerPipelineProvider(new ImportReadsPipelineProvider(this));
         PipelineService.get().registerPipelineProvider(new SubmitAnalysisPipelineProvider(this));
         PipelineService.get().registerPipelineProvider(new ImportAnalysisPipelineProvider(this));
-        GenotypingQuerySchema.register();
+        GenotypingQuerySchema.register(this);
+        ModuleLoader.getInstance().registerFolderType(this, new GenotypingFolderType(this));
     }
 
     @Override

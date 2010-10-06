@@ -9,6 +9,7 @@ genotyping/src/org/labkey/genotyping/GenotypingAnalysis.java -text
 genotyping/src/org/labkey/genotyping/GenotypingContainerListener.java -text
 genotyping/src/org/labkey/genotyping/GenotypingController.java -text
 genotyping/src/org/labkey/genotyping/GenotypingFolderSettings.java -text
+genotyping/src/org/labkey/genotyping/GenotypingFolderType.java -text
 genotyping/src/org/labkey/genotyping/GenotypingManager.java -text
 genotyping/src/org/labkey/genotyping/GenotypingModule.java -text
 genotyping/src/org/labkey/genotyping/GenotypingQuerySchema.java -text

@@ -49,13 +49,16 @@ public class GenotypingQuerySchema extends UserSchema
         TABLE_NAMES = Collections.unmodifiableSet(names);
     }
 
-    public static void register()
+    public static void register(final GenotypingModule module)
     {
         DefaultSchema.registerProvider(GS.getSchemaName(), new DefaultSchema.SchemaProvider()
         {
             public QuerySchema getSchema(DefaultSchema schema)
             {
-                return new GenotypingQuerySchema(schema.getUser(), schema.getContainer());
+                if (schema.getContainer().getActiveModules().contains(module))
+                    return new GenotypingQuerySchema(schema.getUser(), schema.getContainer());
+                else
+                    return null;
             }
         });
     }
