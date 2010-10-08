@@ -49,7 +49,7 @@ public class GenotypingModule extends DefaultModule
 
     protected Collection<WebPartFactory> createWebPartFactories()
     {
-        return Collections.emptyList();
+        return Collections.singleton(GenotypingWebPart.FACTORY);
     }
 
     protected void init()

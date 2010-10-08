@@ -105,19 +105,25 @@ public class GenotypingController extends SpringActionController
         @Override
         public ActionURL getRedirectURL(Object o) throws Exception
         {
-            return getViewURL();
+            return getMatchesURL();
         }
     }
 
 
-    private ActionURL getViewURL()
+    private ActionURL getMatchesURL()
     {
-        return new ActionURL(ViewAction.class, getContainer());
+        return getMatchesURL(getContainer());
+    }
+
+
+    public static ActionURL getMatchesURL(Container c)
+    {
+        return new ActionURL(MatchesAction.class, c);
     }
 
 
     @RequiresPermissionClass(ReadPermission.class)
-    public class ViewAction extends SimpleViewAction<Object>
+    public class MatchesAction extends SimpleViewAction<Object>
     {
         @Override
         public ModelAndView getView(Object o, BindException errors) throws Exception
@@ -153,7 +159,7 @@ public class GenotypingController extends SpringActionController
         columns.add(allele);
 
         // TODO: move to XML?
-        allele.setURL(new DetailsURL(getViewURL(), "id", FieldKey.fromParts("Alleles", "RowId")));
+        allele.setURL(new DetailsURL(getMatchesURL(), "id", FieldKey.fromParts("Alleles", "RowId")));
 
         DataRegion dr = new DataRegion();
         dr.setShadeAlternatingRows(true);
@@ -235,7 +241,7 @@ public class GenotypingController extends SpringActionController
             SequenceManager.get().loadSequences(getContainer(), getUser());
             LOG.info(DateUtil.formatDuration(System.currentTimeMillis() - startTime) + " to load sequences");
 
-            return form.getReturnURLHelper(getViewURL());
+            return form.getReturnURLHelper(getMatchesURL());
         }
     }
 
@@ -318,8 +324,14 @@ public class GenotypingController extends SpringActionController
 
     private ActionURL getAdminURL()
     {
-        ActionURL url = new ActionURL(AdminAction.class, getContainer());
-        url.addReturnURL(getViewContext().getActionURL());
+        return getAdminURL(getContainer(), getViewContext().getActionURL());
+    }
+
+
+    public static ActionURL getAdminURL(Container c, ActionURL returnURL)
+    {
+        ActionURL url = new ActionURL(AdminAction.class, c);
+        url.addReturnURL(returnURL);
         return url;
     }
 
@@ -427,8 +439,14 @@ public class GenotypingController extends SpringActionController
 
     private ActionURL getMySettingsURL()
     {
-        ActionURL url = new ActionURL(MySettingsAction.class, getContainer());
-        url.addReturnURL(getViewContext().getActionURL());
+        return getMySettingsURL(getContainer(), getViewContext().getActionURL());
+    }
+
+
+    public static ActionURL getMySettingsURL(Container c, ActionURL returnURL)
+    {
+        ActionURL url = new ActionURL(MySettingsAction.class, c);
+        url.addReturnURL(returnURL);
         return url;
     }
 

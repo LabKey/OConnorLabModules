@@ -4,7 +4,6 @@ import org.labkey.api.module.DefaultFolderType;
 import org.labkey.api.view.Portal;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * User: adam
@@ -17,7 +16,9 @@ public class GenotypingFolderType extends DefaultFolderType
     {
         super("Genotyping",
                 "Manage importing and analyzing next generation sequencing runs.",
-            Collections.<Portal.WebPart>emptyList(),
+            Arrays.asList(
+                GenotypingWebPart.FACTORY.createWebPart()
+            ),
             Arrays.asList(
                 Portal.getPortalPart("Lists").createWebPart(),
                 Portal.getPortalPart("Query").createWebPart()

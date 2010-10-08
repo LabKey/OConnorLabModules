@@ -15,6 +15,7 @@ genotyping/src/org/labkey/genotyping/GenotypingModule.java -text
 genotyping/src/org/labkey/genotyping/GenotypingQuerySchema.java -text
 genotyping/src/org/labkey/genotyping/GenotypingRun.java -text
 genotyping/src/org/labkey/genotyping/GenotypingSchema.java -text
+genotyping/src/org/labkey/genotyping/GenotypingWebPart.java -text
 genotyping/src/org/labkey/genotyping/ImportAnalysisJob.java -text
 genotyping/src/org/labkey/genotyping/ImportAnalysisPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsJob.java -text
@@ -35,4 +36,5 @@ genotyping/src/org/labkey/genotyping/view/configure.jsp -text
 genotyping/src/org/labkey/genotyping/view/loadSequences.jsp -text
 genotyping/src/org/labkey/genotyping/view/mhcQuery.jsp -text
 genotyping/src/org/labkey/genotyping/view/mySettings.jsp -text
+genotyping/src/org/labkey/genotyping/view/overview.jsp -text
 genotyping/src/org/labkey/genotyping/view/submit.jsp -text

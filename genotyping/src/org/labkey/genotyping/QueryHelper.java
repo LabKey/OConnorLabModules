@@ -22,6 +22,7 @@ import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.CustomView;
 import org.labkey.api.query.FieldKey;
+import org.labkey.api.query.QueryAction;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
@@ -132,6 +133,11 @@ public class QueryHelper
         Collection<ColumnInfo> cols = map.values();
 
         return qs.select(ti, cols, extraFilter, null);
+    }
+
+    public ActionURL getQueryGridURL()
+    {
+        return QueryService.get().urlFor(_user, _c, QueryAction.executeQuery, _schemaName, _queryName);        
     }
 
     @Override
