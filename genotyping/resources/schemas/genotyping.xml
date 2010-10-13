@@ -27,7 +27,9 @@
       <ns:column columnName="PosReads"/>
       <ns:column columnName="NegReads"/>
       <ns:column columnName="PosExtReads"/>
-      <ns:column columnName="NegExtReads"/>
+      <ns:column columnName="NegExtReads">
+        <ns:displayWidth>65</ns:displayWidth>
+      </ns:column>
       <ns:column columnName="Alleles" wrappedColumnName="RowId">
         <ns:isUnselectable>true</ns:isUnselectable>
         <ns:fk>

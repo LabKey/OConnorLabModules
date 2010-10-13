@@ -52,6 +52,7 @@ import org.labkey.api.security.ValidEmail;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.util.DateUtil;
+import org.labkey.api.util.HelpTopic;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
@@ -63,6 +64,7 @@ import org.labkey.api.view.VBox;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartView;
+import org.labkey.api.view.template.PageConfig;
 import org.labkey.genotyping.galaxy.GalaxyFolderSettings;
 import org.labkey.genotyping.galaxy.GalaxyManager;
 import org.labkey.genotyping.galaxy.GalaxyUserSettings;
@@ -122,6 +124,14 @@ public class GenotypingController extends SpringActionController
     }
 
 
+    @Override
+    public PageConfig defaultPageConfig()
+    {
+        PageConfig config = super.defaultPageConfig();
+        config.setHelpTopic(new HelpTopic("genotyping"));
+        return config;
+    }
+
     @RequiresPermissionClass(ReadPermission.class)
     public class MatchesAction extends SimpleViewAction<Object>
     {
@@ -156,6 +166,7 @@ public class GenotypingController extends SpringActionController
         ColumnInfo allele_rowid = alleles.getFk().createLookupColumn(alleles, "RowId");
         columns.add(allele_rowid);
         ColumnInfo allele = alleles.getFk().createLookupColumn(alleles, "AlleleName");
+        allele.setLabel("Allele Groupings");
         columns.add(allele);
 
         // TODO: move to XML?

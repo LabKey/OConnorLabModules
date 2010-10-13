@@ -27,6 +27,7 @@ genotyping/src/org/labkey/genotyping/galaxy/GalaxyFolderSettings.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyManager.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyServer.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyUserSettings.java -text
+genotyping/src/org/labkey/genotyping/galaxy/GalaxyUtils.java -text
 genotyping/src/org/labkey/genotyping/galaxy/WorkflowCompletionMonitor.java -text
 genotyping/src/org/labkey/genotyping/sequences/Allele.java -text
 genotyping/src/org/labkey/genotyping/sequences/AlleleFastaLoader.java -text

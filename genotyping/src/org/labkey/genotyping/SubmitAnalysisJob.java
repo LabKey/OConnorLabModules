@@ -29,6 +29,7 @@ import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.genotyping.galaxy.GalaxyServer;
+import org.labkey.genotyping.galaxy.GalaxyUtils;
 import org.labkey.genotyping.galaxy.WorkflowCompletionMonitor;
 import org.labkey.genotyping.sequences.SequenceManager;
 
@@ -99,7 +100,7 @@ public class SubmitAnalysisJob extends PipelineJob
         {
             // Do this first to ensure that the Galaxy server is configured properly and the user has set a web API key
             info("Verifying Galaxy configuration");
-            GalaxyServer server = GalaxyServer.get(getContainer(), getUser());
+            GalaxyServer server = GalaxyUtils.get(getContainer(), getUser());
 
             List<Integer> mids = writeSamples();
             writeReads(mids);

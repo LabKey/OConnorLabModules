@@ -26,11 +26,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 import org.json.JSONWriter;
-import org.labkey.api.data.Container;
-import org.labkey.api.security.User;
-import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.util.URLHelper;
-import org.labkey.api.view.NotFoundException;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -60,27 +56,6 @@ public class GalaxyServer
         _baseUrl = _serverUrl + "/api/libraries";
         _key = key;
         _client = new HttpClient();
-
-    }
-
-
-    // Throws NotFoundException if either galaxy URL (admin responsibility) or web API key (user responsibility) isn't configured.
-    public static GalaxyServer get(Container c, User user)
-    {
-        GalaxyFolderSettings settings = GalaxyManager.get().getSettings(c);
-
-        if (null == settings.getGalaxyURL())
-        {
-            String advice = c.hasPermission(user, AdminPermission.class) ? "Please configure the Galaxy settings using the \"admin\" link" : "An administrator must configure the Galaxy settings";
-            throw new NotFoundException("Galaxy server URL is not configured. " + advice);
-        }
-
-        GalaxyUserSettings userSettings = GalaxyManager.get().getUserSettings(c, user);
-
-        if (null == userSettings.getGalaxyKey())
-            throw new NotFoundException("You must first configure a Galaxy web API key using the \"my settings\" link");
-
-        return new GalaxyServer(settings.getGalaxyURL(), userSettings.getGalaxyKey());
     }
 
 
