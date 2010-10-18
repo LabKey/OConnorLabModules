@@ -56,6 +56,11 @@ public class GenotypingSchema
         return getSchema().getTable("Dictionaries");
     }
 
+    public TableInfo getRunsTable()
+    {
+        return getSchema().getTable("Runs");
+    }
+
     public TableInfo getSequencesTable()
     {
         return getSchema().getTable("Sequences");

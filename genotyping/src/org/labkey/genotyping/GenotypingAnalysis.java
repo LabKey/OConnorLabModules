@@ -36,9 +36,11 @@ public class GenotypingAnalysis
     private int _createdBy;
     private Date _created;
     private String _path;
+    private String _fileName;
     private @Nullable String _description;
     private int _sequenceDictionary;
     private @Nullable String _sequencesView;
+    private int _status = Status.NotSubmitted.getStatusId();
 
     public GenotypingAnalysis()
     {
@@ -49,7 +51,7 @@ public class GenotypingAnalysis
     {
         this();
         setContainer(c);
-        setRun(run.getRun());
+        setRun(run.getRowId());
         setDescription(description);
         setSequenceDictionary(SequenceManager.get().getCurrentDictionary(c).getRowId());
         setSequencesView(sequencesView);
@@ -115,6 +117,16 @@ public class GenotypingAnalysis
         _path = path;
     }
 
+    public String getFileName()
+    {
+        return _fileName;
+    }
+
+    public void setFileName(String fileName)
+    {
+        _fileName = fileName;
+    }
+
     @Nullable
     public String getDescription()
     {
@@ -144,5 +156,15 @@ public class GenotypingAnalysis
     public void setSequencesView(@Nullable String sequencesView)
     {
         _sequencesView = sequencesView;
+    }
+
+    public int getStatus()
+    {
+        return _status;
+    }
+
+    public void setStatus(int status)
+    {
+        _status = status;
     }
 }

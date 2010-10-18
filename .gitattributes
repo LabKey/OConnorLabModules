@@ -3,7 +3,9 @@ genotyping/Genotyping.iml -text
 genotyping/build.xml -text
 genotyping/module.properties -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.00-0.01.sql -text
+genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.01-0.02.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.00-0.01.sql -text
+genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.01-0.02.sql -text
 genotyping/resources/schemas/genotyping.xml -text
 genotyping/src/org/labkey/genotyping/GenotypingAnalysis.java -text
 genotyping/src/org/labkey/genotyping/GenotypingContainerListener.java -text
@@ -20,7 +22,9 @@ genotyping/src/org/labkey/genotyping/ImportAnalysisJob.java -text
 genotyping/src/org/labkey/genotyping/ImportAnalysisPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsJob.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsPipelineProvider.java -text
+genotyping/src/org/labkey/genotyping/MetaDataRun.java -text
 genotyping/src/org/labkey/genotyping/QueryHelper.java -text
+genotyping/src/org/labkey/genotyping/Status.java -text
 genotyping/src/org/labkey/genotyping/SubmitAnalysisJob.java -text
 genotyping/src/org/labkey/genotyping/SubmitAnalysisPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyFolderSettings.java -text
@@ -31,9 +35,12 @@ genotyping/src/org/labkey/genotyping/galaxy/GalaxyUtils.java -text
 genotyping/src/org/labkey/genotyping/galaxy/WorkflowCompletionMonitor.java -text
 genotyping/src/org/labkey/genotyping/sequences/Allele.java -text
 genotyping/src/org/labkey/genotyping/sequences/AlleleFastaLoader.java -text
+genotyping/src/org/labkey/genotyping/sequences/FastqGenerator.java -text
+genotyping/src/org/labkey/genotyping/sequences/FastqWriter.java -text
 genotyping/src/org/labkey/genotyping/sequences/SequenceDictionary.java -text
 genotyping/src/org/labkey/genotyping/sequences/SequenceManager.java -text
 genotyping/src/org/labkey/genotyping/view/configure.jsp -text
+genotyping/src/org/labkey/genotyping/view/fastqExport.jsp -text
 genotyping/src/org/labkey/genotyping/view/loadSequences.jsp -text
 genotyping/src/org/labkey/genotyping/view/mhcQuery.jsp -text
 genotyping/src/org/labkey/genotyping/view/mySettings.jsp -text

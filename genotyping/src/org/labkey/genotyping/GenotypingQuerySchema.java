@@ -26,8 +26,8 @@ import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * User: adam
@@ -39,13 +39,94 @@ public class GenotypingQuerySchema extends UserSchema
     private static final GenotypingSchema GS = GenotypingSchema.get();
     private static final Set<String> TABLE_NAMES;
 
+    @SuppressWarnings({"UnusedDeclaration"})
+    public enum TableType
+    {
+        Runs() {
+            @Override
+            TableInfo createTable(Container c, User user)
+            {
+                FilteredTable table = new FilteredTable(GS.getRunsTable(), c);
+                table.wrapAllColumns(true);
+                table.removeColumn(table.getColumn("Container"));
+                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
+                table.setDescription("Contains one row per sequencing run");
+
+                return table;
+            }},
+        Sequences() {
+            @Override
+            TableInfo createTable(Container c, User user)
+            {
+                FilteredTable table = new FilteredTable(GS.getSequencesTable(), c);
+                table.wrapAllColumns(true);
+                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getDictionariesTable() + " d WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
+                containerCondition.add(c.getId());
+                table.addCondition(containerCondition);
+                table.setDescription("Contains one row per reference sequence");
+
+                return table;
+            }},
+        Reads() {
+            @Override
+            TableInfo createTable(Container c, User user)
+            {
+                FilteredTable table = new FilteredTable(GS.getReadsTable(), c);
+                table.wrapAllColumns(true);
+                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getReadsTable() + ".Run) = ?");
+                containerCondition.add(c.getId());
+                table.addCondition(containerCondition);
+
+                // TODO: Join to specified runs query?  Need to address case where query is not defined.
+//
+//             QueryHelper qHelper = new QueryHelper(getContainer(), getUser(), GenotypingManager.get().getSettings(getContainer()).getRunsQuery());
+//            qHelper.select() ;
+
+                table.setDescription("Contains one row per sequencing read");
+
+                return table;
+            }},
+        Analyses() {
+            @Override
+            TableInfo createTable(Container c, User user)
+            {
+                FilteredTable table = new FilteredTable(GS.getAnalysesTable(), c);
+                table.wrapAllColumns(true);
+                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
+                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getAnalysesTable() + ".Run) = ?");
+                containerCondition.add(c.getId());
+                table.addCondition(containerCondition);
+                table.setDescription("Contains one row per genotyping analysis");
+
+                return table;
+            }},
+        Matches() {
+            @Override
+            TableInfo createTable(Container c, User user)
+            {
+                FilteredTable table = new FilteredTable(GS.getMatchesTable(), c);
+                table.wrapAllColumns(true);
+                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getAnalysesTable() + " a INNER JOIN " + GS.getRunsTable() + " r ON a.Run = r.RowId WHERE a.RowId = " + GS.getMatchesTable() + ".Analysis) = ?");
+                containerCondition.add(c.getId());
+                table.addCondition(containerCondition);
+                table.setDescription("Contains one row per genotyping match");
+
+                return table;
+
+            }};
+
+        abstract TableInfo createTable(Container c, User user);
+    }
+
     static
     {
-        Set<String> names = new TreeSet<String>();
-        names.add(GS.getSequencesTable().getName());
-        names.add(GS.getReadsTable().getName());
-        names.add(GS.getAnalysesTable().getName());
-        names.add(GS.getMatchesTable().getName());
+        Set<String> names = new LinkedHashSet<String>();
+
+        for (TableType type : TableType.values())
+        {
+            names.add(type.toString());
+        }
+
         TABLE_NAMES = Collections.unmodifiableSet(names);
     }
 
@@ -71,59 +152,8 @@ public class GenotypingQuerySchema extends UserSchema
     @Override
     protected TableInfo createTable(String name)
     {
-        if (GS.getSequencesTable().getName().equalsIgnoreCase(name))
-        {
-            FilteredTable table = new FilteredTable(GS.getSequencesTable(), getContainer());
-            table.wrapAllColumns(true);
-            SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getDictionariesTable() + " d WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
-            containerCondition.add(getContainer().getId());
-            table.addCondition(containerCondition);
-            table.setDescription("Contains one row per reference sequence");
-
-            return table;
-        }
-
-        if (GS.getReadsTable().getName().equalsIgnoreCase(name))
-        {
-            FilteredTable table = new FilteredTable(GS.getReadsTable(), getContainer());
-            table.wrapAllColumns(true);
-
-//
-//             QueryHelper qHelper = new QueryHelper(getContainer(), getUser(), GenotypingManager.get().getSettings(getContainer()).getRunsQuery());
-//            qHelper.select() ;
-            // TODO: Join to specified runs query, and filter on container... but address case where genotyping isn't enabled yet
-/*
-            SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getDictionariesTable() + " d WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
-            containerCondition.add(getContainer().getId());
-            table.addCondition(containerCondition);
-             */
-            table.setDescription("Contains one row per genotyping read");
-
-            return table;
-        }
-
-        if (GS.getMatchesTable().getName().equalsIgnoreCase(name))
-        {
-            FilteredTable table = new FilteredTable(GS.getMatchesTable(), getContainer());
-            table.wrapAllColumns(true);
-            SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getAnalysesTable() + " a WHERE a.RowId = " + GS.getMatchesTable() + ".Analysis) = ?");
-            containerCondition.add(getContainer().getId());
-            table.addCondition(containerCondition);
-            table.setDescription("Contains one row per genotyping match");
-
-            return table;
-        }
-
-        if (GS.getAnalysesTable().getName().equalsIgnoreCase(name))
-        {
-            FilteredTable table = new FilteredTable(GS.getAnalysesTable(), getContainer());
-            table.wrapAllColumns(true);
-            table.removeColumn(table.getColumn("Container"));
-            table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(getUser(), getContainer()));
-            table.setDescription("Contains one row per genotyping analysis");
-
-            return table;
-        }
+        if (TABLE_NAMES.contains(name))
+            return TableType.valueOf(name).createTable(getContainer(), getUser());
 
         return null;
     }

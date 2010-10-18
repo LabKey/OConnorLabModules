@@ -26,6 +26,7 @@ import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.security.User;
 import org.labkey.api.util.ResultSetUtil;
+import org.labkey.api.writer.FastaEntry;
 import org.labkey.api.writer.FastaWriter;
 import org.labkey.api.writer.ResultSetFastaGenerator;
 import org.labkey.genotyping.GenotypingFolderSettings;
@@ -119,7 +120,7 @@ public class SequenceManager
         {
             rs = selectSequences(c, user, getCurrentDictionary(c), sequencesViewName, "AlleleName,Sequence");
 
-            FastaWriter fw = new FastaWriter(new ResultSetFastaGenerator(rs) {
+            FastaWriter<FastaEntry> fw = new FastaWriter<FastaEntry>(new ResultSetFastaGenerator(rs) {
                 @Override
                 public String getHeader(ResultSet rs) throws SQLException
                 {

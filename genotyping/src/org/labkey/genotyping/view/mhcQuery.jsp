@@ -34,11 +34,12 @@ SELECT  sample,
         CAST(SUM(neg_ext_reads) AS INT) AS neg_ext_reads,
         <%=dialect.getGroupConcat(new SQLFragment("rowid"), true, false)%> AS ReadIds
     FROM <%=ctx.samples%> samples
-    INNER JOIN <%=ctx.reads%> reads ON samples.mid_num = reads.mid
+    INNER JOIN <%=ctx.reads%> reads ON samples.mid_num = reads.mid AND reads.Run = <%=ctx.run%>
     INNER JOIN
     (
         SELECT mid, COUNT(*) AS total_reads
         FROM <%=ctx.reads%> reads
+        WHERE reads.Run = <%=ctx.run%>
         GROUP BY mid
     ) read_count ON read_count.mid = reads.mid
     INNER JOIN

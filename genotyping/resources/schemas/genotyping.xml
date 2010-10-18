@@ -1,15 +1,37 @@
 <ns:tables xmlns:ns="http://labkey.org/data/xml">
+  <ns:table tableName="Runs" tableDbType="TABLE">
+    <ns:titleColumn>RowId</ns:titleColumn>
+    <ns:columns>
+      <ns:column columnName="RowId">
+        <ns:url>/genotyping/run.view?run=${RowId}</ns:url>
+        <ns:columnTitle>Run</ns:columnTitle>
+      </ns:column>
+      <ns:column columnName="MetaDataId"/>
+      <ns:column columnName="Container"/>
+      <ns:column columnName="CreatedBy"/>
+      <ns:column columnName="Created"/>
+      <ns:column columnName="Path"/>
+      <ns:column columnName="FileName"/>
+      <ns:column columnName="Status"/>
+    </ns:columns>
+  </ns:table>
   <ns:table tableName="Analyses" tableDbType="TABLE">
     <ns:columns>
-      <ns:column columnName="RowId"/>
-      <ns:column columnName="Run"/>
-      <ns:column columnName="Container"/>
+      <ns:column columnName="RowId">
+        <ns:url>/genotyping/analysis.view?analysis=${RowId}</ns:url>
+        <ns:columnTitle>Analysis</ns:columnTitle>
+      </ns:column>
+      <ns:column columnName="Run">
+        <ns:url>/genotyping/run.view?run=${Run}</ns:url>
+      </ns:column>
       <ns:column columnName="CreatedBy"/>
       <ns:column columnName="Created"/>
       <ns:column columnName="Description"/>
       <ns:column columnName="Path"/>
+      <ns:column columnName="FileName"/>
       <ns:column columnName="SequenceDictionary"/>
       <ns:column columnName="SequencesView"/>
+      <ns:column columnName="Status"/>
     </ns:columns>
   </ns:table>
   <ns:table tableName="Matches" tableDbType="TABLE">
@@ -84,7 +106,9 @@
   </ns:table>
   <ns:table tableName="Reads" tableDbType="TABLE">
     <ns:columns>
-      <ns:column columnName="RowId"/>
+      <ns:column columnName="RowId">
+        <ns:isHidden>true</ns:isHidden>
+      </ns:column>
       <ns:column columnName="Run"/>
       <ns:column columnName="Name"/>
       <ns:column columnName="Mid"/>
@@ -102,7 +126,9 @@
   </ns:table>
   <ns:table tableName="Sequences" tableDbType="TABLE">
     <ns:columns>
-      <ns:column columnName="RowId"/>
+      <ns:column columnName="RowId">
+        <ns:isHidden>true</ns:isHidden>
+      </ns:column>
       <ns:column columnName="Dictionary"/>
       <ns:column columnName="Uid"/>
       <ns:column columnName="AlleleName"/>

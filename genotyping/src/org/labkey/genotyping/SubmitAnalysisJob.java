@@ -75,7 +75,8 @@ public class SubmitAnalysisJob extends PipelineJob
         setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")));
         info("Creating analysis directory: " + _analysisDir.getName());
         _analysis.setPath(_analysisDir.getAbsolutePath());
-        Table.update(getUser(), GenotypingSchema.get().getAnalysesTable(), PageFlowUtil.map("path", _analysis.getPath()), _analysis.getRowId());
+        _analysis.setFileName(_analysisDir.getName());
+        Table.update(getUser(), GenotypingSchema.get().getAnalysesTable(), PageFlowUtil.map("Path", _analysis.getPath(), "FileName", _analysis.getFileName()), _analysis.getRowId());
     }
 
 
@@ -104,27 +105,19 @@ public class SubmitAnalysisJob extends PipelineJob
 
             List<Integer> mids = writeSamples();
             writeReads(mids);
-            updateAnalysisRecord();
             writeProperties();
             writeFasta();
             sendFilesToGalaxy(server);
             monitorCompletion();
+            GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Submitted);
+            info("Submitting genotyping analysis job complete");
+            setStatus(COMPLETE_STATUS);
         }
         catch (Exception e)
         {
             error("Submitting genotyping analysis failed", e);
             setStatus(ERROR_STATUS);
-            return;
         }
-
-        info("Submitting genotyping analysis job complete");
-        setStatus(COMPLETE_STATUS);
-    }
-
-
-    private void updateAnalysisRecord()
-    {
-        //To change body of created methods use File | Settings | File Templates.
     }
 
 
@@ -134,12 +127,12 @@ public class SubmitAnalysisJob extends PipelineJob
         setStatus("WRITING SAMPLES");
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
         QueryHelper qHelper = new QueryHelper(getContainer(), getUser(), settings.getSamplesQuery());
-        SimpleFilter extraFilter = new SimpleFilter("library_number", _run.getSampleLibrary());
+        SimpleFilter extraFilter = new SimpleFilter("library_number", _run.getMetaDataRun(getUser()).getSampleLibrary());
 
         final ResultSet rs = qHelper.select(extraFilter);
         final List<Integer> mids = new LinkedList<Integer>();
 
-        // Need a custom writer since TSVGridWriter does not work in background threads
+        // Need a custom writer since TSVGridWriter doesn't work in background threads
         TSVWriter writer = new TSVWriter() {
             @Override
             protected void write()

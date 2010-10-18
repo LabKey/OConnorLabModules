@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.labkey.api.action.ExportAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.HasViewContext;
+import org.labkey.api.action.QueryViewAction;
 import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleRedirectAction;
 import org.labkey.api.action.SimpleViewAction;
@@ -30,7 +31,9 @@ import org.labkey.api.data.DataRegion;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DisplayColumn;
 import org.labkey.api.data.LookupColumn;
+import org.labkey.api.data.PanelButton;
 import org.labkey.api.data.RenderContext;
+import org.labkey.api.data.ShowRows;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.TSVGridWriter;
 import org.labkey.api.data.Table;
@@ -44,6 +47,9 @@ import org.labkey.api.query.CustomView;
 import org.labkey.api.query.DetailsURL;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryService;
+import org.labkey.api.query.QuerySettings;
+import org.labkey.api.action.QueryViewAction.QueryExportForm;
+import org.labkey.api.query.QueryView;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermissionClass;
 import org.labkey.api.security.User;
@@ -54,10 +60,13 @@ import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.HelpTopic;
 import org.labkey.api.util.PageFlowUtil;
+import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
+import org.labkey.api.view.DataView;
 import org.labkey.api.view.GridView;
 import org.labkey.api.view.HtmlView;
+import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.VBox;
@@ -65,9 +74,12 @@ import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartView;
 import org.labkey.api.view.template.PageConfig;
+import org.labkey.genotyping.GenotypingQuerySchema.TableType;
 import org.labkey.genotyping.galaxy.GalaxyFolderSettings;
 import org.labkey.genotyping.galaxy.GalaxyManager;
 import org.labkey.genotyping.galaxy.GalaxyUserSettings;
+import org.labkey.genotyping.sequences.FastqGenerator;
+import org.labkey.genotyping.sequences.FastqWriter;
 import org.labkey.genotyping.sequences.SequenceManager;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
@@ -81,6 +93,7 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -140,9 +153,7 @@ public class GenotypingController extends SpringActionController
         {
             DataRegion dr = getDataRegion();
             GridView grid = new GridView(dr, new RenderContext(getViewContext()));
-            HtmlView links = new HtmlView(PageFlowUtil.textLink("export results", new ActionURL(TsvAction.class, getContainer())) + " " +
-                                          PageFlowUtil.textLink("admin", getAdminURL()) + " " +
-                                          PageFlowUtil.textLink("my settings", getMySettingsURL()));
+            HtmlView links = new HtmlView(PageFlowUtil.textLink("export results", new ActionURL(TsvAction.class, getContainer())));
 
             return new VBox(links, grid);
         }
@@ -674,7 +685,8 @@ public class GenotypingController extends SpringActionController
                 return false;
             }
 
-            GenotypingRun run = GenotypingManager.get().getRun(getContainer(), getUser(), form.getRun());
+            File readsFile = new File(form.getReadsPath());
+            GenotypingRun run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), readsFile);
 
             // TODO: Just for testing -- delete all previous analyses, reads, matches, etc. associated with this run.
             GenotypingManager.get().clearRun(run);
@@ -841,5 +853,284 @@ public class GenotypingController extends SpringActionController
         PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
         PipelineJob job = new ImportAnalysisJob(vbi, root, pipelineDir, analysis);
         PipelineService.get().queueJob(job);
+    }
+
+
+    public static class RunForm extends QueryExportForm
+    {
+        private int _run = 0;
+
+        public int getRun()
+        {
+            return _run;
+        }
+
+        public void setRun(int run)
+        {
+            _run = run;
+        }
+    }
+
+
+    public static ActionURL getSequencesURL(Container c)
+    {
+        return new ActionURL(SequencesAction.class, c);
+    }
+
+
+    @RequiresPermissionClass(ReadPermission.class)
+    public class SequencesAction extends QueryViewAction<QueryExportForm, QueryView>
+    {
+        public SequencesAction()
+        {
+            super(QueryExportForm.class);
+        }
+
+        @Override
+        protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        {
+            QuerySettings settings = new QuerySettings(getViewContext(), "Sequences", TableType.Sequences.toString());
+            settings.setAllowChooseQuery(false);
+            settings.setAllowChooseView(true);
+            settings.getBaseSort().insertSortColumn("RowId");
+            settings.getBaseFilter().addCondition("Dictionary", SequenceManager.get().getCurrentDictionary(getContainer()).getRowId());
+
+            // TODO: Hide Dictionary column
+
+            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
+            qv.setShadeAlternatingRows(true);
+
+            return qv;
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return root.addChild("Reference Sequences");
+        }
+    }
+
+
+    public static ActionURL getRunsURL(Container c)
+    {
+        return new ActionURL(RunsAction.class, c);
+    }
+
+
+    @RequiresPermissionClass(ReadPermission.class)
+    public class RunsAction extends QueryViewAction<QueryExportForm, QueryView>
+    {
+        public RunsAction()
+        {
+            super(QueryExportForm.class);
+        }
+
+        @Override
+        protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        {
+            QuerySettings settings = new QuerySettings(getViewContext(), "Runs", TableType.Runs.toString());
+            settings.setAllowChooseQuery(false);
+            settings.setAllowChooseView(true);
+            settings.getBaseSort().insertSortColumn("RowId");
+
+            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
+            qv.setShadeAlternatingRows(true);
+
+            return qv;
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return root.addChild("Sequencing Runs");
+        }
+    }
+
+
+    public static ActionURL getAnalysesURL(Container c)
+    {
+        return new ActionURL(AnalysesAction.class, c);
+    }
+
+
+    @RequiresPermissionClass(ReadPermission.class)
+    public class AnalysesAction extends QueryViewAction<QueryExportForm, QueryView>
+    {
+        public AnalysesAction()
+        {
+            super(QueryExportForm.class);
+        }
+
+        @Override
+        protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        {
+            QuerySettings settings = new QuerySettings(getViewContext(), "Analyses", TableType.Analyses.toString());
+            settings.setAllowChooseQuery(false);
+            settings.setAllowChooseView(true);
+            settings.getBaseSort().insertSortColumn("RowId");
+
+            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
+            qv.setShadeAlternatingRows(true);
+
+            return qv;
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return root.addChild("Analyses");
+        }
+    }
+
+
+    public static class ReadsForm extends RunForm
+    {
+        private int _match = 0;
+
+        public int getMatch()
+        {
+            return _match;
+        }
+
+        public void setMatch(int run)
+        {
+            _match = run;
+        }
+    }
+
+
+    public static ActionURL getReadsURL(Container c, GenotypingRun run)
+    {
+        ActionURL url = new ActionURL(ReadsAction.class, c);
+        url.addParameter("run", run.getRowId());
+        return url;
+    }
+
+
+    public abstract class ReadsAction extends QueryViewAction<ReadsForm, QueryView>
+    {
+        private static final String DATA_REGION_NAME = "Reads";
+        private static final String FASTQ_FORMAT = "FASTQ";
+
+        private int _run = 0;
+
+        public ReadsAction()
+        {
+            super(ReadsForm.class);
+        }
+
+        protected int getRun()
+        {
+            return _run;
+        }
+
+        @Override
+        public ModelAndView getView(ReadsForm form, BindException errors) throws Exception
+        {
+            if (FASTQ_FORMAT.equals(form.getExportType()))
+            {
+                QueryView qv = createQueryView(form, errors, true, form.getExportRegion());
+                qv.getSettings().setShowRows(ShowRows.ALL);
+                DataView view = qv.createDataView();
+
+                DataRegion rgn = view.getDataRegion();
+                rgn.setAllowAsync(false);
+                rgn.setShowPagination(false);
+
+                RenderContext rc = view.getRenderContext();
+                rc.setCache(false);
+                ResultSet rs = null;
+
+                try
+                {
+                    rs = rgn.getResultSet(rc);
+
+                    FastqGenerator fg = new FastqGenerator(rs) {
+                        @Override
+                        public String getHeader(ResultSet rs) throws SQLException
+                        {
+                            return rs.getString("Name");
+                        }
+
+                        @Override
+                        public String getSequence(ResultSet rs) throws SQLException
+                        {
+                            return rs.getString("Sequence");
+                        }
+
+                        @Override
+                        public String getQuality(ResultSet rs) throws SQLException
+                        {
+                            return rs.getString("Quality");
+                        }
+                    };
+
+                    FastqWriter writer = new FastqWriter(fg);
+                    writer.write(getViewContext().getResponse(), "reads.fastq", false);
+                }
+                finally
+                {
+                    ResultSetUtil.close(rs);
+                }
+
+                return null;
+            }
+
+            return super.getView(form, errors);
+        }
+
+        @Override
+        protected QueryView createQueryView(ReadsForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        {
+            _run = form.getRun();    // TODO: "Run not found" error instead of empty grid
+            QuerySettings settings = new QuerySettings(getViewContext(), DATA_REGION_NAME, TableType.Reads.toString());
+            settings.setAllowChooseQuery(false);
+            settings.setAllowChooseView(true);
+            settings.getBaseSort().insertSortColumn("RowId");
+            settings.getBaseFilter().addCondition("Run", _run);
+
+            // TODO: Hide Run column
+
+            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors)
+            {
+                @Override
+                public PanelButton createExportButton(boolean exportAsWebPage)
+                {
+                    PanelButton result = super.createExportButton(exportAsWebPage);
+                    ActionURL url = getViewContext().cloneActionURL();
+                    url.addParameter("exportType", FASTQ_FORMAT);
+
+                    HttpView filesView = new JspView<ActionURL>("/org/labkey/genotyping/view/fastqExport.jsp", url);
+                    result.addSubPanel("FASTQ", filesView);
+
+                    return result;
+                }
+            };
+
+            qv.setShadeAlternatingRows(true);
+            return qv;
+        }
+    }
+
+    @RequiresPermissionClass(ReadPermission.class)
+    public class RunAction extends ReadsAction
+    {
+        @Override
+        public ModelAndView getView(ReadsForm form, BindException errors) throws Exception
+        {
+            ModelAndView reads = super.getView(form, errors);
+
+            // Export reads case
+            if (null == reads)
+                return null;
+
+            return new VBox(new HtmlView("Here's some meta data"), reads);
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return root.addChild("Run " + getRun());
+        }
     }
 }

@@ -25,7 +25,6 @@ import org.labkey.api.reader.TabLoader;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.Formats;
 import org.labkey.api.view.ActionURL;
-import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.ViewBackgroundInfo;
 
 import java.io.File;
@@ -62,14 +61,14 @@ public class ImportReadsJob extends PipelineJob
     @Override
     public ActionURL getStatusHref()
     {
-        return new ActionURL(GenotypingController.BeginAction.class, getInfo().getContainer());
+        return GenotypingController.getReadsURL(getContainer(), _run);
     }
 
 
     @Override
     public String getDescription()
     {
-        return "Import reads and metrics for run " + _run.getRun();
+        return "Import reads and metrics for run " + _run.getRowId();
     }
 
 
@@ -78,40 +77,26 @@ public class ImportReadsJob extends PipelineJob
     {
         try
         {
-            updateRunRecord();
+            updateRunStatus(Status.Importing);
             importMetrics();
             importReads();
+            updateRunStatus(Status.Complete);
+            info("Import reads and metrics complete");
+            setStatus(COMPLETE_STATUS);
         }
         catch (Exception e)
         {
             error("Import reads and metrics failed", e);
             setStatus(ERROR_STATUS);
-            return;
         }
-
-        info("Import reads and metrics complete");
-        setStatus(COMPLETE_STATUS);
     }
 
-    private void updateRunRecord() throws SQLException
-    {
-        info("Updating run information");
 
-        if (false)
-        {
-        // TODO: add container filter
-        GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
-        QueryHelper qHelper = new QueryHelper(getContainer(), getUser(), settings.getRunsQuery());
-        TableInfo runs = qHelper.getTableInfo();
-        @SuppressWarnings({"unchecked"}) Map<String, Object> map = Table.selectObject(runs, _run.getRun(), Map.class);
-        Integer sampleLibrary = (Integer)map.get("run_sample_library");
-        if (null == sampleLibrary)
-            throw new NotFoundException("Sample library not specified");
-//        _sampleLibrary = sampleLibrary;
-        Map<String, Object> in = new HashMap<String, Object>();
-        in.put("reads", _reads.getPath());
-        // TODO  update sff and sequence view name
-        }
+    private void updateRunStatus(Status status) throws SQLException
+    {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("Status", status.getStatusId());
+        Table.update(getUser(), GenotypingSchema.get().getRunsTable(), map, _run.getRowId());
     }
 
 
@@ -142,7 +127,7 @@ public class ImportReadsJob extends PipelineJob
                 col.name = col.name.replace("_", "");
             }
 
-            columns.add(new ColumnDescriptor("run", Integer.class, _run.getRun()));
+            columns.add(new ColumnDescriptor("run", Integer.class, _run.getRowId()));
             loader.setColumns(columns.toArray(new ColumnDescriptor[columns.size()]));
 
             TableInfo ti = GenotypingSchema.get().getReadsTable();

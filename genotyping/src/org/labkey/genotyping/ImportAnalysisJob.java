@@ -92,7 +92,8 @@ public class ImportAnalysisJob extends PipelineJob
 
         try
         {
-            // TODO: Container, Run
+            // TODO: Move to controller
+            GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Importing);
 
             File sourceSamples = new File(_dir, GenotypingManager.SAMPLES_FILE_NAME);
             File sourceMatches = new File(_dir, GenotypingManager.MATCHES_FILE_NAME);
@@ -101,7 +102,6 @@ public class ImportAnalysisJob extends PipelineJob
 
             Table.TempTableInfo samples = null;
             Table.TempTableInfo matches = null;
-            TableInfo reads = GenotypingSchema.get().getReadsTable();
 
             try
             {
@@ -115,7 +115,7 @@ public class ImportAnalysisJob extends PipelineJob
                     info("Loading matches temp table");
                     matches = createTempTable(sourceMatches, schema, null);
 
-                    QueryContext ctx = new QueryContext(schema, samples, matches, reads);
+                    QueryContext ctx = new QueryContext(schema, samples, matches, GenotypingSchema.get().getReadsTable(), _analysis.getRun());
                     JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
                     String sql = jspQuery.render();
                     Map<String, Object> alleleJunctionMap = new HashMap<String, Object>(); // Map to reuse for each insertion to AllelesJunction
@@ -185,6 +185,10 @@ public class ImportAnalysisJob extends PipelineJob
                             }
                         }
                     }
+
+                    GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Complete);
+                    setStatus(COMPLETE_STATUS);
+                    info("Successfully imported genotyping analysis in " + DateUtil.formatDuration(System.currentTimeMillis() - startTime));
                 }
                 finally
                 {
@@ -206,11 +210,7 @@ public class ImportAnalysisJob extends PipelineJob
         {
             error("Analysis import failed", e);
             setStatus(ERROR_STATUS);
-            return;
         }
-
-        setStatus(COMPLETE_STATUS);
-        info("Successfully imported genotyping analysis in " + DateUtil.formatDuration(System.currentTimeMillis() - startTime));
     }
 
 
@@ -249,13 +249,15 @@ public class ImportAnalysisJob extends PipelineJob
         public final TableInfo samples;
         public final TableInfo matches;
         public final TableInfo reads;
+        public final int run;
 
-        private QueryContext(DbSchema schema, TableInfo samples, TableInfo matches, TableInfo reads)
+        private QueryContext(DbSchema schema, TableInfo samples, TableInfo matches, TableInfo reads, int run)
         {
             this.schema = schema;
             this.samples = samples;
             this.matches = matches;
             this.reads = reads;
+            this.run = run;
         }
     }
 }

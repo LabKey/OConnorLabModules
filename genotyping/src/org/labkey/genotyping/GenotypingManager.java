@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -94,11 +95,27 @@ public class GenotypingManager
         };
     }
 
-    public GenotypingRun getRun(Container c, User user, int runId)
+    public GenotypingRun createRun(Container c, User user, @Nullable Integer metaDataId, File readsFile) throws SQLException
+    {
+        MetaDataRun mdRun = null;
+
+        if (null != metaDataId)
+            mdRun = getMetaDataRun(c, user, metaDataId);
+
+        GenotypingRun run = new GenotypingRun(c, readsFile, mdRun);
+        return Table.insert(user, GenotypingSchema.get().getRunsTable(), run);
+    }
+
+    public @Nullable GenotypingRun getRun(Container c, int runId)
+    {
+        return Table.selectObject(GenotypingSchema.get().getRunsTable(), c, runId, GenotypingRun.class);
+    }
+
+    public MetaDataRun getMetaDataRun(Container c, User user, int runId)
     {
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
         QueryHelper qHelper = new QueryHelper(c, user, settings.getRunsQuery());
-        GenotypingRun run = Table.selectObject(qHelper.getTableInfo(), runId, GenotypingRun.class);
+        MetaDataRun run = Table.selectObject(qHelper.getTableInfo(), runId, MetaDataRun.class);
         run.setContainer(c);
 
         return run;
@@ -111,20 +128,34 @@ public class GenotypingManager
 
     public GenotypingAnalysis getAnalysis(Container c, int analysisId)
     {
-        GenotypingAnalysis analysis = Table.selectObject(GenotypingSchema.get().getAnalysesTable(), c, analysisId, GenotypingAnalysis.class);
+        GenotypingAnalysis analysis = Table.selectObject(GenotypingSchema.get().getAnalysesTable(), analysisId, GenotypingAnalysis.class);
 
-        if (null == analysis)
-            throw new NotFoundException("Analysis " + analysisId + " not found in folder " + c.getPath());
+        if (null != analysis)
+        {
+            GenotypingRun run = getRun(c, analysis.getRun());
 
-        return analysis;
+            if (null != run)
+                return analysis;
+        }
+
+        throw new NotFoundException("Analysis " + analysisId + " not found in folder " + c.getPath());
     }
+
+
+    public void updateAnalysisStatus(GenotypingAnalysis analysis, User user, Status status) throws SQLException
+    {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("Status", status.getStatusId());
+        Table.update(user, GenotypingSchema.get().getAnalysesTable(), map, analysis.getRowId());
+    }
+
 
     // Deletes all the reads, analyses, and matches associated with a run, including rows in all junction tables.
     public void clearRun(GenotypingRun run) throws SQLException
     {
         GenotypingSchema gs = GenotypingSchema.get();
-        Object[] params = new Object[]{run.getRun(), run.getContainer()};
-        String runWhere = " WHERE Run = ? AND Container = ?";
+        Object[] params = new Object[]{run.getRowId(), run.getContainer()};
+        String runWhere = " WHERE Run = ? AND Run IN (SELECT RowId FROM " + gs.getRunsTable() + " WHERE Container = ?)";
         String analysisFrom = " FROM " + gs.getAnalysesTable() + runWhere;
         String analysisWhere = " WHERE Analysis IN (SELECT RowId" + analysisFrom + ")";
         String matchesWhere = " WHERE MatchId IN (SELECT RowId FROM " + gs.getMatchesTable() + analysisWhere + ")";
@@ -134,7 +165,9 @@ public class GenotypingManager
         Table.execute(gs.getSchema(), "DELETE FROM " + gs.getMatchesTable() + analysisWhere, params);
         Table.execute(gs.getSchema(), "DELETE FROM " + gs.getAnalysisSamplesTable() + analysisWhere, params);
         Table.execute(gs.getSchema(), "DELETE" + analysisFrom, params);
-        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsTable() + " WHERE Run = ?", new Object[]{run.getRun()});
+        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsTable() + " WHERE Run = ?", new Object[]{run.getRowId()});
+
+        // Delete genotyping.Run record?
     }
 
     public void writeProperties(Properties props, File directory) throws IOException

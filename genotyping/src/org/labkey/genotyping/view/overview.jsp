@@ -17,46 +17,19 @@
 %>
 <%@ page import="org.labkey.api.data.Container" %>
 <%@ page import="org.labkey.api.pipeline.PipelineUrls" %>
-<%@ page import="org.labkey.api.query.QueryAction" %>
-<%@ page import="org.labkey.api.query.QueryService" %>
-<%@ page import="org.labkey.api.security.User" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.api.view.ViewContext" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
-<%@ page import="org.labkey.genotyping.GenotypingSchema" %>
-<%@ page import="org.labkey.genotyping.QueryHelper" %>
-<%@ page import="org.labkey.genotyping.GenotypingManager" %>
-<%@ page import="org.labkey.genotyping.GenotypingFolderSettings" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     ViewContext ctx = getViewContext();
-    User user = ctx.getUser();
     Container c = ctx.getContainer();
-    GenotypingSchema gs = GenotypingSchema.get();
-
-    GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
-
-    ActionURL runsURL = null;
-    String runsQuery = settings.getRunsQuery();
-
-    if (null != runsQuery)
-    {
-        QueryHelper qHelper = new QueryHelper(c, user, runsQuery);
-        runsURL = qHelper.getQueryGridURL();
-    }
-
-    ActionURL sequencesURL = QueryService.get().urlFor(user, c, QueryAction.executeQuery, gs.getSchemaName(), gs.getSequencesTable().getName());
     ActionURL submitURL = urlProvider(PipelineUrls.class).urlBrowse(c, null);
     ActionURL statusURL = urlProvider(PipelineUrls.class).urlBegin(c);
 %>
-<p><a href="<%=h(sequencesURL)%>">Reference Sequences</a></p><%
-    if (null != runsURL)
-    {
-%>
-<p><a href="<%=h(runsURL)%>">Runs</a></p><%
-    }
-%>
-<p><a href="<%=h(GenotypingController.getMatchesURL(c))%>">Matches</a></p>
+<p><a href="<%=h(GenotypingController.getSequencesURL(c))%>">Reference Sequences</a></p>
+<p><a href="<%=h(GenotypingController.getRunsURL(c))%>">Runs</a></p>
+<p><a href="<%=h(GenotypingController.getAnalysesURL(c))%>">Analyses</a></p>
 <p><a href="<%=h(submitURL)%>">Import Run</a></p>
 <p><a href="<%=h(statusURL)%>">Pipeline Status</a></p>
 <p><a href="<%=h(GenotypingController.getMySettingsURL(c, ctx.getActionURL()))%>">My Settings</a></p>
