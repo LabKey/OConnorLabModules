@@ -79,7 +79,7 @@
             if (null != form.getMessage())
             {
         %>
-        <tr><td colspan="3" ><%=h(form.getMessage())%></td></tr>
+        <tr><td colspan="3"><span style="color:green;"><%=h(form.getMessage())%></span></td></tr>
         <tr><td colspan=3>&nbsp;</td></tr>
         <%  } %>
         <tr><td><b>Configure Galaxy</b></td></tr>
