@@ -75,6 +75,13 @@
 <form <%=formAction(GenotypingController.AdminAction.class, Method.Post)%>>
     <table>
         <%=formatMissedErrorsInTable("form", 3)%>
+        <%
+            if (null != form.getMessage())
+            {
+        %>
+        <tr><td colspan="3" ><%=h(form.getMessage())%></td></tr>
+        <tr><td colspan=3>&nbsp;</td></tr>
+        <%  } %>
         <tr><td><b>Configure Galaxy</b></td></tr>
         <tr><td>Galaxy server home page URL</td><td><input size="40" name="galaxyURL" value="<%=h(form.getGalaxyURL())%>"></td></tr>
         <tr><td>&nbsp;</td></tr>

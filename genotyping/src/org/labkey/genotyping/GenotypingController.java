@@ -275,6 +275,7 @@ public class GenotypingController extends SpringActionController
         private String _sequencesQuery;
         private String _runsQuery;
         private String _samplesQuery;
+        private String _message;
 
         @Override
         public void setViewContext(ViewContext context)
@@ -342,12 +343,24 @@ public class GenotypingController extends SpringActionController
         {
             _samplesQuery = samplesQuery;
         }
+
+        public String getMessage()
+        {
+            return _message;
+        }
+
+        public void setMessage(String message)
+        {
+            _message = message;
+        }
     }
 
 
-    private ActionURL getAdminURL()
+    private ActionURL getAdminURL(String message, ActionURL returnURL)
     {
-        return getAdminURL(getContainer(), getViewContext().getActionURL());
+        ActionURL url = getAdminURL(getContainer(), returnURL);
+        url.addParameter("message", message);
+        return url;
     }
 
 
@@ -416,7 +429,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public URLHelper getSuccessURL(AdminForm form)
         {
-            return form.getReturnURLHelper();
+            return getAdminURL("Settings have been saved", form.getReturnActionURL());
         }
 
         @Override
