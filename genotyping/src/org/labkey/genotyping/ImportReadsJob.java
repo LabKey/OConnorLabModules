@@ -61,7 +61,7 @@ public class ImportReadsJob extends PipelineJob
     @Override
     public ActionURL getStatusHref()
     {
-        return GenotypingController.getReadsURL(getContainer(), _run);
+        return GenotypingController.getRunURL(getContainer(), _run);
     }
 
 

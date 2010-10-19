@@ -1018,9 +1018,9 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static ActionURL getReadsURL(Container c, GenotypingRun run)
+    public static ActionURL getRunURL(Container c, GenotypingRun run)
     {
-        ActionURL url = new ActionURL(ReadsAction.class, c);
+        ActionURL url = new ActionURL(RunAction.class, c);
         url.addParameter("run", run.getRowId());
         return url;
     }

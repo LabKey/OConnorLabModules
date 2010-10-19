@@ -32,6 +32,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -114,14 +115,12 @@ public class QueryHelper
         return viewFilter;
     }
 
-    // TODO: Add support for filter & sort, move to QueryService
-    public ResultSet select(SimpleFilter extraFilter) throws SQLException
+    public ResultSet select(SimpleFilter extraFilter, List<FieldKey> columns) throws SQLException
     {
         QueryService qs = QueryService.get();
-        CustomView view = getCustomView();
         TableInfo ti = getTableInfo();
 
-        Map<FieldKey, ColumnInfo> map = qs.getColumns(ti, view.getColumns());
+        Map<FieldKey, ColumnInfo> map = qs.getColumns(ti, columns);
         Set<FieldKey> fieldKeys = new HashSet<FieldKey>();
 
         for (ColumnInfo col : map.values())
@@ -133,6 +132,14 @@ public class QueryHelper
         Collection<ColumnInfo> cols = map.values();
 
         return qs.select(ti, cols, extraFilter, null);
+    }
+
+    // TODO: Add support for filter & sort, move to QueryService
+    public ResultSet select(SimpleFilter extraFilter) throws SQLException
+    {
+        CustomView view = getCustomView();
+
+        return select(extraFilter, view.getColumns());
     }
 
     public ActionURL getQueryGridURL()
