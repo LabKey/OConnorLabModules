@@ -104,6 +104,6 @@
             </td>
         </tr>
         <tr><td>&nbsp;</td></tr>
-        <tr><td><%=generateSubmitButton("Submit")%> <%=generateButton("Cancel", form.getReturnURLHelper())%><%=generateReturnUrlFormField(form)%></td></tr>
+        <tr><td><%=generateSubmitButton("Submit")%> <%=generateButton("Done", form.getReturnURLHelper())%><%=generateReturnUrlFormField(form)%></td></tr>
     </table>
 </form>

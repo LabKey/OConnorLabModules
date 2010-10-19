@@ -17,6 +17,7 @@
 package org.labkey.genotyping;
 
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.action.ExportAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.HasViewContext;
@@ -406,7 +407,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public boolean handlePost(AdminForm form, BindException errors) throws Exception
         {
-            // Save both the genotyping settings and Galaxy configuration settigns
+            // Save both the genotyping settings and Galaxy configuration settings
             GenotypingManager.get().saveSettings(getContainer(), form);
             GalaxyManager.get().saveSettings(getContainer(), form);
             return true;
@@ -856,18 +857,19 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static class RunForm extends QueryExportForm
+    public static class SequencesForm extends QueryExportForm
     {
-        private int _run = 0;
+        private Integer _dictionary = null;
 
-        public int getRun()
+        @Nullable
+        public Integer getDictionary()
         {
-            return _run;
+            return _dictionary;
         }
 
-        public void setRun(int run)
+        public void setDictionary(Integer dictionary)
         {
-            _run = run;
+            _dictionary = dictionary;
         }
     }
 
@@ -879,21 +881,22 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermissionClass(ReadPermission.class)
-    public class SequencesAction extends QueryViewAction<QueryExportForm, QueryView>
+    public class SequencesAction extends QueryViewAction<SequencesForm, QueryView>
     {
         public SequencesAction()
         {
-            super(QueryExportForm.class);
+            super(SequencesForm.class);
         }
 
         @Override
-        protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        protected QueryView createQueryView(SequencesForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
         {
             QuerySettings settings = new QuerySettings(getViewContext(), "Sequences", TableType.Sequences.toString());
             settings.setAllowChooseQuery(false);
             settings.setAllowChooseView(true);
             settings.getBaseSort().insertSortColumn("RowId");
-            settings.getBaseFilter().addCondition("Dictionary", SequenceManager.get().getCurrentDictionary(getContainer()).getRowId());
+            Integer dictionary = form.getDictionary();
+            settings.getBaseFilter().addCondition("Dictionary", null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer()).getRowId());
 
             // TODO: Hide Dictionary column
 
@@ -979,6 +982,22 @@ public class GenotypingController extends SpringActionController
         public NavTree appendNavTrail(NavTree root)
         {
             return root.addChild("Analyses");
+        }
+    }
+
+
+    public static class RunForm extends QueryExportForm
+    {
+        private int _run = 0;
+
+        public int getRun()
+        {
+            return _run;
+        }
+
+        public void setRun(int run)
+        {
+            _run = run;
         }
     }
 
@@ -1089,10 +1108,24 @@ public class GenotypingController extends SpringActionController
             settings.getBaseSort().insertSortColumn("RowId");
             settings.getBaseFilter().addCondition("Run", _run);
 
-            // TODO: Hide Run column
-
             QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors)
             {
+                @Override
+                protected TableInfo createTable()
+                {
+                    TableInfo table = super.createTable();
+                    List<FieldKey> keys = table.getDefaultVisibleColumns();
+                    List<FieldKey> visibleColumns = new ArrayList<FieldKey>(keys.size() - 1);
+
+                    for (FieldKey key : keys)
+                        if (!key.getName().equalsIgnoreCase("Run"))
+                            visibleColumns.add(key);
+
+                    table.setDefaultVisibleColumns(visibleColumns);
+
+                    return table;
+                }
+
                 @Override
                 public PanelButton createExportButton(boolean exportAsWebPage)
                 {

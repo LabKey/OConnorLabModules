@@ -20,9 +20,11 @@ public class FastqWriter extends FastaWriter<FastqWriter.FastqEntry>
     @Override
     protected void writeEntry(PrintWriter pw, FastqEntry entry)
     {
-        pw.print(">");
+        pw.print("@");
         pw.println(entry.getHeader());
         pw.println(entry.getSequence());
+        pw.print("+");
+        pw.println(entry.getHeader());
         pw.println(entry.getQuality());
     }
 
