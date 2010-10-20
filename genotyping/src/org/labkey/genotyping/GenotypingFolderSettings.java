@@ -15,6 +15,8 @@
  */
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * User: adam
  * Date: Sep 10, 2010
@@ -24,9 +26,12 @@ public interface GenotypingFolderSettings
 {
     String SEPARATOR = "~";
 
+    @Nullable
     String getSequencesQuery();
 
+    @Nullable
     String getRunsQuery();
 
+    @Nullable
     String getSamplesQuery();
 }

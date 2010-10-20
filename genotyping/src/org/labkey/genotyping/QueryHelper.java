@@ -15,6 +15,7 @@
  */
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
@@ -63,9 +64,25 @@ public class QueryHelper
         this(c, user, new String[]{schemaName, queryName, viewName});
     }
 
-    public QueryHelper(Container c, User user, String schemaQueryView)
+    public QueryHelper(Container c, User user, @NotNull String schemaQueryView)
     {
         this(c, user, schemaQueryView.split(GenotypingFolderSettings.SEPARATOR));
+    }
+
+    public String getSchemaName()
+    {
+        return _schemaName;
+    }
+
+    public String getQueryName()
+    {
+        return _queryName;
+    }
+
+    @Nullable
+    public String getViewName()
+    {
+        return _viewName;
     }
 
     public TableInfo getTableInfo()

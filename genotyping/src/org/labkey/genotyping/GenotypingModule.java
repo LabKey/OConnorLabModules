@@ -26,6 +26,7 @@ import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.WebPartFactory;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -49,7 +50,7 @@ public class GenotypingModule extends DefaultModule
 
     protected Collection<WebPartFactory> createWebPartFactories()
     {
-        return Collections.singleton(GenotypingWebPart.FACTORY);
+        return Arrays.asList(GenotypingWebPart.FACTORY, GenotypingRunsView.FACTORY, GenotypingAnalysesView.FACTORY);
     }
 
     protected void init()

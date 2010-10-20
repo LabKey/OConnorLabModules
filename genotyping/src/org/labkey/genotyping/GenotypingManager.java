@@ -126,8 +126,11 @@ public class GenotypingManager
         return Table.insert(user, GenotypingSchema.get().getAnalysesTable(), new GenotypingAnalysis(c, run, description, sequencesViewName));
     }
 
-    public GenotypingAnalysis getAnalysis(Container c, int analysisId)
+    public GenotypingAnalysis getAnalysis(Container c, Integer analysisId)
     {
+        if (null == analysisId)
+            throw new NotFoundException("Analysis parameter is missing");
+
         GenotypingAnalysis analysis = Table.selectObject(GenotypingSchema.get().getAnalysesTable(), analysisId, GenotypingAnalysis.class);
 
         if (null != analysis)

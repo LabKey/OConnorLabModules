@@ -22,8 +22,6 @@ import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.api.view.WebPartView;
 
-import java.io.PrintWriter;
-
 /**
  * User: adam
  * Date: Oct 7, 2010

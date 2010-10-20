@@ -22,10 +22,12 @@ import org.labkey.api.action.ExportAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.HasViewContext;
 import org.labkey.api.action.QueryViewAction;
+import org.labkey.api.action.QueryViewAction.QueryExportForm;
 import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleRedirectAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
+import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
@@ -44,12 +46,11 @@ import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.pipeline.PipelineUrls;
 import org.labkey.api.pipeline.browse.PipelinePathForm;
+import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.CustomView;
-import org.labkey.api.query.DetailsURL;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QuerySettings;
-import org.labkey.api.action.QueryViewAction.QueryExportForm;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermissionClass;
@@ -121,20 +122,8 @@ public class GenotypingController extends SpringActionController
         @Override
         public ActionURL getRedirectURL(Object o) throws Exception
         {
-            return getMatchesURL();
+            return getRunsURL(getContainer());
         }
-    }
-
-
-    private ActionURL getMatchesURL()
-    {
-        return getMatchesURL(getContainer());
-    }
-
-
-    public static ActionURL getMatchesURL(Container c)
-    {
-        return new ActionURL(MatchesAction.class, c);
     }
 
 
@@ -146,11 +135,86 @@ public class GenotypingController extends SpringActionController
         return config;
     }
 
+
+    private ActionURL getAnalysisURL(int analysisId)
+    {
+        return getAnalysisURL(getContainer(), analysisId);
+    }
+
+
+    public static ActionURL getAnalysisURL(Container c, int analysisId)
+    {
+        ActionURL url = new ActionURL(AnalysisAction.class, c);
+        url.addParameter("analysis", analysisId);
+        return url;
+    }
+
+
+    public static class AnalysisForm extends QueryExportForm
+    {
+        private Integer _analysis = null;
+
+        public Integer getAnalysis()
+        {
+            return _analysis;
+        }
+
+        public void setAnalysis(Integer analysis)
+        {
+            _analysis = analysis;
+        }
+    }
+
+
     @RequiresPermissionClass(ReadPermission.class)
-    public class MatchesAction extends SimpleViewAction<Object>
+    public class AnalysisAction extends QueryViewAction<AnalysisForm, QueryView>
+    {
+        private GenotypingAnalysis _analysis = null;
+
+        public AnalysisAction()
+        {
+            super(AnalysisForm.class);
+        }
+
+        @Override
+        protected QueryView createQueryView(AnalysisForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        {
+            _analysis = GenotypingManager.get().getAnalysis(getContainer(), form.getAnalysis());
+
+            QuerySettings settings = new QuerySettings(getViewContext(), "Analysis", TableType.Matches.toString());
+            settings.setAllowChooseQuery(false);
+            settings.setAllowChooseView(true);
+            settings.getBaseSort().insertSortColumn("RowId");
+            settings.getBaseFilter().addCondition("Analysis", form.getAnalysis());
+
+            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors) {
+                @Override
+                protected TableInfo createTable()
+                {
+                    return removeDefaultVisibleColumns(super.createTable(), "Analysis");
+                }
+            };
+            qv.setShadeAlternatingRows(true);
+            List<ColumnInfo> cols = qv.getTable().getColumns();
+
+            // TODO: Add alleles!
+
+            return qv;
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return root.addChild("Genotyping Analysis " + _analysis.getRowId());
+        }
+    }
+
+
+    @RequiresPermissionClass(ReadPermission.class)
+    public class OldAnalysisAction extends SimpleViewAction<AnalysisForm>
     {
         @Override
-        public ModelAndView getView(Object o, BindException errors) throws Exception
+        public ModelAndView getView(AnalysisForm form, BindException errors) throws Exception
         {
             DataRegion dr = getDataRegion();
             GridView grid = new GridView(dr, new RenderContext(getViewContext()));
@@ -182,7 +246,7 @@ public class GenotypingController extends SpringActionController
         columns.add(allele);
 
         // TODO: move to XML?
-        allele.setURL(new DetailsURL(getMatchesURL(), "id", FieldKey.fromParts("Alleles", "RowId")));
+//        allele.setURL(new DetailsURL(getAnalysisURL(), "id", FieldKey.fromParts("Alleles", "RowId")));
 
         DataRegion dr = new DataRegion();
         dr.setShadeAlternatingRows(true);
@@ -264,8 +328,14 @@ public class GenotypingController extends SpringActionController
             SequenceManager.get().loadSequences(getContainer(), getUser());
             LOG.info(DateUtil.formatDuration(System.currentTimeMillis() - startTime) + " to load sequences");
 
-            return form.getReturnURLHelper(getMatchesURL());
+            return form.getReturnURLHelper(getPortalURL());
         }
+    }
+
+
+    private ActionURL getPortalURL()
+    {
+        return PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
     }
 
 
@@ -493,7 +563,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public void validateCommand(MySettingsForm form, Errors errors)
         {
-            String key = form.getGalaxyKey();
+            String key = form.getGalaxyKey().trim();
 
             if (null == key)
             {
@@ -748,10 +818,10 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresNoPermission
-    public class WorkflowCompleteAction extends SimpleViewAction<AnalysisForm>
+    public class WorkflowCompleteAction extends SimpleViewAction<ImportAnalysisForm>
     {
         @Override
-        public ModelAndView getView(AnalysisForm form, BindException errors) throws Exception
+        public ModelAndView getView(ImportAnalysisForm form, BindException errors) throws Exception
         {
             LOG.info("Galaxy signaled the completion of analysis " + form.getAnalysis());
             String message;
@@ -807,7 +877,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static class AnalysisForm
+    public static class ImportAnalysisForm
     {
         private int _analysis;
         private String _path;
@@ -880,6 +950,7 @@ public class GenotypingController extends SpringActionController
             return _dictionary;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setDictionary(Integer dictionary)
         {
             _dictionary = dictionary;
@@ -911,9 +982,13 @@ public class GenotypingController extends SpringActionController
             Integer dictionary = form.getDictionary();
             settings.getBaseFilter().addCondition("Dictionary", null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer()).getRowId());
 
-            // TODO: Hide Dictionary column
-
-            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
+            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors) {
+                @Override
+                protected TableInfo createTable()
+                {
+                    return removeDefaultVisibleColumns(super.createTable(), "Dictionary");
+                }
+            };
             qv.setShadeAlternatingRows(true);
 
             return qv;
@@ -944,15 +1019,7 @@ public class GenotypingController extends SpringActionController
         @Override
         protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
         {
-            QuerySettings settings = new QuerySettings(getViewContext(), "Runs", TableType.Runs.toString());
-            settings.setAllowChooseQuery(false);
-            settings.setAllowChooseView(true);
-            settings.getBaseSort().insertSortColumn("RowId");
-
-            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
-            qv.setShadeAlternatingRows(true);
-
-            return qv;
+            return new GenotypingRunsView(getViewContext(), errors, dataRegion);
         }
 
         @Override
@@ -980,15 +1047,7 @@ public class GenotypingController extends SpringActionController
         @Override
         protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
         {
-            QuerySettings settings = new QuerySettings(getViewContext(), "Analyses", TableType.Analyses.toString());
-            settings.setAllowChooseQuery(false);
-            settings.setAllowChooseView(true);
-            settings.getBaseSort().insertSortColumn("RowId");
-
-            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
-            qv.setShadeAlternatingRows(true);
-
-            return qv;
+            return new GenotypingAnalysesView(getViewContext(), errors, dataRegion);
         }
 
         @Override
@@ -1126,17 +1185,7 @@ public class GenotypingController extends SpringActionController
                 @Override
                 protected TableInfo createTable()
                 {
-                    TableInfo table = super.createTable();
-                    List<FieldKey> keys = table.getDefaultVisibleColumns();
-                    List<FieldKey> visibleColumns = new ArrayList<FieldKey>(keys.size() - 1);
-
-                    for (FieldKey key : keys)
-                        if (!key.getName().equalsIgnoreCase("Run"))
-                            visibleColumns.add(key);
-
-                    table.setDefaultVisibleColumns(visibleColumns);
-
-                    return table;
+                    return removeDefaultVisibleColumns(super.createTable(), "Run");
                 }
 
                 @Override
@@ -1157,6 +1206,24 @@ public class GenotypingController extends SpringActionController
             return qv;
         }
     }
+
+
+    private TableInfo removeDefaultVisibleColumns(TableInfo table, String columnsToRemove)
+    {
+        Set<String> removeColumns = new CaseInsensitiveHashSet(columnsToRemove.split(","));
+
+        List<FieldKey> keys = table.getDefaultVisibleColumns();
+        List<FieldKey> visibleColumns = new ArrayList<FieldKey>(keys.size());
+
+        for (FieldKey key : keys)
+            if (!removeColumns.contains(key.getName()))
+                visibleColumns.add(key);
+
+        table.setDefaultVisibleColumns(visibleColumns);
+
+        return table; // For convenience
+    }
+
 
     @RequiresPermissionClass(ReadPermission.class)
     public class RunAction extends ReadsAction

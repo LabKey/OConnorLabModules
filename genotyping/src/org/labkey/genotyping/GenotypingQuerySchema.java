@@ -15,18 +15,25 @@
  */
 package org.labkey.genotyping;
 
+import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.DefaultSchema;
+import org.labkey.api.query.DetailsURL;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.FilteredTable;
+import org.labkey.api.query.LookupForeignKey;
 import org.labkey.api.query.QuerySchema;
 import org.labkey.api.query.UserIdQueryForeignKey;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.util.StringExpression;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -50,6 +57,29 @@ public class GenotypingQuerySchema extends UserSchema
                 table.wrapAllColumns(true);
                 table.removeColumn(table.getColumn("Container"));
                 table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
+                setDefaultVisibleColumns(table, "RowId,MetaDataId,Created,CreatedBy");
+
+                String runsQuery = GenotypingManager.get().getSettings(c).getRunsQuery();
+
+                if (null != runsQuery)
+                {
+                    final QueryHelper qHelper = new QueryHelper(c, user, runsQuery);
+
+                    ColumnInfo metaData = table.getColumn("MetaDataId");
+                    metaData.setFk(new LookupForeignKey("run_num") {
+                        @Override
+                        public TableInfo getLookupTableInfo()
+                        {
+                            return qHelper.getTableInfo();
+                        }
+                    });
+
+                    metaData.setLabel(qHelper.getQueryName());
+                    StringExpression url = qHelper.getTableInfo().getDetailsURL(Collections.singleton(new FieldKey(null, "run_num")), c);
+                    url = DetailsURL.fromString(url.getSource().replace("run_num", "MetaDataId"));
+                    metaData.setURL(url);
+                }
+
                 table.setDescription("Contains one row per sequencing run");
 
                 return table;
@@ -76,12 +106,6 @@ public class GenotypingQuerySchema extends UserSchema
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getReadsTable() + ".Run) = ?");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
-
-                // TODO: Join to specified runs query?  Need to address case where query is not defined.
-//
-//             QueryHelper qHelper = new QueryHelper(getContainer(), getUser(), GenotypingManager.get().getSettings(getContainer()).getRunsQuery());
-//            qHelper.select() ;
-
                 table.setDescription("Contains one row per sequencing read");
 
                 return table;
@@ -96,6 +120,7 @@ public class GenotypingQuerySchema extends UserSchema
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getAnalysesTable() + ".Run) = ?");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
+                setDefaultVisibleColumns(table, "RowId,Run,Created,CreatedBy,Description,SequenceDictionary,SequencesView");
                 table.setDescription("Contains one row per genotyping analysis");
 
                 return table;
@@ -109,6 +134,7 @@ public class GenotypingQuerySchema extends UserSchema
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getAnalysesTable() + " a INNER JOIN " + GS.getRunsTable() + " r ON a.Run = r.RowId WHERE a.RowId = " + GS.getMatchesTable() + ".Analysis) = ?");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
+                setDefaultVisibleColumns(table, "Analysis,SampleId,Reads,Percent,AverageLength,PosReads,NegReads,PosExtReads,NegExtReads,Alleles/AlleleName");
                 table.setDescription("Contains one row per genotyping match");
 
                 return table;
@@ -116,6 +142,17 @@ public class GenotypingQuerySchema extends UserSchema
             }};
 
         abstract TableInfo createTable(Container c, User user);
+
+        // Set an explicit list of default columns by name
+        private static void setDefaultVisibleColumns(TableInfo table, String columnNames)
+        {
+            List<FieldKey> fieldKeys = new LinkedList<FieldKey>();
+
+            for (String name : columnNames.split(","))
+                fieldKeys.add(new FieldKey(null, name));
+
+            table.setDefaultVisibleColumns(fieldKeys);
+        }
     }
 
     static
