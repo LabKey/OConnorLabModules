@@ -66,7 +66,7 @@ public class GenotypingQuerySchema extends UserSchema
                     final QueryHelper qHelper = new QueryHelper(c, user, runsQuery);
 
                     ColumnInfo metaData = table.getColumn("MetaDataId");
-                    metaData.setFk(new LookupForeignKey("run_num") {
+                    metaData.setFk(new LookupForeignKey("run_num", "run_num") {
                         @Override
                         public TableInfo getLookupTableInfo()
                         {
@@ -75,6 +75,7 @@ public class GenotypingQuerySchema extends UserSchema
                     });
 
                     metaData.setLabel(qHelper.getQueryName());
+                    // TODO: This is a total hack
                     StringExpression url = qHelper.getTableInfo().getDetailsURL(Collections.singleton(new FieldKey(null, "run_num")), c);
                     url = DetailsURL.fromString(url.getSource().replace("run_num", "MetaDataId"));
                     metaData.setURL(url);
@@ -110,6 +111,34 @@ public class GenotypingQuerySchema extends UserSchema
 
                 return table;
             }},
+        MatchReads() {
+            @Override
+            TableInfo createTable(Container c, User user)
+            {
+                FilteredTable table = new FilteredTable(GS.getReadsTable(), c);
+                table.wrapAllColumns(true);
+                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getReadsTable() + ".Run) = ?");
+                containerCondition.add(c.getId());
+                table.addCondition(containerCondition);
+                setDefaultVisibleColumns(table, "Name,Mid,Sequence,Quality");
+
+                ColumnInfo readId = table.getColumn("RowId");
+                readId.setFk(new LookupForeignKey("ReadId", "MatchId") {
+                    @Override
+                    public TableInfo getLookupTableInfo()
+                    {
+                        FilteredTable junction = new FilteredTable(GS.getReadsJunctionTable());
+                        junction.wrapAllColumns(true);
+                        ColumnInfo matchId = junction.getColumn("MatchId");
+                        matchId.setFk(null);
+                        return junction;
+                    }
+                });
+
+                table.setDescription("Contains genotyping matches joined to their corresponding reads");
+
+                return table;
+            }},
         Analyses() {
             @Override
             TableInfo createTable(Container c, User user)
@@ -135,6 +164,32 @@ public class GenotypingQuerySchema extends UserSchema
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
                 setDefaultVisibleColumns(table, "Analysis,SampleId,Reads,Percent,AverageLength,PosReads,NegReads,PosExtReads,NegExtReads,Alleles/AlleleName");
+
+                String samplesQuery = GenotypingManager.get().getSettings(c).getSamplesQuery();
+
+                if (false && null != samplesQuery)
+                {
+                    final QueryHelper qHelper = new QueryHelper(c, user, samplesQuery);
+
+                    // TODO: Need to join on both SampleId and Library!
+                    ColumnInfo sampleId = table.getColumn("SampleId");
+                    sampleId.setFk(new LookupForeignKey("library_sample_name", "library_sample_name") {
+                        @Override
+                        public TableInfo getLookupTableInfo()
+                        {
+                            return qHelper.getTableInfo();
+                        }
+                    });
+
+                    //sampleId.setLabel();
+                    // TODO: This is a total hack
+                    /*
+                    StringExpression url = qHelper.getTableInfo().getDetailsURL(Collections.singleton(new FieldKey(null, "library_sample_name")), c);
+                    url = DetailsURL.fromString(url.getSource().replace("library_sample_name", "SampleId"));
+                    sampleId.setURL(url);
+                    */
+                }
+
                 table.setDescription("Contains one row per genotyping match");
 
                 return table;
@@ -149,7 +204,7 @@ public class GenotypingQuerySchema extends UserSchema
             List<FieldKey> fieldKeys = new LinkedList<FieldKey>();
 
             for (String name : columnNames.split(","))
-                fieldKeys.add(new FieldKey(null, name));
+                fieldKeys.add(FieldKey.fromString(name));
 
             table.setDefaultVisibleColumns(fieldKeys);
         }

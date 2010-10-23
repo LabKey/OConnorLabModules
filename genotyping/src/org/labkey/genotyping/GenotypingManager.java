@@ -18,9 +18,11 @@ package org.labkey.genotyping;
 
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.data.AtomicDatabaseInteger;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
 import org.labkey.api.data.Table;
+import org.labkey.api.data.TableInfo;
 import org.labkey.api.security.User;
 import org.labkey.api.view.NotFoundException;
 
@@ -31,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -145,11 +146,15 @@ public class GenotypingManager
     }
 
 
-    public void updateAnalysisStatus(GenotypingAnalysis analysis, User user, Status status) throws SQLException
+    // Multiple threads could attempt to set the status at roughly the same time.  (For example, there are several ways to
+    // initiate an analysis import: signal from Galaxy, pipeline ui, script, etc.)  Use an AtomicDatabaseInteger to
+    // synchronously set the status.  Returns true if status was changed, false if it wasn't.
+    public boolean updateAnalysisStatus(GenotypingAnalysis analysis, User user, Status expected, Status update) throws SQLException
     {
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("Status", status.getStatusId());
-        Table.update(user, GenotypingSchema.get().getAnalysesTable(), map, analysis.getRowId());
+        assert (expected.getStatusId() + 1) == update.getStatusId();
+
+        AtomicDatabaseInteger status = new AtomicDatabaseInteger(GenotypingSchema.get().getAnalysesTable().getColumn("Status"), user, null, analysis.getRowId());
+        return status.compareAndSet(expected.getStatusId(), update.getStatusId());
     }
 
 
@@ -198,5 +203,12 @@ public class GenotypingManager
         is.close();
 
         return props;
+    }
+
+    public boolean hasAnalyses(GenotypingRun run) throws SQLException
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+        TableInfo table = gs.getAnalysesTable();
+        return Table.executeSingleton(table.getSchema(), "SELECT EXISTS (SELECT 1 FROM " + table + " WHERE Run = ?)", new Object[]{run.getRowId()}, Boolean.class);
     }
 }

@@ -66,7 +66,7 @@ CREATE TABLE genotyping.Sequences
 
 CREATE TABLE genotyping.Reads
 (
-    RowId SERIAL,          -- TODO: Make this a long?!?!?
+    RowId SERIAL,
     Run INT NOT NULL,
     Name VARCHAR(20) NOT NULL,
     Mid INT NULL,    -- NULL == Mid could not be isolated from sequence

@@ -130,9 +130,9 @@ public class ImportReadsJob extends PipelineJob
             columns.add(new ColumnDescriptor("run", Integer.class, _run.getRowId()));
             loader.setColumns(columns.toArray(new ColumnDescriptor[columns.size()]));
 
-            TableInfo ti = GenotypingSchema.get().getReadsTable();
+            TableInfo readsTable = GenotypingSchema.get().getReadsTable();
 
-            scope = ti.getSchema().getScope();
+            scope = readsTable.getSchema().getScope();
             scope.beginTransaction();
 
             int rowCount = 0;
@@ -144,7 +144,7 @@ public class ImportReadsJob extends PipelineJob
                 if (0 == mid)
                     map.put("mid", null);
 
-                Table.insert(getUser(), ti, map);
+                Table.insert(getUser(), readsTable, map);
                 rowCount++;
 
                 if (0 == rowCount % 10000)
@@ -152,6 +152,7 @@ public class ImportReadsJob extends PipelineJob
             }
 
             scope.commitTransaction();
+            readsTable.getSchema().getSqlDialect().updateStatistics(readsTable);
             logReadsProgress("Importing " + _reads.getName() + " complete: ", rowCount);
         }
         finally

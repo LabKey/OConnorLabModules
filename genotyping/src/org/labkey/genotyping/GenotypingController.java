@@ -18,7 +18,6 @@ package org.labkey.genotyping;
 
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
-import org.labkey.api.action.ExportAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.HasViewContext;
 import org.labkey.api.action.QueryViewAction;
@@ -32,13 +31,12 @@ import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
 import org.labkey.api.data.DbSchema;
-import org.labkey.api.data.DisplayColumn;
 import org.labkey.api.data.LookupColumn;
 import org.labkey.api.data.PanelButton;
 import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.ShowRows;
+import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
-import org.labkey.api.data.TSVGridWriter;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.pipeline.PipeRoot;
@@ -67,7 +65,6 @@ import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
 import org.labkey.api.view.GridView;
-import org.labkey.api.view.HtmlView;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
@@ -136,12 +133,6 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    private ActionURL getAnalysisURL(int analysisId)
-    {
-        return getAnalysisURL(getContainer(), analysisId);
-    }
-
-
     public static ActionURL getAnalysisURL(Container c, int analysisId)
     {
         ActionURL url = new ActionURL(AnalysisAction.class, c);
@@ -159,6 +150,7 @@ public class GenotypingController extends SpringActionController
             return _analysis;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setAnalysis(Integer analysis)
         {
             _analysis = analysis;
@@ -187,17 +179,13 @@ public class GenotypingController extends SpringActionController
             settings.getBaseSort().insertSortColumn("RowId");
             settings.getBaseFilter().addCondition("Analysis", form.getAnalysis());
 
-            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors) {
-                @Override
-                protected TableInfo createTable()
-                {
-                    return removeDefaultVisibleColumns(super.createTable(), "Analysis");
-                }
-            };
+            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
+            removeDefaultVisibleColumns(qv.getTable(), "Analysis");
             qv.setShadeAlternatingRows(true);
             List<ColumnInfo> cols = qv.getTable().getColumns();
 
             // TODO: Add alleles!
+//        allele.setURL(new DetailsURL(getAnalysisURL(), "id", FieldKey.fromParts("Alleles", "RowId")));
 
             return qv;
         }
@@ -206,71 +194,6 @@ public class GenotypingController extends SpringActionController
         public NavTree appendNavTrail(NavTree root)
         {
             return root.addChild("Genotyping Analysis " + _analysis.getRowId());
-        }
-    }
-
-
-    @RequiresPermissionClass(ReadPermission.class)
-    public class OldAnalysisAction extends SimpleViewAction<AnalysisForm>
-    {
-        @Override
-        public ModelAndView getView(AnalysisForm form, BindException errors) throws Exception
-        {
-            DataRegion dr = getDataRegion();
-            GridView grid = new GridView(dr, new RenderContext(getViewContext()));
-            HtmlView links = new HtmlView(PageFlowUtil.textLink("export results", new ActionURL(TsvAction.class, getContainer())));
-
-            return new VBox(links, grid);
-        }
-
-        @Override
-        public NavTree appendNavTrail(NavTree root)
-        {
-            return null;
-        }
-    }
-
-
-    private DataRegion getDataRegion()
-    {
-        GenotypingSchema gt = GenotypingSchema.get();
-        TableInfo tinfoMatches = gt.getMatchesTable();
-        List<ColumnInfo> columns = new ArrayList<ColumnInfo>();
-        columns.addAll(tinfoMatches.getColumns("SampleId,Reads,Percent,AverageLength,PosReads,NegReads,PosExtReads,NegExtReads"));
-
-        ColumnInfo alleles = tinfoMatches.getColumn("Alleles");
-        ColumnInfo allele_rowid = alleles.getFk().createLookupColumn(alleles, "RowId");
-        columns.add(allele_rowid);
-        ColumnInfo allele = alleles.getFk().createLookupColumn(alleles, "AlleleName");
-        allele.setLabel("Allele Groupings");
-        columns.add(allele);
-
-        // TODO: move to XML?
-//        allele.setURL(new DetailsURL(getAnalysisURL(), "id", FieldKey.fromParts("Alleles", "RowId")));
-
-        DataRegion dr = new DataRegion();
-        dr.setShadeAlternatingRows(true);
-        dr.setColumns(columns);
-
-        dr.getDisplayColumn(8).setVisible(false);
-
-        return dr;
-    }
-
-
-    @RequiresPermissionClass(ReadPermission.class)
-    public class TsvAction extends ExportAction<Object>
-    {
-        @Override
-        public void export(Object o, HttpServletResponse response, BindException errors) throws Exception
-        {
-            DataRegion dr = getDataRegion();
-            RenderContext ctx = new RenderContext(getViewContext());
-            ResultSet rs = dr.getResultSet(ctx);
-            List<DisplayColumn> cols = dr.getDisplayColumns();
-            TSVGridWriter tsv = new TSVGridWriter(rs, ctx.getFieldMap(), cols);
-
-            tsv.write(response);
         }
     }
 
@@ -419,6 +342,7 @@ public class GenotypingController extends SpringActionController
             return _message;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setMessage(String message)
         {
             _message = message;
@@ -543,12 +467,6 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    private ActionURL getMySettingsURL()
-    {
-        return getMySettingsURL(getContainer(), getViewContext().getActionURL());
-    }
-
-
     public static ActionURL getMySettingsURL(Container c, ActionURL returnURL)
     {
         ActionURL url = new ActionURL(MySettingsAction.class, c);
@@ -662,6 +580,7 @@ public class GenotypingController extends SpringActionController
             return _descriptions;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setDescriptions(String[] descriptions)
         {
             _descriptions = descriptions;
@@ -831,7 +750,6 @@ public class GenotypingController extends SpringActionController
             {
                 int analysisId = form.getAnalysis();
                 File analysisDir = new File(form.getPath());
-
                 User user = getUser();
 
                 if (user.isGuest())
@@ -907,12 +825,12 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermissionClass(AdminPermission.class)
-    public class LoadAction extends SimpleRedirectAction<PipelinePathForm>
+    public class ImportAnalysisAction extends SimpleRedirectAction<PipelinePathForm>
     {
         @Override
         public ActionURL getRedirectURL(PipelinePathForm form) throws Exception
         {
-            // Manual upload of results; pipeline provider posts to this action with matches file.
+            // Manual upload of genotyping analysis; pipeline provider posts to this action with matches file.
             File matches = form.getValidatedSingleFile(getContainer());
             File analysisDir = matches.getParentFile();
 
@@ -927,16 +845,27 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    // TODO: Verify that file path and analysis # match -- just look in properties file?
-    // TODO: synchronously verify that analysis hasn't already been loaded 
-
-    private void importAnalysis(int analysisId, File pipelineDir, User user) throws IOException
+    // TODO: Verify that file path and analysis # match -- 
+    private void importAnalysis(int analysisId, File pipelineDir, User user) throws IOException, SQLException
     {
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(getContainer(), analysisId);
-        ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), user, getViewContext().getActionURL());
-        PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
-        PipelineJob job = new ImportAnalysisJob(vbi, root, pipelineDir, analysis);
-        PipelineService.get().queueJob(job);
+
+        if (!pipelineDir.equals(new File(analysis.getPath())))
+            throw new IllegalStateException("Analysis path doesn't match import path");
+
+        boolean success = GenotypingManager.get().updateAnalysisStatus(analysis, user, Status.Submitted, Status.Importing);
+
+        if (success)
+        {
+            ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), user, getViewContext().getActionURL());
+            PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
+            PipelineJob job = new ImportAnalysisJob(vbi, root, pipelineDir, analysis);
+            PipelineService.get().queueJob(job);
+        }
+        else
+        {
+            LOG.info("Attempted to import analysis " + analysis.getRowId() + ", but failed because current analysis status is not \"Submitted\"");
+        }
     }
 
 
@@ -982,13 +911,8 @@ public class GenotypingController extends SpringActionController
             Integer dictionary = form.getDictionary();
             settings.getBaseFilter().addCondition("Dictionary", null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer()).getRowId());
 
-            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors) {
-                @Override
-                protected TableInfo createTable()
-                {
-                    return removeDefaultVisibleColumns(super.createTable(), "Dictionary");
-                }
-            };
+            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
+            removeDefaultVisibleColumns(qv.getTable(), "Dictionary");
             qv.setShadeAlternatingRows(true);
 
             return qv;
@@ -1019,7 +943,7 @@ public class GenotypingController extends SpringActionController
         @Override
         protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
         {
-            return new GenotypingRunsView(getViewContext(), errors, dataRegion);
+            return new GenotypingRunsView(getViewContext(), errors, "Runs");
         }
 
         @Override
@@ -1047,7 +971,7 @@ public class GenotypingController extends SpringActionController
         @Override
         protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
         {
-            return new GenotypingAnalysesView(getViewContext(), errors, dataRegion);
+            return new GenotypingAnalysesView(getViewContext(), errors, "Analyses");
         }
 
         @Override
@@ -1067,25 +991,10 @@ public class GenotypingController extends SpringActionController
             return _run;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setRun(int run)
         {
             _run = run;
-        }
-    }
-
-
-    public static class ReadsForm extends RunForm
-    {
-        private int _match = 0;
-
-        public int getMatch()
-        {
-            return _match;
-        }
-
-        public void setMatch(int run)
-        {
-            _match = run;
         }
     }
 
@@ -1098,25 +1007,18 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public abstract class ReadsAction extends QueryViewAction<ReadsForm, QueryView>
+    private abstract class ReadsAction<FORM extends QueryViewAction.QueryExportForm> extends QueryViewAction<FORM, QueryView>
     {
         private static final String DATA_REGION_NAME = "Reads";
         private static final String FASTQ_FORMAT = "FASTQ";
 
-        private int _run = 0;
-
-        public ReadsAction()
+        private ReadsAction(Class<? extends FORM> formClass)
         {
-            super(ReadsForm.class);
-        }
-
-        protected int getRun()
-        {
-            return _run;
+            super(formClass);
         }
 
         @Override
-        public ModelAndView getView(ReadsForm form, BindException errors) throws Exception
+        public ModelAndView getView(FORM form, BindException errors) throws Exception
         {
             if (FASTQ_FORMAT.equals(form.getExportType()))
             {
@@ -1171,23 +1073,16 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        protected QueryView createQueryView(ReadsForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        protected QueryView createQueryView(FORM form, BindException errors, boolean forExport, String dataRegion) throws Exception
         {
-            _run = form.getRun();    // TODO: "Run not found" error instead of empty grid
-            QuerySettings settings = new QuerySettings(getViewContext(), DATA_REGION_NAME, TableType.Reads.toString());
+            QuerySettings settings = new QuerySettings(getViewContext(), DATA_REGION_NAME, getTableName());
             settings.setAllowChooseQuery(false);
             settings.setAllowChooseView(true);
             settings.getBaseSort().insertSortColumn("RowId");
-            settings.getBaseFilter().addCondition("Run", _run);
+            handleSettings(settings);
 
             QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors)
             {
-                @Override
-                protected TableInfo createTable()
-                {
-                    return removeDefaultVisibleColumns(super.createTable(), "Run");
-                }
-
                 @Override
                 public PanelButton createExportButton(boolean exportAsWebPage)
                 {
@@ -1202,9 +1097,14 @@ public class GenotypingController extends SpringActionController
                 }
             };
 
+            removeDefaultVisibleColumns(qv.getTable(), "Run");
             qv.setShadeAlternatingRows(true);
             return qv;
         }
+
+        protected abstract void handleSettings(QuerySettings settings);
+
+        protected abstract String getTableName();
     }
 
 
@@ -1226,24 +1126,134 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermissionClass(ReadPermission.class)
-    public class RunAction extends ReadsAction
+    public class RunAction extends ReadsAction<RunForm>
     {
-        @Override
-        public ModelAndView getView(ReadsForm form, BindException errors) throws Exception
+        private GenotypingRun _run;
+
+        public RunAction()
         {
+            super(RunForm.class);
+        }
+
+        @Override
+        public ModelAndView getView(RunForm form, BindException errors) throws Exception
+        {
+            _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
             ModelAndView reads = super.getView(form, errors);
 
             // Export reads case
             if (null == reads)
                 return null;
 
-            return new VBox(new HtmlView("Here's some meta data"), reads);
+            VBox vbox = new VBox();
+
+            if (GenotypingManager.get().hasAnalyses(_run))
+            {
+                GenotypingAnalysesView analyses = new GenotypingAnalysesView(getViewContext(), null, "Analyses", new SimpleFilter("Run", _run.getRowId()));
+                removeDefaultVisibleColumns(analyses.getTable(), "Run");
+                analyses.setButtonBarPosition(DataRegion.ButtonBarPosition.NONE);
+                analyses.setTitle("Run Analyses");
+                vbox.addView(analyses);
+            }
+
+            vbox.addView(reads);
+
+            return vbox;
         }
 
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            return root.addChild("Run " + getRun());
+            return root.addChild("Run " + _run.getRowId());
+        }
+
+        @Override
+        protected String getTableName()
+        {
+            return TableType.Reads.toString();
+        }
+
+        @Override
+        protected void handleSettings(QuerySettings settings)
+        {
+            settings.getBaseFilter().addCondition("Run", _run.getRowId());
+        }
+    }
+
+
+    public static class MatchReadsForm extends RunForm
+    {
+        private int _match = 0;
+        private int _analysis = 0;
+
+        public int getMatch()
+        {
+            return _match;
+        }
+
+        @SuppressWarnings({"UnusedDeclaration"})
+        public void setMatch(int run)
+        {
+            _match = run;
+        }
+
+        public int getAnalysis()
+        {
+            return _analysis;
+        }
+
+        @SuppressWarnings({"UnusedDeclaration"})
+        public void setAnalysis(int analysis)
+        {
+            _analysis = analysis;
+        }
+    }
+
+
+    @SuppressWarnings({"UnusedDeclaration"})  // URL defined on matches.reads column in genotyping.xml
+    @RequiresPermissionClass(ReadPermission.class)
+    public class MatchReadsAction extends ReadsAction<MatchReadsForm>
+    {
+        private GenotypingAnalysis _analysis;
+        private int _matchId;
+
+        public MatchReadsAction()
+        {
+            super(MatchReadsForm.class);
+        }
+
+        @Override
+        public ModelAndView getView(MatchReadsForm form, BindException errors) throws Exception
+        {
+            _analysis = GenotypingManager.get().getAnalysis(getContainer(), form.getAnalysis());
+            _matchId = form.getMatch();
+            ModelAndView reads = super.getView(form, errors);
+
+            // Export reads case
+            if (null == reads)
+                return null;
+
+            return reads;
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return root.addChild("Reads for match " + _matchId);
+        }
+
+        @Override
+        protected String getTableName()
+        {
+            return TableType.MatchReads.toString();
+        }
+
+        @Override
+        protected void handleSettings(QuerySettings settings)
+        {
+            SimpleFilter baseFilter = settings.getBaseFilter();
+            baseFilter.addCondition("Run", _analysis.getRun());
+            baseFilter.addCondition("RowId/MatchId", _matchId);
         }
     }
 }

@@ -47,8 +47,8 @@ public class ImportAnalysisPipelineProvider extends PipelineProvider
 
         File[] files = directory.listFiles(new ResultsFilter());
 
-        String actionId = createActionId(GenotypingController.LoadAction.class, null);
-        addAction(actionId, GenotypingController.LoadAction.class, "Import Analysis", directory, files, true, false, includeAll);
+        String actionId = createActionId(GenotypingController.ImportAnalysisAction.class, null);
+        addAction(actionId, GenotypingController.ImportAnalysisAction.class, "Import Analysis", directory, files, true, false, includeAll);
     }
 
     private static class ResultsFilter implements FileFilter

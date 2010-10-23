@@ -74,7 +74,7 @@ public class ImportAnalysisJob extends PipelineJob
     @Override
     public ActionURL getStatusHref()
     {
-        return new ActionURL(GenotypingController.BeginAction.class, getInfo().getContainer());
+        return GenotypingController.getAnalysisURL(getContainer(), _analysis.getRowId());
     }
 
 
@@ -92,9 +92,6 @@ public class ImportAnalysisJob extends PipelineJob
 
         try
         {
-            // TODO: Move to controller
-            GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Importing);
-
             File sourceSamples = new File(_dir, GenotypingManager.SAMPLES_FILE_NAME);
             File sourceMatches = new File(_dir, GenotypingManager.MATCHES_FILE_NAME);
 
@@ -112,8 +109,10 @@ public class ImportAnalysisJob extends PipelineJob
                     setStatus("LOADING TEMP TABLES");
                     info("Loading samples temp table");
                     samples = createTempTable(sourceSamples, schema, "mid_num,sample");
+                    samples.getSqlDialect().updateStatistics(samples);
                     info("Loading matches temp table");
                     matches = createTempTable(sourceMatches, schema, null);
+                    samples.getSqlDialect().updateStatistics(samples);
 
                     QueryContext ctx = new QueryContext(schema, samples, matches, GenotypingSchema.get().getReadsTable(), _analysis.getRun());
                     JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
@@ -186,7 +185,7 @@ public class ImportAnalysisJob extends PipelineJob
                         }
                     }
 
-                    GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Complete);
+                    assert GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Importing, Status.Complete);
                     setStatus(COMPLETE_STATUS);
                     info("Successfully imported genotyping analysis in " + DateUtil.formatDuration(System.currentTimeMillis() - startTime));
                 }

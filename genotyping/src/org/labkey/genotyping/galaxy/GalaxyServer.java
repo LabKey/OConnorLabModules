@@ -20,6 +20,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
@@ -100,6 +101,21 @@ public class GalaxyServer
     private String makeUrl(String relativeUrl)
     {
         return (relativeUrl.isEmpty() ? _baseUrl : _baseUrl + "/" + relativeUrl) + "?key=" + _key;
+    }
+
+
+    public boolean canConnect()
+    {
+        try
+        {
+            get("");
+            return true;
+        }
+        catch (IOException e)
+        {
+            Logger.getLogger(GalaxyServer.class).info("Test connect to Galaxy server failed", e);
+            return false;
+        }
     }
 
 

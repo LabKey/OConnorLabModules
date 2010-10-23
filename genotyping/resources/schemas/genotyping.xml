@@ -41,10 +41,12 @@
         <ns:isHidden>true</ns:isHidden>
       </ns:column>
       <ns:column columnName="Analysis">
-        <ns:url>/genotyping/analysis.view?run=${Analysis}</ns:url>          
+        <ns:url>/genotyping/analysis.view?analysis=${Analysis}</ns:url>
       </ns:column>
       <ns:column columnName="SampleId"/>
-      <ns:column columnName="Reads"/>
+      <ns:column columnName="Reads">
+        <ns:url>/genotyping/matchReads.view?analysis=${Analysis}&amp;match=${RowId}</ns:url>
+      </ns:column>
       <ns:column columnName="Percent">
         <ns:formatString>0.0%</ns:formatString>
       </ns:column>
@@ -58,6 +60,7 @@
         <ns:displayWidth>65</ns:displayWidth>
       </ns:column>
       <ns:column columnName="Alleles" wrappedColumnName="RowId">
+          <ns:url>/genotyping/matchReads.view</ns:url>
         <ns:isUnselectable>true</ns:isUnselectable>
         <ns:fk>
           <ns:fkDbSchema>genotyping</ns:fkDbSchema>
@@ -136,7 +139,9 @@
       </ns:column>
       <ns:column columnName="Dictionary"/>
       <ns:column columnName="Uid"/>
-      <ns:column columnName="AlleleName"/>
+      <ns:column columnName="AlleleName">
+        <ns:url>/genotyping/sequence.view?sequence=1</ns:url>
+      </ns:column>
       <ns:column columnName="Initials"/>
       <ns:column columnName="GenbankId"/>
       <ns:column columnName="ExptNumber"/>

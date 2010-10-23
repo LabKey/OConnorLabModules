@@ -23,6 +23,7 @@ public class GenotypingRunsView extends QueryView
         {
             WebPartView view = new GenotypingRunsView(ctx, null, "GenotypingRuns");
             view.setTitle("Genotyping Runs");
+            view.setTitleHref(GenotypingController.getRunsURL(ctx.getContainer()));
             return view;
         }
     };

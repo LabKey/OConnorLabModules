@@ -1,5 +1,7 @@
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.Nullable;
+import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserSchema;
@@ -23,13 +25,19 @@ public class GenotypingAnalysesView extends QueryView
         {
             WebPartView view = new GenotypingAnalysesView(ctx, null, "GenotypingAnalyses");
             view.setTitle("Genotyping Analyses");
+            view.setTitleHref(GenotypingController.getAnalysesURL(ctx.getContainer()));
             return view;
         }
     };
 
     public GenotypingAnalysesView(ViewContext ctx, Errors errors, String dataRegion)
     {
-        super(getUserSchema(ctx), getQuerySettings(ctx, dataRegion), errors);
+        this(ctx, errors, dataRegion, null);
+    }
+
+    public GenotypingAnalysesView(ViewContext ctx, Errors errors, String dataRegion, @Nullable SimpleFilter baseFilter)
+    {
+        super(getUserSchema(ctx), getQuerySettings(ctx, dataRegion, baseFilter), errors);
         setShadeAlternatingRows(true);
     }
 
@@ -38,13 +46,16 @@ public class GenotypingAnalysesView extends QueryView
         return new GenotypingQuerySchema(ctx.getUser(), ctx.getContainer());
     }
 
-    private static QuerySettings getQuerySettings(ViewContext ctx, String dataRegion)
+    private static QuerySettings getQuerySettings(ViewContext ctx, String dataRegion, @Nullable SimpleFilter baseFilter)
     {
 
         QuerySettings settings = new QuerySettings(ctx, dataRegion, GenotypingQuerySchema.TableType.Analyses.toString());
         settings.setAllowChooseQuery(false);
         settings.setAllowChooseView(true);
         settings.getBaseSort().insertSortColumn("RowId");
+
+        if (null != baseFilter)
+            settings.getBaseFilter().addAllClauses(baseFilter);
 
         return settings;
     }

@@ -57,8 +57,12 @@ public class SubmitAnalysisJob extends PipelineJob
     private final GenotypingAnalysis _analysis;
     private final File _analysisDir;
 
-    private File _completionFile = null;   // Used for dev mode only
     private URLHelper _galaxyURL = null;
+    private File _completionFile = null;   // Used for dev mode only
+
+    // In dev mode only, we'll test the ability to connect to the Galaxy server once; if this connection fails, we'll
+    // skip trying to submit to Galaxy on subsequence attempts.
+    private static Boolean _useGalaxy = null;
 
     public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, GenotypingAnalysis analysis) throws SQLException
     {
@@ -111,7 +115,7 @@ public class SubmitAnalysisJob extends PipelineJob
             writeFasta();
             sendFilesToGalaxy(server);
             monitorCompletion();
-            GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Submitted);
+            assert GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.NotSubmitted, Status.Submitted);
             info("Submitting genotyping analysis job complete");
             setStatus(COMPLETE_STATUS);
         }
@@ -256,6 +260,9 @@ public class SubmitAnalysisJob extends PipelineJob
 
         try
         {
+            if (!shouldUseGalaxy(server))
+                return;
+
             GalaxyServer.DataLibrary library = server.createLibrary(_dir.getName() + "_" + _analysis.getRowId(), "MHC analysis " + _analysis.getRowId() + " for run " + _analysis.getRun(), "An MHC genotyping analysis");
             GalaxyServer.Folder root = library.getRootFolder();
             root.uploadFromImportDirectory(_dir.getName() + "/" + _analysisDir.getName(), "txt", null, true);
@@ -288,6 +295,19 @@ public class SubmitAnalysisJob extends PipelineJob
         }
     }
 
+
+    private synchronized boolean shouldUseGalaxy(GalaxyServer server)
+    {
+        // First time through
+        if (null == _useGalaxy)
+        {
+            // In production mode, always retry even if failures occur.
+            // In dev mode, attempt a connection now and skip subsequent connections if this fails.
+            _useGalaxy = !AppProps.getInstance().isDevMode() || server.canConnect();
+        }
+
+        return _useGalaxy;
+    }
 
     // Wait until analysis is completely prepared and has been submitted to Galaxy before monitoring
     private void monitorCompletion()
