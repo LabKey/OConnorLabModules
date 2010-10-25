@@ -27,7 +27,7 @@
     ActionURL submitURL = urlProvider(PipelineUrls.class).urlBrowse(c, null);
     ActionURL statusURL = urlProvider(PipelineUrls.class).urlBegin(c);
 %>
-<p><a href="<%=h(GenotypingController.getSequencesURL(c))%>">Reference Sequences</a></p>
+<p><a href="<%=h(GenotypingController.getSequencesURL(c, null))%>">Reference Sequences</a></p>
 <p><a href="<%=h(GenotypingController.getRunsURL(c))%>">Runs</a></p>
 <p><a href="<%=h(GenotypingController.getAnalysesURL(c))%>">Analyses</a></p>
 <p><a href="<%=h(submitURL)%>">Import Run</a></p>

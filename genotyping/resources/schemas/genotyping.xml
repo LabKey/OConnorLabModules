@@ -60,7 +60,6 @@
         <ns:displayWidth>65</ns:displayWidth>
       </ns:column>
       <ns:column columnName="Alleles" wrappedColumnName="RowId">
-          <ns:url>/genotyping/matchReads.view</ns:url>
         <ns:isUnselectable>true</ns:isUnselectable>
         <ns:fk>
           <ns:fkDbSchema>genotyping</ns:fkDbSchema>
@@ -75,35 +74,13 @@
   <ns:table tableName="ReadsJunction" tableDbType="TABLE">
     <ns:columns>
       <ns:column columnName="MatchId"/>
-        <ns:fk>
-          <ns:fkDbSchema>genotyping</ns:fkDbSchema>
-          <ns:fkTable>Matches</ns:fkTable>
-          <ns:fkColumnName>RowId</ns:fkColumnName>
-        </ns:fk>
       <ns:column columnName="ReadId"/>
-        <ns:fk>
-          <ns:fkDbSchema>genotyping</ns:fkDbSchema>
-          <ns:fkTable>Reads</ns:fkTable>
-          <ns:fkColumnName>RowId</ns:fkColumnName>
-        </ns:fk>
     </ns:columns>
   </ns:table>
   <ns:table tableName="AllelesJunction" tableDbType="TABLE">
     <ns:columns>
-      <ns:column columnName="MatchId">
-        <ns:fk>
-          <ns:fkDbSchema>genotyping</ns:fkDbSchema>
-          <ns:fkTable>Matches</ns:fkTable>
-          <ns:fkColumnName>RowId</ns:fkColumnName>
-        </ns:fk>
-      </ns:column>
-      <ns:column columnName="SequenceId">
-        <ns:fk>
-          <ns:fkDbSchema>genotyping</ns:fkDbSchema>
-          <ns:fkTable>Sequences</ns:fkTable>
-          <ns:fkColumnName>RowId</ns:fkColumnName>
-        </ns:fk>
-      </ns:column>
+      <ns:column columnName="MatchId"/>
+      <ns:column columnName="SequenceId"/>
     </ns:columns>
   </ns:table>
   <ns:table tableName="AnalysisSamples" tableDbType="TABLE">
@@ -140,7 +117,7 @@
       <ns:column columnName="Dictionary"/>
       <ns:column columnName="Uid"/>
       <ns:column columnName="AlleleName">
-        <ns:url>/genotyping/sequence.view?sequence=1</ns:url>
+        <!--ns:url>/genotyping/sequence.view?sequence=${RowId}</ns:url-->
       </ns:column>
       <ns:column columnName="Initials"/>
       <ns:column columnName="GenbankId"/>

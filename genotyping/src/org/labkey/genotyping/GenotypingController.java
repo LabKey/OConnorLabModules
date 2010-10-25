@@ -27,6 +27,8 @@ import org.labkey.api.action.SimpleRedirectAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
+import org.labkey.api.data.ActionButton;
+import org.labkey.api.data.ButtonBar;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
@@ -64,6 +66,7 @@ import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
+import org.labkey.api.view.DetailsView;
 import org.labkey.api.view.GridView;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
@@ -937,9 +940,14 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static ActionURL getSequencesURL(Container c)
+    public static ActionURL getSequencesURL(Container c, @Nullable Integer dictionary)
     {
-        return new ActionURL(SequencesAction.class, c);
+        ActionURL url =  new ActionURL(SequencesAction.class, c);
+
+        if (null != dictionary)
+            url.addParameter("dictionar", dictionary);
+
+        return url;
     }
 
 
@@ -972,6 +980,79 @@ public class GenotypingController extends SpringActionController
         public NavTree appendNavTrail(NavTree root)
         {
             return root.addChild("Reference Sequences");
+        }
+    }
+
+
+    public static class SequenceForm extends SequencesForm
+    {
+        private Integer _analysis = null;
+        private Integer _sequence = null;
+
+        public Integer getSequence()
+        {
+            return _sequence;
+        }
+
+        public void setSequence(Integer sequence)
+        {
+            _sequence = sequence;
+        }
+
+        @Nullable
+        public Integer getAnalysis()
+        {
+            return _analysis;
+        }
+
+        @SuppressWarnings({"UnusedDeclaration"})
+        public void setAnalysis(Integer analysis)
+        {
+            _analysis = analysis;
+        }
+    }
+
+
+    @SuppressWarnings({"UnusedDeclaration"})  // URL defined on sequences.rowId column in genotyping.xml
+    @RequiresPermissionClass(ReadPermission.class)
+    public class SequenceAction extends SimpleViewAction<SequenceForm>
+    {
+        public SequenceAction()
+        {
+            super(SequenceForm.class);
+        }
+
+        @Override
+        public ModelAndView getView(SequenceForm form, BindException errors) throws Exception
+        {
+            QuerySettings settings = new QuerySettings(getViewContext(), "Sequence", TableType.Sequences.toString());
+
+            // Adding the dictionary ensures we're grabbing a sequence from this container
+            Integer dictionary = form.getDictionary();
+            settings.getBaseFilter().addCondition("Dictionary", null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer()).getRowId());
+            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
+
+            DataRegion rgn = new DataRegion();
+            rgn.setDisplayColumns(qv.getDisplayColumns());
+            DetailsView view = new DetailsView(rgn, form.getSequence());
+
+            ButtonBar bb = new ButtonBar();
+            Integer analysisId = form.getAnalysis();
+
+            if (null != analysisId)
+                bb.getList().add(new ActionButton("Analysis", getAnalysisURL(getContainer(), analysisId)));
+            else
+                bb.getList().add(new ActionButton("Reference Sequences", getSequencesURL(getContainer(), dictionary)));
+
+            rgn.setButtonBar(bb, DataRegion.MODE_DETAILS);
+
+            return view;
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return root.addChild("Reference Sequence");
         }
     }
 

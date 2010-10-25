@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
--- Delete all existing sequencing data`
+-- Delete all existing sequencing data
 DELETE FROM genotyping.AllelesJunction;
 DELETE FROM genotyping.ReadsJunction;
 DELETE FROM genotyping.Matches;

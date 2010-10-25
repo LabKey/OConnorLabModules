@@ -91,7 +91,7 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 FilteredTable table = new FilteredTable(GS.getSequencesTable(), c);
                 table.wrapAllColumns(true);
-                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getDictionariesTable() + " d WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
+                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getDictionariesTable().getFromSQL("d") + " WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
                 table.setDescription("Contains one row per reference sequence");
@@ -104,7 +104,7 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 FilteredTable table = new FilteredTable(GS.getReadsTable(), c);
                 table.wrapAllColumns(true);
-                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getReadsTable() + ".Run) = ?");
+                SQLFragment containerCondition = new SQLFragment("Run IN (SELECT Run FROM " + GS.getRunsTable().getFromSQL("r") + " WHERE Container = ?)");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
                 table.setDescription("Contains one row per sequencing read");
@@ -117,7 +117,7 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 FilteredTable table = new FilteredTable(GS.getReadsTable(), c);
                 table.wrapAllColumns(true);
-                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getReadsTable() + ".Run) = ?");
+                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable().getFromSQL("r") + " WHERE r.RowId = " + GS.getReadsTable() + ".Run) = ?");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
                 setDefaultVisibleColumns(table, "Name,Mid,Sequence,Quality");
@@ -160,7 +160,7 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 FilteredTable table = new FilteredTable(GS.getMatchesTable(), c);
                 table.wrapAllColumns(true);
-                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getAnalysesTable() + " a INNER JOIN " + GS.getRunsTable() + " r ON a.Run = r.RowId WHERE a.RowId = " + GS.getMatchesTable() + ".Analysis) = ?");
+                SQLFragment containerCondition = new SQLFragment("Analysis IN (SELECT a.RowId FROM " + GS.getAnalysesTable().getFromSQL("a") + " INNER JOIN " + GS.getRunsTable().getFromSQL("r") + " ON a.Run = r.RowId WHERE Container = ?)");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
                 setDefaultVisibleColumns(table, "Analysis,SampleId,Reads,Percent,AverageLength,PosReads,NegReads,PosExtReads,NegExtReads,Alleles/AlleleName");

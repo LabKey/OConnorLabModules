@@ -303,14 +303,16 @@ public class SubmitAnalysisJob extends PipelineJob
         {
             if (!AppProps.getInstance().isDevMode())
             {
-                // In production mode, always retry even if failures occur.
+                // In production mode, always try to connect to Galaxy server (even if failures occur).
                 _useGalaxy = true;
             }
             else
             {
-                // In dev mode, attempt a connection now and skip subsequent connections if this fails.
+                // In dev mode, attempt a connection now and if it fails skip subsequent connections.
                 _useGalaxy = server.canConnect();
-                warn("Can't connect to Galaxy server");
+
+                if (!_useGalaxy)
+                    warn("Test connect to Galaxy server failed");
             }
         }
         else
