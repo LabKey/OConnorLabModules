@@ -152,8 +152,10 @@ public class ImportReadsJob extends PipelineJob
             }
 
             scope.commitTransaction();
-            readsTable.getSchema().getSqlDialect().updateStatistics(readsTable);
             logReadsProgress("Importing " + _reads.getName() + " complete: ", rowCount);
+            setStatus("UPDATING STATISTICS");
+            info("Updating reads table statistics");
+            readsTable.getSchema().getSqlDialect().updateStatistics(readsTable);
         }
         finally
         {

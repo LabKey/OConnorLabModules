@@ -18,6 +18,7 @@ package org.labkey.genotyping;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.Table;
+import org.labkey.api.data.TempTableInfo;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TempTableWriter;
 import org.labkey.api.pipeline.PipeRoot;
@@ -97,8 +98,8 @@ public class ImportAnalysisJob extends PipelineJob
 
             DbSchema schema = GenotypingSchema.get().getSchema();
 
-            Table.TempTableInfo samples = null;
-            Table.TempTableInfo matches = null;
+            TempTableInfo samples = null;
+            TempTableInfo matches = null;
 
             try
             {
@@ -109,10 +110,8 @@ public class ImportAnalysisJob extends PipelineJob
                     setStatus("LOADING TEMP TABLES");
                     info("Loading samples temp table");
                     samples = createTempTable(sourceSamples, schema, "mid_num,sample");
-                    samples.getSqlDialect().updateStatistics(samples);
                     info("Loading matches temp table");
                     matches = createTempTable(sourceMatches, schema, null);
-                    samples.getSqlDialect().updateStatistics(samples);
 
                     QueryContext ctx = new QueryContext(schema, samples, matches, GenotypingSchema.get().getReadsTable(), _analysis.getRun());
                     JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
@@ -184,10 +183,6 @@ public class ImportAnalysisJob extends PipelineJob
                             }
                         }
                     }
-
-                    assert GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Importing, Status.Complete);
-                    setStatus(COMPLETE_STATUS);
-                    info("Successfully imported genotyping analysis in " + DateUtil.formatDuration(System.currentTimeMillis() - startTime));
                 }
                 finally
                 {
@@ -204,6 +199,10 @@ public class ImportAnalysisJob extends PipelineJob
                 if (null != matches)
                     matches.delete();
             }
+
+            assert GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Importing, Status.Complete);
+            setStatus(COMPLETE_STATUS);
+            info("Successfully imported genotyping analysis in " + DateUtil.formatDuration(System.currentTimeMillis() - startTime));
         }
         catch (Exception e)
         {
@@ -214,7 +213,7 @@ public class ImportAnalysisJob extends PipelineJob
 
 
     // columnNames: comma-separated list of column names to include; null means include all columns
-    private Table.TempTableInfo createTempTable(File file, DbSchema schema, @Nullable String columnNames) throws IOException, SQLException
+    private TempTableInfo createTempTable(File file, DbSchema schema, @Nullable String columnNames) throws IOException, SQLException
     {
         Reader reader = null;
 

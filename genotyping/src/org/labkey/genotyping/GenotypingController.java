@@ -86,6 +86,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigInteger;
@@ -545,13 +546,14 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static class SubmitAnalysisForm extends PipelinePathForm
+    public static class ImportReadsForm extends PipelinePathForm
     {
         private boolean _readyToSubmit = false;
         private String[] _sequencesViews;
         private String[] _descriptions;
         private String _readsPath;
         private Integer _run;
+        private Integer _metaDataRun = null;
 
         public boolean isReadyToSubmit()
         {
@@ -606,6 +608,16 @@ public class GenotypingController extends SpringActionController
         {
             _run = run;
         }
+
+        public Integer getMetaDataRun()
+        {
+            return null != _metaDataRun ? _metaDataRun : _run;
+        }
+
+        public void setMetaDataRun(Integer metaDataRun)
+        {
+            _metaDataRun = metaDataRun;
+        }
     }
 
 
@@ -643,10 +655,10 @@ public class GenotypingController extends SpringActionController
     public static final String DEFAULT_VIEW_PLACEHOLDER = "[default]";
 
     @RequiresPermissionClass(AdminPermission.class)
-    public class ImportReadsAction extends FormViewAction<SubmitAnalysisForm>
+    public class ImportReadsAction extends FormViewAction<ImportReadsForm>
     {
         @Override
-        public void validateCommand(SubmitAnalysisForm form, Errors errors)
+        public void validateCommand(ImportReadsForm form, Errors errors)
         {
             if (form.isReadyToSubmit())
             {
@@ -656,7 +668,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public ModelAndView getView(SubmitAnalysisForm form, boolean reshow, BindException errors) throws Exception
+        public ModelAndView getView(ImportReadsForm form, boolean reshow, BindException errors) throws Exception
         {
             GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
             TableInfo runs = new QueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo();
@@ -679,7 +691,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public boolean handlePost(SubmitAnalysisForm form, BindException errors) throws Exception
+        public boolean handlePost(ImportReadsForm form, BindException errors) throws Exception
         {
             if (!form.isReadyToSubmit())
             {
@@ -689,10 +701,7 @@ public class GenotypingController extends SpringActionController
             }
 
             File readsFile = new File(form.getReadsPath());
-            GenotypingRun run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), readsFile);
-
-            // TODO: Just for testing -- delete all previous analyses, reads, matches, etc. associated with this run.
-            GenotypingManager.get().clearRun(run);
+            GenotypingRun run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), form.getMetaDataRun(), readsFile);
 
             ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
             PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
@@ -714,7 +723,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public URLHelper getSuccessURL(SubmitAnalysisForm form)
+        public URLHelper getSuccessURL(ImportReadsForm form)
         {
             return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
         }
@@ -727,6 +736,36 @@ public class GenotypingController extends SpringActionController
     }
 
 
+    @RequiresPermissionClass(AdminPermission.class)
+    public class TestPerformance extends SimpleRedirectAction
+    {
+        @Override
+        public URLHelper getRedirectURL(Object o) throws Exception
+        {
+            ImportReadsAction action = new ImportReadsAction();
+            action.setViewContext(getViewContext());
+            TableInfo runsTable = GenotypingSchema.get().getRunsTable();
+            Integer maxRun = Table.executeSingleton(runsTable.getSchema(), "SELECT CAST(MAX(RowId) AS INTEGER) FROM " + runsTable, null, Integer.class);
+
+            int start = maxRun + 1;
+            int end = start + 10;
+
+            for (int i = start; i < end; i++)
+            {
+                ImportReadsForm form = new ImportReadsForm();
+                form.setRun(i);
+                form.setMetaDataRun(113);
+                form.setReadsPath("c:\\Users\\adam\\Desktop\\genotyping\\runs\\2010-10-20\\reads.txt");
+                form.setReadyToSubmit(true);
+
+                action.handlePost(form, null);
+            }
+
+            return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
+        }
+    }
+
+
     public static ActionURL getWorkflowCompleteURL(Container c, GenotypingAnalysis analysis)
     {
         ActionURL url = new ActionURL(WorkflowCompleteAction.class, c);
@@ -735,6 +774,8 @@ public class GenotypingController extends SpringActionController
         return url;
     }
 
+
+    private static String FAILURE_PREFACE = "Failed to queue import analysis job: ";
 
     @RequiresNoPermission
     public class WorkflowCompleteAction extends SimpleViewAction<ImportAnalysisForm>
@@ -770,9 +811,17 @@ public class GenotypingController extends SpringActionController
                 importAnalysis(analysisId, analysisDir, user);
                 message = "Import analysis job queued at " + new Date();
             }
+            catch (FileNotFoundException fnf)
+            {
+                // Send back a vauge, generic message in the case of all file-not-found-type problems, e.g., specified path is
+                // missing, isn't a directory, lacks a properties.xml file, or doesn't match the analysis table path. This
+                // prevents attackers from gaining any useful information about the file system.  Log the more detailed message.
+                message = FAILURE_PREFACE + "Analysis path doesn't match import path (see system log for more details)";
+                LOG.error(FAILURE_PREFACE + fnf.getMessage());
+            }
             catch (Exception e)
             {
-                message = "Failed to queue import analysis job: " + e.getMessage();
+                message = FAILURE_PREFACE + e.getMessage();
                 LOG.error(message);
             }
 
@@ -845,13 +894,14 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    // TODO: Verify that file path and analysis # match -- 
     private void importAnalysis(int analysisId, File pipelineDir, User user) throws IOException, SQLException
     {
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(getContainer(), analysisId);
+        File analysisDir = new File(analysis.getPath());
 
-        if (!pipelineDir.equals(new File(analysis.getPath())))
-            throw new IllegalStateException("Analysis path doesn't match import path");
+        if (!pipelineDir.equals(analysisDir))
+            throw new FileNotFoundException("Analysis path (\"" + analysisDir.getAbsolutePath() +
+                    "\") doesn't match specified path (\"" + pipelineDir.getAbsolutePath() + "\")");
 
         boolean success = GenotypingManager.get().updateAnalysisStatus(analysis, user, Status.Submitted, Status.Importing);
 
@@ -864,7 +914,7 @@ public class GenotypingController extends SpringActionController
         }
         else
         {
-            LOG.info("Attempted to import analysis " + analysis.getRowId() + ", but failed because current analysis status is not \"Submitted\"");
+            throw new IllegalStateException("Current analysis status is not \"Submitted\"");
         }
     }
 

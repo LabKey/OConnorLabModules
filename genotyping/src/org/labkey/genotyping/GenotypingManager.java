@@ -28,6 +28,7 @@ import org.labkey.api.view.NotFoundException;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -96,14 +97,14 @@ public class GenotypingManager
         };
     }
 
-    public GenotypingRun createRun(Container c, User user, @Nullable Integer metaDataId, File readsFile) throws SQLException
+    public GenotypingRun createRun(Container c, User user, int runId, @Nullable Integer metaDataId, File readsFile) throws SQLException
     {
         MetaDataRun mdRun = null;
 
         if (null != metaDataId)
             mdRun = getMetaDataRun(c, user, metaDataId);
 
-        GenotypingRun run = new GenotypingRun(c, readsFile, mdRun);
+        GenotypingRun run = new GenotypingRun(c, readsFile, runId, mdRun);
         return Table.insert(user, GenotypingSchema.get().getRunsTable(), run);
     }
 
@@ -189,10 +190,10 @@ public class GenotypingManager
     public Properties readProperties(File directory) throws IOException
     {
         if (!directory.exists())
-            throw new IllegalStateException(directory.getAbsolutePath() + " does not exist");
+            throw new FileNotFoundException(directory.getAbsolutePath() + " does not exist");
 
         if (!directory.isDirectory())
-            throw new IllegalStateException(directory.getAbsolutePath() + " is not a directory");
+            throw new FileNotFoundException(directory.getAbsolutePath() + " is not a directory");
 
         File properties = new File(directory, PROPERTIES_FILE_NAME);
 

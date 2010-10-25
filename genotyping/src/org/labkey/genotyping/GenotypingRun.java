@@ -30,17 +30,17 @@ public class GenotypingRun
         assert MemTracker.put(this);
     }
 
-    public GenotypingRun(Container c, File readsFile, @Nullable MetaDataRun metaDataRun) throws SQLException
+    public GenotypingRun(Container c, File readsFile, int runId, @Nullable MetaDataRun metaDataRun) throws SQLException
     {
         this();
         setContainer(c);
         setPath(readsFile.getParent());
         setFileName(readsFile.getName());
+        setRowId(runId);
 
         if (null != metaDataRun)
         {
             setMetaDataId(metaDataRun.getRun());
-            setRowId(metaDataRun.getRun());
         }
     }
 
