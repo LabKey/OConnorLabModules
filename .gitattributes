@@ -3,9 +3,11 @@ genotyping/Genotyping.iml -text
 genotyping/build.xml -text
 genotyping/module.properties -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.00-0.01.sql -text
+genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.00-0.03.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.01-0.02.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.02-0.03.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.00-0.01.sql -text
+genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.00-0.03.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.01-0.02.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.02-0.03.sql -text
 genotyping/resources/schemas/genotyping.xml -text
@@ -43,10 +45,11 @@ genotyping/src/org/labkey/genotyping/sequences/FastqGenerator.java -text
 genotyping/src/org/labkey/genotyping/sequences/FastqWriter.java -text
 genotyping/src/org/labkey/genotyping/sequences/SequenceDictionary.java -text
 genotyping/src/org/labkey/genotyping/sequences/SequenceManager.java -text
+genotyping/src/org/labkey/genotyping/view/analyze.jsp -text
 genotyping/src/org/labkey/genotyping/view/configure.jsp -text
 genotyping/src/org/labkey/genotyping/view/fastqExport.jsp -text
+genotyping/src/org/labkey/genotyping/view/importReads.jsp -text
 genotyping/src/org/labkey/genotyping/view/loadSequences.jsp -text
 genotyping/src/org/labkey/genotyping/view/mhcQuery.jsp -text
 genotyping/src/org/labkey/genotyping/view/mySettings.jsp -text
 genotyping/src/org/labkey/genotyping/view/overview.jsp -text
-genotyping/src/org/labkey/genotyping/view/submit.jsp -text

@@ -18,44 +18,42 @@
 <%@ page import="org.labkey.api.query.CustomView" %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
+<%@ page import="org.labkey.genotyping.GenotypingController.AnalyzeBean" %>
+<%@ page import="org.labkey.genotyping.GenotypingController.AnalyzeAction" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
-    GenotypingController.SubmitAnalysisBean bean = (GenotypingController.SubmitAnalysisBean)getModelBean();
+    AnalyzeBean bean = (AnalyzeBean)getModelBean();
 %>
-<form <%=formAction(GenotypingController.ImportReadsAction.class, Method.Post)%>>
+<form <%=formAction(AnalyzeAction.class, Method.Post)%>>
     <table id="analysesTable">
         <%=formatMissedErrorsInTable("form", 2)%>
-        <tr><td colspan="2">Run Information</td></tr>
-        <tr><td>Associated Run:</td><td><select name="run"><%
-            for (Integer run : bean.getRuns())
-            { %><option><%=h(run)%></option>
-             <%
-            }
-        %></select></td></tr>
-        <tr><td>&nbsp;</td></tr>
-        <tr><td colspan="2"><%=generateButton("Add New MHC Analysis", "", "addNewAnalysis();return false;")%> <%=PageFlowUtil.generateButton("Delete Last MHC Analysis", "#", "return deleteLastAnalysis();", "id=\"delete\"")%></td></tr>
+        <tr><td colspan="2">
+            <%=generateButton("Add New MHC Analysis", "", "addNewAnalysis();return false;")%>
+            <%=PageFlowUtil.generateButton("Delete Last MHC Analysis", "#", "return deleteLastAnalysis();", "id=\"delete\"")%>
+        </td></tr>
         <tr><td>
-            <input type="hidden" name="readyToSubmit" value="1">
-            <input type="hidden" name="readsPath" value="<%=h(bean.getReadsPath())%>">
+            <input type="hidden" name="run" value="<%=h(bean.getRun())%>">
         </td></tr>
         <tr><td><%=generateSubmitButton("Submit")%></td></tr>
     </table>
 </form>
 <script type="text/javascript">
+    var offset = 0;
     var rowsPerAnalysis = 4;
     var analysisCount = 0;
 
     updateDeleteButton();
+    addNewAnalysis();
 
     function addNewAnalysis()
     {
         analysisCount++;
         var table = document.getElementById('analysesTable');
-        var currentRow = (analysisCount - 1) * rowsPerAnalysis + 3;
+        var currentRow = (analysisCount - 1) * rowsPerAnalysis + offset;
 
         var newRow = table.insertRow(currentRow++);
         var titleCell = newRow.insertCell(0);
-        titleCell.innerHTML = '<b>MHC Analysis #' + analysisCount + '</b>';
+        titleCell.innerHTML = '<strong>MHC Analysis #' + analysisCount + '<\/strong>';
 
         newRow = table.insertRow(currentRow++);
         newRow.insertCell(0).innerHTML = 'Reference Sequences:';
@@ -81,7 +79,7 @@
         if (analysisCount > 0)
         {
             var table = document.getElementById('analysesTable');
-            var currentRow = (analysisCount - 1) * rowsPerAnalysis + 3
+            var currentRow = (analysisCount - 1) * rowsPerAnalysis + offset;
 
             for (var i = 0; i < rowsPerAnalysis; i++)
                 table.deleteRow(currentRow);
