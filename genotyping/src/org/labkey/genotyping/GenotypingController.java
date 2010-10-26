@@ -604,6 +604,7 @@ public class GenotypingController extends SpringActionController
             return _analyze;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setAnalyze(boolean analyze)
         {
             _analyze = analyze;

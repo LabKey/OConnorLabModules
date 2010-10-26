@@ -57,7 +57,7 @@ public class GenotypingQuerySchema extends UserSchema
                 table.wrapAllColumns(true);
                 table.removeColumn(table.getColumn("Container"));
                 table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
-                setDefaultVisibleColumns(table, "RowId,MetaDataId,Created,CreatedBy");
+                setDefaultVisibleColumns(table, "RowId, MetaDataId, Created, CreatedBy");
 
                 String runsQuery = GenotypingManager.get().getSettings(c).getRunsQuery();
 
@@ -120,7 +120,7 @@ public class GenotypingQuerySchema extends UserSchema
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable().getFromSQL("r") + " WHERE r.RowId = " + GS.getReadsTable() + ".Run) = ?");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
-                setDefaultVisibleColumns(table, "Name,Mid,Sequence,Quality");
+                setDefaultVisibleColumns(table, "Name, Mid, Sequence, Quality");
 
                 ColumnInfo readId = table.getColumn("RowId");
                 readId.setFk(new LookupForeignKey("ReadId", "MatchId") {
@@ -149,7 +149,7 @@ public class GenotypingQuerySchema extends UserSchema
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getAnalysesTable() + ".Run) = ?");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
-                setDefaultVisibleColumns(table, "RowId,Run,Created,CreatedBy,Description,SequenceDictionary,SequencesView");
+                setDefaultVisibleColumns(table, "RowId, Run, Created, CreatedBy, Description, SequenceDictionary, SequencesView");
                 table.setDescription("Contains one row per genotyping analysis");
 
                 return table;
@@ -163,31 +163,28 @@ public class GenotypingQuerySchema extends UserSchema
                 SQLFragment containerCondition = new SQLFragment("Analysis IN (SELECT a.RowId FROM " + GS.getAnalysesTable().getFromSQL("a") + " INNER JOIN " + GS.getRunsTable().getFromSQL("r") + " ON a.Run = r.RowId WHERE Container = ?)");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
-                setDefaultVisibleColumns(table, "Analysis,SampleId,Reads,Percent,AverageLength,PosReads,NegReads,PosExtReads,NegExtReads,Alleles/AlleleName");
+                setDefaultVisibleColumns(table, "Analysis, SampleId, Reads, Percent, AverageLength, PosReads, NegReads, PosExtReads, NegExtReads, Alleles/AlleleName");
 
                 String samplesQuery = GenotypingManager.get().getSettings(c).getSamplesQuery();
 
-                if (false && null != samplesQuery)
+                if (null != samplesQuery)
                 {
-                    final QueryHelper qHelper = new QueryHelper(c, user, samplesQuery);
+                    QueryHelper qHelper = new QueryHelper(c, user, samplesQuery);
+                    final TableInfo samples = qHelper.getTableInfo();
 
-                    // TODO: Need to join on both SampleId and Library!
                     ColumnInfo sampleId = table.getColumn("SampleId");
-                    sampleId.setFk(new LookupForeignKey("library_sample_name", "library_sample_name") {
+                    sampleId.setFk(new LookupForeignKey("key", "library_sample_name") {
                         @Override
                         public TableInfo getLookupTableInfo()
                         {
-                            return qHelper.getTableInfo();
+                            return samples;
                         }
                     });
 
-                    //sampleId.setLabel();
                     // TODO: This is a total hack
-                    /*
-                    StringExpression url = qHelper.getTableInfo().getDetailsURL(Collections.singleton(new FieldKey(null, "library_sample_name")), c);
-                    url = DetailsURL.fromString(url.getSource().replace("library_sample_name", "SampleId"));
+                    StringExpression url = samples.getDetailsURL(Collections.singleton(new FieldKey(null, "key")), c);
+                    url = DetailsURL.fromString(url.getSource().replace("Key", "sampleId"));
                     sampleId.setURL(url);
-                    */
                 }
 
                 table.setDescription("Contains one row per genotyping match");
@@ -203,7 +200,7 @@ public class GenotypingQuerySchema extends UserSchema
         {
             List<FieldKey> fieldKeys = new LinkedList<FieldKey>();
 
-            for (String name : columnNames.split(","))
+            for (String name : columnNames.split(",\\s*"))
                 fieldKeys.add(FieldKey.fromString(name));
 
             table.setDefaultVisibleColumns(fieldKeys);

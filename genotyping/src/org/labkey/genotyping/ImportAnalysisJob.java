@@ -56,12 +56,14 @@ public class ImportAnalysisJob extends PipelineJob
 {
     private File _dir;
     private GenotypingAnalysis _analysis;
+    private GenotypingRun _run;
 
     public ImportAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File pipelineDir, GenotypingAnalysis analysis)
     {
         super("Import Analysis", info, root);
         _dir = pipelineDir;
         _analysis = analysis;
+        _run = GenotypingManager.get().getRun(getContainer(), _analysis.getRun());
         setLogFile(new File(_dir, FileUtil.makeFileNameWithTimestamp("import_analysis", "log")));
 
         if (!_dir.exists())
@@ -96,7 +98,8 @@ public class ImportAnalysisJob extends PipelineJob
             File sourceSamples = new File(_dir, GenotypingManager.SAMPLES_FILE_NAME);
             File sourceMatches = new File(_dir, GenotypingManager.MATCHES_FILE_NAME);
 
-            DbSchema schema = GenotypingSchema.get().getSchema();
+            GenotypingSchema gs = GenotypingSchema.get();
+            DbSchema schema = gs.getSchema();
 
             TempTableInfo samples = null;
             TempTableInfo matches = null;
@@ -113,13 +116,38 @@ public class ImportAnalysisJob extends PipelineJob
                     info("Loading matches temp table");
                     matches = createTempTable(sourceMatches, schema, null);
 
-                    QueryContext ctx = new QueryContext(schema, samples, matches, GenotypingSchema.get().getReadsTable(), _analysis.getRun());
+                    QueryContext ctx = new QueryContext(schema, samples, matches, gs.getReadsTable(), _analysis.getRun());
                     JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
                     String sql = jspQuery.render();
                     Map<String, Object> alleleJunctionMap = new HashMap<String, Object>(); // Map to reuse for each insertion to AllelesJunction
                     Map<String, Object> readJunctionMap = new HashMap<String, Object>();   // Map to reuse for each insertion to ReadsJunction
 
                     setStatus("IMPORTING RESULTS");
+
+                    info("Importing list of samples");
+                    Map<String, Integer> sampleKeys = new HashMap<String, Integer>();
+                    ResultSet samplesRs = null;
+
+                    try
+                    {
+                        samplesRs = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "library_sample_name, key");
+                        Map<String, Object> sampleMap = new HashMap<String, Object>();   // Map to reuse for each insertion to AnalysisSamples
+                        sampleMap.put("analysis", _analysis.getRowId());
+
+                        while (samplesRs.next())
+                        {
+                            String sampleName = samplesRs.getString("library_sample_name");
+                            int sampleId = samplesRs.getInt("key");
+                            sampleMap.put("sampleId", sampleId);
+                            Table.insert(getUser(), gs.getAnalysisSamplesTable(), sampleMap);
+                            sampleKeys.put(sampleName, sampleId);
+                        }
+                    }
+                    finally
+                    {
+                        ResultSetUtil.close(samplesRs);
+                    }
+
                     info("Executing query to join results");
                     rs = Table.executeQuery(schema, sql, null);
                     info("Importing results");
@@ -134,7 +162,7 @@ public class ImportAnalysisJob extends PipelineJob
                         {
                             Map<String, Object> row = new HashMap<String, Object>();
                             row.put("Analysis", _analysis.getRowId());
-                            row.put("SampleId", sampleId);
+                            row.put("SampleId", sampleKeys.get(sampleId));
                             row.put("Reads", rs.getInt("reads"));
                             row.put("Percent", rs.getFloat("percent"));
                             row.put("AverageLength", rs.getFloat("avg_length"));
@@ -143,7 +171,7 @@ public class ImportAnalysisJob extends PipelineJob
                             row.put("PosExtReads", rs.getInt("pos_ext_reads"));
                             row.put("NegExtReads", rs.getInt("neg_ext_reads"));
 
-                            Map<String, Object> matchOut = Table.insert(getUser(), GenotypingSchema.get().getMatchesTable(), row);
+                            Map<String, Object> matchOut = Table.insert(getUser(), gs.getMatchesTable(), row);
                             int matchId = (Integer)matchOut.get("RowId");
 
                             // Insert all the alleles in this group into AllelesJunction table
@@ -163,7 +191,7 @@ public class ImportAnalysisJob extends PipelineJob
                                                 _analysis.getSequenceDictionary() + ", view \"" + _analysis.getSequencesView() + "\"");
 
                                     alleleJunctionMap.put("SequenceId", sequenceId);
-                                    Table.insert(getUser(), GenotypingSchema.get().getAllelesJunctionTable(), alleleJunctionMap);
+                                    Table.insert(getUser(), gs.getAllelesJunctionTable(), alleleJunctionMap);
                                 }
                             }
 
@@ -178,7 +206,7 @@ public class ImportAnalysisJob extends PipelineJob
                                 for (String readId : readIds)
                                 {
                                     readJunctionMap.put("ReadId", Integer.parseInt(readId));
-                                    Table.insert(getUser(), GenotypingSchema.get().getReadsJunctionTable(), readJunctionMap);
+                                    Table.insert(getUser(), gs.getReadsJunctionTable(), readJunctionMap);
                                 }
                             }
                         }

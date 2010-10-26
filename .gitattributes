@@ -6,10 +6,12 @@ genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.00-0.01.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.00-0.03.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.01-0.02.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.02-0.03.sql -text
+genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.03-0.04.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.00-0.01.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.00-0.03.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.01-0.02.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.02-0.03.sql -text
+genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.03-0.04.sql -text
 genotyping/resources/schemas/genotyping.xml -text
 genotyping/src/org/labkey/genotyping/GenotypingAnalysesView.java -text
 genotyping/src/org/labkey/genotyping/GenotypingAnalysis.java -text
@@ -30,6 +32,7 @@ genotyping/src/org/labkey/genotyping/ImportReadsJob.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/MetaDataRun.java -text
 genotyping/src/org/labkey/genotyping/QueryHelper.java -text
+genotyping/src/org/labkey/genotyping/SampleManager.java -text
 genotyping/src/org/labkey/genotyping/Status.java -text
 genotyping/src/org/labkey/genotyping/SubmitAnalysisJob.java -text
 genotyping/src/org/labkey/genotyping/SubmitAnalysisPipelineProvider.java -text

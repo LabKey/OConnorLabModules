@@ -22,7 +22,6 @@ import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
-import org.labkey.api.query.FieldKey;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.PageFlowUtil;
@@ -40,7 +39,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -74,9 +72,10 @@ public class SubmitAnalysisJob extends PipelineJob
         _analysisDir = new File(_dir, "analysis_" + _analysis.getRowId());
 
         if (_analysisDir.exists())
-            throw new IllegalArgumentException("Analysis directory already exists: " + _analysisDir.getPath());
+            throw new IllegalStateException("Analysis directory already exists: " + _analysisDir.getPath());
 
-        _analysisDir.mkdir();
+        if (!_analysisDir.mkdir())
+            throw new IllegalStateException("Can't create analysis directory: " + _analysisDir.getPath());
 
         setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")));
         info("Creating analysis directory: " + _analysisDir.getName());
@@ -131,19 +130,8 @@ public class SubmitAnalysisJob extends PipelineJob
     {
         info("Writing sample file");
         setStatus("WRITING SAMPLES");
-        GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
-        QueryHelper qHelper = new QueryHelper(getContainer(), getUser(), settings.getSamplesQuery());
-        SimpleFilter extraFilter = new SimpleFilter("library_number", _run.getMetaDataRun(getUser()).getSampleLibrary());
 
-        FieldKey parent = new FieldKey(null, "library_sample_f_mid");
-
-        List<FieldKey> fieldKeys = Arrays.asList(
-                new FieldKey(null, "library_sample_name"),
-                new FieldKey(parent, "mid_name"),
-                new FieldKey(parent, "mid_sequence")
-            );
-
-        final ResultSet rs = qHelper.select(extraFilter, fieldKeys);
+        final ResultSet rs = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "library_sample_name, library_sample_f_mid/mid_name, library_sample_f_mid/mid_sequence");
         final List<Integer> mids = new LinkedList<Integer>();
 
         // Need a custom writer since TSVGridWriter doesn't work in background threads

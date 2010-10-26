@@ -32,7 +32,7 @@ import org.labkey.api.view.ActionURL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -132,13 +132,14 @@ public class QueryHelper
         return viewFilter;
     }
 
+    // TODO: maintain the order of columns
     public ResultSet select(SimpleFilter extraFilter, List<FieldKey> columns) throws SQLException
     {
         QueryService qs = QueryService.get();
         TableInfo ti = getTableInfo();
 
         Map<FieldKey, ColumnInfo> map = qs.getColumns(ti, columns);
-        Set<FieldKey> fieldKeys = new HashSet<FieldKey>();
+        Set<FieldKey> fieldKeys = new LinkedHashSet<FieldKey>();
 
         for (ColumnInfo col : map.values())
         {
