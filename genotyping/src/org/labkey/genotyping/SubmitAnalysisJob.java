@@ -15,6 +15,7 @@
  */
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TSVWriter;
@@ -39,9 +40,11 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * User: adam
@@ -50,10 +53,13 @@ import java.util.Properties;
  */
 public class SubmitAnalysisJob extends PipelineJob
 {
+    public final static Set<Integer> ALL_SAMPLES = new HashSet<Integer>(0);
+
     private final File _dir;
     private final GenotypingRun _run;
     private final GenotypingAnalysis _analysis;
     private final File _analysisDir;
+    private final Set<Integer> _sampleKeys;
 
     private URLHelper _galaxyURL = null;
     private File _completionFile = null;   // Used for dev mode only
@@ -62,12 +68,13 @@ public class SubmitAnalysisJob extends PipelineJob
     // skip trying to submit to Galaxy on subsequence attempts.
     private static Boolean _useGalaxy = null;
 
-    public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, GenotypingAnalysis analysis) throws SQLException
+    public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, GenotypingAnalysis analysis, @NotNull Set<Integer> sampleKeys) throws SQLException
     {
         super("Submit Analysis", info, root);      // No pipeline provider
         _dir = reads.getParentFile();
         _run = run;
         _analysis = analysis;
+        _sampleKeys = sampleKeys;
 
         _analysisDir = new File(_dir, "analysis_" + _analysis.getRowId());
 
@@ -131,7 +138,7 @@ public class SubmitAnalysisJob extends PipelineJob
         info("Writing sample file");
         setStatus("WRITING SAMPLES");
 
-        final ResultSet rs = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "library_sample_name, library_sample_f_mid/mid_name, library_sample_f_mid/mid_sequence");
+        final ResultSet rs = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "key, library_sample_name, library_sample_f_mid/mid_name, library_sample_f_mid/mid_sequence");
         final List<Integer> mids = new LinkedList<Integer>();
 
         // Need a custom writer since TSVGridWriter doesn't work in background threads
@@ -145,9 +152,14 @@ public class SubmitAnalysisJob extends PipelineJob
                 {
                     while (rs.next())
                     {
-                        int mid = rs.getInt("library_sample_f_mid_mid_name");
-                        _pw.println(rs.getString("library_sample_f_mid_mid_sequence") + "\t" + mid + "\t" + rs.getString("library_sample_name"));
-                        mids.add(mid);
+                        int key = rs.getInt("key");
+
+                        if (_sampleKeys == ALL_SAMPLES || _sampleKeys.contains(key))
+                        {
+                            int mid = rs.getInt("library_sample_f_mid_mid_name");
+                            _pw.println(rs.getString("library_sample_f_mid_mid_sequence") + "\t" + mid + "\t" + rs.getString("library_sample_name"));
+                            mids.add(mid);
+                        }
                     }
                 }
                 catch (SQLException e)

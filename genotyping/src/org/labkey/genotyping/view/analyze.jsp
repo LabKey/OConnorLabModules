@@ -68,7 +68,7 @@ var seqViews = new Ext.data.SimpleStore({
     data:views
 });
 
-var sequencesViewCombo = new Ext.form.ComboBox({fieldLabel:'Reference Sequences', mode:'local', store:seqViews, valueField:'name', displayField:'name', hiddenName:'sequenceView', editable:false, triggerAction:'all'});
+var sequencesViewCombo = new Ext.form.ComboBox({fieldLabel:'Reference Sequences', mode:'local', store:seqViews, valueField:'name', displayField:'name', allowBlank:false, hiddenName:'sequencesView', editable:false, triggerAction:'all'});
 var selectedSamples = new Ext.form.TextField({name:'samples', hidden:true});
 var description = new Ext.form.TextArea({name:'description', fieldLabel:'Description', width:600, height:200, resizable:true, autoCreate:{tag:"textarea", style:"font-family:'Courier'", autocomplete:"off", wrap:"off"}});
 //var run = new Ext.form.TextField({name:'run', hidden:true, value:<%=bean.getRun()%>});
@@ -104,8 +104,8 @@ var f = new LABKEY.ext.FormPanel({
         sequencesViewCombo,
         samplesGrid,
         description,
-        selectedSamples,
-//        run
+        selectedSamples
+//        run  -- run & returnURL are posted as part of the URL
     ],
     buttons:[{text:'Submit', type:'submit', handler:submit}, {text:'Cancel', handler:function() {document.location = <%=q(bean.getReturnURL().toString())%>;}}],
     buttonAlign:'left'

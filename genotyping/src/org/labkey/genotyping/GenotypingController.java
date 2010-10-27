@@ -98,6 +98,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -700,6 +701,7 @@ public class GenotypingController extends SpringActionController
         private int _run;
         private String _sequencesView;
         private String _description;
+        private String _samples;
 
         public int getRun()
         {
@@ -732,6 +734,17 @@ public class GenotypingController extends SpringActionController
         public void setDescription(String description)
         {
             _description = description;
+        }
+
+        public String getSamples()
+        {
+            return _samples;
+        }
+
+        @SuppressWarnings({"UnusedDeclaration"})
+        public void setSamples(String samples)
+        {
+            _samples = samples;
         }
     }
 
@@ -804,8 +817,24 @@ public class GenotypingController extends SpringActionController
             String sequencesViewName = form.getSequencesView();
             String description = form.getDescription();
             String sequencesView = DEFAULT_VIEW_PLACEHOLDER.equals(sequencesViewName) ? null : sequencesViewName;
+            String samples = form.getSamples();
+            Set<Integer> sampleKeys;
+
+            if (samples.equals("*"))
+            {
+                sampleKeys = SubmitAnalysisJob.ALL_SAMPLES;
+            }
+            else
+            {
+                String[] keys = samples.split(",");
+                sampleKeys = new HashSet<Integer>(keys.length);
+
+                for (String key : keys)
+                    sampleKeys.add(Integer.parseInt(key));
+            }
+
             GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, null == description ? null : description, sequencesView);
-            PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsPath, run, analysis);
+            PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsPath, run, analysis, sampleKeys);
             PipelineService.get().queueJob(analysisJob);
 
             return true;
