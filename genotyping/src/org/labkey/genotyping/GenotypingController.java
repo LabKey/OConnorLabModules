@@ -29,11 +29,8 @@ import org.labkey.api.action.SpringActionController;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.ButtonBar;
-import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
-import org.labkey.api.data.DbSchema;
-import org.labkey.api.data.LookupColumn;
 import org.labkey.api.data.PanelButton;
 import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.ShowRows;
@@ -67,7 +64,6 @@ import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
 import org.labkey.api.view.DetailsView;
-import org.labkey.api.view.GridView;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
@@ -103,8 +99,10 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class GenotypingController extends SpringActionController
@@ -186,10 +184,6 @@ public class GenotypingController extends SpringActionController
             QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
             removeDefaultVisibleColumns(qv.getTable(), "Analysis");
             qv.setShadeAlternatingRows(true);
-            List<ColumnInfo> cols = qv.getTable().getColumns();
-
-            // TODO: Add alleles!
-//        allele.setURL(new DetailsURL(getAnalysisURL(), "id", FieldKey.fromParts("Alleles", "RowId")));
 
             return qv;
         }
@@ -202,6 +196,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
+/*
     @RequiresPermissionClass(ReadPermission.class)
     public class ViewTestAction extends SimpleViewAction<Object>
     {
@@ -243,7 +238,7 @@ public class GenotypingController extends SpringActionController
             return null;  //To change body of implemented methods use File | Settings | File Templates.
         }
     }
-
+*/
 
     @RequiresPermissionClass(AdminPermission.class)
     public class LoadSequencesAction extends SimpleRedirectAction<ReturnUrlForm>
@@ -685,10 +680,11 @@ public class GenotypingController extends SpringActionController
         @Override
         public URLHelper getSuccessURL(ImportReadsForm form)
         {
+            ActionURL pipelineURL = PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
             if (form.getAnalyze())
-                return getAnalyzeURL(form.getRun());
+                return getAnalyzeURL(form.getRun(), pipelineURL);
             else
-                return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
+                return pipelineURL;
         }
 
         @Override
@@ -699,11 +695,11 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static class AnalyzeForm
+    public static class AnalyzeForm extends ReturnUrlForm
     {
         private int _run;
-        private String[] _sequencesViews;
-        private String[] _descriptions;
+        private String _sequencesView;
+        private String _description;
 
         public int getRun()
         {
@@ -716,34 +712,35 @@ public class GenotypingController extends SpringActionController
             _run = run;
         }
 
-        public String[] getSequencesViews()
+        public String getSequencesView()
         {
-            return _sequencesViews;
+            return _sequencesView;
         }
 
         @SuppressWarnings({"UnusedDeclaration"})
-        public void setSequencesViews(String[] sequencesViews)
+        public void setSequencesView(String sequencesView)
         {
-            _sequencesViews = sequencesViews;
+            _sequencesView = sequencesView;
         }
 
-        public String[] getDescriptions()
+        public String getDescription()
         {
-            return _descriptions;
+            return _description;
         }
 
         @SuppressWarnings({"UnusedDeclaration"})
-        public void setDescriptions(String[] descriptions)
+        public void setDescription(String description)
         {
-            _descriptions = descriptions;
+            _description = description;
         }
     }
 
 
-    private ActionURL getAnalyzeURL(int runId)
+    private ActionURL getAnalyzeURL(int runId, ActionURL cancelURL)
     {
         ActionURL url = new ActionURL(AnalyzeAction.class, getContainer());
         url.addParameter("run", runId);
+        url.addReturnURL(cancelURL);
         return url;
     }
 
@@ -759,6 +756,8 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(AnalyzeForm form, boolean reshow, BindException errors) throws Exception
         {
+            GenotypingRun run = GenotypingManager.get().getRun(getContainer(), form.getRun());
+
             Set<CustomView> views = new TreeSet<CustomView>(new Comparator<CustomView>() {
                     @Override
                     public int compare(CustomView c1, CustomView c2)
@@ -772,7 +771,26 @@ public class GenotypingController extends SpringActionController
             GenotypingSchema gs = GenotypingSchema.get();
             views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), gs.getSchemaName(), gs.getSequencesTable().getName()));
 
-            return new JspView<AnalyzeBean>("/org/labkey/genotyping/view/analyze.jsp", new AnalyzeBean(form.getRun(), views), errors);
+            Map<Integer, String> sampleMap = new TreeMap<Integer, String>();
+            ResultSet rs = null;
+
+            try
+            {
+                rs = SampleManager.get().selectSamples(getContainer(), getUser(), run, "library_sample_name, key");
+
+                while (rs.next())
+                {
+                    String sampleName = rs.getString("library_sample_name");
+                    int sampleId = rs.getInt("key");
+                    sampleMap.put(sampleId, sampleName);
+                }
+            }
+            finally
+            {
+                ResultSetUtil.close(rs);
+            }
+
+            return new JspView<AnalyzeBean>("/org/labkey/genotyping/view/analyze.jsp", new AnalyzeBean(form.getRun(), views, sampleMap, form.getReturnActionURL()), errors);
         }
 
         @Override
@@ -783,16 +801,12 @@ public class GenotypingController extends SpringActionController
             ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
             PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
 
-            String[] sequencesViews = form.getSequencesViews();
-            String[] descriptions = form.getDescriptions();
-
-            for (int i = 0; null != sequencesViews && i < sequencesViews.length; i++)
-            {
-                String sequencesView = DEFAULT_VIEW_PLACEHOLDER.equals(sequencesViews[i]) ? null : sequencesViews[i];
-                GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, null == descriptions ? null : descriptions[i], sequencesView);
-                PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsPath, run, analysis);
-                PipelineService.get().queueJob(analysisJob);
-            }
+            String sequencesViewName = form.getSequencesView();
+            String description = form.getDescription();
+            String sequencesView = DEFAULT_VIEW_PLACEHOLDER.equals(sequencesViewName) ? null : sequencesViewName;
+            GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, null == description ? null : description, sequencesView);
+            PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsPath, run, analysis);
+            PipelineService.get().queueJob(analysisJob);
 
             return true;
         }
@@ -806,20 +820,24 @@ public class GenotypingController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            return root.addChild("Submit Analyses");
+            return root.addChild("Submit Analysis");
         }
     }
 
 
     public static class AnalyzeBean
     {
-        private int _run;
-        private Collection<CustomView> _sequencesViews;
+        private final int _run;
+        private final Collection<CustomView> _sequencesViews;
+        private final Map<Integer, String> _sampleMap;
+        private final ActionURL _returnURL;
 
-        private AnalyzeBean(int run, Collection<CustomView> sequenceViews)
+        private AnalyzeBean(int run, Collection<CustomView> sequenceViews, Map<Integer, String> sampleMap, ActionURL returnURL)
         {
             _run = run;
             _sequencesViews = sequenceViews;
+            _sampleMap = sampleMap;
+            _returnURL = returnURL;
         }
 
         public int getRun()
@@ -830,6 +848,16 @@ public class GenotypingController extends SpringActionController
         public Collection<CustomView> getSequencesViews()
         {
             return _sequencesViews;
+        }
+
+        public Map<Integer, String> getSampleMap()
+        {
+            return _sampleMap;
+        }
+
+        public ActionURL getReturnURL()
+        {
+            return _returnURL;
         }
     }
 
@@ -1374,7 +1402,7 @@ public class GenotypingController extends SpringActionController
                 return null;
 
             VBox vbox = new VBox();
-            final ActionButton submitAnalysis = new ActionButton("Submit Analysis", getAnalyzeURL(_run.getRowId()));
+            final ActionButton submitAnalysis = new ActionButton("Add Analysis", getAnalyzeURL(_run.getRowId(), getViewContext().getActionURL()));
 
             if (GenotypingManager.get().hasAnalyses(_run))
             {

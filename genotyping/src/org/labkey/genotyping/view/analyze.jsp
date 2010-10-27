@@ -16,89 +16,154 @@
  */
 %>
 <%@ page import="org.labkey.api.query.CustomView" %>
-<%@ page import="org.labkey.api.util.PageFlowUtil" %>
-<%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.genotyping.GenotypingController.AnalyzeBean" %>
-<%@ page import="org.labkey.genotyping.GenotypingController.AnalyzeAction" %>
+<%@ page import="java.util.Map" %>
+<%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     AnalyzeBean bean = (AnalyzeBean)getModelBean();
 %>
-<form <%=formAction(AnalyzeAction.class, Method.Post)%>>
-    <table id="analysesTable">
-        <%=formatMissedErrorsInTable("form", 2)%>
-        <tr><td colspan="2">
-            <%=generateButton("Add New MHC Analysis", "", "addNewAnalysis();return false;")%>
-            <%=PageFlowUtil.generateButton("Delete Last MHC Analysis", "#", "return deleteLastAnalysis();", "id=\"delete\"")%>
-        </td></tr>
-        <tr><td>
-            <input type="hidden" name="run" value="<%=h(bean.getRun())%>">
-        </td></tr>
-        <tr><td><%=generateSubmitButton("Submit")%></td></tr>
-    </table>
-</form>
+<labkey:errors/>
+<div id="form"></div>
+
 <script type="text/javascript">
-    var offset = 0;
-    var rowsPerAnalysis = 4;
-    var analysisCount = 0;
+    var samples = [
+<%
+    String sep = "";
 
-    updateDeleteButton();
-    addNewAnalysis();
-
-    function addNewAnalysis()
+    for (Map.Entry<Integer, String> e : bean.getSampleMap().entrySet())
     {
-        analysisCount++;
-        var table = document.getElementById('analysesTable');
-        var currentRow = (analysisCount - 1) * rowsPerAnalysis + offset;
+        out.print(sep);
+        out.print("        [");
+        out.print("'" + e.getKey() + "', ");
+        out.print("'" + e.getValue() + "'");
+        out.print("]");
 
-        var newRow = table.insertRow(currentRow++);
-        var titleCell = newRow.insertCell(0);
-        titleCell.innerHTML = '<strong>MHC Analysis #' + analysisCount + '<\/strong>';
+        sep = ",\n";
+    }
+%>
+    ];
 
-        newRow = table.insertRow(currentRow++);
-        newRow.insertCell(0).innerHTML = 'Reference Sequences:';
-        newRow.insertCell(1).innerHTML = '<select name="sequencesViews"><%
-            for (CustomView view : bean.getSequencesViews())
-            {
-                String name = view.getName();
-            %><option><%=h(null == name ? GenotypingController.DEFAULT_VIEW_PLACEHOLDER : name)%><\/option><%
-            }
-        %><\/select>';
+var sampleStore = new Ext.data.SimpleStore({
+    fields:['key', 'name'],
+    data:samples
+});
 
-        newRow = table.insertRow(currentRow++);
-        newRow.insertCell(0).innerHTML = 'Description:';
-        newRow.insertCell(1).innerHTML = '<textarea cols="40" rows="5" name="descriptions"/>';
+var views = [
+<%
+    sep = "";
 
-        table.insertRow(currentRow++).insertCell(0).innerHTML = '&nbsp;';
+    for (CustomView view : bean.getSequencesViews())
+    {
+        out.print(sep);
+        out.print("        ['" + view.getName() + "']");
 
-        updateDeleteButton();
+        sep = ",\n";
+    }
+%>
+    ];
+
+var seqViews = new Ext.data.SimpleStore({
+    fields:['name'],
+    data:views
+});
+
+var sequencesViewCombo = new Ext.form.ComboBox({fieldLabel:'Reference Sequences', mode:'local', store:seqViews, valueField:'name', displayField:'name', hiddenName:'sequenceView', editable:false, triggerAction:'all'});
+var selectedSamples = new Ext.form.TextField({name:'samples', hidden:true});
+var description = new Ext.form.TextArea({name:'description', fieldLabel:'Description', width:600, height:200, resizable:true, autoCreate:{tag:"textarea", style:"font-family:'Courier'", autocomplete:"off", wrap:"off"}});
+//var run = new Ext.form.TextField({name:'run', hidden:true, value:<%=bean.getRun()%>});
+
+var selModel = new Ext.grid.CheckboxSelectionModel();
+selModel.addListener('rowselect', updateGridTitle);
+selModel.addListener('rowdeselect', updateGridTitle);
+
+// create the table grid
+var samplesGrid = new Ext.grid.GridPanel({
+    fieldLabel:'Samples',
+    title:'&nbsp;',
+    store: sampleStore,
+    columns: [
+        selModel,
+        {id:'name', width: 160, sortable: false, dataIndex: 'name'}
+    ],
+    stripeRows: true,
+    collapsed: true,
+    collapsible: true,
+    autoExpandColumn: 'name',
+    autoHeight: true,
+    width: 600,
+    selModel: selModel
+});
+
+var f = new LABKEY.ext.FormPanel({
+    width:955,
+    labelWidth:150,
+    border:false,
+    standardSubmit:true,
+    items:[
+        sequencesViewCombo,
+        samplesGrid,
+        description,
+        selectedSamples,
+//        run
+    ],
+    buttons:[{text:'Submit', type:'submit', handler:submit}, {text:'Cancel', handler:function() {document.location = <%=q(bean.getReturnURL().toString())%>;}}],
+    buttonAlign:'left'
+});
+
+Ext.onReady(function()
+{
+    f.render('form');
+    samplesGrid.on('expand', updateGridTitle);
+    samplesGrid.on('collapse', updateGridTitle);
+    samplesGrid.selModel.selectAll();
+    updateGridTitle();
+});
+
+function submit()
+{
+    if (samplesGrid.selModel.getCount() == sampleStore.getCount())
+    {
+        selectedSamples.setValue('*');
+    }
+    else
+    {
+        var value = '';
+        var sep = '';
+        samplesGrid.selModel.each(function(record) {
+                value = value + sep + record.get('key');
+                sep = ',';
+            });
+        selectedSamples.setValue(value);
     }
 
-    function deleteLastAnalysis()
+    f.getForm().submit();
+}
+
+function updateGridTitle()
+{
+    var title;
+    var selectedCount = samplesGrid.selModel.getCount();
+
+    if (selectedCount == sampleStore.getCount())
     {
-        if (analysisCount > 0)
-        {
-            var table = document.getElementById('analysesTable');
-            var currentRow = (analysisCount - 1) * rowsPerAnalysis + offset;
-
-            for (var i = 0; i < rowsPerAnalysis; i++)
-                table.deleteRow(currentRow);
-
-            analysisCount--;
-            updateDeleteButton();
-        }
-
-        return false;
+        title = "All (" + selectedCount + ") samples";
     }
-
-    // Just gray the button; deleteLastAnalysis() will check analysisCount > 0 before deleting.
-    function updateDeleteButton()
+    else
     {
-        var btn = document.getElementById('delete');
-
-        if (analysisCount > 0)
-            btn.className = "labkey-button";
+        if (0 == selectedCount)
+            title = "No samples";
+        else if (1 == selectedCount)
+            title = "1 sample";
         else
-            btn.className = "labkey-disabled-button";
+            title = selectedCount + " samples";
     }
+
+    title += " will be analyzed";
+
+    if (samplesGrid.collapsed)
+        title += "; click + to change the samples to submit";
+
+    samplesGrid.setTitle(title);
+}
 </script>

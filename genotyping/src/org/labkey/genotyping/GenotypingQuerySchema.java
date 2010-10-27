@@ -75,7 +75,8 @@ public class GenotypingQuerySchema extends UserSchema
                     });
 
                     metaData.setLabel(qHelper.getQueryName());
-                    // TODO: This is a total hack
+
+                    // TODO: Better way to do this?
                     StringExpression url = qHelper.getTableInfo().getDetailsURL(Collections.singleton(new FieldKey(null, "run_num")), c);
                     url = DetailsURL.fromString(url.getSource().replace("run_num", "MetaDataId"));
                     metaData.setURL(url);
@@ -181,7 +182,7 @@ public class GenotypingQuerySchema extends UserSchema
                         }
                     });
 
-                    // TODO: This is a total hack
+                    // TODO: Better way to do this?
                     StringExpression url = samples.getDetailsURL(Collections.singleton(new FieldKey(null, "key")), c);
                     url = DetailsURL.fromString(url.getSource().replace("Key", "sampleId"));
                     sampleId.setURL(url);
