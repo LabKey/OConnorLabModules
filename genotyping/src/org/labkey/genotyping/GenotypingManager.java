@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.AtomicDatabaseInteger;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
+import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.security.User;
@@ -140,7 +141,10 @@ public class GenotypingManager
             GenotypingRun run = getRun(c, analysis.getRun());
 
             if (null != run)
+            {
+                analysis.setContainer(c);
                 return analysis;
+            }
         }
 
         throw new NotFoundException("Analysis " + analysisId + " not found in folder " + c.getPath());
@@ -160,12 +164,27 @@ public class GenotypingManager
 
 
     // Deletes all the reads, analyses, and matches associated with a run, including rows in all junction tables.
-    public void clearRun(GenotypingRun run) throws SQLException
+    public void deleteRun(GenotypingRun run) throws SQLException
     {
         GenotypingSchema gs = GenotypingSchema.get();
-        Object[] params = new Object[]{run.getRowId(), run.getContainer()};
-        String runWhere = " WHERE Run = ? AND Run IN (SELECT RowId FROM " + gs.getRunsTable() + " WHERE Container = ?)";
-        String analysisFrom = " FROM " + gs.getAnalysesTable() + runWhere;
+        deleteAnalyses(" WHERE Run = ? AND Run IN (SELECT RowId FROM " + gs.getRunsTable() + " WHERE Container = ?)", run.getRowId(), run.getContainer());
+
+        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsTable() + " WHERE Run = ?", new Object[]{run.getRowId()});
+        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getRunsTable() + " WHERE RowId = ?", new Object[]{run.getRowId()});
+    }
+
+
+    public void deleteAnalysis(GenotypingAnalysis analysis) throws SQLException
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+        deleteAnalyses(" WHERE RowId = ? AND Run IN (SELECT RowId FROM " + gs.getRunsTable() + " WHERE Container = ?)", analysis.getRowId(), analysis.getContainer());
+    }
+
+
+    private void deleteAnalyses(CharSequence analysisFilter, Object... params) throws SQLException
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+        String analysisFrom = " FROM " + gs.getAnalysesTable() + analysisFilter;
         String analysisWhere = " WHERE Analysis IN (SELECT RowId" + analysisFrom + ")";
         String matchesWhere = " WHERE MatchId IN (SELECT RowId FROM " + gs.getMatchesTable() + analysisWhere + ")";
 
@@ -173,11 +192,9 @@ public class GenotypingManager
         Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsJunctionTable() + matchesWhere, params);
         Table.execute(gs.getSchema(), "DELETE FROM " + gs.getMatchesTable() + analysisWhere, params);
         Table.execute(gs.getSchema(), "DELETE FROM " + gs.getAnalysisSamplesTable() + analysisWhere, params);
-        Table.execute(gs.getSchema(), "DELETE" + analysisFrom, params);
-        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsTable() + " WHERE Run = ?", new Object[]{run.getRowId()});
-
-        // Delete genotyping.Run record?
+        Table.execute(gs.getSchema(), "DELETE " + analysisFrom, params);
     }
+
 
     public void writeProperties(Properties props, File directory) throws IOException
     {
@@ -206,10 +223,39 @@ public class GenotypingManager
         return props;
     }
 
-    public boolean hasAnalyses(GenotypingRun run) throws SQLException
+
+    // Return number of runs in the specified container
+    public int getRunCount(Container c) throws SQLException
     {
         GenotypingSchema gs = GenotypingSchema.get();
-        TableInfo table = gs.getAnalysesTable();
-        return Table.executeSingleton(table.getSchema(), "SELECT EXISTS (SELECT 1 FROM " + table + " WHERE Run = ?)", new Object[]{run.getRowId()}, Boolean.class);
+        TableInfo runs = gs.getRunsTable();
+
+        SQLFragment sql = new SQLFragment("SELECT CAST(COUNT(*) AS INT) FROM " + runs + " WHERE Container = ?", c);
+        return Table.executeSingleton(runs.getSchema(), sql.getSQL(), sql.getParamsArray(), Integer.class);
+    }
+
+
+    public boolean hasAnalyses(GenotypingRun run) throws SQLException
+    {
+        return getAnalysisCount(run.getContainer(), run) > 0;
+    }
+
+
+    // Return number of analysis... associated with the specified run (run != null) or in the folder (run == null)
+    public int getAnalysisCount(Container c, @Nullable GenotypingRun run) throws SQLException
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+        TableInfo analyses = gs.getAnalysesTable();
+        TableInfo runs = gs.getRunsTable();
+
+        SQLFragment sql = new SQLFragment("SELECT CAST(COUNT(*) AS INT) FROM " + analyses + " WHERE Run IN (SELECT RowId FROM " + runs + " WHERE Container = ?)", c);
+
+        if (null != run)
+        {
+            sql.append(" AND Run = ?");
+            sql.add(run.getRowId());
+        }
+
+        return Table.executeSingleton(analyses.getSchema(), sql.getSQL(), sql.getParamsArray(), Integer.class);
     }
 }

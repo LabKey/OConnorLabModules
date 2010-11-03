@@ -16,6 +16,7 @@
 package org.labkey.genotyping;
 
 import org.jetbrains.annotations.NotNull;
+import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TSVWriter;
@@ -23,6 +24,8 @@ import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
+import org.labkey.api.query.FieldKey;
+import org.labkey.api.reports.Report;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.PageFlowUtil;
@@ -43,6 +46,7 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -138,7 +142,7 @@ public class SubmitAnalysisJob extends PipelineJob
         info("Writing sample file");
         setStatus("WRITING SAMPLES");
 
-        final ResultSet rs = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "key, library_sample_name, library_sample_f_mid/mid_name, library_sample_f_mid/mid_sequence");
+        final Report.Results results = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "key, library_sample_name, library_sample_f_mid/mid_name, library_sample_f_mid/mid_sequence");
         final List<Integer> mids = new LinkedList<Integer>();
 
         // Need a custom writer since TSVGridWriter doesn't work in background threads
@@ -146,18 +150,23 @@ public class SubmitAnalysisJob extends PipelineJob
             @Override
             protected void write()
             {
+                ResultSet rs = results.getResultSet();
+                Map<FieldKey, ColumnInfo> fieldMap = results.getFieldMap();
+                
                 _pw.println("mid_sequence\tmid_num\tsample");
 
                 try
                 {
-                    while (rs.next())
+                    while (null != rs && rs.next())
                     {
-                        int key = rs.getInt("key");
+                        int key = (Integer)fieldMap.get(FieldKey.fromString("key")).getValue(rs);
 
                         if (_sampleKeys == ALL_SAMPLES || _sampleKeys.contains(key))
                         {
-                            int mid = rs.getInt("library_sample_f_mid_mid_name");
-                            _pw.println(rs.getString("library_sample_f_mid_mid_sequence") + "\t" + mid + "\t" + rs.getString("library_sample_name"));
+                            int mid = (Integer)fieldMap.get(FieldKey.fromString("library_sample_f_mid/mid_name")).getValue(rs);
+                            String sequence = (String)fieldMap.get(FieldKey.fromString("library_sample_f_mid/mid_sequence")).getValue(rs);
+                            String sampleName = (String)fieldMap.get(FieldKey.fromString("library_sample_name")).getValue(rs);
+                            _pw.println(sequence + "\t" + mid + "\t" + sampleName);
                             mids.add(mid);
                         }
                     }

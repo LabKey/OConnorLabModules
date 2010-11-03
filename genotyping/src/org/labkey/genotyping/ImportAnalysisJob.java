@@ -16,6 +16,7 @@
 package org.labkey.genotyping;
 
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TempTableInfo;
@@ -23,8 +24,10 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TempTableWriter;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.reader.ColumnDescriptor;
 import org.labkey.api.reader.TabLoader;
+import org.labkey.api.reports.Report;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.PageFlowUtil;
@@ -125,27 +128,43 @@ public class ImportAnalysisJob extends PipelineJob
                     setStatus("IMPORTING RESULTS");
 
                     info("Importing list of samples");
+
+                    // We want to store sample RowIds with each match and in the AnalysisSamples table, but samples.txt
+                    // does not include RowIds.  So, we "join" the samples temp table (names of all samples used) with
+                    // the list of all samples in this library to provide the name -> rowId mapping.
                     Map<String, Integer> sampleKeys = new HashMap<String, Integer>();
-                    ResultSet samplesRs = null;
+                    ResultSet allSamples = null;
 
                     try
                     {
-                        samplesRs = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "library_sample_name, key");
+                        // Select sample names from the samples temp table -- these are the samples that were selected when submitting the analysis
+                        String[] analysisSampleNames = Table.executeArray(samples, "sample", null, null, String.class);
+                        Set<String> analysisSamples = PageFlowUtil.set(analysisSampleNames);
+
+                        // Select name and rowId of all samples from this library -- we'll only use the selected ones
+                        Report.Results results = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "library_sample_name, key");
+                        allSamples = results.getResultSet();
+                        Map<FieldKey, ColumnInfo> fieldMap = results.getFieldMap();
+
                         Map<String, Object> sampleMap = new HashMap<String, Object>();   // Map to reuse for each insertion to AnalysisSamples
                         sampleMap.put("analysis", _analysis.getRowId());
 
-                        while (samplesRs.next())
+                        while (allSamples.next())
                         {
-                            String sampleName = samplesRs.getString("library_sample_name");
-                            int sampleId = samplesRs.getInt("key");
-                            sampleMap.put("sampleId", sampleId);
-                            Table.insert(getUser(), gs.getAnalysisSamplesTable(), sampleMap);
-                            sampleKeys.put(sampleName, sampleId);
+                            String sampleName = (String)fieldMap.get(FieldKey.fromString("library_sample_name")).getValue(allSamples);
+
+                            if (analysisSamples.contains(sampleName))
+                            {
+                                int sampleId = (Integer)fieldMap.get(FieldKey.fromString("key")).getValue(allSamples);
+                                sampleMap.put("sampleId", sampleId);
+                                Table.insert(getUser(), gs.getAnalysisSamplesTable(), sampleMap);
+                                sampleKeys.put(sampleName, sampleId);
+                            }
                         }
                     }
                     finally
                     {
-                        ResultSetUtil.close(samplesRs);
+                        ResultSetUtil.close(allSamples);
                     }
 
                     info("Executing query to join results");

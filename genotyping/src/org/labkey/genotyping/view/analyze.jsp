@@ -16,13 +16,21 @@
  */
 %>
 <%@ page import="org.labkey.api.query.CustomView" %>
+<%@ page import="org.labkey.api.util.Pair" %>
+<%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.genotyping.GenotypingController.AnalyzeBean" %>
+<%@ page import="java.io.IOException" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="java.util.SortedSet" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     AnalyzeBean bean = (AnalyzeBean)getModelBean();
-%>
+
+// ext-all.css hard-codes a white background, we want transparent instead  %>
+<style type="text/css">
+    .x-panel-body{background-color: transparent;}
+</style>
 <labkey:errors/>
 <div id="form"></div>
 
@@ -31,12 +39,13 @@
 <%
     String sep = "";
 
-    for (Map.Entry<Integer, String> e : bean.getSampleMap().entrySet())
+    for (Map.Entry<Integer, Pair<String, String>> e : bean.getSampleMap().entrySet())
     {
         out.print(sep);
         out.print("        [");
         out.print("'" + e.getKey() + "', ");
-        out.print("'" + e.getValue() + "'");
+        out.print(q(e.getValue().getKey()) + ", ");
+        out.print(q(e.getValue().getValue()));
         out.print("]");
 
         sep = ",\n";
@@ -45,7 +54,7 @@
     ];
 
 var sampleStore = new Ext.data.SimpleStore({
-    fields:['key', 'name'],
+    fields:['key', 'name', 'species'],
     data:samples
 });
 
@@ -53,12 +62,22 @@ var views = [
 <%
     sep = "";
 
+    SortedSet<CustomView> views = bean.getSequencesViews();
+
+    // Add [default] view even if it hasn't been customized, #11110
+    if (views.isEmpty() || null != views.first().getName())
+        sep = addViewName(out, null, sep);
+
+    // Add all the defined custom views
     for (CustomView view : bean.getSequencesViews())
+        sep = addViewName(out, view.getName(), sep);
+%><%!
+    private String addViewName(JspWriter out, String viewName, String sep) throws IOException
     {
         out.print(sep);
-        out.print("        ['" + view.getName() + "']");
-
-        sep = ",\n";
+        viewName = (null == viewName ? GenotypingController.DEFAULT_VIEW_PLACEHOLDER : viewName);
+        out.print("        [" + q(viewName) + "]");
+        return ",\n";
     }
 %>
     ];
@@ -71,11 +90,8 @@ var seqViews = new Ext.data.SimpleStore({
 var sequencesViewCombo = new Ext.form.ComboBox({fieldLabel:'Reference Sequences', mode:'local', store:seqViews, valueField:'name', displayField:'name', allowBlank:false, hiddenName:'sequencesView', editable:false, triggerAction:'all'});
 var selectedSamples = new Ext.form.TextField({name:'samples', hidden:true});
 var description = new Ext.form.TextArea({name:'description', fieldLabel:'Description', width:600, height:200, resizable:true, autoCreate:{tag:"textarea", style:"font-family:'Courier'", autocomplete:"off", wrap:"off"}});
-//var run = new Ext.form.TextField({name:'run', hidden:true, value:<%=bean.getRun()%>});
 
 var selModel = new Ext.grid.CheckboxSelectionModel();
-selModel.addListener('rowselect', updateGridTitle);
-selModel.addListener('rowdeselect', updateGridTitle);
 
 // create the table grid
 var samplesGrid = new Ext.grid.GridPanel({
@@ -84,7 +100,8 @@ var samplesGrid = new Ext.grid.GridPanel({
     store: sampleStore,
     columns: [
         selModel,
-        {id:'name', width: 160, sortable: false, dataIndex: 'name'}
+        {id:'name', width: 160, sortable: false, dataIndex: 'name'},
+        {id:'species', width: 160, sortable: false, dataIndex: 'species'}
     ],
     stripeRows: true,
     collapsed: true,
@@ -105,7 +122,6 @@ var f = new LABKEY.ext.FormPanel({
         samplesGrid,
         description,
         selectedSamples
-//        run  -- run & returnURL are posted as part of the URL
     ],
     buttons:[{text:'Submit', type:'submit', handler:submit}, {text:'Cancel', handler:function() {document.location = <%=q(bean.getReturnURL().toString())%>;}}],
     buttonAlign:'left'
@@ -113,12 +129,19 @@ var f = new LABKEY.ext.FormPanel({
 
 Ext.onReady(function()
 {
+    samplesGrid.on('viewready', initializeSelection);
     f.render('form');
-    samplesGrid.on('expand', updateGridTitle);
-    samplesGrid.on('collapse', updateGridTitle);
+});
+
+function initializeSelection()
+{
     samplesGrid.selModel.selectAll();
     updateGridTitle();
-});
+    samplesGrid.on('expand', updateGridTitle);
+    samplesGrid.on('collapse', updateGridTitle);
+    selModel.addListener('rowselect', updateGridTitle);
+    selModel.addListener('rowdeselect', updateGridTitle);
+}
 
 function submit()
 {

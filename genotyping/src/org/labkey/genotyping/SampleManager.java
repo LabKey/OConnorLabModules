@@ -3,9 +3,9 @@ package org.labkey.genotyping;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.query.FieldKey;
+import org.labkey.api.reports.Report;
 import org.labkey.api.security.User;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,7 +28,7 @@ public class SampleManager
         return INSTANCE;
     }
 
-    public ResultSet selectSamples(Container c, User user, GenotypingRun run, String columnNames) throws SQLException
+    public Report.Results selectSamples(Container c, User user, GenotypingRun run, String columnNames) throws SQLException
     {
         GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
         QueryHelper qHelper = new QueryHelper(c, user, settings.getSamplesQuery());

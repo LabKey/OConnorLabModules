@@ -15,6 +15,7 @@
  */
 package org.labkey.genotyping;
 
+import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.SQLFragment;
@@ -30,6 +31,7 @@ import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.util.StringExpression;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -51,7 +53,7 @@ public class GenotypingQuerySchema extends UserSchema
     {
         Runs() {
             @Override
-            TableInfo createTable(Container c, User user)
+            FilteredTable createTable(Container c, User user)
             {
                 FilteredTable table = new FilteredTable(GS.getRunsTable(), c);
                 table.wrapAllColumns(true);
@@ -88,40 +90,38 @@ public class GenotypingQuerySchema extends UserSchema
             }},
         Sequences() {
             @Override
-            TableInfo createTable(Container c, User user)
+            FilteredTable createTable(Container c, User user)
             {
                 FilteredTable table = new FilteredTable(GS.getSequencesTable(), c);
                 table.wrapAllColumns(true);
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getDictionariesTable().getFromSQL("d") + " WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
+                removeFromDefaultVisibleColumns(table, "Dictionary");
                 table.setDescription("Contains one row per reference sequence");
 
                 return table;
             }},
         Reads() {
             @Override
-            TableInfo createTable(Container c, User user)
+            FilteredTable createTable(Container c, User user)
             {
                 FilteredTable table = new FilteredTable(GS.getReadsTable(), c);
                 table.wrapAllColumns(true);
                 SQLFragment containerCondition = new SQLFragment("Run IN (SELECT Run FROM " + GS.getRunsTable().getFromSQL("r") + " WHERE Container = ?)");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
+                setDefaultVisibleColumns(table, "Name, Mid, Sequence, Quality");
                 table.setDescription("Contains one row per sequencing read");
 
                 return table;
             }},
         MatchReads() {
             @Override
-            TableInfo createTable(Container c, User user)
+            FilteredTable createTable(Container c, User user)
             {
-                FilteredTable table = new FilteredTable(GS.getReadsTable(), c);
-                table.wrapAllColumns(true);
-                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable().getFromSQL("r") + " WHERE r.RowId = " + GS.getReadsTable() + ".Run) = ?");
-                containerCondition.add(c.getId());
-                table.addCondition(containerCondition);
-                setDefaultVisibleColumns(table, "Name, Mid, Sequence, Quality");
+                FilteredTable table = Reads.createTable(c, user);
+                table.setDescription("Contains genotyping matches joined to their corresponding reads");
 
                 ColumnInfo readId = table.getColumn("RowId");
                 readId.setFk(new LookupForeignKey("ReadId", "MatchId") {
@@ -136,13 +136,11 @@ public class GenotypingQuerySchema extends UserSchema
                     }
                 });
 
-                table.setDescription("Contains genotyping matches joined to their corresponding reads");
-
                 return table;
             }},
         Analyses() {
             @Override
-            TableInfo createTable(Container c, User user)
+            FilteredTable createTable(Container c, User user)
             {
                 FilteredTable table = new FilteredTable(GS.getAnalysesTable(), c);
                 table.wrapAllColumns(true);
@@ -157,14 +155,14 @@ public class GenotypingQuerySchema extends UserSchema
             }},
         Matches() {
             @Override
-            TableInfo createTable(Container c, User user)
+            FilteredTable createTable(Container c, User user)
             {
                 FilteredTable table = new FilteredTable(GS.getMatchesTable(), c);
                 table.wrapAllColumns(true);
                 SQLFragment containerCondition = new SQLFragment("Analysis IN (SELECT a.RowId FROM " + GS.getAnalysesTable().getFromSQL("a") + " INNER JOIN " + GS.getRunsTable().getFromSQL("r") + " ON a.Run = r.RowId WHERE Container = ?)");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
-                setDefaultVisibleColumns(table, "Analysis, SampleId, Reads, Percent, AverageLength, PosReads, NegReads, PosExtReads, NegExtReads, Alleles/AlleleName");
+                setDefaultVisibleColumns(table, "SampleId, Reads, Percent, AverageLength, PosReads, NegReads, PosExtReads, NegExtReads, Alleles/AlleleName");
 
                 String samplesQuery = GenotypingManager.get().getSettings(c).getSamplesQuery();
 
@@ -194,7 +192,7 @@ public class GenotypingQuerySchema extends UserSchema
 
             }};
 
-        abstract TableInfo createTable(Container c, User user);
+        abstract FilteredTable createTable(Container c, User user);
 
         // Set an explicit list of default columns by name
         private static void setDefaultVisibleColumns(TableInfo table, String columnNames)
@@ -205,6 +203,24 @@ public class GenotypingQuerySchema extends UserSchema
                 fieldKeys.add(FieldKey.fromString(name));
 
             table.setDefaultVisibleColumns(fieldKeys);
+        }
+
+
+        // Leave all columns as default visible, except for columnsToRemove
+        private static TableInfo removeFromDefaultVisibleColumns(TableInfo table, String columnsToRemove)
+        {
+            Set<String> removeColumns = new CaseInsensitiveHashSet(columnsToRemove.split(",\\s*"));
+
+            List<FieldKey> keys = table.getDefaultVisibleColumns();
+            List<FieldKey> visibleColumns = new ArrayList<FieldKey>(keys.size());
+
+            for (FieldKey key : keys)
+                if (!removeColumns.contains(key.getName()))
+                    visibleColumns.add(key);
+
+            table.setDefaultVisibleColumns(visibleColumns);
+
+            return table; // For convenience
         }
     }
 

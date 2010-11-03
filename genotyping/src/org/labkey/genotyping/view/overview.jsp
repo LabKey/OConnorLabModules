@@ -20,18 +20,49 @@
 <%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.api.view.ViewContext" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
+<%@ page import="org.labkey.genotyping.GenotypingManager" %>
+<%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
+<%@ page import="org.labkey.api.util.Formats" %>
+<%@ page import="org.labkey.api.security.User" %>
+<%@ page import="org.labkey.api.security.permissions.AdminPermission" %>
+<%@ page import="org.labkey.api.security.permissions.InsertPermission" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     ViewContext ctx = getViewContext();
     Container c = ctx.getContainer();
+    User user = ctx.getUser();
     ActionURL submitURL = urlProvider(PipelineUrls.class).urlBrowse(c, null);
     ActionURL statusURL = urlProvider(PipelineUrls.class).urlBegin(c);
-%>
-<p><a href="<%=h(GenotypingController.getSequencesURL(c, null))%>">Reference Sequences</a></p>
-<p><a href="<%=h(GenotypingController.getRunsURL(c))%>">Runs</a></p>
-<p><a href="<%=h(GenotypingController.getAnalysesURL(c))%>">Analyses</a></p>
-<p><a href="<%=h(submitURL)%>">Import Run</a></p>
-<p><a href="<%=h(statusURL)%>">Pipeline Status</a></p>
-<p><a href="<%=h(GenotypingController.getMySettingsURL(c, ctx.getActionURL()))%>">My Settings</a></p>
-<p><a href="<%=h(GenotypingController.getAdminURL(c, ctx.getActionURL()))%>">Admin</a></p>
 
+    String containerType = c.isProject() ? "Project" : "Folder";
+    int runCount = GenotypingManager.get().getRunCount(c);
+    int analysisCount = GenotypingManager.get().getAnalysisCount(c, null);
+    int sequencesCount = SequenceManager.get().getSequenceCount(c);
+%>
+<table>
+    <tr><td colspan="3" class="labkey-announcement-title"><span><%=containerType%> Contents</span></td></tr>
+    <tr><td colspan="3" class="labkey-title-area-line"></td></tr>
+    <tr><td width="10"></td><td>&bull;&nbsp;<%=Formats.commaf0.format(runCount)%> run<%=(1 == runCount ? "" : "s")%></td><td><% if (runCount > 0) { out.print(textLink("View Runs", GenotypingController.getRunsURL(c))); } else { %>&nbsp;<% } %></td></tr>
+    <tr><td></td><td>&bull;&nbsp;<%=Formats.commaf0.format(analysisCount)%> analys<%=(1 == analysisCount ? "is" : "es")%></td><td><% if (analysisCount > 0) { out.print(textLink("View Analyses", GenotypingController.getAnalysesURL(c))); } else { %>&nbsp;<% } %></td></tr>
+    <tr><td></td><td>&bull;&nbsp;<%=Formats.commaf0.format(sequencesCount)%> reference sequence<%=(1 == sequencesCount ? "" : "s")%>&nbsp;&nbsp;</td><td><% if (sequencesCount > 0) { out.print(textLink("View Reference Sequences", GenotypingController.getSequencesURL(c, null))); } else { %>&nbsp;<% } %></td></tr>
+
+    <tr><td colspan="3" class="labkey-announcement-title"><span>Tasks</span></td></tr>
+    <tr><td colspan="3" class="labkey-title-area-line"></td></tr><%
+    if (c.hasPermission(user, InsertPermission.class))
+    {
+    %>
+    <tr><td></td><td><%=textLink("Import Run", submitURL)%></td></tr><%
+    }
+    %>
+    <tr><td></td><td><%=textLink("View Pipeline Status", statusURL)%></td></tr>
+
+    <tr><td colspan="3" class="labkey-announcement-title"><span>Settings</span></td></tr>
+    <tr><td colspan="3" class="labkey-title-area-line"></td></tr>
+    <tr><td></td><td><%=textLink("My Settings", GenotypingController.getMySettingsURL(c, ctx.getActionURL()))%></td></tr><%
+    if (c.hasPermission(user, AdminPermission.class))
+    {
+    %>
+    <tr><td></td><td><%=textLink("Admin", GenotypingController.getAdminURL(c, ctx.getActionURL()))%></td></tr><%
+    }
+    %>
+</table>

@@ -231,4 +231,18 @@ public class SequenceManager
     {
         return Table.selectObject(GenotypingSchema.get().getDictionariesTable(), c, id, SequenceDictionary.class);
     }
+
+
+    public int getSequenceCount(Container c) throws SQLException
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+        TableInfo sequences = gs.getSequencesTable();
+
+        SequenceDictionary dictionary = getCurrentDictionary(c, false);
+
+        if (null == dictionary)
+            return 0;
+
+        return Table.executeSingleton(sequences.getSchema(), "SELECT CAST(COUNT(*) AS INT) FROM " + sequences + " WHERE Dictionary = ?", new Object[]{dictionary.getRowId()}, Integer.class);
+    }
 }

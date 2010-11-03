@@ -26,10 +26,10 @@ import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryAction;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.UserSchema;
+import org.labkey.api.reports.Report;
 import org.labkey.api.security.User;
 import org.labkey.api.view.ActionURL;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -133,7 +133,7 @@ public class QueryHelper
     }
 
     // TODO: maintain the order of columns
-    public ResultSet select(SimpleFilter extraFilter, List<FieldKey> columns) throws SQLException
+    public Report.Results select(SimpleFilter extraFilter, List<FieldKey> columns) throws SQLException
     {
         QueryService qs = QueryService.get();
         TableInfo ti = getTableInfo();
@@ -149,11 +149,11 @@ public class QueryHelper
         map = qs.getColumns(ti, fieldKeys);
         Collection<ColumnInfo> cols = map.values();
 
-        return qs.select(ti, cols, extraFilter, null);
+        return new Report.Results(qs.select(ti, cols, extraFilter, null), map);
     }
 
     // TODO: Add support for filter & sort, move to QueryService
-    public ResultSet select(SimpleFilter extraFilter) throws SQLException
+    public Report.Results select(SimpleFilter extraFilter) throws SQLException
     {
         CustomView view = getCustomView();
 

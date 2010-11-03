@@ -19,7 +19,7 @@ import org.labkey.api.module.Module;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineDirectory;
 import org.labkey.api.pipeline.PipelineProvider;
-import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.view.ViewContext;
 
 import java.io.File;
@@ -35,14 +35,12 @@ public class ImportAnalysisPipelineProvider extends PipelineProvider
     public ImportAnalysisPipelineProvider(Module owningModule)
     {
         super("Import Analysis", owningModule);
-        setShowActionsIfModuleInactive(true);     // TODO: Make galaxy "active"
     }
 
     @Override
     public void updateFileProperties(ViewContext context, PipeRoot pr, PipelineDirectory directory, boolean includeAll)
     {
-        // Only admins can load genotyping runs?
-        if (!context.getContainer().hasPermission(context.getUser(), AdminPermission.class))
+        if (!context.getContainer().hasPermission(context.getUser(), InsertPermission.class))
             return;
 
         File[] files = directory.listFiles(new ResultsFilter());
