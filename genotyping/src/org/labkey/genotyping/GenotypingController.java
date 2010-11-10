@@ -38,6 +38,7 @@ import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.ShowRows;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
+import org.labkey.api.data.SqlDialect;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.pipeline.PipeRoot;
@@ -671,7 +672,24 @@ public class GenotypingController extends SpringActionController
             }
 
             File readsFile = new File(form.getReadsPath());
-            GenotypingRun run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), form.getMetaDataRun(), readsFile);
+            GenotypingRun run;
+
+            try
+            {
+                run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), form.getMetaDataRun(), readsFile);
+            }
+            catch (SQLException e)
+            {
+                if (SqlDialect.isConstraintException(e))
+                {
+                    errors.reject(ERROR_MSG, "Run " + form.getRun() + " has already been imported");
+                    return false;
+                }
+                else
+                {
+                    throw e;
+                }
+            }
 
             ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
             PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
