@@ -18,6 +18,7 @@ package org.labkey.genotyping;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.Results;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TempTableInfo;
 import org.labkey.api.data.TableInfo;
@@ -27,7 +28,6 @@ import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.reader.ColumnDescriptor;
 import org.labkey.api.reader.TabLoader;
-import org.labkey.api.reports.Report;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.PageFlowUtil;
@@ -142,7 +142,7 @@ public class ImportAnalysisJob extends PipelineJob
                         Set<String> analysisSamples = PageFlowUtil.set(analysisSampleNames);
 
                         // Select name and rowId of all samples from this library -- we'll only use the selected ones
-                        Report.Results results = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "library_sample_name, key");
+                        Results results = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "library_sample_name, key");
                         allSamples = results.getResultSet();
                         Map<FieldKey, ColumnInfo> fieldMap = results.getFieldMap();
 

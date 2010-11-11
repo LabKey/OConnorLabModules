@@ -17,6 +17,7 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.ColumnInfo;
+import org.labkey.api.data.Results;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TSVWriter;
@@ -25,7 +26,6 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.query.FieldKey;
-import org.labkey.api.reports.Report;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.PageFlowUtil;
@@ -142,7 +142,7 @@ public class SubmitAnalysisJob extends PipelineJob
         info("Writing sample file");
         setStatus("WRITING SAMPLES");
 
-        final Report.Results results = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "key, library_sample_name, library_sample_f_mid/mid_name, library_sample_f_mid/mid_sequence");
+        final Results results = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "key, library_sample_name, library_sample_f_mid/mid_name, library_sample_f_mid/mid_sequence");
         final List<Integer> mids = new LinkedList<Integer>();
 
         // Need a custom writer since TSVGridWriter doesn't work in background threads
