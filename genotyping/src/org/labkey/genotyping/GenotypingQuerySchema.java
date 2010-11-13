@@ -15,7 +15,7 @@
  */
 package org.labkey.genotyping;
 
-import org.labkey.api.collections.CaseInsensitiveHashSet;
+import org.labkey.api.collections.Sets;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.SQLFragment;
@@ -209,7 +209,7 @@ public class GenotypingQuerySchema extends UserSchema
         // Leave all columns as default visible, except for columnsToRemove
         private static TableInfo removeFromDefaultVisibleColumns(TableInfo table, String columnsToRemove)
         {
-            Set<String> removeColumns = new CaseInsensitiveHashSet(columnsToRemove.split(",\\s*"));
+            Set<String> removeColumns = Sets.newCaseInsensitiveHashSet(columnsToRemove.split(",\\s*"));
 
             List<FieldKey> keys = table.getDefaultVisibleColumns();
             List<FieldKey> visibleColumns = new ArrayList<FieldKey>(keys.size());
