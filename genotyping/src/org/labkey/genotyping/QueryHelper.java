@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.Results;
+import org.labkey.api.data.ResultsImpl;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.CustomView;
@@ -149,7 +150,7 @@ public class QueryHelper
         map = qs.getColumns(ti, fieldKeys);
         Collection<ColumnInfo> cols = map.values();
 
-        return new Results(qs.select(ti, cols, extraFilter, null), map);
+        return new ResultsImpl(qs.select(ti, cols, extraFilter, null), map);
     }
 
     // TODO: Add support for filter & sort, move to QueryService
