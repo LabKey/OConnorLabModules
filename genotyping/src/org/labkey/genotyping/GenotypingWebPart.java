@@ -22,6 +22,9 @@ import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.api.view.WebPartView;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * User: adam
  * Date: Oct 7, 2010
@@ -29,11 +32,17 @@ import org.labkey.api.view.WebPartView;
  */
 public class GenotypingWebPart extends JspView
 {
-    public static WebPartFactory FACTORY = new BaseWebPartFactory("Genotyping")
+    public static WebPartFactory FACTORY = new BaseWebPartFactory("Genotyping Overview")
     {
         public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart) throws Exception
         {
             return new GenotypingWebPart();
+        }
+
+        @Override
+        public List<String> getLegacyNames()
+        {
+            return Collections.singletonList("Genotyping");
         }
     };
 

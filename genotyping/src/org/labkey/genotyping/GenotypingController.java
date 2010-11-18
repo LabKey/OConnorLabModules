@@ -550,22 +550,11 @@ public class GenotypingController extends SpringActionController
 
     public static class ImportReadsForm extends PipelinePathForm
     {
-        private boolean _readyToSubmit = false;
         private String _readsPath;
         private Integer _run;
         private Integer _metaDataRun = null;
         private boolean _analyze = false;
-
-        public boolean isReadyToSubmit()
-        {
-            return _readyToSubmit;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setReadyToSubmit(boolean readyToSubmit)
-        {
-            _readyToSubmit = readyToSubmit;
-        }
+        private boolean _pipeline = false;
 
         public String getReadsPath()
         {
@@ -608,6 +597,16 @@ public class GenotypingController extends SpringActionController
         {
             _analyze = analyze;
         }
+
+        public boolean getPipeline()
+        {
+            return _pipeline;
+        }
+
+        public void setPipeline(boolean pipeline)
+        {
+            _pipeline = pipeline;
+        }
     }
 
 
@@ -640,14 +639,11 @@ public class GenotypingController extends SpringActionController
     @RequiresPermissionClass(InsertPermission.class)
     public class ImportReadsAction extends FormViewAction<ImportReadsForm>
     {
+        private ActionURL _successURL = null;
+
         @Override
         public void validateCommand(ImportReadsForm form, Errors errors)
         {
-            if (form.isReadyToSubmit())
-            {
-                if (null == form.getRun())
-                    errors.reject(ERROR_MSG, "You must select a run number");
-            }
         }
 
         @Override
@@ -664,11 +660,27 @@ public class GenotypingController extends SpringActionController
         @Override
         public boolean handlePost(ImportReadsForm form, BindException errors) throws Exception
         {
-            if (!form.isReadyToSubmit())
+            if (null == form.getReadsPath())
             {
                 File readsFile = form.getValidatedSingleFile(getContainer());
                 form.setReadsPath(readsFile.getPath());
                 return false;
+            }
+
+            String error = importReads(form);
+            if (form.getPipeline())
+            {
+                if (null != error)
+                {
+                    errors.reject(ERROR_MSG, error);
+                    return false;
+                }
+            }
+            else
+            {
+                // Send back plain text message to scripts, leaving _successURL null for no redirect
+                sendPlainText(null != error ? error : "SUCCESS");
+                return true;
             }
 
             File readsFile = new File(form.getReadsPath());
@@ -696,17 +708,43 @@ public class GenotypingController extends SpringActionController
             PipelineJob prepareRunJob = new ImportReadsJob(vbi, root, new File(form.getReadsPath()), run);
             PipelineService.get().queueJob(prepareRunJob);
 
+            // Successful submission via the UI... redirect either to the pipeline status grid or analyze action
+            ActionURL pipelineURL = PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
+            _successURL = form.getAnalyze() ? getAnalyzeURL(form.getRun(), pipelineURL) : pipelineURL;
+
             return true;
+        }
+
+        private String importReads(ImportReadsForm form) throws Exception
+        {
+            if (null == form.getRun())
+                return "You must specify a run number";
+
+            try
+            {
+                File readsFile = new File(form.getReadsPath());
+                GenotypingRun run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), form.getMetaDataRun(), readsFile);
+
+                ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
+                PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
+                PipelineJob prepareRunJob = new ImportReadsJob(vbi, root, new File(form.getReadsPath()), run);
+                PipelineService.get().queueJob(prepareRunJob);
+            }
+            catch (Exception e)
+            {
+                if (form.getPipeline())
+                    throw e;
+
+                return null != e.getMessage() ? e.getMessage() : e.getClass().getSimpleName();
+            }
+
+            return null;
         }
 
         @Override
         public URLHelper getSuccessURL(ImportReadsForm form)
         {
-            ActionURL pipelineURL = PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
-            if (form.getAnalyze())
-                return getAnalyzeURL(form.getRun(), pipelineURL);
-            else
-                return pipelineURL;
+            return _successURL;
         }
 
         @Override
@@ -931,7 +969,6 @@ public class GenotypingController extends SpringActionController
                 form.setRun(i);
                 form.setMetaDataRun(113);
                 form.setReadsPath("c:\\Users\\adam\\Desktop\\genotyping\\runs\\2010-10-20\\reads.txt");
-                form.setReadyToSubmit(true);
 
                 action.handlePost(form, null);
             }
@@ -1001,12 +1038,7 @@ public class GenotypingController extends SpringActionController
             }
 
             // Plain text response back to Galaxy
-            HttpServletResponse response = getViewContext().getResponse();
-            response.setContentType("text/plain");
-            PrintWriter out = response.getWriter();
-            out.print(message);
-            out.close();
-            response.flushBuffer();
+            sendPlainText(message);
 
             return null;
         }
@@ -1016,6 +1048,17 @@ public class GenotypingController extends SpringActionController
         {
             return null;
         }
+    }
+
+
+    private void sendPlainText(String message) throws IOException
+    {
+        HttpServletResponse response = getViewContext().getResponse();
+        response.setContentType("text/plain");
+        PrintWriter out = response.getWriter();
+        out.print(message);
+        out.close();
+        response.flushBuffer();
     }
 
 

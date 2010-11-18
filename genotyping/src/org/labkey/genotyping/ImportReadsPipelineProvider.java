@@ -20,6 +20,7 @@ import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineDirectory;
 import org.labkey.api.pipeline.PipelineProvider;
 import org.labkey.api.security.permissions.InsertPermission;
+import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewContext;
 import org.labkey.genotyping.GenotypingController.ImportReadsAction;
 
@@ -44,8 +45,12 @@ public class ImportReadsPipelineProvider extends PipelineProvider
         if (!context.getContainer().hasPermission(context.getUser(), InsertPermission.class))
             return;
 
+        ActionURL importURL = directory.cloneHref();
+        importURL.setAction(ImportReadsAction.class);
+        importURL.addParameter("pipeline", true);    // Distinguish between manual pipeline submission and automated scripts
+
         String actionId = createActionId(ImportReadsAction.class, null);
-        addAction(actionId, ImportReadsAction.class, "Import Reads", directory, directory.listFiles(new ReadsFilter()), false, false, includeAll);
+        addAction(actionId, importURL, "Import Reads", directory, directory.listFiles(new ReadsFilter()), false, false, includeAll);
     }
 
     private static class ReadsFilter implements FileFilter

@@ -24,12 +24,12 @@
     GenotypingController.MySettingsForm form = (GenotypingController.MySettingsForm)getModelBean();
     GalaxyFolderSettings settings = GalaxyManager.get().getSettings(getViewContext().getContainer());
     String serverURL = settings.getGalaxyURL();
-    String preferencesHTML = "your user preferences page";
+    String preferencesHTML = "the API Keys page";
 
     // Make it a link if admin has set the Galaxy URL
     if (null != serverURL)
     {
-        URLHelper userURL = new URLHelper((serverURL.endsWith("/") ? serverURL : serverURL + "/") + "user/show_info");
+        URLHelper userURL = new URLHelper((serverURL.endsWith("/") ? serverURL : serverURL + "/") + "user/api_keys");
         preferencesHTML = "<a href=\"" + h(userURL.getURIString()) + "\" target=\"pref\">" + preferencesHTML + "</a>";
     }
 %>

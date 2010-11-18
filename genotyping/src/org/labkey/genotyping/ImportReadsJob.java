@@ -18,15 +18,12 @@ package org.labkey.genotyping;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
-import org.labkey.api.exp.list.ListDefinition;
-import org.labkey.api.exp.list.ListService;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.reader.ColumnDescriptor;
 import org.labkey.api.reader.TabLoader;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.Formats;
-import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
 
@@ -45,7 +42,7 @@ import java.util.Map;
  * Time: 7:34:16 AM
  */
 
-// This job imports all the reads and the metrics for the run.  Once imported, users can (optionally) submit an analysis
+// This job imports all the reads for the run.  Once imported, users can (optionally) submit an analysis
 // of this run to Galaxy (see GalaxySubmitJob).
 public class ImportReadsJob extends PipelineJob
 {
@@ -71,7 +68,7 @@ public class ImportReadsJob extends PipelineJob
     @Override
     public String getDescription()
     {
-        return "Import reads and metrics for run " + _run.getRowId();
+        return "Import reads for run " + _run.getRowId();
     }
 
 
@@ -81,15 +78,14 @@ public class ImportReadsJob extends PipelineJob
         try
         {
             updateRunStatus(Status.Importing);
-            importMetrics();
             importReads();
             updateRunStatus(Status.Complete);
-            info("Import reads and metrics complete");
+            info("Import reads complete");
             setStatus(COMPLETE_STATUS);
         }
         catch (Exception e)
         {
-            error("Import reads and metrics failed", e);
+            error("Import reads failed", e);
             setStatus(ERROR_STATUS);
         }
     }
@@ -100,79 +96,6 @@ public class ImportReadsJob extends PipelineJob
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("Status", status.getStatusId());
         Table.update(getUser(), GenotypingSchema.get().getRunsTable(), map, _run.getRowId());
-    }
-
-
-    private void importMetrics() throws IOException
-    {
-        File metricsFile = new File(_reads.getParentFile(), "metrics.txt");
-        File controlMetricsFile = new File(_reads.getParentFile(), "controlMetrics.txt");
-
-        if (!metricsFile.exists() && !controlMetricsFile.exists())
-        {
-            info("Skipping import of metrics; files not found");
-            return;
-        }
-
-        Map<String, ListDefinition> lists = ListService.get().getLists(getContainer());
-        ListDefinition metricsList = lists.get("jrMetrics");
-        ListDefinition controlMetricsList = lists.get("jrControlMetrics");
-
-        if ((null == metricsList || !metricsFile.exists()) && (null == controlMetricsList || !controlMetricsFile.exists()))
-        {
-            info("Skipping import of metrics; lists not found");
-            return;
-        }
-
-        setStatus("IMPORTING METRICS");
-        importMetricsFile(metricsFile, metricsList);
-        importMetricsFile(controlMetricsFile, controlMetricsList);
-    }
-
-
-    private void importMetricsFile(File file, ListDefinition list) throws IOException
-    {
-        if (!file.exists() || null == list)
-            return;
-
-        info("Importing metrics from " + file.getName());
-
-        // Yuck: hack the TSV source to add a Run Number column.
-        // TODO: Should be able to just use TabLoader on the file... but we need to poke the run id into the map.
-        // This is another example where we need DataLoader to work with a transforming iterator
-        StringBuilder tsv = new StringBuilder();
-        List<String> lines = PageFlowUtil.getFileContentsAsList(file);
-
-        if (lines.isEmpty())
-            return;
-
-        String header = lines.remove(0);
-
-        tsv.append("Run Number\t").append(header).append("\n");
-
-        for (String line : lines)
-        {
-            tsv.append(_run.getRowId());
-            tsv.append("\t");
-            tsv.append(line);
-            tsv.append("\n");
-        }
-
-        TabLoader loader = null;
-
-        try
-        {
-            loader = new TabLoader(tsv, true);
-            List<String> errorList = list.insertListItems(getUser(), loader, null, null);
-
-            for (String error : errorList)
-                error(error);
-        }
-        finally
-        {
-            if (null != loader)
-                loader.close();
-        }
     }
 
 

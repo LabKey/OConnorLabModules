@@ -33,7 +33,7 @@
         %></select></td></tr>
         <tr><td>&nbsp;</td></tr>
         <tr><td>
-            <input type="hidden" name="readyToSubmit" value="1">
+            <input type="hidden" name="pipeline" value="1">
             <input type="hidden" name="readsPath" value="<%=h(bean.getReadsPath())%>">
             <input type="hidden" name="analyze" value="0">
         </td></tr>

@@ -26,6 +26,9 @@ import org.labkey.api.view.WebPartFactory;
 import org.labkey.api.view.WebPartView;
 import org.springframework.validation.Errors;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * User: adam
  * Date: Oct 19, 2010
@@ -35,14 +38,20 @@ public class GenotypingRunsView extends QueryView
 {
     private final boolean _allowDelete;
 
-    public static WebPartFactory FACTORY = new BaseWebPartFactory("Genotyping Runs")
+    public static WebPartFactory FACTORY = new BaseWebPartFactory("Sequencing Runs")
     {
         public WebPartView getWebPartView(ViewContext ctx, Portal.WebPart webPart) throws Exception
         {
-            WebPartView view = new GenotypingRunsView(ctx, null, "GenotypingRuns", false);
-            view.setTitle("Genotyping Runs");
+            WebPartView view = new GenotypingRunsView(ctx, null, "SequencingRuns", false);
+            view.setTitle("Sequencing Runs");
             view.setTitleHref(GenotypingController.getRunsURL(ctx.getContainer()));
             return view;
+        }
+
+        @Override
+        public List<String> getLegacyNames()
+        {
+            return Collections.singletonList("Genotyping Runs");
         }
     };
 
