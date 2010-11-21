@@ -668,6 +668,7 @@ public class GenotypingController extends SpringActionController
             }
 
             String error = importReads(form);
+
             if (form.getPipeline())
             {
                 if (null != error)
@@ -682,31 +683,6 @@ public class GenotypingController extends SpringActionController
                 sendPlainText(null != error ? error : "SUCCESS");
                 return true;
             }
-
-            File readsFile = new File(form.getReadsPath());
-            GenotypingRun run;
-
-            try
-            {
-                run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), form.getMetaDataRun(), readsFile);
-            }
-            catch (SQLException e)
-            {
-                if (SqlDialect.isConstraintException(e))
-                {
-                    errors.reject(ERROR_MSG, "Run " + form.getRun() + " has already been imported");
-                    return false;
-                }
-                else
-                {
-                    throw e;
-                }
-            }
-
-            ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
-            PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
-            PipelineJob prepareRunJob = new ImportReadsJob(vbi, root, new File(form.getReadsPath()), run);
-            PipelineService.get().queueJob(prepareRunJob);
 
             // Successful submission via the UI... redirect either to the pipeline status grid or analyze action
             ActionURL pipelineURL = PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
@@ -723,7 +699,19 @@ public class GenotypingController extends SpringActionController
             try
             {
                 File readsFile = new File(form.getReadsPath());
-                GenotypingRun run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), form.getMetaDataRun(), readsFile);
+                GenotypingRun run;
+
+                try
+                {
+                    run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), form.getMetaDataRun(), readsFile);
+                }
+                catch (SQLException e)
+                {
+                    if (SqlDialect.isConstraintException(e))
+                        return "Run " + form.getRun() + " has already been imported";
+                    else
+                        throw e;
+                }
 
                 ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
                 PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
