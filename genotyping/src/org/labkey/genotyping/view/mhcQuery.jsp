@@ -16,7 +16,7 @@
  */
 %>
 <%@ page import="org.labkey.api.data.SQLFragment" %>
-<%@ page import="org.labkey.api.data.SqlDialect" %>
+<%@ page import="org.labkey.api.data.dialect.SqlDialect" %>
 <%@ page import="org.labkey.genotyping.ImportAnalysisJob" %>
 <%@ page extends="org.labkey.api.jsp.JspContext" %>
 <%
