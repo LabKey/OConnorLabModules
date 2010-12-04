@@ -1013,7 +1013,7 @@ public class GenotypingController extends SpringActionController
             }
             catch (FileNotFoundException fnf)
             {
-                // Send back a vauge, generic message in the case of all file-not-found-type problems, e.g., specified path is
+                // Send back a vague, generic message in the case of all file-not-found-type problems, e.g., specified path is
                 // missing, isn't a directory, lacks a properties.xml file, or doesn't match the analysis table path. This
                 // prevents attackers from gaining any useful information about the file system.  Log the more detailed message.
                 message = FAILURE_PREFACE + "Analysis path doesn't match import path (see system log for more details)";
