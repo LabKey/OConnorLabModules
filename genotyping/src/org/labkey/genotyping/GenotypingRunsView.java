@@ -74,7 +74,8 @@ public class GenotypingRunsView extends QueryView
     {
         ActionButton btnDelete = new ActionButton(GenotypingController.DeleteRunsAction.class, "Delete");
         btnDelete.setActionType(ActionButton.Action.POST);
-        btnDelete.setRequiresSelection(true, "Are you sure you want to delete these runs and all associated analyses?");
+        btnDelete.setRequiresSelection(true, "Are you sure you want to delete this run and its associated analyses?", "Are you sure you want to delete these runs and their associated analyses?"
+        );
         return btnDelete;
     }
 
