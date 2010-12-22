@@ -18,6 +18,9 @@ package org.labkey.genotyping;
 import org.labkey.api.collections.Sets;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DisplayColumn;
+import org.labkey.api.data.DisplayColumnFactory;
+import org.labkey.api.data.HighlightingDisplayColumn;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.DefaultSchema;
@@ -157,6 +160,29 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(Container c, User user)
             {
+/*
+                TODO: Attempt to inject a HighlightingDisplayColumn between the DataColumn and MVC
+                TableInfo matchesTable = GS.getMatchesTable();
+                FilteredTable table = new FilteredTable(matchesTable, c);
+                List<ColumnInfo> columns = matchesTable.getColumns();
+
+                for (ColumnInfo col : columns)
+                {
+                    ColumnInfo wrappedCol = table.addWrapColumn(col);
+
+                    if ("Alleles".equals(wrappedCol.getName()))
+                    {
+                        wrappedCol.setDisplayColumnFactory(new DisplayColumnFactory() {
+                            @Override
+                            public DisplayColumn createRenderer(ColumnInfo colInfo)
+                            {
+                                return new HighlightingDisplayColumn(colInfo.getRenderer(), "SampleId", "Reads");
+                            }
+                        });
+                    }
+                }
+*/
+
                 FilteredTable table = new FilteredTable(GS.getMatchesTable(), c);
                 table.wrapAllColumns(true);
                 SQLFragment containerCondition = new SQLFragment("Analysis IN (SELECT a.RowId FROM " + GS.getAnalysesTable().getFromSQL("a") + " INNER JOIN " + GS.getRunsTable().getFromSQL("r") + " ON a.Run = r.RowId WHERE Container = ?)");
@@ -189,7 +215,6 @@ public class GenotypingQuerySchema extends UserSchema
                 table.setDescription("Contains one row per genotyping match");
 
                 return table;
-
             }};
 
         abstract FilteredTable createTable(Container c, User user);

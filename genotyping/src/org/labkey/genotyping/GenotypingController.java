@@ -33,6 +33,8 @@ import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
 import org.labkey.api.data.DataRegionSelection;
+import org.labkey.api.data.DisplayColumn;
+import org.labkey.api.data.HighlightingDisplayColumn;
 import org.labkey.api.data.PanelButton;
 import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.Results;
@@ -53,6 +55,7 @@ import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
+import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermissionClass;
 import org.labkey.api.security.User;
@@ -154,6 +157,7 @@ public class GenotypingController extends SpringActionController
     public static class AnalysisForm extends QueryExportForm
     {
         private Integer _analysis = null;
+        private boolean _combine = false;
 
         public Integer getAnalysis()
         {
@@ -164,6 +168,17 @@ public class GenotypingController extends SpringActionController
         public void setAnalysis(Integer analysis)
         {
             _analysis = analysis;
+        }
+
+        public boolean getCombine()
+        {
+            return _combine;
+        }
+
+        @SuppressWarnings({"UnusedDeclaration"})
+        public void setCombine(boolean combine)
+        {
+            _combine = combine;
         }
     }
 
@@ -189,9 +204,40 @@ public class GenotypingController extends SpringActionController
             settings.getBaseSort().insertSortColumn("RowId");
             settings.getBaseFilter().addCondition("Analysis", form.getAnalysis());
 
-            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
-            qv.setShadeAlternatingRows(true);
+            UserSchema gqs = new GenotypingQuerySchema(getUser(), getContainer());
 
+            QueryView qv;
+
+            if (form.getCombine())
+            {
+                qv = new QueryView(gqs, settings, errors) {
+                    @Override
+                    protected void setupDataView(DataView ret)
+                    {
+                        super.setupDataView(ret);
+
+                        DataRegion rgn = ret.getDataRegion();
+                        String allelesColumnName = "allelesAlleleName";
+                        DisplayColumn alleles = rgn.getDisplayColumn(allelesColumnName);
+
+                        // TODO: Check to make sure sample id is here
+
+                        if (null != alleles)
+                        {
+                            DisplayColumn wrapped = new HighlightingDisplayColumn(alleles, "SampleId", "Reads");
+                            rgn.replaceDisplayColumn(allelesColumnName, wrapped);
+                        }
+                    }
+                };
+
+                qv.setShowRecordSelectors(true);
+            }
+            else
+            {
+                qv = new QueryView(gqs, settings, errors);
+            }
+
+            qv.setShadeAlternatingRows(true);
             return qv;
         }
 
