@@ -125,7 +125,8 @@ public class SubmitAnalysisJob extends PipelineJob
             writeFasta();
             sendFilesToGalaxy(server);
             monitorCompletion();
-            assert GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.NotSubmitted, Status.Submitted);
+            if (!GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.NotSubmitted, Status.Submitted))
+                throw new IllegalStateException("Analysis status should be \"NotSubmitted\"");
             info("Submitting genotyping analysis job complete");
             setStatus(COMPLETE_STATUS);
         }

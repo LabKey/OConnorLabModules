@@ -247,7 +247,8 @@ public class ImportAnalysisJob extends PipelineJob
                     matches.delete();
             }
 
-            assert GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Importing, Status.Complete);
+            if (!GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Importing, Status.Complete))
+                throw new IllegalStateException("Analysis status should be \"Importing\"");
             setStatus(COMPLETE_STATUS);
             info("Successfully imported genotyping analysis in " + DateUtil.formatDuration(System.currentTimeMillis() - startTime));
         }
