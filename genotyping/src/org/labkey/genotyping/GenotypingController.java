@@ -1367,6 +1367,7 @@ public class GenotypingController extends SpringActionController
     public static class RunForm extends QueryExportForm
     {
         private int _run = 0;
+        private boolean _filterLowQualityBases = false;
 
         public int getRun()
         {
@@ -1377,6 +1378,21 @@ public class GenotypingController extends SpringActionController
         public void setRun(int run)
         {
             _run = run;
+        }
+
+        public boolean getFilterLowQualityBases()
+        {
+            return _filterLowQualityBases;
+        }
+
+        public void setFilterLowQualityBases(boolean filterLowQualityBases)
+        {
+            _filterLowQualityBases = filterLowQualityBases;
+        }
+
+        public boolean isExport()
+        {
+            return null != getExportType();
         }
     }
 
@@ -1389,7 +1405,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    private abstract class ReadsAction<FORM extends QueryViewAction.QueryExportForm> extends QueryViewAction<FORM, QueryView>
+    private abstract class ReadsAction<FORM extends RunForm> extends QueryViewAction<FORM, QueryView>
     {
         private static final String DATA_REGION_NAME = "Reads";
         private static final String FASTQ_FORMAT = "FASTQ";
@@ -1440,7 +1456,7 @@ public class GenotypingController extends SpringActionController
                         }
                     };
 
-                    FastqWriter writer = new FastqWriter(fg);
+                    FastqWriter writer = new FastqWriter(fg, form.getFilterLowQualityBases());
                     writer.write(getViewContext().getResponse(), "reads.fastq", false);
                 }
                 finally
@@ -1472,7 +1488,7 @@ public class GenotypingController extends SpringActionController
                     ActionURL url = getViewContext().cloneActionURL();
                     url.addParameter("exportType", FASTQ_FORMAT);
 
-                    HttpView filesView = new JspView<ActionURL>("/org/labkey/genotyping/view/fastqExport.jsp", url);
+                    HttpView filesView = new JspView<ActionURL>("/org/labkey/genotyping/view/fastqExportOptions.jsp", url);
                     result.addSubPanel("FASTQ", filesView);
 
                     return result;
@@ -1503,11 +1519,11 @@ public class GenotypingController extends SpringActionController
         public ModelAndView getView(RunForm form, BindException errors) throws Exception
         {
             _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
-            ModelAndView reads = super.getView(form, errors);
+            ModelAndView readsView = super.getView(form, errors);
 
-            // Export reads case
-            if (null == reads)
-                return null;
+            // Just return view in export case
+            if (form.isExport())
+                return readsView;
 
             VBox vbox = new VBox();
             final ActionButton submitAnalysis = new ActionButton("Add Analysis", getAnalyzeURL(_run.getRowId(), getViewContext().getActionURL()));
@@ -1538,7 +1554,7 @@ public class GenotypingController extends SpringActionController
                 });
             }
 
-            vbox.addView(reads);
+            vbox.addView(readsView);
 
             return vbox;
         }
@@ -1667,13 +1683,8 @@ public class GenotypingController extends SpringActionController
         {
             _analysis = GenotypingManager.get().getAnalysis(getContainer(), form.getAnalysis());
             _matchId = form.getMatch();
-            ModelAndView reads = super.getView(form, errors);
 
-            // Export reads case
-            if (null == reads)
-                return null;
-
-            return reads;
+            return super.getView(form, errors);
         }
 
         @Override

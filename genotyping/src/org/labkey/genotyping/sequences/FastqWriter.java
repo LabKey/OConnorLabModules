@@ -27,20 +27,48 @@ import java.io.PrintWriter;
  */
 public class FastqWriter extends FastaWriter<FastqWriter.FastqEntry>
 {
-    public FastqWriter(FastqGenerator generator)
+    private final boolean _filterOutLowQualityBases;
+
+    public FastqWriter(FastqGenerator generator, boolean filterOutLowQualityBases)
     {
         super(generator);
+        _filterOutLowQualityBases = filterOutLowQualityBases;
     }
 
     @Override
     protected void writeEntry(PrintWriter pw, FastqEntry entry)
     {
+        StringBuilder sequence = new StringBuilder(entry.getSequence());
+        StringBuilder quality = new StringBuilder(entry.getQuality());
+        String header = entry.getHeader();
+
+        if (sequence.length() != quality.length())
+            throw new IllegalArgumentException("Sequence length does not equal quality length for " + header);
+
+        if (_filterOutLowQualityBases)
+        {
+            int length = sequence.length();
+
+            for (int i = length - 1; i >= 0; i--)
+            {
+                if (Character.isLowerCase(sequence.charAt(i)))
+                {
+                    sequence.delete(i, i + 1);
+                    quality.delete(i, i + 1);
+                }
+            }
+
+            // They came in equal... not equal now would indicate a programming error
+            if (sequence.length() != quality.length())
+                throw new IllegalStateException("After filtering, sequence length does not equal quality length for " + header);
+        }
+
         pw.print("@");
-        pw.println(entry.getHeader());
-        pw.println(entry.getSequence());
+        pw.println(header);
+        pw.println(sequence);
         pw.print("+");
-        pw.println(entry.getHeader());
-        pw.println(entry.getQuality());
+        pw.println(header);
+        pw.println(quality);
     }
 
     public interface FastqEntry extends FastaEntry

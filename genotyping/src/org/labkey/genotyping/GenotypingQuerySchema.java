@@ -182,6 +182,15 @@ public class GenotypingQuerySchema extends UserSchema
                     }
                 }
 */
+                ColumnInfo alleleName = GS.getSequencesTable().getColumn("AlleleName");
+                final DisplayColumnFactory factory = alleleName.getDisplayColumnFactory();
+                alleleName.setDisplayColumnFactory(new DisplayColumnFactory() {
+                        @Override
+                        public DisplayColumn createRenderer(ColumnInfo colInfo)
+                        {
+                            return new HighlightingDisplayColumn(factory.createRenderer(colInfo), FieldKey.fromString("SampleId"), FieldKey.fromString("Alleles/AlleleName"));
+                        }
+                    });
 
                 FilteredTable table = new FilteredTable(GS.getMatchesTable(), c);
                 table.wrapAllColumns(true);

@@ -60,7 +60,7 @@ genotyping/src/org/labkey/genotyping/sequences/SequenceDictionary.java -text
 genotyping/src/org/labkey/genotyping/sequences/SequenceManager.java -text
 genotyping/src/org/labkey/genotyping/view/analyze.jsp -text
 genotyping/src/org/labkey/genotyping/view/configure.jsp -text
-genotyping/src/org/labkey/genotyping/view/fastqExport.jsp -text
+genotyping/src/org/labkey/genotyping/view/fastqExportOptions.jsp -text
 genotyping/src/org/labkey/genotyping/view/importReads.jsp -text
 genotyping/src/org/labkey/genotyping/view/loadSequences.jsp -text
 genotyping/src/org/labkey/genotyping/view/mhcQuery.jsp -text
