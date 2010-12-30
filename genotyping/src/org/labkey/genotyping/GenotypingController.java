@@ -33,17 +33,15 @@ import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
 import org.labkey.api.data.DataRegionSelection;
-import org.labkey.api.data.DisplayColumn;
-import org.labkey.api.data.HighlightingDisplayColumn;
 import org.labkey.api.data.PanelButton;
 import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.ShowRows;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
-import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineService;
@@ -206,36 +204,10 @@ public class GenotypingController extends SpringActionController
 
             UserSchema gqs = new GenotypingQuerySchema(getUser(), getContainer());
 
-            QueryView qv;
+            QueryView qv = new QueryView(gqs, settings, errors);
 
             if (form.getCombine())
-            {
-                qv = new QueryView(gqs, settings, errors) {
-                    @Override
-                    protected void setupDataView(DataView ret)
-                    {
-                        super.setupDataView(ret);
-
-                        DataRegion rgn = ret.getDataRegion();
-                        String allelesColumnName = "allelesAlleleName";
-                        DisplayColumn alleles = rgn.getDisplayColumn(allelesColumnName);
-
-                        // TODO: Check to make sure sample id is here
-
-                        if (null != alleles)
-                        {
-                            DisplayColumn wrapped = new HighlightingDisplayColumn(alleles, "SampleId", "Reads");
-                            rgn.replaceDisplayColumn(allelesColumnName, wrapped);
-                        }
-                    }
-                };
-
                 qv.setShowRecordSelectors(true);
-            }
-            else
-            {
-                qv = new QueryView(gqs, settings, errors);
-            }
 
             qv.setShadeAlternatingRows(true);
             return qv;
