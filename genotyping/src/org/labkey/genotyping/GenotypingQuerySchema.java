@@ -51,6 +51,19 @@ public class GenotypingQuerySchema extends UserSchema
     private static final GenotypingSchema GS = GenotypingSchema.get();
     private static final Set<String> TABLE_NAMES;
 
+    static
+    {
+        ColumnInfo alleleName = GS.getSequencesTable().getColumn("AlleleName");
+        final DisplayColumnFactory factory = alleleName.getDisplayColumnFactory();
+        alleleName.setDisplayColumnFactory(new DisplayColumnFactory() {
+                @Override
+                public DisplayColumn createRenderer(ColumnInfo colInfo)
+                {
+                    return new HighlightingDisplayColumn(factory.createRenderer(colInfo), FieldKey.fromString("SampleId"), FieldKey.fromString("Alleles/AlleleName"));
+                }
+            });
+    }
+
     @SuppressWarnings({"UnusedDeclaration"})
     public enum TableType
     {
@@ -160,38 +173,6 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(Container c, User user)
             {
-/*
-                TODO: Attempt to inject a HighlightingDisplayColumn between the DataColumn and MVC
-                TableInfo matchesTable = GS.getMatchesTable();
-                FilteredTable table = new FilteredTable(matchesTable, c);
-                List<ColumnInfo> columns = matchesTable.getColumns();
-
-                for (ColumnInfo col : columns)
-                {
-                    ColumnInfo wrappedCol = table.addWrapColumn(col);
-
-                    if ("Alleles".equals(wrappedCol.getName()))
-                    {
-                        wrappedCol.setDisplayColumnFactory(new DisplayColumnFactory() {
-                            @Override
-                            public DisplayColumn createRenderer(ColumnInfo colInfo)
-                            {
-                                return new HighlightingDisplayColumn(colInfo.getRenderer(), "SampleId", "Reads");
-                            }
-                        });
-                    }
-                }
-*/
-                ColumnInfo alleleName = GS.getSequencesTable().getColumn("AlleleName");
-                final DisplayColumnFactory factory = alleleName.getDisplayColumnFactory();
-                alleleName.setDisplayColumnFactory(new DisplayColumnFactory() {
-                        @Override
-                        public DisplayColumn createRenderer(ColumnInfo colInfo)
-                        {
-                            return new HighlightingDisplayColumn(factory.createRenderer(colInfo), FieldKey.fromString("SampleId"), FieldKey.fromString("Alleles/AlleleName"));
-                        }
-                    });
-
                 FilteredTable table = new FilteredTable(GS.getMatchesTable(), c);
                 table.wrapAllColumns(true);
                 SQLFragment containerCondition = new SQLFragment("Analysis IN (SELECT a.RowId FROM " + GS.getAnalysesTable().getFromSQL("a") + " INNER JOIN " + GS.getRunsTable().getFromSQL("r") + " ON a.Run = r.RowId WHERE Container = ?)");

@@ -63,6 +63,7 @@ import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.DeletePermission;
 import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.security.permissions.ReadPermission;
+import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.HelpTopic;
 import org.labkey.api.util.PageFlowUtil;
@@ -192,6 +193,21 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
+        public ModelAndView getView(AnalysisForm form, BindException errors) throws Exception
+        {
+            ModelAndView qv = super.getView(form, errors);
+
+            if (form.getCombine() && !form.isExport())
+            {
+                return new VBox(qv, new JspView("/org/labkey/genotyping/view/matchCombiner.jsp"));
+            }
+            else
+            {
+                return qv;
+            }
+        }
+
+        @Override
         protected QueryView createQueryView(AnalysisForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
         {
             _analysis = GenotypingManager.get().getAnalysis(getContainer(), form.getAnalysis());
@@ -203,11 +219,29 @@ public class GenotypingController extends SpringActionController
             settings.getBaseFilter().addCondition("Analysis", form.getAnalysis());
 
             UserSchema gqs = new GenotypingQuerySchema(getUser(), getContainer());
+            QueryView qv;
 
-            QueryView qv = new QueryView(gqs, settings, errors);
+            if (form.getCombine() && getContainer().hasPermission(getUser(), UpdatePermission.class))
+            {
+                qv = new QueryView(gqs, settings, errors) {
+                    @Override
+                    protected void populateButtonBar(DataView view, ButtonBar bar)
+                    {
+                        super.populateButtonBar(view, bar);
 
-            if (form.getCombine())
+                        ActionButton combine = new ActionButton(CombineAction.class, "Combine");
+                        combine.setRequiresSelection(true);
+                        combine.setScript("combine(" + _analysis.getRowId() + ");");
+                        bar.add(combine);
+                    }
+                };
+
                 qv.setShowRecordSelectors(true);
+            }
+            else
+            {
+                qv = new QueryView(gqs, settings, errors);
+            }
 
             qv.setShadeAlternatingRows(true);
             return qv;
@@ -220,6 +254,56 @@ public class GenotypingController extends SpringActionController
         }
     }
 
+
+    @RequiresPermissionClass(UpdatePermission.class)
+    public class GetMatchesAction extends RedirectAction<CombineForm>
+    {
+        @Override
+        public URLHelper getSuccessURL(CombineForm combineForm)
+        {
+            return null;  //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        @Override
+        public boolean doAction(CombineForm combineForm, BindException errors) throws Exception
+        {
+            return false;  //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        @Override
+        public void validateCommand(CombineForm target, Errors errors)
+        {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+    }
+
+
+    public static class CombineForm
+    {
+
+    }
+
+    @RequiresPermissionClass(UpdatePermission.class)
+    public class CombineAction extends RedirectAction<CombineForm>
+    {
+        @Override
+        public URLHelper getSuccessURL(CombineForm combineForm)
+        {
+            return null;  //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        @Override
+        public boolean doAction(CombineForm combineForm, BindException errors) throws Exception
+        {
+            return false;  //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        @Override
+        public void validateCommand(CombineForm target, Errors errors)
+        {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+    }
 
 /*
     @RequiresPermissionClass(ReadPermission.class)
@@ -621,6 +705,7 @@ public class GenotypingController extends SpringActionController
             return _pipeline;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setPipeline(boolean pipeline)
         {
             _pipeline = pipeline;
@@ -871,7 +956,7 @@ public class GenotypingController extends SpringActionController
                 ResultSetUtil.close(rs);
             }
 
-            return new JspView<AnalyzeBean>("/org/labkey/genotyping/view/analyze.jsp", new AnalyzeBean(form.getRun(), views, sampleMap, form.getReturnActionURL()), errors);
+            return new JspView<AnalyzeBean>("/org/labkey/genotyping/view/analyze.jsp", new AnalyzeBean(views, sampleMap, form.getReturnActionURL()), errors);
         }
 
         @Override
@@ -924,14 +1009,12 @@ public class GenotypingController extends SpringActionController
 
     public static class AnalyzeBean
     {
-        private final int _run;
         private final SortedSet<CustomView> _sequencesViews;
         private final Map<Integer, Pair<String, String>> _sampleMap;
         private final ActionURL _returnURL;
 
-        private AnalyzeBean(int run, SortedSet<CustomView> sequenceViews, Map<Integer, Pair<String, String>> sampleMap, ActionURL returnURL)
+        private AnalyzeBean(SortedSet<CustomView> sequenceViews, Map<Integer, Pair<String, String>> sampleMap, ActionURL returnURL)
         {
-            _run = run;
             _sequencesViews = sequenceViews;
             _sampleMap = sampleMap;
             _returnURL = returnURL;
@@ -1357,14 +1440,10 @@ public class GenotypingController extends SpringActionController
             return _filterLowQualityBases;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setFilterLowQualityBases(boolean filterLowQualityBases)
         {
             _filterLowQualityBases = filterLowQualityBases;
-        }
-
-        public boolean isExport()
-        {
-            return null != getExportType();
         }
     }
 
@@ -1429,7 +1508,7 @@ public class GenotypingController extends SpringActionController
                     };
 
                     FastqWriter writer = new FastqWriter(fg, form.getFilterLowQualityBases());
-                    writer.write(getViewContext().getResponse(), "reads.fastq", false);
+                    writer.write(getViewContext().getResponse(), "reads.fastq");
                 }
                 finally
                 {
@@ -1493,7 +1572,7 @@ public class GenotypingController extends SpringActionController
             _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
             ModelAndView readsView = super.getView(form, errors);
 
-            // Just return view in export case
+            // Just return the view in export case
             if (form.isExport())
                 return readsView;
 
