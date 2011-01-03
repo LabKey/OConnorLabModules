@@ -59,7 +59,9 @@ public class GenotypingQuerySchema extends UserSchema
                 @Override
                 public DisplayColumn createRenderer(ColumnInfo colInfo)
                 {
-                    return new HighlightingDisplayColumn(factory.createRenderer(colInfo), FieldKey.fromString("SampleId"), FieldKey.fromString("Alleles/AlleleName"));
+                    return new HighlightingDisplayColumn(factory.createRenderer(colInfo),
+                            FieldKey.fromString("SampleId"),
+                            FieldKey.fromString("Alleles/AlleleName"));
                 }
             });
     }

@@ -41,34 +41,48 @@
                 LABKEY.Filter.create('RowId', selected.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)
             ],
             sort: null,
-            successCallback: validate,
+            successCallback: validateAndShow,
             errorCallback: onError
         });
     }
 
-    function validate(selected)
+    function validateAndShow(selected)
     {
         var rows = selected.rows;
         var matches = rows.length;
 
+        // Validate that we got back the number of rows we expected
         if (!rows || matches != expectedCount)
         {
             alert("Error: Queried matches differ from selected matches.");
             return;
         }
 
-        // Essentially a set -- create an array of unique allele names across the selected matches
-        var alleleNames = [];
+        // Validate that every match has the same sample id
+        var sampleId = null;
 
-        for (var i = 0; i < rows.length; i++)
+        for (var i = 0; i < matches; i++)
         {
-            var names = rows[i]['Alleles/AlleleName'].value;
+            var testId = rows[i]['SampleId'].value;
 
-            for (var j = 0; j < names.length; j++)
+            if (null == sampleId)
             {
-                var name = names[j];
-                addIfAbsent(alleleNames, name);
+                sampleId = testId;
             }
+            else if (sampleId != testId)
+            {
+                alert("Error: You can't combine matches from different samples.");
+                return;
+            }
+        }
+
+        // Create an array of unique allele names across the selected matches (poor man's set)
+        var uniqueNames = [];
+
+        for (i = 0; i < matches; i++)
+        {
+            var matchNames = rows[i]['Alleles/AlleleName'].value;
+            addAllIfAbsent(uniqueNames, matchNames);
         }
 
         var labelStyle = 'border-bottom:1px solid #AAAAAA;margin:3px';
@@ -94,7 +108,7 @@
         });
 
         var actionLabel = new Ext.form.Label({
-            html: '<br><div style="' + labelStyle +'">' + alleleNames.join(' ') + '<\/div>'
+            html: '<br><div style="' + labelStyle +'">' + uniqueNames.join(' ') + '<\/div>'
         });
 
         var formPanel = new Ext.form.FormPanel({
@@ -128,13 +142,25 @@
             }],
             bbar: [{ xtype: 'tbtext', text: '', id: 'statusTxt'}]
         });
+
         win.show();
     }
 
+    // Add all elements to array if they're not already present
+    function addAllIfAbsent(array, elements)
+    {
+        for (var j = 0; j < elements.length; j++)
+        {
+            var element = elements[j];
+            addIfAbsent(array, element);
+        }
+    }
+
+    // Add a single element to array if it's not already present
     function addIfAbsent(array, element)
     {
         for (var i = 0; i < array.length; i++)
-            if (array[i] == element)
+            if (array[i] === element)
                 return;
 
         array.push(element);

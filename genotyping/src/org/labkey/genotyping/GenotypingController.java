@@ -221,22 +221,47 @@ public class GenotypingController extends SpringActionController
             UserSchema gqs = new GenotypingQuerySchema(getUser(), getContainer());
             QueryView qv;
 
-            if (form.getCombine() && getContainer().hasPermission(getUser(), UpdatePermission.class))
+            if (getContainer().hasPermission(getUser(), UpdatePermission.class))
             {
-                qv = new QueryView(gqs, settings, errors) {
-                    @Override
-                    protected void populateButtonBar(DataView view, ButtonBar bar)
-                    {
-                        super.populateButtonBar(view, bar);
+                final ActionURL url = getViewContext().cloneActionURL();
 
-                        ActionButton combine = new ActionButton(CombineAction.class, "Combine");
-                        combine.setRequiresSelection(true);
-                        combine.setScript("combine(" + _analysis.getRowId() + ");");
-                        bar.add(combine);
-                    }
-                };
+                if (form.getCombine())
+                {
+                    url.deleteParameter("combine");
 
-                qv.setShowRecordSelectors(true);
+                    qv = new QueryView(gqs, settings, errors) {
+                        @Override
+                        protected void populateButtonBar(DataView view, ButtonBar bar)
+                        {
+                            super.populateButtonBar(view, bar);
+
+                            ActionButton combineModeButton = new ActionButton(url, "Stop Altering Matches");
+                            bar.add(combineModeButton);
+
+                            ActionButton combineButton = new ActionButton(CombineAction.class, "Combine");
+                            combineButton.setRequiresSelection(true);
+                            combineButton.setScript("combine(" + _analysis.getRowId() + ");return false;");
+                            bar.add(combineButton);
+                        }
+                    };
+
+                    qv.setShowRecordSelectors(true);
+                }
+                else
+                {
+                    url.replaceParameter("combine", "1");
+
+                    qv = new QueryView(gqs, settings, errors) {
+                         @Override
+                         protected void populateButtonBar(DataView view, ButtonBar bar)
+                         {
+                             super.populateButtonBar(view, bar);
+
+                             ActionButton combineModeButton = new ActionButton(url, "Alter Matches");
+                             bar.add(combineModeButton);
+                         }
+                    };
+                }
             }
             else
             {
@@ -251,29 +276,6 @@ public class GenotypingController extends SpringActionController
         public NavTree appendNavTrail(NavTree root)
         {
             return root.addChild("Genotyping Analysis " + _analysis.getRowId());
-        }
-    }
-
-
-    @RequiresPermissionClass(UpdatePermission.class)
-    public class GetMatchesAction extends RedirectAction<CombineForm>
-    {
-        @Override
-        public URLHelper getSuccessURL(CombineForm combineForm)
-        {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public boolean doAction(CombineForm combineForm, BindException errors) throws Exception
-        {
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public void validateCommand(CombineForm target, Errors errors)
-        {
-            //To change body of implemented methods use File | Settings | File Templates.
         }
     }
 
