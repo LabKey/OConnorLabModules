@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 %>
+<%@ page import="org.labkey.api.util.PageFlowUtil" %>
+<%@ page import="org.labkey.api.util.UniqueID" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.api.view.HttpView" %>
-<%@ page import="org.labkey.api.util.GUID" %>
-<%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     ActionURL url = (ActionURL)HttpView.currentModel();
-    String guid = GUID.makeGUID();
+    String id = "cb_" + UniqueID.getRequestScopedUID(getViewContext().getRequest());
     String filter = PageFlowUtil.jsString(url.clone().replaceParameter("filterLowQualityBases", "1").getLocalURIString());
     String noFilter = PageFlowUtil.jsString(url.clone().replaceParameter("filterLowQualityBases", "0").getLocalURIString());
-    String onClickScript = "window.location = document.getElementById('" + guid + "').checked ? " + filter + " : " + noFilter + "; return false;";
+    String onClickScript = "window.location = document.getElementById('" + id + "').checked ? " + filter + " : " + noFilter + "; return false;";
 
 %>
 <table class="labkey-export-tab-contents">
@@ -40,7 +40,7 @@
     <tr><td>&nbsp;</td></tr>
     <tr>
         <td class="labkey-export-tab-options">
-            <table class="labkey-export-tab-layout"><tr><td><input id="<%=guid%>" type="checkbox" checked="true"/> Filter out low-quality bases</td></tr></table>
+            <table class="labkey-export-tab-layout"><tr><td><input id="<%=id%>" type="checkbox" checked="true"/> Filter out low-quality bases</td></tr></table>
         </td>
     </tr>
 </table>
