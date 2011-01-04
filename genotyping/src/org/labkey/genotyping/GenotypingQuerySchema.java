@@ -177,6 +177,31 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 FilteredTable table = new FilteredTable(GS.getMatchesTable(), c);
                 table.wrapAllColumns(true);
+
+                ColumnInfo reads = table.getColumn("Reads");
+                final DisplayColumnFactory factory2 = reads.getDisplayColumnFactory();
+                reads.setDisplayColumnFactory(new DisplayColumnFactory() {
+                    @Override
+                    public DisplayColumn createRenderer(ColumnInfo colInfo)
+                    {
+                        HighlightingDisplayColumn hdc = new HighlightingDisplayColumn(factory2.createRenderer(colInfo), FieldKey.fromString("Reads"));
+                        hdc.setHighlightColor("red");
+                        return hdc;
+                    }
+                });
+
+                ColumnInfo col = table.getColumn("SampleId");
+                final DisplayColumnFactory factory = col.getDisplayColumnFactory();
+                col.setDisplayColumnFactory(new DisplayColumnFactory() {
+                    @Override
+                    public DisplayColumn createRenderer(ColumnInfo colInfo)
+                    {
+                        HighlightingDisplayColumn hdc = new HighlightingDisplayColumn(factory.createRenderer(colInfo), FieldKey.fromString("SampleId"));
+                        hdc.setHighlightColor("blue");
+                        return hdc;
+                    }
+                });
+
                 SQLFragment containerCondition = new SQLFragment("Analysis IN (SELECT a.RowId FROM " + GS.getAnalysesTable().getFromSQL("a") + " INNER JOIN " + GS.getRunsTable().getFromSQL("r") + " ON a.Run = r.RowId WHERE Container = ?)");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
