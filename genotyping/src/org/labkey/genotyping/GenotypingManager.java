@@ -17,6 +17,7 @@
 package org.labkey.genotyping;
 
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.AtomicDatabaseInteger;
 import org.labkey.api.data.Container;
@@ -129,7 +130,7 @@ public class GenotypingManager
         return Table.insert(user, GenotypingSchema.get().getAnalysesTable(), new GenotypingAnalysis(c, run, description, sequencesViewName));
     }
 
-    public GenotypingAnalysis getAnalysis(Container c, Integer analysisId)
+    public @NotNull GenotypingAnalysis getAnalysis(Container c, Integer analysisId)
     {
         if (null == analysisId)
             throw new NotFoundException("Analysis parameter is missing");

@@ -1,6 +1,6 @@
 <%
 /*
- * Copyright (c) 2010 LabKey Corporation
+ * Copyright (c) 2010-2011 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,25 @@
  * limitations under the License.
  */
 %>
+<%@ page import="org.labkey.api.action.ReturnUrlForm" %>
+<%@ page import="org.labkey.api.util.PageFlowUtil" %>
+<%@ page import="org.labkey.api.view.ViewContext" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
+<%
+    ViewContext ctx = getViewContext();
+%>
 <script type="text/javascript">
     var expectedCount;
+    var grid;
+    var submitButton;
+    var formPanel;
+    var analysisId;
+    var alleleIdsText;
 
     function combine(analysis)
     {
+        analysisId = analysis;
         var selected = LABKEY.DataRegions['Analysis'].getChecked();
         expectedCount = selected.length;
 
@@ -35,7 +47,7 @@
             requiredVersion: 9.1,
             schemaName: 'genotyping',
             queryName: 'Matches',
-            columns: 'SampleId,Alleles/AlleleName',
+            columns: 'RowId,SampleId,Alleles/AlleleName,Alleles/RowId',
             filterArray: [
                 LABKEY.Filter.create('Analysis/RowId', analysis, LABKEY.Filter.Types.EQUAL),
                 LABKEY.Filter.create('RowId', selected.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)
@@ -76,16 +88,24 @@
             }
         }
 
+        var matchIds = [];
         // Create an array of unique allele names across the selected matches (poor man's set)
-        var uniqueNames = [];
+        var uniqueAlleles = [];
 
         for (i = 0; i < matches; i++)
         {
-            var matchNames = rows[i]['Alleles/AlleleName'].value;
-            addAllIfAbsent(uniqueNames, matchNames);
+            matchIds.push(rows[i]['RowId'].value);
+            var matchAlleleNames = rows[i]['Alleles/AlleleName'].value;
+            var matchAlleleRowIds = rows[i]['Alleles/RowId'].value;
+
+            for (var j = 0; j < matchAlleleNames.length; j++)
+            {
+                var allele = [matchAlleleNames[j], matchAlleleRowIds[j]];
+                addAlleleIfAbsent(uniqueAlleles, allele);
+            }
         }
 
-        var labelStyle = 'border-bottom:1px solid #AAAAAA;margin:3px';
+        var labelStyle = 'padding-bottom:7px';
         var instructions;
         var title;
         var submitCaption;
@@ -93,7 +113,7 @@
         if (matches > 1)
         {
             title = 'Combine Matches';
-            instructions = 'These ' + matches + ' matches will be combined and the new match assigned the alleles you select below. This operation is permanent and can\'t be undone.';
+            instructions = 'The ' + matches + ' matches you selected will be combined into a single match, and the new match assigned the alleles you select below. This operation is permanent and can\'t be undone.';
             submitCaption = 'Combine';
         }
         else
@@ -107,38 +127,70 @@
             html: '<div style="' + labelStyle +'">' + instructions + '<\/div>'
         });
 
-        var actionLabel = new Ext.form.Label({
-            html: '<br><div style="' + labelStyle +'">' + uniqueNames.join(' ') + '<\/div>'
+        var store = new Ext.data.SimpleStore({
+            fields:['name', 'rowId'],
+            data:uniqueAlleles
         });
 
-        var formPanel = new Ext.form.FormPanel({
-            padding: 5,
-            items: [instructionsLabel, actionLabel]});
+        var selModel = new Ext.grid.CheckboxSelectionModel();
+        selModel.addListener('rowselect', updateCombineButton);
+        selModel.addListener('rowdeselect', updateCombineButton);
+
+        submitButton = new Ext.Button({
+                text: submitCaption,
+                type: 'submit',
+                disabled: true,
+                id: 'btn_submit',
+                handler: submit
+            });
+
+        var returnUrlText = new Ext.form.TextField({name:'<%=ReturnUrlForm.Params.returnUrl%>', hidden:true, value:<%=PageFlowUtil.jsString(ctx.getActionURL().toString())%>});
+        var analysisText = new Ext.form.TextField({name:'analysis', hidden:true, value:analysisId});
+        var matchIdsText = new Ext.form.TextField({name:'matchIds', hidden:true, value:matchIds.join(",")});
+        alleleIdsText = new Ext.form.TextField({name:'alleleIds', hidden:true});
+
+        // create the alleles grid
+        grid = new Ext.grid.GridPanel({
+            title:'Alleles',
+            store: store,
+            columns: [
+                selModel,
+                {id:'name', width: 100, sortable: false, dataIndex: 'name'}
+            ],
+            stripeRows: false,
+            collapsed: false,
+            collapsible: false,
+            autoExpandColumn: 'name',
+            autoHeight: false,
+            forceFit: true,
+            width: 400,
+            height: 300,
+            selModel: selModel
+        });
+
+        formPanel = new LABKEY.ext.FormPanel({
+            standardSubmit: true,
+            padding: 6,
+            items: [instructionsLabel, grid, returnUrlText, analysisText, matchIdsText, alleleIdsText]});
 
         var win = new Ext.Window({
             title: title,
             layout: 'fit',
             border: false,
-            width: 475,
-            height: 300,
+            width: 430,
+            height: 455,
             closeAction: 'close',
             modal: true,
             items: formPanel,
             resizable: false,
-            buttons: [{
-                text: submitCaption,
-                disabled: true,
-                id: 'btn_submit',
-                handler: function(){
-                    // TODO: Post match rowids and new alleles
-                    win.close();
-                }
-            },{
-                text: 'Cancel',
-                id: 'btn_cancel',
-                handler: function(){
-                    win.close();
-                }
+            buttons: [submitButton,
+                {
+                    text: 'Cancel',
+                    id: 'btn_cancel',
+                    handler: function()
+                        {
+                            win.close();
+                        }
             }],
             bbar: [{ xtype: 'tbtext', text: '', id: 'statusTxt'}]
         });
@@ -146,28 +198,46 @@
         win.show();
     }
 
-    // Add all elements to array if they're not already present
-    function addAllIfAbsent(array, elements)
+    function updateCombineButton()
     {
-        for (var j = 0; j < elements.length; j++)
-        {
-            var element = elements[j];
-            addIfAbsent(array, element);
-        }
+        var selectedCount = grid.selModel.getCount();
+
+        if (selectedCount < 1)
+            submitButton.disable();
+        else
+            submitButton.enable();
     }
 
-    // Add a single element to array if it's not already present
-    function addIfAbsent(array, element)
+    // Add a single allele to array if it's not already present
+    function addAlleleIfAbsent(alleles, allele)
     {
-        for (var i = 0; i < array.length; i++)
-            if (array[i] === element)
+        for (var i = 0; i < alleles.length; i++)
+            if (alleles[i][0] === allele[0])
                 return;
 
-        array.push(element);
+        alleles.push(allele);
     }
 
     function onError(errorInfo)
     {
         alert(errorInfo.exception);
+    }
+
+    function submit()
+    {
+        var value = '';
+        var sep = '';
+        grid.selModel.each(function(record) {
+                value = value + sep + record.get('rowId');
+                sep = ',';
+            });
+        alleleIdsText.setValue(value);
+
+        var form = formPanel.getForm();
+        form.url = 'combineMatches.post';
+        form.method = 'POST';
+
+        form.submit();
+        win.close();
     }
 </script>
