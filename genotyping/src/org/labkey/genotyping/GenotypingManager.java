@@ -16,16 +16,22 @@
 
 package org.labkey.genotyping;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.AtomicDatabaseInteger;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
+import org.labkey.api.data.Results;
+import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SQLFragment;
+import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.query.QueryService;
 import org.labkey.api.security.User;
+import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.NotFoundException;
 
 import java.io.File;
@@ -35,9 +41,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 public class GenotypingManager
 {
@@ -258,5 +270,185 @@ public class GenotypingManager
         }
 
         return Table.executeSingleton(analyses.getSchema(), sql.getSQL(), sql.getParamsArray(), Integer.class);
+    }
+
+
+    // Insert a new match that combines the specified matches (if > 1) and associates the specified alleles with the
+    // new match.  Assumes that container permissions have been checked, but validates all other aspects of the incoming
+    // data: analysis exists in specified container, one or more matches are provided, one or more alleles are provided,
+    // matches belong to this analysis and to a single sample, and alleles belong to these matches.
+    public void combineMatches(Container c, User user, int analysisId, int[] matchIds, int[] alleleIds)
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+
+        // ======== Begin validation ========
+
+        // Validate analysis was posted and exists in this container
+        GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(c, analysisId);
+
+        List<Integer> matchIdList = Arrays.asList(ArrayUtils.toObject(matchIds));
+        List<Integer> alleleIdList = Arrays.asList(ArrayUtils.toObject(alleleIds));
+
+        // Verify that matches were posted
+        if (matchIdList.size() < 1)
+            throw new IllegalStateException("No matches were selected.");
+
+        // Verify that alleles were posted
+        if (alleleIdList.size() < 1)
+            throw new IllegalStateException("No alleles were selected.");
+
+        Results results = null;
+
+        // Validate the matches
+        try
+        {
+            // Count the corresponding matches in the database, making sure they belong to this analysis
+            SimpleFilter filter = new SimpleFilter("Analysis", analysis.getRowId());
+            filter.addInClause("RowId", matchIdList);
+            TableInfo tinfo = GenotypingQuerySchema.TableType.Matches.createTable(c, user);
+            results = QueryService.get().select(tinfo, tinfo.getColumns("SampleId"), filter, null);
+            Set<Integer> sampleIds = new HashSet<Integer>();
+            int matchCount = 0;
+
+            // Stash the sampled ids and count the matches
+            while (results.next())
+            {
+                sampleIds.add(results.getInt("SampleId"));
+                matchCount++;
+            }
+
+            // Verify that the selected match count equals the number of rowIds posted...
+            if (matchCount != matchIdList.size())
+                throw new IllegalStateException("Queried matches differ from selected matches.");
+
+            // Verify all matches are from the same sample
+            if (sampleIds.size() != 1)
+                throw new IllegalStateException("Queried matches differ from selected matches.");
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeSQLException(e);
+        }
+        finally
+        {
+            ResultSetUtil.close(results);
+        }
+
+        // Validate the alleles
+        try
+        {
+            // Select all the alleles associated with these matches
+            SimpleFilter filter = new SimpleFilter();
+            filter.addInClause("MatchId", matchIdList);
+            TableInfo tinfo = gs.getAllelesJunctionTable();
+            Integer[] mAlleles = Table.executeArray(tinfo, "SequenceId", filter, null, Integer.class);
+            Set<Integer> matchAlleles = new HashSet<Integer>(Arrays.asList(mAlleles));
+
+            if (!matchAlleles.containsAll(alleleIdList))
+                throw new IllegalStateException("Selected alleles aren't owned by the selected matches.");
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeSQLException(e);
+        }
+
+        // ======== End validation ========
+
+        // Now update the tables: create the new match, insert new rows in the alleles & reads junction tables, and mark the old matches
+
+        // Group all the matches based on analysis and rowIds
+        SimpleFilter matchFilter = new SimpleFilter("Analysis", analysis.getRowId());
+        matchFilter.addInClause("RowId", matchIdList);
+
+        // Sum all the counts and the percentage coverage; calculate new average length
+        SQLFragment sql = new SQLFragment("SELECT Analysis, SampleId, CAST(SUM(Reads) AS INT) AS reads, SUM(Percent) AS percent, SUM(Reads * AverageLength) / SUM(Reads) AS avg_length, ");
+        sql.append("CAST(SUM(PosReads) AS INT) AS pos_reads, CAST(SUM(NegReads) AS INT) AS neg_reads, CAST(SUM(PosExtReads) AS INT) AS pos_ext_reads, CAST(SUM(NegExtReads) AS INT) AS neg_ext_reads FROM ");
+        sql.append(gs.getMatchesTable(), "matches");
+        sql.append(" ");
+        sql.append(matchFilter.getSQLFragment(gs.getSqlDialect()));
+        sql.append(" GROUP BY Analysis, SampleId");
+
+        try
+        {
+            // TODO: Start transaction
+            ResultSet rs = null;
+
+            try
+            {
+                rs = Table.executeQuery(gs.getSchema(), sql);
+                rs.next();
+                SimpleFilter readsFilter = new SimpleFilter(new SimpleFilter.InClause("MatchId", matchIdList));
+                Integer[] readIds = Table.executeArray(gs.getReadsJunctionTable(), "ReadId", readsFilter, null, Integer.class);
+                int matchId = insertMatch(user, analysis, rs.getInt("SampleId"), rs, ArrayUtils.toPrimitive(readIds), alleleIds);
+
+                // Update ParentId column for all combined matches
+                SQLFragment updateSql = new SQLFragment("UPDATE ");
+                updateSql.append(gs.getMatchesTable(), "matches");
+                updateSql.append(" SET ParentId = ? ");
+                updateSql.add(matchId);
+                updateSql.append(matchFilter.getSQLFragment(gs.getSqlDialect()));
+
+                int rows = Table.execute(gs.getSchema(), updateSql);
+
+                assert rows == matchIds.length;
+            }
+            finally
+            {
+                ResultSetUtil.close(rs);
+            }
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeSQLException(e);
+        }
+    }
+
+
+    public int insertMatch(User user, GenotypingAnalysis analysis, int sampleId, ResultSet rs, int[] readIds, int[] alleleIds) throws SQLException
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+
+        Map<String, Object> row = new HashMap<String, Object>();
+        row.put("Analysis", analysis.getRowId());
+        row.put("SampleId", sampleId);
+        row.put("Reads", rs.getInt("reads"));
+        row.put("Percent", rs.getFloat("percent"));
+        row.put("AverageLength", rs.getFloat("avg_length"));
+        row.put("PosReads", rs.getInt("pos_reads"));
+        row.put("NegReads", rs.getInt("neg_reads"));
+        row.put("PosExtReads", rs.getInt("pos_ext_reads"));
+        row.put("NegExtReads", rs.getInt("neg_ext_reads"));
+
+        Map<String, Object> matchOut = Table.insert(user, gs.getMatchesTable(), row);
+
+        int matchId = (Integer)matchOut.get("RowId");
+
+        // Insert all the alleles in this group into AllelesJunction table
+        if (alleleIds.length > 0)
+        {
+            Map<String, Object> alleleJunctionMap = new HashMap<String, Object>();  // Reuse for each allele
+            alleleJunctionMap.put("MatchId", matchId);
+
+            for (int alleleId : alleleIds)
+            {
+                alleleJunctionMap.put("SequenceId", alleleId);
+                Table.insert(user, gs.getAllelesJunctionTable(), alleleJunctionMap);
+            }
+        }
+
+        // Insert RowIds for all the reads underlying this match into ReadsJunction table
+        if (readIds.length > 0)
+        {
+            Map<String, Object> readJunctionMap = new HashMap<String, Object>();   // Reuse for each read
+            readJunctionMap.put("MatchId", matchId);
+
+            for (int readId : readIds)
+            {
+                readJunctionMap.put("ReadId", readId);
+                Table.insert(user, gs.getReadsJunctionTable(), readJunctionMap);
+            }
+        }
+
+        return matchId;
     }
 }

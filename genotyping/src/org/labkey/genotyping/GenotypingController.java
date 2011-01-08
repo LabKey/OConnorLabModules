@@ -16,7 +16,6 @@
 
 package org.labkey.genotyping;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.action.FormViewAction;
@@ -37,7 +36,6 @@ import org.labkey.api.data.DataRegionSelection;
 import org.labkey.api.data.PanelButton;
 import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.Results;
-import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.ShowRows;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
@@ -293,6 +291,7 @@ public class GenotypingController extends SpringActionController
             return _analysis;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setAnalysis(int analysis)
         {
             _analysis = analysis;
@@ -303,6 +302,7 @@ public class GenotypingController extends SpringActionController
             return _matchIds;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setMatchIds(int[] matchIds)
         {
             _matchIds = matchIds;
@@ -313,6 +313,7 @@ public class GenotypingController extends SpringActionController
             return _alleleIds;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setAlleleIds(int[] alleleIds)
         {
             _alleleIds = alleleIds;
@@ -322,8 +323,6 @@ public class GenotypingController extends SpringActionController
     @RequiresPermissionClass(UpdatePermission.class)
     public class CombineMatchesAction extends RedirectAction<CombineForm>
     {
-        private Map<String, Object>[] _matches;
-
         @Override
         public URLHelper getSuccessURL(CombineForm form)
         {
@@ -333,99 +332,13 @@ public class GenotypingController extends SpringActionController
         @Override
         public boolean doAction(CombineForm form, BindException errors) throws Exception
         {
+            GenotypingManager.get().combineMatches(getContainer(), getUser(), form.getAnalysis(), form.getMatchIds(), form.getAlleleIds());
             return true;
         }
 
         @Override
         public void validateCommand(CombineForm form, Errors errors)
         {
-            // Validate analysis was posted and exists in this container
-            GenotypingManager.get().getAnalysis(getContainer(), form.getAnalysis());
-
-            List<Integer> matchIds = Arrays.asList(ArrayUtils.toObject(form.getMatchIds()));
-            matchIds = new ArrayList<Integer>(matchIds);
-            matchIds.add(999);
-
-            List<Integer> alleleIds = Arrays.asList(ArrayUtils.toObject(form.getAlleleIds()));
-            alleleIds = new ArrayList<Integer>(alleleIds);
-            alleleIds.add(123456);
-
-            // Verify that matches were posted
-            if (matchIds.size() < 1)
-            {
-                errors.reject(ERROR_MSG, "No matches were selected.");
-                return;
-            }
-
-            // Verify that alleles were posted
-            if (alleleIds.size() < 1)
-            {
-                errors.reject(ERROR_MSG, "No alleles were selected.");
-                return;
-            }
-
-            Results results = null;
-
-            // Validate the matches
-            try
-            {
-                // Count the corresponding matches in the database, making sure they belong to this analysis
-                SimpleFilter filter = new SimpleFilter("Analysis", form.getAnalysis());
-                filter.addInClause("RowId", matchIds);
-                TableInfo tinfo = TableType.Matches.createTable(getContainer(), getUser());
-                results = QueryService.get().select(tinfo, tinfo.getColumns("SampleId"), filter, null);
-                Set<Integer> sampleIds = new HashSet<Integer>();
-                int matchCount = 0;
-
-                // Stash the sampled ids and count the matches
-                while (results.next())
-                {
-                    sampleIds.add(results.getInt("SampleId"));
-                    matchCount++;
-                }
-
-                // Verify that the selected match count equals the number of rowIds posted...
-                if (matchCount != matchIds.size())
-                {
-                    errors.reject(ERROR_MSG, "Queried matches differ from selected matches.");
-                    return;
-                }
-
-                // Verify all matches are from the same sample
-                if (sampleIds.size() != 1)
-                {
-                    errors.reject(ERROR_MSG, "Queried matches differ from selected matches.");
-                    return;
-                }
-            }
-            catch (SQLException e)
-            {
-                throw new RuntimeSQLException(e);
-            }
-            finally
-            {
-                ResultSetUtil.close(results);
-            }
-
-            // Validate the alleles
-            try
-            {
-                // Select all the alleles associated with these matches
-                SimpleFilter filter = new SimpleFilter();
-                filter.addInClause("MatchId", matchIds);
-                TableInfo tinfo = GenotypingSchema.get().getAllelesJunctionTable();
-                Integer[] alleles = Table.executeArray(tinfo, "SequenceId", filter, null, Integer.class);
-                Set<Integer> matchAlleles = new HashSet<Integer>(Arrays.asList(alleles));
-
-                if (!matchAlleles.containsAll(alleleIds))
-                {
-                    errors.reject(ERROR_MSG, "Selected alleles aren't owned by the selected matches.");
-                }
-            }
-            catch (SQLException e)
-            {
-                throw new RuntimeSQLException(e);
-            }
         }
     }
 

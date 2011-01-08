@@ -59,6 +59,7 @@
       <ns:column columnName="NegExtReads">
         <ns:displayWidth>65</ns:displayWidth>
       </ns:column>
+      <ns:column columnName="ParentId"></ns:column>
       <ns:column columnName="Alleles" wrappedColumnName="RowId">
         <ns:isUnselectable>true</ns:isUnselectable>
         <ns:fk>

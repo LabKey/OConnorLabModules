@@ -122,8 +122,6 @@ public class ImportAnalysisJob extends PipelineJob
                     QueryContext ctx = new QueryContext(schema, samples, matches, gs.getReadsTable(), _analysis.getRun());
                     JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
                     String sql = jspQuery.render();
-                    Map<String, Object> alleleJunctionMap = new HashMap<String, Object>(); // Map to reuse for each insertion to AllelesJunction
-                    Map<String, Object> readJunctionMap = new HashMap<String, Object>();   // Map to reuse for each insertion to ReadsJunction
 
                     setStatus("IMPORTING RESULTS");
 
@@ -179,55 +177,32 @@ public class ImportAnalysisJob extends PipelineJob
 
                         if (null != sampleId)
                         {
-                            Map<String, Object> row = new HashMap<String, Object>();
-                            row.put("Analysis", _analysis.getRowId());
-                            row.put("SampleId", sampleKeys.get(sampleId));
-                            row.put("Reads", rs.getInt("reads"));
-                            row.put("Percent", rs.getFloat("percent"));
-                            row.put("AverageLength", rs.getFloat("avg_length"));
-                            row.put("PosReads", rs.getInt("pos_reads"));
-                            row.put("NegReads", rs.getInt("neg_reads"));
-                            row.put("PosExtReads", rs.getInt("pos_ext_reads"));
-                            row.put("NegExtReads", rs.getInt("neg_ext_reads"));
+                            // Compute array of read row ids
+                            String readIdsString = rs.getString("ReadIds");
+                            String[] readArray = readIdsString.split(",");
+                            int[] readIds = new int[readArray.length];
 
-                            Map<String, Object> matchOut = Table.insert(getUser(), gs.getMatchesTable(), row);
-                            int matchId = (Integer)matchOut.get("RowId");
+                            for (int i = 0; i < readArray.length; i++)
+                                readIds[i] = Integer.parseInt(readArray[i]);
 
-                            // Insert all the alleles in this group into AllelesJunction table
+                            // Compute array of allele row ids and verify each is in the reference sequence dictionary
                             String allelesString = rs.getString("alleles");
                             String[] alleles = allelesString.split(",");
+                            int[] alleleIds = new int[alleles.length];
 
-                            if (alleles.length > 0)
+                            for (int i = 0; i < alleles.length; i++)
                             {
-                                alleleJunctionMap.put("MatchId", matchId);
+                                String allele = alleles[i];
+                                Integer sequenceId = sequences.get(allele);
 
-                                for (String allele : alleles)
-                                {
-                                    Integer sequenceId = sequences.get(allele);
+                                if (null == sequenceId)
+                                    throw new NotFoundException("Allele name \"" + allele + "\" not found in reference sequences dictionary " +
+                                            _analysis.getSequenceDictionary() + ", view \"" + _analysis.getSequencesView() + "\"");
 
-                                    if (null == sequenceId)
-                                        throw new NotFoundException("Allele name \"" + allele + "\" not found in reference sequences dictionary " +
-                                                _analysis.getSequenceDictionary() + ", view \"" + _analysis.getSequencesView() + "\"");
-
-                                    alleleJunctionMap.put("SequenceId", sequenceId);
-                                    Table.insert(getUser(), gs.getAllelesJunctionTable(), alleleJunctionMap);
-                                }
+                                alleleIds[i] = sequenceId;
                             }
 
-                            // Insert RowIds for all the reads underlying this group into ReadsJunction table
-                            String readIdsString = rs.getString("ReadIds");
-                            String[] readIds = readIdsString.split(",");
-
-                            if (readIds.length > 0)
-                            {
-                                readJunctionMap.put("MatchId", matchId);
-
-                                for (String readId : readIds)
-                                {
-                                    readJunctionMap.put("ReadId", Integer.parseInt(readId));
-                                    Table.insert(getUser(), gs.getReadsJunctionTable(), readJunctionMap);
-                                }
-                            }
+                            GenotypingManager.get().insertMatch(getUser(), _analysis, sampleKeys.get(sampleId), rs, readIds, alleleIds);
                         }
                     }
                 }

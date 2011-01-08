@@ -17,11 +17,13 @@ package org.labkey.genotyping;
 
 import org.labkey.api.collections.Sets;
 import org.labkey.api.data.ColumnInfo;
+import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DisplayColumn;
 import org.labkey.api.data.DisplayColumnFactory;
 import org.labkey.api.data.HighlightingDisplayColumn;
 import org.labkey.api.data.SQLFragment;
+import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.DetailsURL;
@@ -171,6 +173,10 @@ public class GenotypingQuerySchema extends UserSchema
 
                 return table;
             }},
+
+        // TODO: Add matches view that displays the original match information (before combining/altering).  SQL for this is below
+        // SELECT * FROM genotyping.matches matches LEFT JOIN genotyping.matches combined on matches.rowid = combined.parentid WHERE matches.analysis = 38 AND combined.rowid IS NULL order by matches.rowid
+
         Matches() {
             @Override
             FilteredTable createTable(Container c, User user)
@@ -180,6 +186,9 @@ public class GenotypingQuerySchema extends UserSchema
                 SQLFragment containerCondition = new SQLFragment("Analysis IN (SELECT a.RowId FROM " + GS.getAnalysesTable().getFromSQL("a") + " INNER JOIN " + GS.getRunsTable().getFromSQL("r") + " ON a.Run = r.RowId WHERE Container = ?)");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
+
+                // Normal matches view never shows children of combined (or altered) matches
+                table.addCondition(new SimpleFilter().addCondition("ParentId", null, CompareType.ISBLANK));
                 setDefaultVisibleColumns(table, "SampleId, Reads, Percent, AverageLength, PosReads, NegReads, PosExtReads, NegExtReads, Alleles/AlleleName");
 
                 String samplesQuery = GenotypingManager.get().getSettings(c).getSamplesQuery();
