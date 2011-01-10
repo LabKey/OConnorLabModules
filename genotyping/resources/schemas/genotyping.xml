@@ -59,7 +59,7 @@
       <ns:column columnName="NegExtReads">
         <ns:displayWidth>65</ns:displayWidth>
       </ns:column>
-      <ns:column columnName="ParentId"></ns:column>
+      <ns:column columnName="ParentId"/>
       <ns:column columnName="Alleles" wrappedColumnName="RowId">
         <ns:isUnselectable>true</ns:isUnselectable>
         <ns:fk>
@@ -97,7 +97,10 @@
       </ns:column>
       <ns:column columnName="Run"/>
       <ns:column columnName="Name"/>
-      <ns:column columnName="Mid"/>
+      <ns:column columnName="Mid">
+        <ns:isHidden>true</ns:isHidden>
+      </ns:column>          
+      <ns:column columnName="SampleId"/>
       <ns:column columnName="Sequence"/>
       <ns:column columnName="Quality"/>
     </ns:columns>

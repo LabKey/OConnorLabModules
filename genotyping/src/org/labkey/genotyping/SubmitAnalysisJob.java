@@ -16,8 +16,6 @@
 package org.labkey.genotyping;
 
 import org.jetbrains.annotations.NotNull;
-import org.labkey.api.data.ColumnInfo;
-import org.labkey.api.data.Results;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TSVWriter;
@@ -25,7 +23,6 @@ import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
-import org.labkey.api.query.FieldKey;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.PageFlowUtil;
@@ -43,9 +40,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -57,28 +52,24 @@ import java.util.Set;
  */
 public class SubmitAnalysisJob extends PipelineJob
 {
-    public final static Set<Integer> ALL_SAMPLES = new HashSet<Integer>(0);
-
     private final File _dir;
-    private final GenotypingRun _run;
     private final GenotypingAnalysis _analysis;
     private final File _analysisDir;
-    private final Set<Integer> _sampleKeys;
+    private final Set<Integer> _sampleIds;
 
     private URLHelper _galaxyURL = null;
     private File _completionFile = null;   // Used for dev mode only
 
     // In dev mode only, we'll test the ability to connect to the Galaxy server once; if this connection fails, we'll
-    // skip trying to submit to Galaxy on subsequence attempts.
+    // skip trying to submit to Galaxy on subsequent attempts.
     private static Boolean _useGalaxy = null;
 
-    public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run, GenotypingAnalysis analysis, @NotNull Set<Integer> sampleKeys) throws SQLException
+    public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingAnalysis analysis, @NotNull Set<Integer> sampleIds) throws SQLException
     {
         super("Submit Analysis", info, root);      // No pipeline provider
         _dir = reads.getParentFile();
-        _run = run;
         _analysis = analysis;
-        _sampleKeys = sampleKeys;
+        _sampleIds = sampleIds;
 
         _analysisDir = new File(_dir, "analysis_" + _analysis.getRowId());
 
@@ -119,8 +110,8 @@ public class SubmitAnalysisJob extends PipelineJob
             info("Verifying Galaxy configuration");
             GalaxyServer server = GalaxyUtils.get(getContainer(), getUser());
 
-            List<Integer> mids = writeSamples();
-            writeReads(mids);
+            writeAnalysisSamples();
+            writeReads();
             writeProperties();
             writeFasta();
             sendFilesToGalaxy(server);
@@ -138,73 +129,35 @@ public class SubmitAnalysisJob extends PipelineJob
     }
 
 
-    private List<Integer> writeSamples() throws SQLException, ServletException, IOException
+    private void writeAnalysisSamples() throws SQLException
     {
-        info("Writing sample file");
-        setStatus("WRITING SAMPLES");
+        Map<String, Object> sampleMap = new HashMap<String, Object>();   // Map to reuse for each insertion to AnalysisSamples
+        sampleMap.put("analysis", _analysis.getRowId());
 
-        final Results results = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "key, library_sample_name, library_sample_f_mid/mid_name, library_sample_f_mid/mid_sequence");
-        final List<Integer> mids = new LinkedList<Integer>();
-
-        // Need a custom writer since TSVGridWriter doesn't work in background threads
-        TSVWriter writer = new TSVWriter() {
-            @Override
-            protected void write()
-            {
-                ResultSet rs = results.getResultSet();
-                Map<FieldKey, ColumnInfo> fieldMap = results.getFieldMap();
-                
-                _pw.println("mid_sequence\tmid_num\tsample");
-
-                try
-                {
-                    while (null != rs && rs.next())
-                    {
-                        int key = (Integer)fieldMap.get(FieldKey.fromString("key")).getValue(rs);
-
-                        if (_sampleKeys == ALL_SAMPLES || _sampleKeys.contains(key))
-                        {
-                            int mid = (Integer)fieldMap.get(FieldKey.fromString("library_sample_f_mid/mid_name")).getValue(rs);
-                            String sequence = (String)fieldMap.get(FieldKey.fromString("library_sample_f_mid/mid_sequence")).getValue(rs);
-                            String sampleName = (String)fieldMap.get(FieldKey.fromString("library_sample_name")).getValue(rs);
-                            _pw.println(sequence + "\t" + mid + "\t" + sampleName);
-                            mids.add(mid);
-                        }
-                    }
-                }
-                catch (SQLException e)
-                {
-                    throw new RuntimeSQLException(e);
-                }
-                finally
-                {
-                    ResultSetUtil.close(rs);
-                }
-            }
-        };
-
-        File samplesFile = new File(_analysisDir, GenotypingManager.SAMPLES_FILE_NAME);
-        writer.write(samplesFile);
-        return mids;
+        for (Integer sampleId : _sampleIds)
+        {
+            sampleMap.put("sampleId", sampleId);
+            Table.insert(getUser(), GenotypingSchema.get().getAnalysisSamplesTable(), sampleMap);
+        }
     }
 
 
-    private void writeReads(List<Integer> mids) throws IOException, SQLException, ServletException
+    private void writeReads() throws IOException, SQLException, ServletException
     {
         info("Writing reads file");
         setStatus("WRITING READS");
         TableInfo ti = GenotypingSchema.get().getReadsTable();
         SimpleFilter filter = new SimpleFilter("run", _analysis.getRun());
-        filter.addInClause("mid", mids);
+        filter.addInClause("SampleId", _sampleIds);
 
-        final ResultSet rs = Table.select(ti, ti.getColumns("name,mid,sequence,quality"), filter, null);
+        final ResultSet rs = Table.select(ti, ti.getColumns("name,sampleid,sequence,quality"), filter, null);
 
         // Need a custom writer since TSVGridWriter does not work in background threads
         TSVWriter writer = new TSVWriter() {
             @Override
             protected void write()
             {
-                _pw.println("name\tmid\tsequence\tquality");
+                _pw.println("name\tsample\tsequence\tquality");
 
                 try
                 {

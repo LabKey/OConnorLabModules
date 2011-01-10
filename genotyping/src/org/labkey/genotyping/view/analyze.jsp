@@ -145,20 +145,13 @@ function initializeSelection()
 
 function submit()
 {
-    if (samplesGrid.selModel.getCount() == sampleStore.getCount())
-    {
-        selectedSamples.setValue('*');
-    }
-    else
-    {
-        var value = '';
-        var sep = '';
-        samplesGrid.selModel.each(function(record) {
-                value = value + sep + record.get('key');
-                sep = ',';
-            });
-        selectedSamples.setValue(value);
-    }
+    var value = '';
+    var sep = '';
+    samplesGrid.selModel.each(function(record) {
+            value = value + sep + record.get('key');
+            sep = ',';
+        });
+    selectedSamples.setValue(value);
 
     f.getForm().submit();
 }

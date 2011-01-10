@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.AtomicDatabaseInteger;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DbScope;
 import org.labkey.api.data.PropertyManager;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.RuntimeSQLException;
@@ -368,38 +369,41 @@ public class GenotypingManager
         sql.append(matchFilter.getSQLFragment(gs.getSqlDialect()));
         sql.append(" GROUP BY Analysis, SampleId");
 
+        DbScope scope = gs.getSchema().getScope();
+        ResultSet rs = null;
+
         try
         {
-            // TODO: Start transaction
-            ResultSet rs = null;
+            scope.beginTransaction();
 
-            try
-            {
-                rs = Table.executeQuery(gs.getSchema(), sql);
-                rs.next();
-                SimpleFilter readsFilter = new SimpleFilter(new SimpleFilter.InClause("MatchId", matchIdList));
-                Integer[] readIds = Table.executeArray(gs.getReadsJunctionTable(), "ReadId", readsFilter, null, Integer.class);
-                int matchId = insertMatch(user, analysis, rs.getInt("SampleId"), rs, ArrayUtils.toPrimitive(readIds), alleleIds);
+            rs = Table.executeQuery(gs.getSchema(), sql);
+            rs.next();
+            SimpleFilter readsFilter = new SimpleFilter(new SimpleFilter.InClause("MatchId", matchIdList));
+            Integer[] readIds = Table.executeArray(gs.getReadsJunctionTable(), "ReadId", readsFilter, null, Integer.class);
+            int matchId = insertMatch(user, analysis, rs.getInt("SampleId"), rs, ArrayUtils.toPrimitive(readIds), alleleIds);
 
-                // Update ParentId column for all combined matches
-                SQLFragment updateSql = new SQLFragment("UPDATE ");
-                updateSql.append(gs.getMatchesTable(), "matches");
-                updateSql.append(" SET ParentId = ? ");
-                updateSql.add(matchId);
-                updateSql.append(matchFilter.getSQLFragment(gs.getSqlDialect()));
+            // Update ParentId column for all combined matches
+            SQLFragment updateSql = new SQLFragment("UPDATE ");
+            updateSql.append(gs.getMatchesTable(), "matches");
+            updateSql.append(" SET ParentId = ? ");
+            updateSql.add(matchId);
+            updateSql.append(matchFilter.getSQLFragment(gs.getSqlDialect()));
 
-                int rows = Table.execute(gs.getSchema(), updateSql);
+            int rows = Table.execute(gs.getSchema(), updateSql);
 
-                assert rows == matchIds.length;
-            }
-            finally
-            {
-                ResultSetUtil.close(rs);
-            }
+            if (rows != matchIds.length)
+                throw new IllegalStateException("Incorrect number of ParentIds were updated");
+
+            scope.commitTransaction();
         }
         catch (SQLException e)
         {
             throw new RuntimeSQLException(e);
+        }
+        finally
+        {
+            ResultSetUtil.close(rs);
+            scope.closeConnection();
         }
     }
 

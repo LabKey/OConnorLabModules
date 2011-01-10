@@ -15,15 +15,20 @@
  */
 package org.labkey.genotyping;
 
+import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.security.User;
+import org.labkey.api.util.ResultSetUtil;
 
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * User: adam
@@ -33,6 +38,11 @@ import java.util.List;
 public class SampleManager
 {
     private static final SampleManager INSTANCE = new SampleManager();
+
+    public static final String MID5_COLUMN_NAME = "mid";
+    public static final String MID3_COLUMN_NAME = "mid3";
+    public static final String AMPLICON_COLUMN_NAME = "amplicon";
+    static final Set<String> POSSIBLE_SAMPLE_KEYS = new CaseInsensitiveHashSet(MID5_COLUMN_NAME, MID3_COLUMN_NAME, AMPLICON_COLUMN_NAME);
 
     private SampleManager()
     {
@@ -55,5 +65,104 @@ public class SampleManager
             fieldKeys.add(FieldKey.fromString(name));
 
         return qHelper.select(extraFilter, fieldKeys);
+    }
+
+
+    public static class SampleIdFinder
+    {
+        private final Set<String> _sampleKeyColumns;
+        private final Map<SampleKey, Integer> _map;
+
+        public SampleIdFinder(GenotypingRun run, User user, Set<String> sampleKeyColumns) throws SQLException
+        {
+            _sampleKeyColumns = sampleKeyColumns;
+            _map = new LinkedHashMap<SampleKey, Integer>();
+
+            Results rs = null;
+
+            try
+            {
+                // Create the [5' MID, 3' MID, Amplicon] -> sample id mapping for this run
+                try
+                {
+                    rs = SampleManager.get().selectSamples(run.getContainer(), user, run, "library_sample_f_mid/mid_name, threemid/mid_name, amplicon, key");
+                }
+                catch (NullPointerException e)
+                {
+                    // An exception could mean samples and meta data runs have not been configured in this container
+                    // TODO: selectSamples should return null in this case
+                    _map.clear();
+                    return;
+                }
+
+                while (rs.next())
+                {
+                    // Use getObject() to allow null values
+                    SampleKey key = getSampleKey((Integer)rs.getObject(1), (Integer)rs.getObject(2), (String)rs.getObject(3));
+                    Integer previousId = _map.put(key, rs.getInt(4));
+
+                    if (null != previousId)
+                        throw new IllegalStateException("Ambigious samples -- " + key + " maps to more than one sample in the library");
+                }
+            }
+            finally
+            {
+                ResultSetUtil.close(rs);
+            }
+        }
+
+
+        private SampleKey getSampleKey(Integer mid5, Integer mid3, String amplicon)
+        {
+            return new SampleKey(
+                _sampleKeyColumns.contains(MID5_COLUMN_NAME) ? mid5 : null,
+                _sampleKeyColumns.contains(MID3_COLUMN_NAME) ? mid3 : null,
+                _sampleKeyColumns.contains(AMPLICON_COLUMN_NAME) ? amplicon : null
+            );
+        }
+
+
+        public Integer getSampleId(Integer mid5, Integer mid3, String amplicon)
+        {
+            return _map.get(getSampleKey(mid5, mid3, amplicon));
+        }
+    }
+
+    private static class SampleKey
+    {
+        private final Integer _mid5;
+        private final Integer _mid3;
+        private final String _amplicon;
+
+        private SampleKey(Integer mid5, Integer mid3, String amplicon)
+        {
+            _mid5 = mid5;
+            _mid3 = mid3;
+            _amplicon = amplicon;
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            SampleKey that = (SampleKey) o;
+
+            if (_amplicon != null ? !_amplicon.equals(that._amplicon) : that._amplicon != null) return false;
+            if (_mid3 != null ? !_mid3.equals(that._mid3) : that._mid3 != null) return false;
+            if (_mid5 != null ? !_mid5.equals(that._mid5) : that._mid5 != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            int result = _mid5 != null ? _mid5.hashCode() : 0;
+            result = 31 * result + (_mid3 != null ? _mid3.hashCode() : 0);
+            result = 31 * result + (_amplicon != null ? _amplicon.hashCode() : 0);
+            return result;
+        }
     }
 }

@@ -33,8 +33,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * User: adam
@@ -120,8 +122,17 @@ public class ImportReadsJob extends PipelineJob
                 col.name = col.name.replace("_", "");
             }
 
+            Set<String> sampleKeyColumns = new HashSet<String>();
+
+            for (ColumnDescriptor col : columns)
+                if (SampleManager.POSSIBLE_SAMPLE_KEYS.contains(col.name))
+                    sampleKeyColumns.add(col.name);
+
             columns.add(new ColumnDescriptor("run", Integer.class, _run.getRowId()));
+            columns.add(new ColumnDescriptor("sampleid", Integer.class));
             loader.setColumns(columns.toArray(new ColumnDescriptor[columns.size()]));
+
+            SampleManager.SampleIdFinder finder = new SampleManager.SampleIdFinder(_run, getUser(), sampleKeyColumns);
 
             TableInfo readsTable = GenotypingSchema.get().getReadsTable();
 
@@ -132,10 +143,23 @@ public class ImportReadsJob extends PipelineJob
 
             for (Map<String, Object> map : loader)
             {
-                Integer mid = (Integer)map.get("mid");
+                Integer mid5 = (Integer)map.get(SampleManager.MID5_COLUMN_NAME);
 
-                if (0 == mid)
-                    map.put("mid", null);
+                if (null != mid5 && 0 == mid5)
+                {
+                    mid5 = null;
+                    map.put(SampleManager.MID5_COLUMN_NAME, mid5);
+                }
+
+                Integer mid3 = (Integer)map.get(SampleManager.MID3_COLUMN_NAME);
+
+                if (null != mid3 && 0 == mid3)
+                {
+                    mid3 = null;
+                    map.put(SampleManager.MID3_COLUMN_NAME, mid3);
+                }
+
+                map.put("sampleid", finder.getSampleId(mid5, mid3, (String)map.get("amplicon")));
 
                 Table.insert(getUser(), readsTable, map);
                 rowCount++;

@@ -23,7 +23,7 @@
     ImportAnalysisJob.QueryContext ctx = (ImportAnalysisJob.QueryContext)getModelBean();
     SqlDialect dialect = ctx.schema.getSqlDialect();
 %>
-SELECT  sample,
+SELECT  reads.sampleid,
         alleles,
         CAST(COUNT(*) AS INT) AS reads,
         CAST(COUNT(*) AS REAL)/total_reads AS <%=dialect.getColumnSelectName("percent")%>,
@@ -33,15 +33,14 @@ SELECT  sample,
         CAST(SUM(pos_ext_reads) AS INT) AS pos_ext_reads,
         CAST(SUM(neg_ext_reads) AS INT) AS neg_ext_reads,
         <%=dialect.getGroupConcat(new SQLFragment("rowid"), true, false)%> AS ReadIds
-    FROM <%=ctx.samples%> samples
-    INNER JOIN <%=ctx.reads%> reads ON samples.mid_num = reads.mid AND reads.Run = <%=ctx.run%>
+    FROM <%=ctx.reads%> reads
     INNER JOIN
     (
-        SELECT mid, COUNT(*) AS total_reads
+        SELECT sampleid, COUNT(*) AS total_reads
         FROM <%=ctx.reads%> reads
         WHERE reads.Run = <%=ctx.run%>
-        GROUP BY mid
-    ) read_count ON read_count.mid = reads.mid
+        GROUP BY sampleid
+    ) read_count ON read_count.sampleid = reads.sampleid
     INNER JOIN
     (
         SELECT read_name, <%=dialect.getGroupConcat(new SQLFragment("match"), false, true)%> AS Alleles, AVG(length) AS Avg_Length,
@@ -52,6 +51,7 @@ SELECT  sample,
         FROM <%=ctx.matches%>
         GROUP BY read_name, direction
     ) matches ON matches.read_name = reads.name
-GROUP BY sample, alleles, total_reads
+WHERE reads.Run = <%=ctx.run%>
+GROUP BY reads.sampleid, alleles, total_reads
 HAVING COUNT(*) > 1
-ORDER BY sample, alleles
+ORDER BY reads.sampleid, alleles

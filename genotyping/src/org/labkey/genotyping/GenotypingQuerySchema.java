@@ -131,7 +131,30 @@ public class GenotypingQuerySchema extends UserSchema
                 SQLFragment containerCondition = new SQLFragment("Run IN (SELECT Run FROM " + GS.getRunsTable().getFromSQL("r") + " WHERE Container = ?)");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
-                setDefaultVisibleColumns(table, "Name, Mid, Sequence, Quality");
+                setDefaultVisibleColumns(table, "Name, SampleId, Sequence, Quality");
+
+                String samplesQuery = GenotypingManager.get().getSettings(c).getSamplesQuery();
+
+                if (null != samplesQuery)
+                {
+                    QueryHelper qHelper = new QueryHelper(c, user, samplesQuery);
+                    final TableInfo samples = qHelper.getTableInfo();
+
+                    ColumnInfo sampleId = table.getColumn("SampleId");
+                    sampleId.setFk(new LookupForeignKey("key", "library_sample_name") {
+                        @Override
+                        public TableInfo getLookupTableInfo()
+                        {
+                            return samples;
+                        }
+                    });
+
+                    // TODO: Better way to do this?
+                    StringExpression url = samples.getDetailsURL(Collections.singleton(new FieldKey(null, "key")), c);
+                    url = DetailsURL.fromString(url.getSource().replace("Key", "sampleId"));
+                    sampleId.setURL(url);
+                }
+
                 table.setDescription("Contains one row per sequencing read");
 
                 return table;
@@ -174,7 +197,7 @@ public class GenotypingQuerySchema extends UserSchema
                 return table;
             }},
 
-        // TODO: Add matches view that displays the original match information (before combining/altering).  SQL for this is below
+        // TODO: Add matches view that displays the original match information (omitting combining/altering).  SQL for this is below
         // SELECT * FROM genotyping.matches matches LEFT JOIN genotyping.matches combined on matches.rowid = combined.parentid WHERE matches.analysis = 38 AND combined.rowid IS NULL order by matches.rowid
 
         Matches() {

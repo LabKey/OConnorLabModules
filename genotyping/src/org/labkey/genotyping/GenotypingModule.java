@@ -19,6 +19,7 @@ package org.labkey.genotyping;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.UpgradeCode;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleLoader;
@@ -40,7 +41,7 @@ public class GenotypingModule extends DefaultModule
 
     public double getVersion()
     {
-        return 10.31;
+        return 10.32;
     }
 
     public boolean hasScripts()
@@ -85,5 +86,11 @@ public class GenotypingModule extends DefaultModule
     public Set<DbSchema> getSchemasToTest()
     {
         return PageFlowUtil.set(GenotypingSchema.get().getSchema());
+    }
+
+    @Override
+    public UpgradeCode getUpgradeCode()
+    {
+        return new GenotypingUpgradeCode();
     }
 }

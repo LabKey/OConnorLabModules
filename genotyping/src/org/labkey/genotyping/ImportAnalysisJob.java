@@ -16,16 +16,13 @@
 package org.labkey.genotyping;
 
 import org.jetbrains.annotations.Nullable;
-import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.DbSchema;
-import org.labkey.api.data.Results;
 import org.labkey.api.data.Table;
-import org.labkey.api.data.TempTableInfo;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TempTableInfo;
 import org.labkey.api.data.TempTableWriter;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
-import org.labkey.api.query.FieldKey;
 import org.labkey.api.reader.ColumnDescriptor;
 import org.labkey.api.reader.TabLoader;
 import org.labkey.api.util.DateUtil;
@@ -46,7 +43,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,14 +55,12 @@ public class ImportAnalysisJob extends PipelineJob
 {
     private File _dir;
     private GenotypingAnalysis _analysis;
-    private GenotypingRun _run;
 
     public ImportAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File pipelineDir, GenotypingAnalysis analysis)
     {
         super("Import Analysis", info, root);
         _dir = pipelineDir;
         _analysis = analysis;
-        _run = GenotypingManager.get().getRun(getContainer(), _analysis.getRun());
         setLogFile(new File(_dir, FileUtil.makeFileNameWithTimestamp("import_analysis", "log")));
 
         if (!_dir.exists())
@@ -98,126 +92,73 @@ public class ImportAnalysisJob extends PipelineJob
 
         try
         {
-            File sourceSamples = new File(_dir, GenotypingManager.SAMPLES_FILE_NAME);
             File sourceMatches = new File(_dir, GenotypingManager.MATCHES_FILE_NAME);
 
             GenotypingSchema gs = GenotypingSchema.get();
             DbSchema schema = gs.getSchema();
 
-            TempTableInfo samples = null;
             TempTableInfo matches = null;
+            ResultSet rs = null;
 
             try
             {
-                ResultSet rs = null;
+                setStatus("LOADING TEMP TABLES");
+                info("Loading matches temp table");
+                matches = createTempTable(sourceMatches, schema, null);
 
-                try
+                QueryContext ctx = new QueryContext(schema, matches, gs.getReadsTable(), _analysis.getRun());
+                JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
+                String sql = jspQuery.render();
+
+                setStatus("IMPORTING RESULTS");
+
+                info("Executing query to join results");
+                rs = Table.executeQuery(schema, sql, null);
+                info("Importing results");
+                SequenceDictionary dictionary = SequenceManager.get().getSequenceDictionary(getContainer(), _analysis.getSequenceDictionary());
+                Map<String, Integer> sequences = SequenceManager.get().getSequences(getContainer(), getUser(), dictionary, _analysis.getSequencesView());
+
+                while (rs.next())
                 {
-                    setStatus("LOADING TEMP TABLES");
-                    info("Loading samples temp table");
-                    samples = createTempTable(sourceSamples, schema, "mid_num,sample");
-                    info("Loading matches temp table");
-                    matches = createTempTable(sourceMatches, schema, null);
+                    Integer sampleId = (Integer)rs.getObject("sampleid");
 
-                    QueryContext ctx = new QueryContext(schema, samples, matches, gs.getReadsTable(), _analysis.getRun());
-                    JspTemplate<QueryContext> jspQuery = new JspTemplate<QueryContext>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
-                    String sql = jspQuery.render();
-
-                    setStatus("IMPORTING RESULTS");
-
-                    info("Importing list of samples");
-
-                    // We want to store sample RowIds with each match and in the AnalysisSamples table, but samples.txt
-                    // does not include RowIds.  So, we "join" the samples temp table (names of all samples used) with
-                    // the list of all samples in this library to provide the name -> rowId mapping.
-                    Map<String, Integer> sampleKeys = new HashMap<String, Integer>();
-                    ResultSet allSamples = null;
-
-                    try
+                    if (null != sampleId)
                     {
-                        // Select sample names from the samples temp table -- these are the samples that were selected when submitting the analysis
-                        String[] analysisSampleNames = Table.executeArray(samples, "sample", null, null, String.class);
-                        Set<String> analysisSamples = PageFlowUtil.set(analysisSampleNames);
+                        // Compute array of read row ids
+                        String readIdsString = rs.getString("ReadIds");
+                        String[] readArray = readIdsString.split(",");
+                        int[] readIds = new int[readArray.length];
 
-                        // Select name and rowId of all samples from this library -- we'll only use the selected ones
-                        Results results = SampleManager.get().selectSamples(getContainer(), getUser(), _run, "library_sample_name, key");
-                        allSamples = results.getResultSet();
-                        Map<FieldKey, ColumnInfo> fieldMap = results.getFieldMap();
+                        for (int i = 0; i < readArray.length; i++)
+                            readIds[i] = Integer.parseInt(readArray[i]);
 
-                        Map<String, Object> sampleMap = new HashMap<String, Object>();   // Map to reuse for each insertion to AnalysisSamples
-                        sampleMap.put("analysis", _analysis.getRowId());
+                        // Compute array of allele row ids and verify each is in the reference sequence dictionary
+                        String allelesString = rs.getString("alleles");
+                        String[] alleles = allelesString.split(",");
+                        int[] alleleIds = new int[alleles.length];
 
-                        while (allSamples.next())
+                        for (int i = 0; i < alleles.length; i++)
                         {
-                            String sampleName = (String)fieldMap.get(FieldKey.fromString("library_sample_name")).getValue(allSamples);
+                            String allele = alleles[i];
+                            Integer sequenceId = sequences.get(allele);
 
-                            if (analysisSamples.contains(sampleName))
-                            {
-                                int sampleId = (Integer)fieldMap.get(FieldKey.fromString("key")).getValue(allSamples);
-                                sampleMap.put("sampleId", sampleId);
-                                Table.insert(getUser(), gs.getAnalysisSamplesTable(), sampleMap);
-                                sampleKeys.put(sampleName, sampleId);
-                            }
+                            if (null == sequenceId)
+                                throw new NotFoundException("Allele name \"" + allele + "\" not found in reference sequences dictionary " +
+                                        _analysis.getSequenceDictionary() + ", view \"" + _analysis.getSequencesView() + "\"");
+
+                            alleleIds[i] = sequenceId;
                         }
+
+                        GenotypingManager.get().insertMatch(getUser(), _analysis, sampleId, rs, readIds, alleleIds);
                     }
-                    finally
-                    {
-                        ResultSetUtil.close(allSamples);
-                    }
-
-                    info("Executing query to join results");
-                    rs = Table.executeQuery(schema, sql, null);
-                    info("Importing results");
-                    SequenceDictionary dictionary = SequenceManager.get().getSequenceDictionary(getContainer(), _analysis.getSequenceDictionary());
-                    Map<String, Integer> sequences = SequenceManager.get().getSequences(getContainer(), getUser(), dictionary, _analysis.getSequencesView());
-
-                    while (rs.next())
-                    {
-                        String sampleId = rs.getString("sample");
-
-                        if (null != sampleId)
-                        {
-                            // Compute array of read row ids
-                            String readIdsString = rs.getString("ReadIds");
-                            String[] readArray = readIdsString.split(",");
-                            int[] readIds = new int[readArray.length];
-
-                            for (int i = 0; i < readArray.length; i++)
-                                readIds[i] = Integer.parseInt(readArray[i]);
-
-                            // Compute array of allele row ids and verify each is in the reference sequence dictionary
-                            String allelesString = rs.getString("alleles");
-                            String[] alleles = allelesString.split(",");
-                            int[] alleleIds = new int[alleles.length];
-
-                            for (int i = 0; i < alleles.length; i++)
-                            {
-                                String allele = alleles[i];
-                                Integer sequenceId = sequences.get(allele);
-
-                                if (null == sequenceId)
-                                    throw new NotFoundException("Allele name \"" + allele + "\" not found in reference sequences dictionary " +
-                                            _analysis.getSequenceDictionary() + ", view \"" + _analysis.getSequencesView() + "\"");
-
-                                alleleIds[i] = sequenceId;
-                            }
-
-                            GenotypingManager.get().insertMatch(getUser(), _analysis, sampleKeys.get(sampleId), rs, readIds, alleleIds);
-                        }
-                    }
-                }
-                finally
-                {
-                    ResultSetUtil.close(rs);
                 }
             }
             finally
             {
+                ResultSetUtil.close(rs);
                 info("Deleting temporary tables");
 
-                // Drop the temp tables
-                if (null != samples)
-                    samples.delete();
+                // Drop the temp table
                 if (null != matches)
                     matches.delete();
             }
@@ -267,15 +208,13 @@ public class ImportAnalysisJob extends PipelineJob
     public static class QueryContext
     {
         public final DbSchema schema;
-        public final TableInfo samples;
         public final TableInfo matches;
         public final TableInfo reads;
         public final int run;
 
-        private QueryContext(DbSchema schema, TableInfo samples, TableInfo matches, TableInfo reads, int run)
+        private QueryContext(DbSchema schema, TableInfo matches, TableInfo reads, int run)
         {
             this.schema = schema;
-            this.samples = samples;
             this.matches = matches;
             this.reads = reads;
             this.run = run;

@@ -1009,22 +1009,14 @@ public class GenotypingController extends SpringActionController
             String sequencesView = DEFAULT_VIEW_PLACEHOLDER.equals(sequencesViewName) ? null : sequencesViewName;
             String samples = form.getSamples();
             Set<Integer> sampleKeys;
+            String[] keys = samples.split(",");
+            sampleKeys = new HashSet<Integer>(keys.length);
 
-            if (samples.equals("*"))
-            {
-                sampleKeys = SubmitAnalysisJob.ALL_SAMPLES;
-            }
-            else
-            {
-                String[] keys = samples.split(",");
-                sampleKeys = new HashSet<Integer>(keys.length);
-
-                for (String key : keys)
-                    sampleKeys.add(Integer.parseInt(key));
-            }
+            for (String key : keys)
+                sampleKeys.add(Integer.parseInt(key));
 
             GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, null == description ? null : description, sequencesView);
-            PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsPath, run, analysis, sampleKeys);
+            PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsPath, analysis, sampleKeys);
             PipelineService.get().queueJob(analysisJob);
 
             return true;
