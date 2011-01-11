@@ -15,5 +15,5 @@
  */
 
 ALTER TABLE genotyping.Sequences
-    ALTER COLUMN Comments TYPE VARCHAR(4000)
+    ALTER COLUMN Comments VARCHAR(4000)
 GO
