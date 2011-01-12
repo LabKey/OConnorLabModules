@@ -20,6 +20,7 @@ import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
+import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.reader.ColumnDescriptor;
 import org.labkey.api.reader.TabLoader;
 import org.labkey.api.util.FileUtil;
@@ -101,7 +102,7 @@ public class ImportReadsJob extends PipelineJob
     }
 
 
-    private void importReads() throws IOException, SQLException
+    private void importReads() throws IOException, SQLException, PipelineJobException
     {
         info("Importing " + _reads.getName());
         setStatus("IMPORTING READS");
@@ -160,6 +161,12 @@ public class ImportReadsJob extends PipelineJob
                 }
 
                 map.put("sampleid", finder.getSampleId(mid5, mid3, (String)map.get("amplicon")));
+
+                String sequence = (String)map.get("sequence");
+                String quality = (String)map.get("quality");
+
+                if (sequence.length() != quality.length())
+                    throw new PipelineJobException("Sequence length differed from quality score length in read " + map.get("name"));
 
                 Table.insert(getUser(), readsTable, map);
                 rowCount++;

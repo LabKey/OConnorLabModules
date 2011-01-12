@@ -26,6 +26,7 @@ genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.04-0.05.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.05-0.06.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-10.30-10.31.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-10.31-10.32.sql -text
+genotyping/resources/schemas/dbscripts/sqlserver/genotyping-10.32-10.33.sql -text
 genotyping/resources/schemas/genotyping.xml -text
 genotyping/src/org/labkey/genotyping/GenotypingAnalysesView.java -text
 genotyping/src/org/labkey/genotyping/GenotypingAnalysis.java -text
