@@ -22,8 +22,17 @@
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     ViewContext ctx = getViewContext();
+    boolean showNewMatchMessage = (null != ctx.getBindPropertyValues().getPropertyValue("highlightId"));
 %>
-<script type="text/javascript">
+<script type="text/javascript"><%
+    // Show a message if we just added a new match
+    if (showNewMatchMessage)
+    { %>
+    Ext.onReady(function()
+    {
+        LABKEY.DataRegions["Analysis"].showMessage('<span style="color:green;">Newly added match is highlighted below.</span>');
+    });
+<%  } %>
     var expectedCount;
     var grid;
     var submitButton;

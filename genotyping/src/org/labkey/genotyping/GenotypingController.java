@@ -186,6 +186,7 @@ public class GenotypingController extends SpringActionController
             return _highlightId;
         }
 
+        @SuppressWarnings({"UnusedDeclaration"})
         public void setHighlightId(Integer highlightId)
         {
             _highlightId = highlightId;
@@ -232,7 +233,7 @@ public class GenotypingController extends SpringActionController
             QuerySettings settings = new QuerySettings(getViewContext(), "Analysis", TableType.Matches.toString());
             settings.setAllowChooseQuery(false);
             settings.setAllowChooseView(true);
-            settings.getBaseSort().insertSortColumn("RowId");
+            settings.setBaseSort(new Sort("SampleId/library_sample_name,Alleles/AlleleName"));
             settings.getBaseFilter().addCondition("Analysis", form.getAnalysis());
 
             UserSchema gqs = new GenotypingQuerySchema(getUser(), getContainer());
