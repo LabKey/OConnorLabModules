@@ -157,6 +157,7 @@ public class GenotypingController extends SpringActionController
     {
         private Integer _analysis = null;
         private boolean _combine = false;
+        private Integer _highlightId = null;
 
         public Integer getAnalysis()
         {
@@ -179,6 +180,16 @@ public class GenotypingController extends SpringActionController
         {
             _combine = combine;
         }
+
+        public Integer getHighlightId()
+        {
+            return _highlightId;
+        }
+
+        public void setHighlightId(Integer highlightId)
+        {
+            _highlightId = highlightId;
+        }
     }
 
 
@@ -195,6 +206,12 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(AnalysisForm form, BindException errors) throws Exception
         {
+            // Now that the form has populated "highlightId", eliminate this parameter from the current ActionURL.  We don't want
+            // links to propagate it.
+            ActionURL currentURL = getViewContext().cloneActionURL().deleteParameter("highlightId");
+            currentURL.setReadOnly();
+            getViewContext().setActionURL(currentURL);
+
             ModelAndView qv = super.getView(form, errors);
 
             if (form.getCombine() && !form.isExport())
@@ -221,13 +238,35 @@ public class GenotypingController extends SpringActionController
             UserSchema gqs = new GenotypingQuerySchema(getUser(), getContainer());
             QueryView qv;
 
-            if (getContainer().hasPermission(getUser(), UpdatePermission.class))
+            // If the user doesn't have update permissions then just provide a normal, read-only view.
+            // Otherwise, either add the "Alter Matches" button or display that mode, depending on the value of the "combine" parameter. 
+            if (!getContainer().hasPermission(getUser(), UpdatePermission.class))
+            {
+                qv = new QueryView(gqs, settings, errors);
+            }
+            else
             {
                 final ActionURL url = getViewContext().cloneActionURL();
 
-                if (form.getCombine())
+                if (!form.getCombine())
+                {
+                    url.replaceParameter("combine", "1");
+
+                    qv = new QueryView(gqs, settings, errors) {
+                         @Override
+                         protected void populateButtonBar(DataView view, ButtonBar bar)
+                         {
+                             super.populateButtonBar(view, bar);
+
+                             ActionButton combineModeButton = new ActionButton(url, "Alter Matches");
+                             bar.add(combineModeButton);
+                         }
+                    };
+                }
+                else
                 {
                     url.deleteParameter("combine");
+                    final Integer highlightId = form.getHighlightId();
 
                     qv = new QueryView(gqs, settings, errors) {
                         @Override
@@ -243,29 +282,28 @@ public class GenotypingController extends SpringActionController
                             combineButton.setScript("combine(" + _analysis.getRowId() + ");return false;");
                             bar.add(combineButton);
                         }
+
+                        @Override
+                        protected DataRegion createDataRegion()
+                        {
+                            // Override to highlight the just-added match
+                            DataRegion rgn = new DataRegion() {
+                                @Override
+                                protected String getRowClass(RenderContext ctx, int rowIndex)
+                                {
+                                    if (highlightId != null && highlightId.equals(ctx.get("RowId")))
+                                        return "labkey-error-row";
+
+                                    return super.getRowClass(ctx, rowIndex);
+                                }
+                            };
+                            configureDataRegion(rgn);
+                            return rgn;
+                        }
                     };
 
                     qv.setShowRecordSelectors(true);
                 }
-                else
-                {
-                    url.replaceParameter("combine", "1");
-
-                    qv = new QueryView(gqs, settings, errors) {
-                         @Override
-                         protected void populateButtonBar(DataView view, ButtonBar bar)
-                         {
-                             super.populateButtonBar(view, bar);
-
-                             ActionButton combineModeButton = new ActionButton(url, "Alter Matches");
-                             bar.add(combineModeButton);
-                         }
-                    };
-                }
-            }
-            else
-            {
-                qv = new QueryView(gqs, settings, errors);
             }
 
             qv.setShadeAlternatingRows(true);
@@ -323,16 +361,23 @@ public class GenotypingController extends SpringActionController
     @RequiresPermissionClass(UpdatePermission.class)
     public class CombineMatchesAction extends RedirectAction<CombineForm>
     {
+        private Integer _newId = null;
+
         @Override
         public URLHelper getSuccessURL(CombineForm form)
         {
-            return form.getReturnActionURL();
+            ActionURL url = form.getReturnActionURL();
+
+            if (null != url && null != _newId)
+                url.replaceParameter("highlightId", String.valueOf(_newId));
+
+            return url;
         }
 
         @Override
         public boolean doAction(CombineForm form, BindException errors) throws Exception
         {
-            GenotypingManager.get().combineMatches(getContainer(), getUser(), form.getAnalysis(), form.getMatchIds(), form.getAlleleIds());
+            _newId = GenotypingManager.get().combineMatches(getContainer(), getUser(), form.getAnalysis(), form.getMatchIds(), form.getAlleleIds());
             return true;
         }
 

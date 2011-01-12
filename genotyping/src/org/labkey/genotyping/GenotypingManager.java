@@ -58,7 +58,6 @@ public class GenotypingManager
     private static final GenotypingManager _instance = new GenotypingManager();
 
     public static final String PROPERTIES_FILE_NAME = "properties.xml";
-    public static final String SAMPLES_FILE_NAME = "samples.txt";
     public static final String READS_FILE_NAME = "reads.txt";
     public static final String MATCHES_FILE_NAME = "matches.txt";
     public static final String SEQUENCES_FILE_NAME = "sequences.fasta";
@@ -278,7 +277,7 @@ public class GenotypingManager
     // new match.  Assumes that container permissions have been checked, but validates all other aspects of the incoming
     // data: analysis exists in specified container, one or more matches are provided, one or more alleles are provided,
     // matches belong to this analysis and to a single sample, and alleles belong to these matches.
-    public void combineMatches(Container c, User user, int analysisId, int[] matchIds, int[] alleleIds)
+    public Integer combineMatches(Container c, User user, int analysisId, int[] matchIds, int[] alleleIds)
     {
         GenotypingSchema gs = GenotypingSchema.get();
 
@@ -355,6 +354,8 @@ public class GenotypingManager
 
         // ======== End validation ========
 
+        Integer newMatchId;
+
         // Now update the tables: create the new match, insert new rows in the alleles & reads junction tables, and mark the old matches
 
         // Group all the matches based on analysis and rowIds
@@ -380,13 +381,13 @@ public class GenotypingManager
             rs.next();
             SimpleFilter readsFilter = new SimpleFilter(new SimpleFilter.InClause("MatchId", matchIdList));
             Integer[] readIds = Table.executeArray(gs.getReadsJunctionTable(), "ReadId", readsFilter, null, Integer.class);
-            int matchId = insertMatch(user, analysis, rs.getInt("SampleId"), rs, ArrayUtils.toPrimitive(readIds), alleleIds);
+            newMatchId = insertMatch(user, analysis, rs.getInt("SampleId"), rs, ArrayUtils.toPrimitive(readIds), alleleIds);
 
             // Update ParentId column for all combined matches
             SQLFragment updateSql = new SQLFragment("UPDATE ");
             updateSql.append(gs.getMatchesTable(), "matches");
             updateSql.append(" SET ParentId = ? ");
-            updateSql.add(matchId);
+            updateSql.add(newMatchId);
             updateSql.append(matchFilter.getSQLFragment(gs.getSqlDialect()));
 
             int rows = Table.execute(gs.getSchema(), updateSql);
@@ -405,6 +406,8 @@ public class GenotypingManager
             ResultSetUtil.close(rs);
             scope.closeConnection();
         }
+
+        return newMatchId;
     }
 
 
