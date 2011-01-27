@@ -62,8 +62,8 @@
                 LABKEY.Filter.create('RowId', selected.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)
             ],
             sort: null,
-            successCallback: validateAndShow,
-            errorCallback: onError
+            success: validateAndShow,
+            failure: onError
         });
     }
 
