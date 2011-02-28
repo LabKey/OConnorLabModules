@@ -102,7 +102,7 @@ public class SampleManager
                     Integer previousId = _map.put(key, rs.getInt(4));
 
                     if (null != previousId)
-                        throw new IllegalStateException("Ambigious samples -- " + key + " maps to more than one sample in the library");
+                        throw new IllegalStateException("Ambiguous samples -- " + key + " maps to more than one sample in the library");
                 }
             }
             finally
