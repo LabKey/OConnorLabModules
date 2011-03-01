@@ -163,6 +163,12 @@ public class ImportAnalysisJob extends PipelineJob
                     matches.delete();
             }
 
+            // Attempt to fix #11654
+            setStatus("UPDATING STATISTICS");
+            info("Updating matches table statistics");
+            TableInfo matchesTable = gs.getMatchesTable();
+            matchesTable.getSchema().getSqlDialect().updateStatistics(matchesTable);
+
             if (!GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Importing, Status.Complete))
                 throw new IllegalStateException("Analysis status should be \"Importing\"");
             setStatus(COMPLETE_STATUS);

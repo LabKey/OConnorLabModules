@@ -75,6 +75,7 @@ public class SequenceManager
         SimpleFilter viewFilter = qHelper.getViewFilter();
         viewFilter.addCondition("file_active", 1);
         TableInfo source = qHelper.getTableInfo();
+        TableInfo destination = GenotypingSchema.get().getSequencesTable();
 
         ResultSet rs = null;
 
@@ -82,8 +83,6 @@ public class SequenceManager
         {
             rs = Table.select(source, Table.ALL_COLUMNS, viewFilter, null);
             ResultSetIterator iter = ResultSetIterator.get(rs);
-
-            TableInfo destination = GenotypingSchema.get().getSequencesTable();
 
             while (iter.hasNext())
             {
@@ -109,6 +108,8 @@ public class SequenceManager
         {
             ResultSetUtil.close(rs);
         }
+
+        destination.getSqlDialect().updateStatistics(destination);
     }
 
 
