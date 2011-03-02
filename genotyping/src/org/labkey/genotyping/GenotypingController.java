@@ -1675,7 +1675,7 @@ public class GenotypingController extends SpringActionController
                     protected void renderInternal(Object model, PrintWriter out) throws Exception
                     {
                         submitAnalysis.render(new RenderContext(getViewContext()), out);
-                        out.println("<br>");
+                        out.println("<br><br>");
                     }
                 });
             }
