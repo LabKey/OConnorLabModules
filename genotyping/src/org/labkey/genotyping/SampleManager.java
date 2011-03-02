@@ -42,6 +42,7 @@ public class SampleManager
     public static final String MID5_COLUMN_NAME = "mid";
     public static final String MID3_COLUMN_NAME = "mid3";
     public static final String AMPLICON_COLUMN_NAME = "amplicon";
+
     static final Set<String> POSSIBLE_SAMPLE_KEYS = new CaseInsensitiveHashSet(MID5_COLUMN_NAME, MID3_COLUMN_NAME, AMPLICON_COLUMN_NAME);
 
     private SampleManager()
