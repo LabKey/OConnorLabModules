@@ -121,6 +121,10 @@ public class ImportReadsJob extends PipelineJob
             {
                 col.name = col.name.replace("read_", "");
                 col.name = col.name.replace("_", "");
+
+                // Map old 5' MID name to new name
+                if ("mid".equals(col.name))
+                    col.name = "fivemid";
             }
 
             Set<String> sampleKeyColumns = new HashSet<String>();
@@ -160,7 +164,7 @@ public class ImportReadsJob extends PipelineJob
                     map.put(SampleManager.MID3_COLUMN_NAME, mid3);
                 }
 
-                map.put("sampleid", finder.getSampleId(mid5, mid3, (String)map.get("amplicon")));
+                map.put("sampleid", finder.getSampleId(mid5, mid3, (String)map.get(SampleManager.AMPLICON_COLUMN_NAME)));
 
                 String sequence = (String)map.get("sequence");
                 String quality = (String)map.get("quality");

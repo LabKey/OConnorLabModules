@@ -15,7 +15,9 @@
  */
 package org.labkey.genotyping;
 
+import org.apache.commons.lang.StringUtils;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
+import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.SimpleFilter;
@@ -39,9 +41,10 @@ public class SampleManager
 {
     private static final SampleManager INSTANCE = new SampleManager();
 
-    public static final String MID5_COLUMN_NAME = "mid";
-    public static final String MID3_COLUMN_NAME = "mid3";
+    public static final String MID5_COLUMN_NAME = "fivemid";
+    public static final String MID3_COLUMN_NAME = "threemid";
     public static final String AMPLICON_COLUMN_NAME = "amplicon";
+    public static final String KEY_COLUMN_NAME = "key";
 
     static final Set<String> POSSIBLE_SAMPLE_KEYS = new CaseInsensitiveHashSet(MID5_COLUMN_NAME, MID3_COLUMN_NAME, AMPLICON_COLUMN_NAME);
 
@@ -73,6 +76,8 @@ public class SampleManager
     {
         private final Set<String> _sampleKeyColumns;
         private final Map<SampleKey, Integer> _map;
+        private static final String SELECT_COLUMNS = MID5_COLUMN_NAME + "/mid_name, " + MID3_COLUMN_NAME + "/mid_name, " + AMPLICON_COLUMN_NAME + ", " + KEY_COLUMN_NAME;
+        private static final int SELECT_COLUMN_COUNT = 4;
 
         public SampleIdFinder(GenotypingRun run, User user, Set<String> sampleKeyColumns) throws SQLException
         {
@@ -86,7 +91,7 @@ public class SampleManager
                 // Create the [5' MID, 3' MID, Amplicon] -> sample id mapping for this run
                 try
                 {
-                    rs = SampleManager.get().selectSamples(run.getContainer(), user, run, "library_sample_f_mid/mid_name, threemid/mid_name, amplicon, key");
+                    rs = SampleManager.get().selectSamples(run.getContainer(), user, run, SELECT_COLUMNS);
                 }
                 catch (NullPointerException e)
                 {
@@ -94,6 +99,17 @@ public class SampleManager
                     // TODO: selectSamples should return null in this case
                     _map.clear();
                     return;
+                }
+
+                Map<FieldKey, ColumnInfo> map = rs.getFieldMap();
+
+                // Check that samples query includes all the necessary columns... fail with a decent error message if it doesn't
+                if (map.size() < SELECT_COLUMN_COUNT)
+                {
+                    String actual = StringUtils.join(map.keySet(), ", ").toLowerCase();
+                    int diff = SELECT_COLUMN_COUNT - map.size();
+                    String message = "Samples query returned " + map.size() + " columns instead of " + SELECT_COLUMN_COUNT + ". Expected \"" + SELECT_COLUMNS + "\" but \"" + actual + "\" was returned. You need to add or rename " + (1 == diff ? "a column." : diff + " columns.");
+                    throw new IllegalStateException(message);
                 }
 
                 while (rs.next())
@@ -164,6 +180,16 @@ public class SampleManager
             result = 31 * result + (_mid3 != null ? _mid3.hashCode() : 0);
             result = 31 * result + (_amplicon != null ? _amplicon.hashCode() : 0);
             return result;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "SampleKey{" +
+                    "mid5=" + _mid5 +
+                    ", mid3=" + _mid3 +
+                    ", amplicon='" + _amplicon + '\'' +
+                    '}';
         }
     }
 }
