@@ -41,7 +41,7 @@ public class GenotypingModule extends DefaultModule
 
     public double getVersion()
     {
-        return 10.33;
+        return 10.39;
     }
 
     public boolean hasScripts()
