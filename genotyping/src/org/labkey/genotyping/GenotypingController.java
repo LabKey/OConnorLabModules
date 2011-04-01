@@ -302,8 +302,6 @@ public class GenotypingController extends SpringActionController
                             return rgn;
                         }
                     };
-
-                    qv.setShowRecordSelectors(true);
                 }
             }
 
