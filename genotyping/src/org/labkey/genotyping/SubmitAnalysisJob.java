@@ -61,7 +61,7 @@ public class SubmitAnalysisJob extends PipelineJob
     private File _completionFile = null;   // Used for dev mode only
 
     // In dev mode only, we'll test the ability to connect to the Galaxy server once; if this connection fails, we'll
-    // skip trying to submit to Galaxy on subsequent attempts.
+    // skip trying to submit to Galaxy on subsequent attempts (until server restart).
     private static Boolean _useGalaxy = null;
 
     public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingAnalysis analysis, @NotNull Set<Integer> sampleIds) throws SQLException
