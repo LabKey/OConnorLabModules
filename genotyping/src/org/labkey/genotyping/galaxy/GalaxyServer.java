@@ -15,11 +15,15 @@
  */
 package org.labkey.genotyping.galaxy;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 import org.json.JSONWriter;
+import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.URLHelper;
 
 import java.io.IOException;
@@ -56,7 +61,7 @@ public class GalaxyServer
         _serverUrl = !serverUrl.endsWith("/") ? serverUrl : serverUrl.substring(0, serverUrl.length() - 1);
         _baseUrl = _serverUrl + "/api/libraries";
         _key = key;
-        _client = new HttpClient();
+        _client = new DefaultHttpClient();  // Note: not thread-safe; assumes GalaxyServer is used in a single thread
     }
 
 
@@ -87,14 +92,20 @@ public class GalaxyServer
 
     private String get(String relativeUrl) throws IOException
     {
-        GetMethod get = new GetMethod(makeUrl(relativeUrl));
-        int responseCode = _client.executeMethod(get);
-        String response = get.getResponseBodyAsString();
+        return execute(new HttpGet(makeUrl(relativeUrl)));
+    }
 
-        if (HttpStatus.SC_OK != responseCode)
-            throw new IOException("HTTP Get Failed: " + response);
 
-        return response;
+    private String execute(HttpRequestBase request) throws IOException
+    {
+        HttpResponse response = _client.execute(request);
+        HttpEntity entity = response.getEntity();
+        String contents = PageFlowUtil.getStreamContentsAsString(entity.getContent());
+
+        if (HttpStatus.SC_OK != response.getStatusLine().getStatusCode())
+            throw new IOException("HTTP " + request.getMethod() + " Failed: " + response);
+
+        return contents;
     }
 
 
@@ -145,17 +156,11 @@ public class GalaxyServer
 
     private String post(String relativeUrl, String body) throws IOException
     {
-        PostMethod post = new PostMethod(makeUrl(relativeUrl));
-        post.setRequestEntity(new StringRequestEntity(body, "application/json", null));
-        post.setRequestHeader("Content-Type", "application/json");
+        HttpPost post = new HttpPost(makeUrl(relativeUrl));
+        post.setEntity(new StringEntity(body, "application/json", null));
+        post.setHeader("Content-Type", "application/json");
 
-        HttpClient client = new HttpClient();
-        int responseCode = client.executeMethod(post);
-
-        if (HttpStatus.SC_OK != responseCode)
-            throw new IOException("HTTP Post Failed");
-
-        return post.getResponseBodyAsString();
+        return execute(post);
     }
 
 
