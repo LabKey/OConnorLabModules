@@ -35,4 +35,9 @@ public class GenotypingContainerListener implements ContainerListener
     public void propertyChange(PropertyChangeEvent evt)
     {
     }
+
+    @Override
+    public void containerMoved(Container c, Container oldParent, User user)
+    {        
+    }
 }
