@@ -122,9 +122,13 @@ public class ImportReadsJob extends PipelineJob
                 col.name = col.name.replace("read_", "");
                 col.name = col.name.replace("_", "");
 
-                // Map old 5' MID name to new name
-                if ("mid".equals(col.name))
-                    col.name = "fivemid";
+                // Map "mid" (old name) and "mid5" (alias) to canonical name ("fivemid")
+                if ("mid".equalsIgnoreCase(col.name) || "mid5".equalsIgnoreCase(col.name))
+                    col.name = SampleManager.MID5_COLUMN_NAME;
+
+                // Map "mid3" (alias) to canonical name ("threemid")
+                if ("mid3".equalsIgnoreCase(col.name))
+                    col.name = SampleManager.MID3_COLUMN_NAME;
             }
 
             Set<String> sampleKeyColumns = new HashSet<String>();
