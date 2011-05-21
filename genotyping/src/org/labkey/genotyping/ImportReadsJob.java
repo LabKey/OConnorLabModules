@@ -146,7 +146,7 @@ public class ImportReadsJob extends PipelineJob
             TableInfo readsTable = GenotypingSchema.get().getReadsTable();
 
             scope = readsTable.getSchema().getScope();
-            scope.beginTransaction();
+            scope.ensureTransaction();
 
             int rowCount = 0;
 

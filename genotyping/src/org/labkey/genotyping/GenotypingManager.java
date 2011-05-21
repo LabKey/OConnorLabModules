@@ -375,7 +375,7 @@ public class GenotypingManager
 
         try
         {
-            scope.beginTransaction();
+            scope.ensureTransaction();
 
             rs = Table.executeQuery(gs.getSchema(), sql);
             rs.next();
