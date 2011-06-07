@@ -182,8 +182,8 @@ public class GenotypingManager
         GenotypingSchema gs = GenotypingSchema.get();
         deleteAnalyses(" WHERE Run = ? AND Run IN (SELECT RowId FROM " + gs.getRunsTable() + " WHERE Container = ?)", run.getRowId(), run.getContainer());
 
-        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsTable() + " WHERE Run = ?", new Object[]{run.getRowId()});
-        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getRunsTable() + " WHERE RowId = ?", new Object[]{run.getRowId()});
+        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsTable() + " WHERE Run = ?", run.getRowId());
+        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getRunsTable() + " WHERE RowId = ?", run.getRowId());
     }
 
 
