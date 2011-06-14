@@ -18,6 +18,7 @@
 <%@ page import="org.labkey.api.action.ReturnUrlForm" %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.api.view.ViewContext" %>
+<%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
@@ -153,7 +154,7 @@
                 handler: submit
             });
 
-        var returnUrlText = new Ext.form.TextField({name:'<%=ReturnUrlForm.Params.returnUrl%>', hidden:true, value:<%=PageFlowUtil.jsString(ctx.getActionURL().toString())%>});
+        var returnUrlText = new Ext.form.TextField({name:'<%=ActionURL.Param.returnUrl%>', hidden:true, value:<%=PageFlowUtil.jsString(ctx.getActionURL().toString())%>});
         var analysisText = new Ext.form.TextField({name:'analysis', hidden:true, value:analysisId});
         var matchIdsText = new Ext.form.TextField({name:'matchIds', hidden:true, value:matchIds.join(",")});
         alleleIdsText = new Ext.form.TextField({name:'alleleIds', hidden:true});
