@@ -31,7 +31,7 @@
     { %>
     Ext.onReady(function()
     {
-        LABKEY.DataRegions["Analysis"].showMessage('<span style="color:green;">Newly added match is highlighted below.</span>');
+        LABKEY.DataRegions["Analysis"].addMessage('<span style="color:green;">Newly added match is highlighted below.</span>');
     });
 <%  } %>
     var expectedCount;
