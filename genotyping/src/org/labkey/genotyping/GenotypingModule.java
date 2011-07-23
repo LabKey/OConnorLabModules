@@ -16,6 +16,7 @@
 
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.DbSchema;
@@ -77,12 +78,14 @@ public class GenotypingModule extends DefaultModule
     }
 
     @Override
+    @NotNull
     public Set<String> getSchemaNames()
     {
         return Collections.singleton(GenotypingSchema.get().getSchemaName());
     }
 
     @Override
+    @NotNull
     public Set<DbSchema> getSchemasToTest()
     {
         return PageFlowUtil.set(GenotypingSchema.get().getSchema());
