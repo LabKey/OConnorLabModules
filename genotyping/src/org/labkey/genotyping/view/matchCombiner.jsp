@@ -56,7 +56,7 @@
         LABKEY.Query.selectRows({
             requiredVersion: 9.1,
             schemaName: 'genotyping',
-            queryName: 'Matches',
+            queryName: 'Matches_' + analysisId,  // Hack to improve perf, see #11949. TODO: support multi-column FK
             columns: 'RowId,SampleId,Alleles/AlleleName,Alleles/RowId',
             filterArray: [
                 LABKEY.Filter.create('Analysis/RowId', analysis, LABKEY.Filter.Types.EQUAL),

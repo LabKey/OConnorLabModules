@@ -236,7 +236,7 @@ public class GenotypingController extends SpringActionController
             settings.setBaseSort(new Sort("SampleId/library_sample_name,Alleles/AlleleName"));
             settings.getBaseFilter().addCondition("Analysis", form.getAnalysis());
 
-            UserSchema gqs = new GenotypingQuerySchema(getUser(), getContainer());
+            UserSchema gqs = new GenotypingQuerySchema(getUser(), getContainer(), form.getAnalysis());
             QueryView qv;
 
             // If the user doesn't have update permissions then just provide a normal, read-only view.

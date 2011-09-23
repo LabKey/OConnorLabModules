@@ -80,6 +80,7 @@
   </ns:table>
   <ns:table tableName="AllelesJunction" tableDbType="TABLE">
     <ns:columns>
+      <ns:column columnName="Analysis"/>
       <ns:column columnName="MatchId"/>
       <ns:column columnName="SequenceId"/>
     </ns:columns>

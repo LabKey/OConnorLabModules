@@ -15,13 +15,16 @@
  */
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.Sets;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DisplayColumn;
 import org.labkey.api.data.DisplayColumnFactory;
+import org.labkey.api.data.ForeignKey;
 import org.labkey.api.data.HighlightingDisplayColumn;
+import org.labkey.api.data.MultiValuedForeignKey;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
@@ -52,6 +55,8 @@ public class GenotypingQuerySchema extends UserSchema
 {
     private static final GenotypingSchema GS = GenotypingSchema.get();
     private static final Set<String> TABLE_NAMES;
+
+    @Nullable private final Integer _analysisId;
 
     static
     {
@@ -108,6 +113,7 @@ public class GenotypingQuerySchema extends UserSchema
 
                 return table;
             }},
+
         Sequences() {
             @Override
             FilteredTable createTable(Container c, User user)
@@ -122,6 +128,7 @@ public class GenotypingQuerySchema extends UserSchema
 
                 return table;
             }},
+
         Reads() {
             @Override
             FilteredTable createTable(Container c, User user)
@@ -159,6 +166,7 @@ public class GenotypingQuerySchema extends UserSchema
 
                 return table;
             }},
+
         MatchReads() {
             @Override
             FilteredTable createTable(Container c, User user)
@@ -181,6 +189,7 @@ public class GenotypingQuerySchema extends UserSchema
 
                 return table;
             }},
+
         Analyses() {
             @Override
             FilteredTable createTable(Container c, User user)
@@ -204,8 +213,51 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(Container c, User user)
             {
+                return createTable(c, user, null);
+            }
+
+            public FilteredTable createTable(Container c, User user, @Nullable final Integer analysisId)
+            {
                 FilteredTable table = new FilteredTable(GS.getMatchesTable(), c);
                 table.wrapAllColumns(true);
+
+                // Big hack to work around our lack of multi-column foreign keys and fix bad performance issues related to
+                // the alleles multi-valued column, see #11949.  If we're given an analysisId (most callers do) then wrap
+                // the junction table and filter it to the analysis of interest.
+                //
+                // TODO: Support multi-column foreign keys so we can push analysis and matchid around more easily.
+                if (null != analysisId)
+                {
+                    ColumnInfo alleles = table.getColumn("Alleles");
+
+/*                    ForeignKey fk = new MultiValuedForeignKey(new ColumnInfo.SchemaForeignKey(alleles, GS.getSchemaName(), "AllelesJunction", "MatchId", false), "SequenceId") {
+                        @Override
+                        protected ColumnInfo createMultiValuedLookupColumn(ColumnInfo lookupColumn, ColumnInfo parent, ColumnInfo childKey, ColumnInfo junctionKey, ForeignKey fk)
+                        {
+                            FilteredTable parentTable = new FilteredTable(childKey.getParentTable());
+                            parentTable.wrapAllColumns(true);
+                            parentTable.addCondition(new SimpleFilter("Analysis", analysisId));
+                            ColumnInfo newChildKey = parentTable.getColumn(childKey.getName());
+                            newChildKey.setParentTable(parentTable);
+
+                            return super.createMultiValuedLookupColumn(lookupColumn, parent, newChildKey, junctionKey, fk);
+                        }
+                    };
+*/
+                    ForeignKey fk = new MultiValuedForeignKey(new ColumnInfo.SchemaForeignKey(alleles, GS.getSchemaName(), "AllelesJunction", "MatchId", false) {
+                        @Override
+                        public TableInfo getLookupTableInfo()
+                        {
+                            FilteredTable analysisFilteredTable = new FilteredTable(super.getLookupTableInfo());
+                            analysisFilteredTable.wrapAllColumns(true);
+                            analysisFilteredTable.addCondition(new SimpleFilter("Analysis", analysisId));
+
+                            return analysisFilteredTable;
+                        }
+                    }, "SequenceId");
+                    alleles.setFk(fk);
+                }
+
                 SQLFragment containerCondition = new SQLFragment("Analysis IN (SELECT a.RowId FROM " + GS.getAnalysesTable().getFromSQL("a") + " INNER JOIN " + GS.getRunsTable().getFromSQL("r") + " ON a.Run = r.RowId WHERE Container = ?)");
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
@@ -242,6 +294,12 @@ public class GenotypingQuerySchema extends UserSchema
             }};
 
         abstract FilteredTable createTable(Container c, User user);
+
+        // Special factory method for Matches table, to pass through analysis id (if present)
+        FilteredTable createTable(Container c, User user, @Nullable Integer analysisId)
+        {
+            return createTable(c, user);
+        }
 
         // Set an explicit list of default columns by name
         private static void setDefaultVisibleColumns(TableInfo table, String columnNames)
@@ -301,12 +359,43 @@ public class GenotypingQuerySchema extends UserSchema
 
     public GenotypingQuerySchema(User user, Container container)
     {
+        this(user, container, null);
+    }
+
+    public GenotypingQuerySchema(User user, Container container, @Nullable Integer analysisId)
+    {
         super(GS.getSchemaName(), "Contains genotyping data", user, container, GS.getSchema());
+        _analysisId = analysisId;
     }
 
     @Override
     protected TableInfo createTable(String name)
     {
+        // Special handling for Matches -- need to pass in Analysis
+        if (name.startsWith(TableType.Matches.name()))
+        {
+            Integer analysisId = _analysisId;
+
+            if (null == analysisId)
+            {
+                String[] split = name.split("_");
+
+                if (split.length > 1)
+                {
+                    if (split.length == 2 && TableType.Matches.name().equals(split[0]))
+                    {
+                        analysisId = Integer.parseInt(split[1]);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+
+            return TableType.Matches.createTable(getContainer(), getUser(), analysisId);
+        }
+
         if (TABLE_NAMES.contains(name))
             return TableType.valueOf(name).createTable(getContainer(), getUser());
 
