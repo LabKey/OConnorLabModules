@@ -230,31 +230,18 @@ public class GenotypingQuerySchema extends UserSchema
                 {
                     ColumnInfo alleles = table.getColumn("Alleles");
 
-/*                    ForeignKey fk = new MultiValuedForeignKey(new ColumnInfo.SchemaForeignKey(alleles, GS.getSchemaName(), "AllelesJunction", "MatchId", false), "SequenceId") {
-                        @Override
-                        protected ColumnInfo createMultiValuedLookupColumn(ColumnInfo lookupColumn, ColumnInfo parent, ColumnInfo childKey, ColumnInfo junctionKey, ForeignKey fk)
-                        {
-                            FilteredTable parentTable = new FilteredTable(childKey.getParentTable());
-                            parentTable.wrapAllColumns(true);
-                            parentTable.addCondition(new SimpleFilter("Analysis", analysisId));
-                            ColumnInfo newChildKey = parentTable.getColumn(childKey.getName());
-                            newChildKey.setParentTable(parentTable);
-
-                            return super.createMultiValuedLookupColumn(lookupColumn, parent, newChildKey, junctionKey, fk);
-                        }
-                    };
-*/
                     ForeignKey fk = new MultiValuedForeignKey(new ColumnInfo.SchemaForeignKey(alleles, GS.getSchemaName(), "AllelesJunction", "MatchId", false) {
                         @Override
                         public TableInfo getLookupTableInfo()
                         {
-                            FilteredTable analysisFilteredTable = new FilteredTable(super.getLookupTableInfo());
-                            analysisFilteredTable.wrapAllColumns(true);
-                            analysisFilteredTable.addCondition(new SimpleFilter("Analysis", analysisId));
+                            FilteredTable analysisFilteredJunction = new FilteredTable(super.getLookupTableInfo());
+                            analysisFilteredJunction.wrapAllColumns(true);
+                            analysisFilteredJunction.addCondition(new SimpleFilter("Analysis", analysisId));
 
-                            return analysisFilteredTable;
+                            return analysisFilteredJunction;
                         }
                     }, "SequenceId");
+
                     alleles.setFk(fk);
                 }
 
