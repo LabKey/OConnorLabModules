@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-/* genotyping-0.00-10.29.sql */
-
 CREATE SCHEMA genotyping;
 
 CREATE TABLE genotyping.Dictionaries
@@ -33,22 +31,22 @@ CREATE TABLE genotyping.Sequences
     RowId SERIAL,
     Dictionary INT NOT NULL,
     Uid INT NOT NULL,
-    AlleleName VARCHAR(45) NOT NULL,
+    AlleleName VARCHAR(100) NOT NULL,
     Initials VARCHAR(45) NULL,
-    GenbankId VARCHAR(45) NULL,
+    GenbankId VARCHAR(100) NULL,
     ExptNumber VARCHAR(45) NULL,
     Comments VARCHAR(255) NULL,
     Locus VARCHAR(45) NULL,
     Species VARCHAR(45) NULL,
-    Origin VARCHAR(45) NULL,
+    Origin VARCHAR(100) NULL,
     Sequence TEXT NOT NULL,
-    PreviousName VARCHAR(45) NULL,
+    PreviousName VARCHAR(100) NULL,
     LastEdit TIMESTAMP NOT NULL,
     Version INT NOT NULL,
     ModifiedBy VARCHAR(45) NOT NULL,
     Translation TEXT NULL,
     Type VARCHAR(45) NULL,
-    IpdAccession VARCHAR(45) NULL,
+    IpdAccession VARCHAR(100) NULL,
     Reference INT NOT NULL,
     RegIon VARCHAR(45) NULL,
     Id INT NOT NULL,
@@ -160,12 +158,3 @@ CREATE TABLE genotyping.ReadsJunction
     CONSTRAINT FK_ReadsJunction_Matches FOREIGN KEY (MatchId) REFERENCES genotyping.Matches(RowId),
     CONSTRAINT FK_ReadsJunction_Reads FOREIGN KEY (ReadId) REFERENCES genotyping.Reads(RowId)
 );
-
-/* genotyping-10.29-10.291.sql */
-
-ALTER TABLE genotyping.Sequences
-    ALTER COLUMN AlleleName TYPE VARCHAR(100),
-    ALTER COLUMN GenbankId TYPE VARCHAR(100),
-    ALTER COLUMN Origin TYPE VARCHAR(100),
-    ALTER COLUMN PreviousName TYPE VARCHAR(100),
-    ALTER COLUMN IpdAccession TYPE VARCHAR(100);
