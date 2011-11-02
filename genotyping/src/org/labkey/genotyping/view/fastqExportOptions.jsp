@@ -30,16 +30,18 @@
 %>
 <table class="labkey-export-tab-contents">
     <tr>
-        <td class="labkey-export-tab-options">
+        <td>
             <table class="labkey-export-tab-layout"><tr><td>Export sequences as FASTQ</td></tr></table>
         </td>
-        <td class="labkey-export-tab-buttons">
+    </tr>
+    <tr>
+        <td>
             <%=generateButton("Export to FASTQ", url, onClickScript) %>
         </td>
     </tr>
     <tr><td>&nbsp;</td></tr>
     <tr>
-        <td class="labkey-export-tab-options">
+        <td>
             <table class="labkey-export-tab-layout"><tr><td><input id="<%=id%>" type="checkbox" checked="true"/> Filter out low-quality bases</td></tr></table>
         </td>
     </tr>
