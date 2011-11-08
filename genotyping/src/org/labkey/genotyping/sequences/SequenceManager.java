@@ -20,10 +20,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ResultSetIterator;
+import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
+import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.security.User;
 import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.writer.FastaEntry;
@@ -145,18 +148,17 @@ public class SequenceManager
 
 
     // Throws IllegalStateException if references sequences have not been loaded
-    public @NotNull SequenceDictionary getCurrentDictionary(Container c) throws SQLException
+    public @NotNull SequenceDictionary getCurrentDictionary(Container c)
     {
         return getCurrentDictionary(c, true);
     }
 
 
     // Throws or returns null, depending on value of throwIfNotLoaded flag
-    public SequenceDictionary getCurrentDictionary(Container c, boolean throwIfNotLoaded) throws SQLException
+    public SequenceDictionary getCurrentDictionary(Container c, boolean throwIfNotLoaded)
     {
-        Integer max = Table.executeSingleton(GenotypingSchema.get().getSchema(),
-                "SELECT MAX(RowId) FROM " + GenotypingSchema.get().getDictionariesTable() + " WHERE Container = ?",
-                new Object[]{c}, Integer.class);
+        Integer max = new SqlSelector(GenotypingSchema.get().getSchema(),
+            new SQLFragment("SELECT MAX(RowId) FROM " + GenotypingSchema.get().getDictionariesTable() + " WHERE Container = ?", c)).getObject(Integer.class);
 
         if (null == max)
         {
@@ -234,7 +236,7 @@ public class SequenceManager
     }
 
 
-    public int getSequenceCount(Container c) throws SQLException
+    public long getCurrentSequenceCount(Container c)
     {
         GenotypingSchema gs = GenotypingSchema.get();
         TableInfo sequences = gs.getSequencesTable();
@@ -244,6 +246,32 @@ public class SequenceManager
         if (null == dictionary)
             return 0;
 
-        return Table.executeSingleton(sequences.getSchema(), "SELECT CAST(COUNT(*) AS INT) FROM " + sequences + " WHERE Dictionary = ?", new Object[]{dictionary.getRowId()}, Integer.class);
+        SimpleFilter filter = new SimpleFilter("Dictionary", dictionary.getRowId());
+
+        return new TableSelector(sequences, filter, null).getRowCount();
+    }
+
+
+    public int getDictionaryCount(Container c)
+    {
+        SimpleFilter filter = new SimpleFilter("Container", c);
+
+        return (int)new TableSelector(GenotypingSchema.get().getDictionariesTable(), filter, null).getRowCount();
+    }
+
+
+    public long getSequenceCount(Container c)
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+        TableInfo sequences = gs.getSequencesTable();
+
+        SQLFragment sql = new SQLFragment("SELECT s.RowId FROM ");
+        sql.append(gs.getSequencesTable(), "s");
+        sql.append(" INNER JOIN ");
+        sql.append(gs.getDictionariesTable(), "d");
+        sql.append(" ON s.Dictionary = d.RowId WHERE Container = ?");
+        sql.add(c);
+
+        return new SqlSelector(sequences.getSchema(), sql).getRowCount();
     }
 }

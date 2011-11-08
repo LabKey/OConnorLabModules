@@ -25,6 +25,7 @@ import org.labkey.api.data.DisplayColumnFactory;
 import org.labkey.api.data.ForeignKey;
 import org.labkey.api.data.HighlightingDisplayColumn;
 import org.labkey.api.data.MultiValuedForeignKey;
+import org.labkey.api.data.MultiValuedLookupColumn;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
@@ -57,21 +58,6 @@ public class GenotypingQuerySchema extends UserSchema
     private static final Set<String> TABLE_NAMES;
 
     @Nullable private final Integer _analysisId;
-
-    static
-    {
-        ColumnInfo alleleName = GS.getSequencesTable().getColumn("AlleleName");
-        final DisplayColumnFactory factory = alleleName.getDisplayColumnFactory();
-        alleleName.setDisplayColumnFactory(new DisplayColumnFactory() {
-                @Override
-                public DisplayColumn createRenderer(ColumnInfo colInfo)
-                {
-                    return new HighlightingDisplayColumn(factory.createRenderer(colInfo),
-                            FieldKey.fromString("SampleId"),
-                            FieldKey.fromString("Alleles/AlleleName"));
-                }
-            });
-    }
 
     @SuppressWarnings({"UnusedDeclaration"})
     public enum TableType
@@ -232,6 +218,7 @@ public class GenotypingQuerySchema extends UserSchema
 
                     ForeignKey fk = new MultiValuedForeignKey(new ColumnInfo.SchemaForeignKey(alleles, GS.getSchemaName(), "AllelesJunction", "MatchId", false) {
                         @Override
+                        // This override lets us filter on analysis ID inside the group by
                         public TableInfo getLookupTableInfo()
                         {
                             FilteredTable analysisFilteredJunction = new FilteredTable(super.getLookupTableInfo());
@@ -240,7 +227,24 @@ public class GenotypingQuerySchema extends UserSchema
 
                             return analysisFilteredJunction;
                         }
-                    }, "SequenceId");
+                    }, "SequenceId") {
+                        @Override
+                        protected MultiValuedLookupColumn createMultiValuedLookupColumn(ColumnInfo alleleName, ColumnInfo parent, ColumnInfo childKey, ColumnInfo junctionKey, ForeignKey fk)
+                        {
+                            final DisplayColumnFactory factory = alleleName.getDisplayColumnFactory();
+                            alleleName.setDisplayColumnFactory(new DisplayColumnFactory() {
+                                    @Override
+                                    public DisplayColumn createRenderer(ColumnInfo colInfo)
+                                    {
+                                        return new HighlightingDisplayColumn(factory.createRenderer(colInfo),
+                                                FieldKey.fromString("SampleId"),
+                                                FieldKey.fromString("Alleles/AlleleName"));
+                                    }
+                                });
+
+                            return super.createMultiValuedLookupColumn(alleleName, parent, childKey, junctionKey, fk);
+                        }
+                    };
 
                     alleles.setFk(fk);
                 }
@@ -249,7 +253,7 @@ public class GenotypingQuerySchema extends UserSchema
                 containerCondition.add(c.getId());
                 table.addCondition(containerCondition);
 
-                // Normal matches view never shows children of combined (or altered) matches
+                // Normal matches view never shows children of combined / altered / deleted matches
                 table.addCondition(new SimpleFilter().addCondition("ParentId", null, CompareType.ISBLANK));
                 setDefaultVisibleColumns(table, "SampleId, Reads, Percent, AverageLength, PosReads, NegReads, PosExtReads, NegExtReads, Alleles/AlleleName");
 

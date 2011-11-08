@@ -25,12 +25,15 @@ import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.pipeline.PipelineService;
+import org.labkey.api.util.Formats;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.WebPartFactory;
+import org.labkey.genotyping.sequences.SequenceManager;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.Set;
 
 public class GenotypingModule extends DefaultModule
@@ -74,7 +77,45 @@ public class GenotypingModule extends DefaultModule
     @Override
     public Collection<String> getSummary(Container c)
     {
-        return Collections.emptyList();
+        GenotypingManager gm = GenotypingManager.get();
+        Collection<String> list = new LinkedList<String>();
+
+        int runCount = gm.getRunCount(c);
+
+        if (runCount > 0)
+        {
+            long readCount = gm.getReadCount(c, null);
+            list.add(pluralize(runCount, "sequencing run") + " containing " + pluralize(readCount, "read"));
+        }
+
+        int analysisCount = gm.getAnalysisCount(c, null);
+
+        if (analysisCount > 0)
+        {
+            long matchCount = gm.getMatchCount(c, null);
+            list.add(pluralize(analysisCount, "genotyping analysis", "genotyping analyses") + " countaining " + pluralize(matchCount, "match", "matches"));
+        }
+
+        SequenceManager sm = SequenceManager.get();
+        int dictionaryCount = sm.getDictionaryCount(c);
+
+        if (dictionaryCount > 0)
+        {
+            long sequenceCount = sm.getSequenceCount(c);
+            list.add(pluralize(dictionaryCount, "dictionary", "dictionaries") + " containing " + pluralize(sequenceCount, "reference sequence"));
+        }
+
+        return list;
+    }
+
+    private String pluralize(long count, String singular)
+    {
+        return pluralize(count, singular, singular + "s");
+    }
+
+    private String pluralize(long count, String singular, String plural)
+    {
+        return Formats.commaf0.format(count) + " " + (1 == count ? singular : plural);
     }
 
     @Override

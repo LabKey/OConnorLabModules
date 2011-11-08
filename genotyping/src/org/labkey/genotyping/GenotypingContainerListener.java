@@ -30,6 +30,7 @@ public class GenotypingContainerListener implements ContainerListener
 
     public void containerDeleted(Container c, User user)
     {
+        GenotypingManager.get().delete(c);
     }
 
     public void propertyChange(PropertyChangeEvent evt)

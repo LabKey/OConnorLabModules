@@ -28,8 +28,11 @@ import org.labkey.api.data.Results;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.SqlExecutor;
+import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.security.User;
 import org.labkey.api.util.ResultSetUtil;
@@ -45,6 +48,7 @@ import java.io.OutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -176,6 +180,43 @@ public class GenotypingManager
     }
 
 
+    public Collection<GenotypingRun> getRuns(Container c)
+    {
+        SimpleFilter filter = new SimpleFilter("Container", c);
+        TableSelector selector = new TableSelector(GenotypingSchema.get().getRunsTable(), filter, null);
+
+        return selector.getCollection(GenotypingRun.class);
+    }
+
+
+    // Delete all runs, reads, analyses, matches, and junction table rows associated with this container
+    public void delete(Container c)
+    {
+        for (GenotypingRun run : getRuns(c))
+        {
+            try
+            {
+                deleteRun(run);
+            }
+            catch (SQLException e)
+            {
+                throw new RuntimeSQLException(e);
+            }
+        }
+
+        GenotypingSchema gs = GenotypingSchema.get();
+
+        SQLFragment deleteSequencesSql = new SQLFragment("DELETE FROM ");
+        deleteSequencesSql.append(gs.getSequencesTable(), "s").append(" WHERE Dictionary IN (SELECT RowId FROM ");
+        deleteSequencesSql.append(gs.getDictionariesTable(), "d").append(" WHERE Container = ?)").add(c);
+        new SqlExecutor(gs.getSchema(), deleteSequencesSql).execute();
+
+        SQLFragment deleteDictionariesSql = new SQLFragment("DELETE FROM ");
+        deleteDictionariesSql.append(gs.getDictionariesTable(), "d").append(" WHERE Container = ?").add(c);
+        new SqlExecutor(gs.getSchema(), deleteDictionariesSql).execute();
+    }
+
+
     // Deletes all the reads, analyses, and matches associated with a run, including rows in all junction tables.
     public void deleteRun(GenotypingRun run) throws SQLException
     {
@@ -238,13 +279,29 @@ public class GenotypingManager
 
 
     // Return number of runs in the specified container
-    public int getRunCount(Container c) throws SQLException
+    public int getRunCount(Container c)
+    {
+        SimpleFilter filter = new SimpleFilter("Container", c);
+        return (int)new TableSelector(GenotypingSchema.get().getRunsTable(), filter, null).getRowCount();
+    }
+
+
+    // Return number of reads in the specified container or run
+    public long getReadCount(Container c, @Nullable GenotypingRun run)
     {
         GenotypingSchema gs = GenotypingSchema.get();
+        TableInfo reads = gs.getReadsTable();
         TableInfo runs = gs.getRunsTable();
 
-        SQLFragment sql = new SQLFragment("SELECT CAST(COUNT(*) AS INT) FROM " + runs + " WHERE Container = ?", c);
-        return Table.executeSingleton(runs.getSchema(), sql.getSQL(), sql.getParamsArray(), Integer.class);
+        SQLFragment sql = new SQLFragment("SELECT RowId FROM " + reads + " WHERE Run IN (SELECT RowId FROM " + runs + " WHERE Container = ?)", c);
+
+        if (null != run)
+        {
+            sql.append(" AND Run = ?");
+            sql.add(run.getRowId());
+        }
+
+        return (int)new SqlSelector(gs.getSchema(), sql).getRowCount();
     }
 
 
@@ -254,14 +311,14 @@ public class GenotypingManager
     }
 
 
-    // Return number of analysis... associated with the specified run (run != null) or in the folder (run == null)
-    public int getAnalysisCount(Container c, @Nullable GenotypingRun run) throws SQLException
+    // Return number of analyses... associated with the specified run (run != null) or in the folder (run == null)
+    public int getAnalysisCount(Container c, @Nullable GenotypingRun run)
     {
         GenotypingSchema gs = GenotypingSchema.get();
         TableInfo analyses = gs.getAnalysesTable();
         TableInfo runs = gs.getRunsTable();
 
-        SQLFragment sql = new SQLFragment("SELECT CAST(COUNT(*) AS INT) FROM " + analyses + " WHERE Run IN (SELECT RowId FROM " + runs + " WHERE Container = ?)", c);
+        SQLFragment sql = new SQLFragment("SELECT RowId FROM " + analyses + " WHERE Run IN (SELECT RowId FROM " + runs + " WHERE Container = ?)", c);
 
         if (null != run)
         {
@@ -269,7 +326,27 @@ public class GenotypingManager
             sql.add(run.getRowId());
         }
 
-        return Table.executeSingleton(analyses.getSchema(), sql.getSQL(), sql.getParamsArray(), Integer.class);
+        return (int)new SqlSelector(gs.getSchema(), sql).getRowCount();
+    }
+
+
+    // Return number of matches... associated with the specified analysis (analysis != null) or in the folder (analysis == null)
+    public int getMatchCount(Container c, @Nullable GenotypingAnalysis analysis)
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+        TableInfo matches = gs.getMatchesTable();
+        TableInfo analyses = gs.getAnalysesTable();
+        TableInfo runs = gs.getRunsTable();
+
+        SQLFragment sql = new SQLFragment("SELECT RowId FROM " + matches + " WHERE Analysis IN (SELECT RowId FROM " + analyses + " WHERE Run IN (SELECT RowId FROM " + runs + " WHERE Container = ?))", c);
+
+        if (null != analysis)
+        {
+            sql.append(" AND Analysis = ?");
+            sql.add(analysis.getRowId());
+        }
+
+        return (int)new SqlSelector(gs.getSchema(), sql).getRowCount();
     }
 
 

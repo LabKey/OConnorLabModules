@@ -17,15 +17,15 @@
 %>
 <%@ page import="org.labkey.api.data.Container" %>
 <%@ page import="org.labkey.api.pipeline.PipelineUrls" %>
+<%@ page import="org.labkey.api.security.User" %>
+<%@ page import="org.labkey.api.security.permissions.AdminPermission" %>
+<%@ page import="org.labkey.api.security.permissions.InsertPermission" %>
+<%@ page import="org.labkey.api.util.Formats" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.api.view.ViewContext" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.genotyping.GenotypingManager" %>
 <%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
-<%@ page import="org.labkey.api.util.Formats" %>
-<%@ page import="org.labkey.api.security.User" %>
-<%@ page import="org.labkey.api.security.permissions.AdminPermission" %>
-<%@ page import="org.labkey.api.security.permissions.InsertPermission" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     ViewContext ctx = getViewContext();
@@ -37,7 +37,7 @@
     String containerType = c.isProject() ? "Project" : "Folder";
     int runCount = GenotypingManager.get().getRunCount(c);
     int analysisCount = GenotypingManager.get().getAnalysisCount(c, null);
-    int sequencesCount = SequenceManager.get().getSequenceCount(c);
+    long sequencesCount = SequenceManager.get().getCurrentSequenceCount(c);
 %>
 <table>
     <tr><td colspan="3" class="labkey-announcement-title"><span><%=containerType%> Contents</span></td></tr>
