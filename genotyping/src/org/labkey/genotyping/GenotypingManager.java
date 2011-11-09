@@ -207,12 +207,12 @@ public class GenotypingManager
         GenotypingSchema gs = GenotypingSchema.get();
 
         SQLFragment deleteSequencesSql = new SQLFragment("DELETE FROM ");
-        deleteSequencesSql.append(gs.getSequencesTable(), "s").append(" WHERE Dictionary IN (SELECT RowId FROM ");
-        deleteSequencesSql.append(gs.getDictionariesTable(), "d").append(" WHERE Container = ?)").add(c);
+        deleteSequencesSql.append(gs.getSequencesTable().getSelectName()).append(" WHERE Dictionary IN (SELECT RowId FROM ");
+        deleteSequencesSql.append(gs.getDictionariesTable().getSelectName()).append(" WHERE Container = ?)").add(c);
         new SqlExecutor(gs.getSchema(), deleteSequencesSql).execute();
 
         SQLFragment deleteDictionariesSql = new SQLFragment("DELETE FROM ");
-        deleteDictionariesSql.append(gs.getDictionariesTable(), "d").append(" WHERE Container = ?").add(c);
+        deleteDictionariesSql.append(gs.getDictionariesTable().getSelectName()).append(" WHERE Container = ?").add(c);
         new SqlExecutor(gs.getSchema(), deleteDictionariesSql).execute();
     }
 
