@@ -15,23 +15,30 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.api.action.ReturnUrlForm" %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
-<%@ page import="org.labkey.api.view.ViewContext" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
+<%@ page import="org.labkey.api.view.ViewContext" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     ViewContext ctx = getViewContext();
-    boolean showNewMatchMessage = (null != ctx.getBindPropertyValues().getPropertyValue("highlightId"));
+    ActionURL currentURL = ctx.getActionURL();
+    boolean showNewMatchMessage = (null != currentURL.getParameter("highlightId"));
+    String deleted = currentURL.getParameter("delete");
+    Integer deletedCount = null;
+
+    if (null != deleted)
+        deletedCount = Integer.parseInt(deleted);
+
+    String message = showNewMatchMessage ? "Newly added match is highlighted below." : (null != deletedCount ? deletedCount + (deletedCount == 1 ? " match was" : " matches were") + " deleted." : null);
 %>
 <script type="text/javascript"><%
-    // Show a message if we just added a new match
-    if (showNewMatchMessage)
+    // Show a message if we just added or deleted a match
+    if (null != message)
     { %>
     Ext.onReady(function()
     {
-        LABKEY.DataRegions["Analysis"].addMessage('<span style="color:green;">Newly added match is highlighted below.</span>');
+        LABKEY.DataRegions["Analysis"].addMessage('<span style="color:green;"><%=message%></span>');
     });
 <%  } %>
     var expectedCount;

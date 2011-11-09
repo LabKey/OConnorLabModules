@@ -107,6 +107,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -156,7 +157,7 @@ public class GenotypingController extends SpringActionController
     public static class AnalysisForm extends QueryExportForm
     {
         private Integer _analysis = null;
-        private boolean _combine = false;
+        private boolean _alter = false;
         private Integer _highlightId = null;
 
         public Integer getAnalysis()
@@ -170,15 +171,15 @@ public class GenotypingController extends SpringActionController
             _analysis = analysis;
         }
 
-        public boolean getCombine()
+        public boolean getAlter()
         {
-            return _combine;
+            return _alter;
         }
 
         @SuppressWarnings({"UnusedDeclaration"})
-        public void setCombine(boolean combine)
+        public void setAlter(boolean alter)
         {
-            _combine = combine;
+            _alter = alter;
         }
 
         public Integer getHighlightId()
@@ -215,7 +216,7 @@ public class GenotypingController extends SpringActionController
 
             ModelAndView qv = super.getView(form, errors);
 
-            if (form.getCombine() && !form.isExport())
+            if (form.getAlter() && !form.isExport())
             {
                 return new VBox(qv, new JspView("/org/labkey/genotyping/view/matchCombiner.jsp"));
             }
@@ -240,7 +241,7 @@ public class GenotypingController extends SpringActionController
             QueryView qv;
 
             // If the user doesn't have update permissions then just provide a normal, read-only view.
-            // Otherwise, either add the "Alter Matches" button or display that mode, depending on the value of the "combine" parameter. 
+            // Otherwise, either add the "Alter Matches" button or display that mode, depending on the value of the "alter" parameter.
             if (!getContainer().hasPermission(getUser(), UpdatePermission.class))
             {
                 qv = new QueryView(gqs, settings, errors);
@@ -249,9 +250,9 @@ public class GenotypingController extends SpringActionController
             {
                 final ActionURL url = getViewContext().cloneActionURL();
 
-                if (!form.getCombine())
+                if (!form.getAlter())
                 {
-                    url.replaceParameter("combine", "1");
+                    url.replaceParameter("alter", "1");
 
                     qv = new QueryView(gqs, settings, errors) {
                          @Override
@@ -266,7 +267,7 @@ public class GenotypingController extends SpringActionController
                 }
                 else
                 {
-                    url.deleteParameter("combine");
+                    url.deleteParameter("alter");
                     final Integer highlightId = form.getHighlightId();
 
                     qv = new QueryView(gqs, settings, errors) {
@@ -282,6 +283,10 @@ public class GenotypingController extends SpringActionController
                             combineButton.setRequiresSelection(true);
                             combineButton.setScript("combine(" + _analysis.getRowId() + ");return false;");
                             bar.add(combineButton);
+
+                            ActionButton deleteButton = new ActionButton(getDeleteMatchesURL(_analysis.getRowId()), "Delete");
+                            deleteButton.setRequiresSelection(true, "Are you sure you want to delete the selected match?", "Are you sure you want to delete the selected matches?");
+                            bar.add(deleteButton);
                         }
 
                         @Override
@@ -317,11 +322,10 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static class CombineForm extends ReturnUrlForm
+    public static class MatchesForm extends ReturnUrlForm
     {
         private int _analysis;
         private int[] _matchIds;
-        private int[] _alleleIds;
 
         public int getAnalysis()
         {
@@ -344,6 +348,12 @@ public class GenotypingController extends SpringActionController
         {
             _matchIds = matchIds;
         }
+    }
+
+
+    public static class CombineForm extends MatchesForm
+    {
+        private int[] _alleleIds;
 
         public int[] getAlleleIds()
         {
@@ -356,6 +366,7 @@ public class GenotypingController extends SpringActionController
             _alleleIds = alleleIds;
         }
     }
+
 
     @RequiresPermissionClass(UpdatePermission.class)
     public class CombineMatchesAction extends RedirectAction<CombineForm>
@@ -386,49 +397,49 @@ public class GenotypingController extends SpringActionController
         }
     }
 
-/*
-    @RequiresPermissionClass(ReadPermission.class)
-    public class ViewTestAction extends SimpleViewAction<Object>
+
+    private ActionURL getDeleteMatchesURL(int analysisId)
     {
+        return new ActionURL(DeleteMatchesAction.class, getContainer()).addParameter("analysis", analysisId);
+    }
+
+
+    @RequiresPermissionClass(DeletePermission.class)
+    public class DeleteMatchesAction extends RedirectAction<MatchesForm>
+    {
+        int _count = 0;
+
         @Override
-        public ModelAndView getView(Object o, BindException errors) throws Exception
+        public URLHelper getSuccessURL(MatchesForm form)
         {
-            DbSchema schema = DbSchema.get("mvc");
-            TableInfo tinfoAdults = schema.getTable("Adults");
-            VBox vbox = new VBox();
+            ActionURL url = getAnalysisURL(getContainer(), form.getAnalysis());
+            url.addParameter("alter", 1);
 
-            {
-                TableInfo tinfoChildren = schema.getTable("Children");
-                ColumnInfo multiValuedColumn = null;//new MultiValuedColumn("Children", tinfoAdults.getColumn("RowId"), tinfoChildren.getColumn("AdultId"), tinfoChildren.getColumn("Name"));
-                List<ColumnInfo> columns = new ArrayList<ColumnInfo>(tinfoAdults.getColumns());
-                columns.add(multiValuedColumn);
-                DataRegion dr = new DataRegion();
-                dr.setColumns(columns);
-                //vbox.addView(new GridView(dr, new RenderContext(getViewContext())));
-            }
+            if (_count > 0)
+                url.addParameter("delete", _count);
 
-            {
-                TableInfo tinfoJunction = schema.getTable("Junction");
-                TableInfo tinfoHobbies = schema.getTable("Hobbies");
-                LookupColumn lookup = new LookupColumn(tinfoJunction.getColumn("HobbyId"), tinfoHobbies.getColumn("RowId"), tinfoHobbies.getColumn("Name"));
-                ColumnInfo multiValuedColumn = null; //new MultiValuedColumn("Hobbies", tinfoAdults.getColumn("RowId"), tinfoJunction.getColumn("AdultId"), lookup);
-                List<ColumnInfo> columns = new ArrayList<ColumnInfo>(tinfoAdults.getColumns());
-                columns.add(multiValuedColumn);
-                DataRegion dr = new DataRegion();
-                dr.setColumns(columns);
-                vbox.addView(new GridView(dr, new RenderContext(getViewContext())));
-            }
-
-            return vbox;
+            return url;
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public boolean doAction(MatchesForm form, BindException errors) throws Exception
         {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
+            List<String> ids = getViewContext().getList(DataRegion.SELECT_CHECKBOX_NAME);
+            List<Integer> matchIds = new LinkedList<Integer>();
+
+            for (String id : ids)
+                matchIds.add(Integer.parseInt(id));
+
+            _count = GenotypingManager.get().deleteMatches(getContainer(), getUser(), form.getAnalysis(), matchIds);
+            return true;
+        }
+
+        @Override
+        public void validateCommand(MatchesForm form, Errors errors)
+        {
         }
     }
-*/
+
 
     @RequiresPermissionClass(AdminPermission.class)
     public class LoadSequencesAction extends SimpleRedirectAction<ReturnUrlForm>

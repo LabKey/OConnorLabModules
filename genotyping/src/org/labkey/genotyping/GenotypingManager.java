@@ -536,4 +536,35 @@ public class GenotypingManager
 
         return matchId;
     }
+
+    public int deleteMatches(Container c, User user, int analysisId, List<Integer> matchIds) throws SQLException
+    {
+        // Validate analysis was posted and exists in this container
+        GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(c, analysisId);
+
+        // Verify that matches were posted
+        if (matchIds.size() < 1)
+            throw new IllegalStateException("No matches were selected.");
+
+        // Count the corresponding matches in the database, making sure they belong to this analysis
+        SimpleFilter filter = new SimpleFilter("Analysis", analysis.getRowId());
+        filter.addInClause("RowId", matchIds);
+        TableInfo tinfo = GenotypingQuerySchema.TableType.Matches.createTable(c, user, analysis.getRowId());
+        TableSelector selector = new TableSelector(tinfo, tinfo.getColumns("RowId"), filter, null);
+
+        // Verify that the selected match count equals the number of rowIds posted...
+        if (selector.getRowCount() != matchIds.size())
+            throw new IllegalStateException("Queried matches differ from selected matches.");
+
+        // Mark all the posted matches with ParentId = 0; this will filter them out from all displays and queries,
+        // effectively "deleting" them. In the future, we could add a mode to show these matches again, to audit changes.
+        GenotypingSchema gs = GenotypingSchema.get();
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        map.put("ParentId", 0);
+
+        for (Integer matchId : matchIds)
+            Table.update(user, gs.getMatchesTable(), map, matchId);
+
+        return matchIds.size();
+    }
 }
