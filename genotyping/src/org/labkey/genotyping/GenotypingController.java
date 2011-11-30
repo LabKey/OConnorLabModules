@@ -76,6 +76,7 @@ import org.labkey.api.view.DetailsView;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
+import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.VBox;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.api.view.ViewContext;
@@ -1654,6 +1655,10 @@ public class GenotypingController extends SpringActionController
         public ModelAndView getView(RunForm form, BindException errors) throws Exception
         {
             _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
+
+            if (null == _run)
+                throw new NotFoundException("Run not found");
+
             ModelAndView readsView = super.getView(form, errors);
 
             // Just return the view in export case
