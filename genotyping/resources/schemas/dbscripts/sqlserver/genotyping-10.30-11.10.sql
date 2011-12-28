@@ -19,21 +19,17 @@
 -- Add ParentId column -- when matches are combined or altered this is set to the new match's row id
 -- We then filter out combined matches (ParentId IS NOT NULL) from normal analysis views.
 ALTER TABLE genotyping.Matches
-    ADD ParentId INT NULL
-GO
+    ADD ParentId INT NULL;
 
 /* genotyping-10.31-10.32.sql */
 
 ALTER TABLE genotyping.Sequences
-    ALTER COLUMN Comments VARCHAR(4000)
-GO
+    ALTER COLUMN Comments VARCHAR(4000);
 
 /* genotyping-10.32-10.33.sql */
 
 -- Link reads directly to sample ids; SampleId replaces the Mid column, though we'll leave Mid in place for one release
-ALTER TABLE genotyping.Reads ADD SampleId INT NULL
-GO
+ALTER TABLE genotyping.Reads ADD SampleId INT NULL;
 
 -- Populate the new SampleId column based on the previously stored MIDs
-EXEC core.executeJavaUpgradeCode 'populateReadsSampleIds'
-GO
+EXEC core.executeJavaUpgradeCode 'populateReadsSampleIds';
