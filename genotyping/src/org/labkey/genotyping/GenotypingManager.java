@@ -305,7 +305,7 @@ public class GenotypingManager
     }
 
 
-    public boolean hasAnalyses(GenotypingRun run) throws SQLException
+    public boolean hasAnalyses(GenotypingRun run)
     {
         return getAnalysisCount(run.getContainer(), run) > 0;
     }
@@ -412,22 +412,15 @@ public class GenotypingManager
         }
 
         // Validate the alleles
-        try
-        {
-            // Select all the alleles associated with these matches
-            SimpleFilter filter = new SimpleFilter();
-            filter.addInClause("MatchId", matchIdList);
-            TableInfo tinfo = gs.getAllelesJunctionTable();
-            Integer[] mAlleles = Table.executeArray(tinfo, "SequenceId", filter, null, Integer.class);
-            Set<Integer> matchAlleles = new HashSet<Integer>(Arrays.asList(mAlleles));
+        // Select all the alleles associated with these matches
+        SimpleFilter filter = new SimpleFilter();
+        filter.addInClause("MatchId", matchIdList);
+        TableInfo tinfo = gs.getAllelesJunctionTable();
+        Integer[] mAlleles = new TableSelector(tinfo.getColumn("SequenceId"), filter, null).getArray(Integer.class);
+        Set<Integer> matchAlleles = new HashSet<Integer>(Arrays.asList(mAlleles));
 
-            if (!matchAlleles.containsAll(alleleIdList))
-                throw new IllegalStateException("Selected alleles aren't owned by the selected matches.");
-        }
-        catch (SQLException e)
-        {
-            throw new RuntimeSQLException(e);
-        }
+        if (!matchAlleles.containsAll(alleleIdList))
+            throw new IllegalStateException("Selected alleles aren't owned by the selected matches.");
 
         // ======== End validation ========
 

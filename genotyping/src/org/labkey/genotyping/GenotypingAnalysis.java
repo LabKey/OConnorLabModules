@@ -20,7 +20,6 @@ import org.labkey.api.data.Container;
 import org.labkey.api.util.MemTracker;
 import org.labkey.genotyping.sequences.SequenceManager;
 
-import java.sql.SQLException;
 import java.util.Date;
 
 /**
@@ -47,7 +46,7 @@ public class GenotypingAnalysis
         assert MemTracker.put(this);
     }
 
-    public GenotypingAnalysis(Container c, GenotypingRun run, @Nullable String description, @Nullable String sequencesView) throws SQLException
+    public GenotypingAnalysis(Container c, GenotypingRun run, @Nullable String description, @Nullable String sequencesView)
     {
         this();
         setContainer(c);

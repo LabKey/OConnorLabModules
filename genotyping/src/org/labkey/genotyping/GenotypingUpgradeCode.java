@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.Table;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.data.UpgradeCode;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.util.ExceptionUtil;
@@ -49,7 +50,7 @@ public class GenotypingUpgradeCode implements UpgradeCode
         try
         {
             // Get all the runs
-            GenotypingRun[] runs = Table.select(gs.getRunsTable(), Table.ALL_COLUMNS, null, null, GenotypingRun.class);
+            GenotypingRun[] runs = new TableSelector(gs.getRunsTable()).getArray(GenotypingRun.class);
 
             // Do the update one run at a time, since each run has a different MID -> sampleid mapping
             for (GenotypingRun run : runs)

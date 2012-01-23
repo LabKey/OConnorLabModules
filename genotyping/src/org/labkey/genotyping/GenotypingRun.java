@@ -45,7 +45,7 @@ public class GenotypingRun
         assert MemTracker.put(this);
     }
 
-    public GenotypingRun(Container c, File readsFile, int runId, @Nullable MetaDataRun metaDataRun) throws SQLException
+    public GenotypingRun(Container c, File readsFile, int runId, @Nullable MetaDataRun metaDataRun)
     {
         this();
         setContainer(c);
