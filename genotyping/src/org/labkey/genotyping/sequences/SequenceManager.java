@@ -232,7 +232,7 @@ public class SequenceManager
 
     public SequenceDictionary getSequenceDictionary(Container c, int id)
     {
-        return Table.selectObject(GenotypingSchema.get().getDictionariesTable(), c, id, SequenceDictionary.class);
+        return new TableSelector(GenotypingSchema.get().getDictionariesTable()).getObject(c, id, SequenceDictionary.class);
     }
 
 
