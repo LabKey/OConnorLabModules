@@ -142,8 +142,7 @@ public class GenotypingController extends SpringActionController
     public PageConfig defaultPageConfig()
     {
         PageConfig config = super.defaultPageConfig();
-        config.setHelpTopic(new HelpTopic("genotyping"));
-        return config;
+        return config.setHelpTopic(new HelpTopic("genotyping"));
     }
 
 

@@ -23,6 +23,7 @@ import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.reader.ColumnDescriptor;
 import org.labkey.api.reader.TabLoader;
+import org.labkey.api.util.Compress;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.Formats;
 import org.labkey.api.view.ActionURL;
@@ -38,6 +39,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.zip.DataFormatException;
 
 /**
  * User: adam
@@ -51,6 +54,7 @@ public class ImportReadsJob extends PipelineJob
 {
     private final File _reads;
     private final GenotypingRun _run;
+    private final static boolean TEST_COMRESSION = false;
 
     public ImportReadsJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run)
     {
@@ -101,6 +105,14 @@ public class ImportReadsJob extends PipelineJob
         Table.update(getUser(), GenotypingSchema.get().getRunsTable(), map, _run.getRowId());
     }
 
+    AtomicLong totalSequence = new AtomicLong(0);
+    AtomicLong totalQuality = new AtomicLong(0);
+    AtomicLong deflateSequence = new AtomicLong(0);
+    AtomicLong deflateQuality = new AtomicLong(0);
+    AtomicLong rleSequence = new AtomicLong(0);
+    AtomicLong rleQuality = new AtomicLong(0);
+    AtomicLong rleAsciiSequence = new AtomicLong(0);
+    AtomicLong rleAsciiQuality = new AtomicLong(0);
 
     private void importReads() throws IOException, SQLException, PipelineJobException
     {
@@ -173,8 +185,14 @@ public class ImportReadsJob extends PipelineJob
                 String sequence = (String)map.get("sequence");
                 String quality = (String)map.get("quality");
 
+                totalSequence.addAndGet(sequence.length());
+                totalQuality.addAndGet(quality.length());
+
                 if (sequence.length() != quality.length())
                     throw new PipelineJobException("Sequence length differed from quality score length in read " + map.get("name"));
+
+                if (TEST_COMRESSION)
+                    compress(sequence, quality);
 
                 Table.insert(getUser(), readsTable, map);
                 rowCount++;
@@ -187,6 +205,17 @@ public class ImportReadsJob extends PipelineJob
             logReadsProgress("Importing " + _reads.getName() + " complete: ", rowCount);
             setStatus("UPDATING STATISTICS");
             info("Updating reads table statistics");
+
+            if (TEST_COMRESSION)
+            {
+                info("Sequence deflate ratio: " + Formats.percent1.format((double)deflateSequence.get() / totalSequence.get()));
+                info("Sequence simple RLE ratio: " + Formats.percent1.format((double)rleSequence.get() / totalSequence.get()));
+                info("Sequence ascii RLE ratio: " + Formats.percent1.format((double)rleAsciiSequence.get() / totalSequence.get()));
+                info("Quality score deflate ratio: " + Formats.percent1.format((double)deflateQuality.get() / totalQuality.get()));
+                info("Quality score simple RLE ratio: " + Formats.percent1.format((double)rleQuality.get() / totalQuality.get()));
+                info("Quality score ascii RLE ratio: " + Formats.percent1.format((double)rleAsciiQuality.get() / totalQuality.get()));
+            }
+
             readsTable.getSchema().getSqlDialect().updateStatistics(readsTable);
         }
         finally
@@ -196,6 +225,36 @@ public class ImportReadsJob extends PipelineJob
             if (null != loader)
                 loader.close();
         }
+    }
+
+
+    // Test three potential compression algorithms for sequences & quality scores
+    private void compress(String sequence, String quality)
+    {
+        try
+        {
+            byte[] b;
+            testAndAccumulate(deflateSequence, sequence, b = Compress.deflate(sequence), Compress.inflate(b));
+            testAndAccumulate(rleSequence, sequence, b = Compress.compressRle(sequence, Compress.Algorithm.SimpleRle), Compress.decompressRle(b, Compress.Algorithm.SimpleRle));
+            testAndAccumulate(rleAsciiSequence, sequence, b = Compress.compressRle(sequence, Compress.Algorithm.AsciiRle), Compress.decompressRle(b, Compress.Algorithm.AsciiRle));
+
+            testAndAccumulate(deflateQuality, quality, b = Compress.deflate(quality), Compress.inflate(b));
+            testAndAccumulate(rleQuality, quality, b = Compress.compressRle(quality, Compress.Algorithm.SimpleRle), Compress.decompressRle(b, Compress.Algorithm.SimpleRle));
+            testAndAccumulate(rleAsciiQuality, quality, b = Compress.compressRle(quality, Compress.Algorithm.AsciiRle), Compress.decompressRle(b, Compress.Algorithm.AsciiRle));
+        }
+        catch (DataFormatException e)
+        {
+            error("Decompression failed on sequence or quality score");
+        }
+    }
+
+
+    private void testAndAccumulate(AtomicLong count, String source, byte[] compressed, String decompressed)
+    {
+        if (!source.equals(decompressed))
+            warn("Roundtripping failed!");
+
+        count.addAndGet(compressed.length);
     }
 
 
