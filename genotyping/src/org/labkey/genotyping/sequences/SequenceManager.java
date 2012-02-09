@@ -76,9 +76,11 @@ public class SequenceManager
         QueryHelper qHelper = new QueryHelper(c, user, settings.getSequencesQuery());
 
         SimpleFilter viewFilter = qHelper.getViewFilter();
-        viewFilter.addCondition("file_active", 1);
-        TableInfo source = qHelper.getTableInfo();
         TableInfo destination = GenotypingSchema.get().getSequencesTable();
+        // If "file_active" column exists then filter on it, #14008
+        if (null != destination.getColumn("file_active"))
+            viewFilter.addCondition("file_active", 1);
+        TableInfo source = qHelper.getTableInfo();
 
         ResultSet rs = null;
 
