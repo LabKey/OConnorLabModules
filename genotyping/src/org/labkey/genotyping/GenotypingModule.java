@@ -93,7 +93,7 @@ public class GenotypingModule extends DefaultModule
         if (analysisCount > 0)
         {
             long matchCount = gm.getMatchCount(c, null);
-            list.add(pluralize(analysisCount, "genotyping analysis", "genotyping analyses") + " countaining " + pluralize(matchCount, "match", "matches"));
+            list.add(pluralize(analysisCount, "genotyping analysis", "genotyping analyses") + " containing " + pluralize(matchCount, "match", "matches"));
         }
 
         SequenceManager sm = SequenceManager.get();

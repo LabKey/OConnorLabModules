@@ -61,7 +61,7 @@ public class GenotypingUpgradeCode implements UpgradeCode
                 try
                 {
                     // Create the MID -> sample id mapping for this run
-                    rs = SampleManager.get().selectSamples(run.getContainer(), ctx.getUpgradeUser(), run, "library_sample_f_mid/mid_name, key");
+                    rs = SampleManager.get().selectSamples(run.getContainer(), ctx.getUpgradeUser(), run, "library_sample_f_mid/mid_name, key", "upgrading the schema");
 
                     while (rs.next())
                         midToRowIdMap.put(rs.getInt(1), rs.getInt(2));

@@ -15,24 +15,23 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.genotyping.GenotypingController" %>
-<%@ page import="org.labkey.genotyping.GenotypingFolderSettings" %>
-<%@ page import="org.labkey.genotyping.GenotypingManager" %>
-<%@ page import="org.labkey.genotyping.QueryHelper" %>
-<%@ page import="org.labkey.api.security.User" %>
-<%@ page import="org.labkey.api.data.Container" %>
 <%@ page import="org.labkey.api.action.ReturnUrlForm" %>
+<%@ page import="org.labkey.api.data.Container" %>
+<%@ page import="org.labkey.api.security.User" %>
+<%@ page import="org.labkey.api.util.DateUtil" %>
+<%@ page import="org.labkey.genotyping.GenotypingController" %>
+<%@ page import="org.labkey.genotyping.QueryHelper" %>
+<%@ page import="org.labkey.genotyping.ValidatingGenotypingFolderSettings" %>
 <%@ page import="org.labkey.genotyping.sequences.SequenceDictionary" %>
 <%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
-<%@ page import="org.labkey.api.util.DateUtil" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     ReturnUrlForm form = (ReturnUrlForm)getModelBean();
     Container c = getViewContext().getContainer();
     User user = getViewContext().getUser();
-    GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
+    ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, "loading sequences");
     QueryHelper qHelper = new QueryHelper(c, user, settings.getSequencesQuery());
-    SequenceDictionary dictionary = SequenceManager.get().getCurrentDictionary(c, false);
+    SequenceDictionary dictionary = SequenceManager.get().getCurrentDictionary(c, user, false);
 %>
 <form <%=formAction(GenotypingController.LoadSequencesAction.class, Method.Post)%>>
     <table><tr><td>

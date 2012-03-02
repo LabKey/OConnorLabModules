@@ -36,7 +36,7 @@ public class GalaxyUtils
 
         if (null == settings.getGalaxyURL())
         {
-            String advice = c.hasPermission(user, AdminPermission.class) ? "Please configure the Galaxy settings using the \"admin\" link" : "An administrator must configure the Galaxy settings";
+            String advice = c.hasPermission(user, AdminPermission.class) ? "Please configure the Galaxy settings via the genotyping admin page" : "An administrator must configure the Galaxy settings";
             throw new NotFoundException("Galaxy server URL is not configured. " + advice);
         }
 

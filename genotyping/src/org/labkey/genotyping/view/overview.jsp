@@ -37,7 +37,7 @@
     String containerType = c.isProject() ? "Project" : "Folder";
     int runCount = GenotypingManager.get().getRunCount(c);
     int analysisCount = GenotypingManager.get().getAnalysisCount(c, null);
-    long sequencesCount = SequenceManager.get().getCurrentSequenceCount(c);
+    long sequencesCount = SequenceManager.get().getCurrentSequenceCount(c, user);
 %>
 <table>
     <tr><td colspan="3" class="labkey-announcement-title"><span><%=containerType%> Contents</span></td></tr>

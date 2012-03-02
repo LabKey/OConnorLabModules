@@ -72,7 +72,8 @@ public class GenotypingQuerySchema extends UserSchema
                 table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
                 setDefaultVisibleColumns(table, "RowId, MetaDataId, Created, CreatedBy");
 
-                String runsQuery = GenotypingManager.get().getSettings(c).getRunsQuery();
+                // Ignore meta data if not configured
+                String runsQuery = new NonValidatingGenotypingFolderSettings(c).getRunsQuery();
 
                 if (null != runsQuery)
                 {
@@ -126,7 +127,8 @@ public class GenotypingQuerySchema extends UserSchema
                 table.addCondition(containerCondition);
                 setDefaultVisibleColumns(table, "Name, SampleId, Sequence, Quality");
 
-                String samplesQuery = GenotypingManager.get().getSettings(c).getSamplesQuery();
+                // No validation... ignore sample meta data if not set
+                String samplesQuery = new NonValidatingGenotypingFolderSettings(c).getSamplesQuery();
 
                 if (null != samplesQuery)
                 {
@@ -257,7 +259,8 @@ public class GenotypingQuerySchema extends UserSchema
                 table.addCondition(new SimpleFilter().addCondition("ParentId", null, CompareType.ISBLANK));
                 setDefaultVisibleColumns(table, "SampleId, Reads, Percent, AverageLength, PosReads, NegReads, PosExtReads, NegExtReads, Alleles/AlleleName");
 
-                String samplesQuery = GenotypingManager.get().getSettings(c).getSamplesQuery();
+                // Ignore samples meta data if not configured
+                String samplesQuery = new NonValidatingGenotypingFolderSettings(c).getSamplesQuery();
 
                 if (null != samplesQuery)
                 {

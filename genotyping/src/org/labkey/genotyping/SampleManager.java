@@ -57,11 +57,11 @@ public class SampleManager
         return INSTANCE;
     }
 
-    public Results selectSamples(Container c, User user, GenotypingRun run, String columnNames) throws SQLException
+    public Results selectSamples(Container c, User user, GenotypingRun run, String columnNames, String action) throws SQLException
     {
-        GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
+        ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, action);
         QueryHelper qHelper = new QueryHelper(c, user, settings.getSamplesQuery());
-        SimpleFilter extraFilter = new SimpleFilter("library_number", run.getMetaDataRun(user).getSampleLibrary());
+        SimpleFilter extraFilter = new SimpleFilter("library_number", run.getMetaDataRun(user, action).getSampleLibrary());
 
         List<FieldKey> fieldKeys = new LinkedList<FieldKey>();
 
@@ -79,7 +79,7 @@ public class SampleManager
         private static final String SELECT_COLUMNS = MID5_COLUMN_NAME + "/mid_name, " + MID3_COLUMN_NAME + "/mid_name, " + AMPLICON_COLUMN_NAME + ", " + KEY_COLUMN_NAME;
         private static final int SELECT_COLUMN_COUNT = 4;
 
-        public SampleIdFinder(GenotypingRun run, User user, Set<String> sampleKeyColumns) throws SQLException
+        public SampleIdFinder(GenotypingRun run, User user, Set<String> sampleKeyColumns, String action) throws SQLException
         {
             _sampleKeyColumns = sampleKeyColumns;
             _map = new LinkedHashMap<SampleKey, Integer>();
@@ -91,7 +91,7 @@ public class SampleManager
                 // Create the [5' MID, 3' MID, Amplicon] -> sample id mapping for this run
                 try
                 {
-                    rs = SampleManager.get().selectSamples(run.getContainer(), user, run, SELECT_COLUMNS);
+                    rs = SampleManager.get().selectSamples(run.getContainer(), user, run, SELECT_COLUMNS, action);
                 }
                 catch (NullPointerException e)
                 {

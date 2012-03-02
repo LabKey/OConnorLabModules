@@ -53,11 +53,13 @@ genotyping/src/org/labkey/genotyping/ImportAnalysisPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsJob.java -text
 genotyping/src/org/labkey/genotyping/ImportReadsPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/MetaDataRun.java -text
+genotyping/src/org/labkey/genotyping/NonValidatingGenotypingFolderSettings.java -text
 genotyping/src/org/labkey/genotyping/QueryHelper.java -text
 genotyping/src/org/labkey/genotyping/SampleManager.java -text
 genotyping/src/org/labkey/genotyping/Status.java -text
 genotyping/src/org/labkey/genotyping/SubmitAnalysisJob.java -text
 genotyping/src/org/labkey/genotyping/SubmitAnalysisPipelineProvider.java -text
+genotyping/src/org/labkey/genotyping/ValidatingGenotypingFolderSettings.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyFolderSettings.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyManager.java -text
 genotyping/src/org/labkey/genotyping/galaxy/GalaxyServer.java -text

@@ -120,6 +120,7 @@ import java.util.TreeSet;
 public class GenotypingController extends SpringActionController
 {
     private static final Logger LOG = Logger.getLogger(GenotypingController.class);
+    @SuppressWarnings({"unchecked"})
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(GenotypingController.class);
 
     public GenotypingController()
@@ -462,6 +463,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
+    // TODO: Annotate getters with @Nullable
     public static class AdminForm extends ReturnUrlForm implements GenotypingFolderSettings, GalaxyFolderSettings, HasViewContext
     {
         private String _galaxyURL;
@@ -475,7 +477,7 @@ public class GenotypingController extends SpringActionController
         {
             Container c = context.getContainer();
 
-            GenotypingFolderSettings genotypingSettings = GenotypingManager.get().getSettings(c);
+            NonValidatingGenotypingFolderSettings genotypingSettings = new NonValidatingGenotypingFolderSettings(c);
             _sequencesQuery = genotypingSettings.getSequencesQuery();
             _runsQuery = genotypingSettings.getRunsQuery();
             _samplesQuery = genotypingSettings.getSamplesQuery();
@@ -591,7 +593,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(AdminForm form, boolean reshow, BindException errors) throws Exception
         {
-            GenotypingFolderSettings currentSettings = GenotypingManager.get().getSettings(getContainer());
+            NonValidatingGenotypingFolderSettings currentSettings = new NonValidatingGenotypingFolderSettings(getContainer());
             VBox vbox = new VBox();
 
             if (null != currentSettings.getSequencesQuery())
@@ -844,8 +846,9 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(ImportReadsForm form, boolean reshow, BindException errors) throws Exception
         {
-            GenotypingFolderSettings settings = GenotypingManager.get().getSettings(getContainer());
+            ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(getContainer(), getUser(), "importing reads");
             TableInfo runs = new QueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo();
+            settings.getSamplesQuery();  // Pipeline job will flag this if missing, but let's proactively validate before we launch the job
             List<Integer> allRuns = new ArrayList<Integer>(Arrays.asList(Table.executeArray(runs, "run_num", null, new Sort("-run_num"), Integer.class)));
             allRuns.removeAll(Arrays.asList(Table.executeArray(GenotypingSchema.get().getRunsTable(), "MetaDataId", null, null, Integer.class)));
 
@@ -1031,7 +1034,7 @@ public class GenotypingController extends SpringActionController
 
             try
             {
-                Results results = SampleManager.get().selectSamples(getContainer(), getUser(), run, "library_sample_name, library_sample_species, key");
+                Results results = SampleManager.get().selectSamples(getContainer(), getUser(), run, "library_sample_name, library_sample_species, key", "creating an analysis");
                 rs = results.getResultSet();
                 Map<FieldKey, ColumnInfo> fieldMap = results.getFieldMap();
 
@@ -1275,7 +1278,16 @@ public class GenotypingController extends SpringActionController
             File analysisDir = matches.getParentFile();
 
             // Load properties to determine the run.
-            Properties props = GenotypingManager.get().readProperties(analysisDir);
+            Properties props = null;
+
+            try
+            {
+                props = GenotypingManager.get().readProperties(analysisDir);
+            }
+            catch (IOException e)
+            {
+                throw new RuntimeException(e);
+            }
 
             Integer analysisId = Integer.parseInt((String)props.get("analysis"));
             importAnalysis(analysisId, analysisDir, getUser());
@@ -1355,7 +1367,7 @@ public class GenotypingController extends SpringActionController
             settings.setAllowChooseView(true);
             settings.getBaseSort().insertSortColumn("RowId");
             Integer dictionary = form.getDictionary();
-            settings.getBaseFilter().addCondition("Dictionary", null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer()).getRowId());
+            settings.getBaseFilter().addCondition("Dictionary", null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer(), getUser()).getRowId());
 
             QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
             qv.setShadeAlternatingRows(true);
@@ -1417,7 +1429,7 @@ public class GenotypingController extends SpringActionController
 
             // Adding the dictionary ensures we're grabbing a sequence from this container
             Integer dictionary = form.getDictionary();
-            settings.getBaseFilter().addCondition("Dictionary", null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer()).getRowId());
+            settings.getBaseFilter().addCondition("Dictionary", null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer(), getUser()).getRowId());
             QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
 
             DataRegion rgn = new DataRegion();

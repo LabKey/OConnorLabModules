@@ -36,7 +36,7 @@ public class GenotypingFolderType extends DefaultFolderType
             ),
             Arrays.asList(
                 Portal.getPortalPart("Lists").createWebPart(),
-                Portal.getPortalPart("Query").createWebPart()
+                GenotypingRunsView.FACTORY.createWebPart()
             ),
             getDefaultModuleSet(module, getModule("Pipeline")),
             module);

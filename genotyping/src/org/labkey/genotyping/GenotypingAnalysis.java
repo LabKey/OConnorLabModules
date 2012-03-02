@@ -17,6 +17,7 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
+import org.labkey.api.security.User;
 import org.labkey.api.util.MemTracker;
 import org.labkey.genotyping.sequences.SequenceManager;
 
@@ -46,13 +47,13 @@ public class GenotypingAnalysis
         assert MemTracker.put(this);
     }
 
-    public GenotypingAnalysis(Container c, GenotypingRun run, @Nullable String description, @Nullable String sequencesView)
+    public GenotypingAnalysis(Container c, User user, GenotypingRun run, @Nullable String description, @Nullable String sequencesView)
     {
         this();
         setContainer(c);
         setRun(run.getRowId());
         setDescription(description);
-        setSequenceDictionary(SequenceManager.get().getCurrentDictionary(c).getRowId());
+        setSequenceDictionary(SequenceManager.get().getCurrentDictionary(c, user).getRowId());
         setSequencesView(sequencesView);
     }
 

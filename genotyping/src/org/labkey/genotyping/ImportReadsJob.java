@@ -153,7 +153,7 @@ public class ImportReadsJob extends PipelineJob
             columns.add(new ColumnDescriptor("sampleid", Integer.class));
             loader.setColumns(columns.toArray(new ColumnDescriptor[columns.size()]));
 
-            SampleManager.SampleIdFinder finder = new SampleManager.SampleIdFinder(_run, getUser(), sampleKeyColumns);
+            SampleManager.SampleIdFinder finder = new SampleManager.SampleIdFinder(_run, getUser(), sampleKeyColumns, "importing reads");
 
             TableInfo readsTable = GenotypingSchema.get().getReadsTable();
 

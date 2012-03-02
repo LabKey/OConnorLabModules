@@ -28,14 +28,15 @@ import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.security.User;
+import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.util.ResultSetUtil;
+import org.labkey.api.view.NotFoundException;
 import org.labkey.api.writer.FastaEntry;
 import org.labkey.api.writer.FastaWriter;
 import org.labkey.api.writer.ResultSetFastaGenerator;
-import org.labkey.genotyping.GenotypingFolderSettings;
-import org.labkey.genotyping.GenotypingManager;
 import org.labkey.genotyping.GenotypingSchema;
 import org.labkey.genotyping.QueryHelper;
+import org.labkey.genotyping.ValidatingGenotypingFolderSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,9 +71,9 @@ public class SequenceManager
         Map<String, Object> dictionary = new HashMap<String, Object>();
         dictionary.put("container", c);
         Table.insert(user, GenotypingSchema.get().getDictionariesTable(), dictionary);
-        int dictionaryId = getCurrentDictionary(c).getRowId();
+        int dictionaryId = getCurrentDictionary(c, user).getRowId();
 
-        GenotypingFolderSettings settings = GenotypingManager.get().getSettings(c);
+        ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, "loading sequences");
         QueryHelper qHelper = new QueryHelper(c, user, settings.getSequencesQuery());
 
         SimpleFilter viewFilter = qHelper.getViewFilter();
@@ -124,7 +125,7 @@ public class SequenceManager
 
         try
         {
-            rs = selectSequences(c, user, getCurrentDictionary(c), sequencesViewName, "AlleleName,Sequence");
+            rs = selectSequences(c, user, getCurrentDictionary(c, user), sequencesViewName, "AlleleName,Sequence");
 
             FastaWriter<FastaEntry> fw = new FastaWriter<FastaEntry>(new ResultSetFastaGenerator(rs) {
                 @Override
@@ -149,15 +150,15 @@ public class SequenceManager
     }
 
 
-    // Throws IllegalStateException if references sequences have not been loaded
-    public @NotNull SequenceDictionary getCurrentDictionary(Container c)
+    // Throws NotFoundException if references sequences have not been loaded
+    public @NotNull SequenceDictionary getCurrentDictionary(Container c, User user)
     {
-        return getCurrentDictionary(c, true);
+        return getCurrentDictionary(c, user, true);
     }
 
 
     // Throws or returns null, depending on value of throwIfNotLoaded flag
-    public SequenceDictionary getCurrentDictionary(Container c, boolean throwIfNotLoaded)
+    public SequenceDictionary getCurrentDictionary(Container c, User user, boolean throwIfNotLoaded)
     {
         Integer max = new SqlSelector(GenotypingSchema.get().getSchema(),
             new SQLFragment("SELECT MAX(RowId) FROM " + GenotypingSchema.get().getDictionariesTable() + " WHERE Container = ?", c)).getObject(Integer.class);
@@ -165,7 +166,13 @@ public class SequenceManager
         if (null == max)
         {
             if (throwIfNotLoaded)
-                throw new IllegalStateException("You must load reference sequences before initiating an analysis");
+            {
+                // This will throw NotFoundException if the query is not defined yet
+                new ValidatingGenotypingFolderSettings(c, user, "creating an analysis").getSequencesQuery();
+                // Otherwise, assume sequences haven't been loading yet
+                String who = c.hasPermission(user, AdminPermission.class) ? "you" : "an administrator";
+                throw new NotFoundException("Before creating an analysis, " + who + " must load reference sequences via the genotyping admin page");
+            }
             else
                 return null;
         }
@@ -238,12 +245,12 @@ public class SequenceManager
     }
 
 
-    public long getCurrentSequenceCount(Container c)
+    public long getCurrentSequenceCount(Container c, User user)
     {
         GenotypingSchema gs = GenotypingSchema.get();
         TableInfo sequences = gs.getSequencesTable();
 
-        SequenceDictionary dictionary = getCurrentDictionary(c, false);
+        SequenceDictionary dictionary = getCurrentDictionary(c, user, false);
 
         if (null == dictionary)
             return 0;

@@ -21,7 +21,6 @@ import org.labkey.api.security.User;
 import org.labkey.api.util.MemTracker;
 
 import java.io.File;
-import java.sql.SQLException;
 import java.util.Date;
 
 /**
@@ -89,10 +88,10 @@ public class GenotypingRun
         return _metaDataId;
     }
 
-    public @Nullable MetaDataRun getMetaDataRun(User user)
+    public @Nullable MetaDataRun getMetaDataRun(User user, String action)
     {
         if (null != _metaDataId)
-            return GenotypingManager.get().getMetaDataRun(_container, user, _metaDataId);
+            return GenotypingManager.get().getMetaDataRun(_container, user, _metaDataId, action);
         else
             return null;
     }
