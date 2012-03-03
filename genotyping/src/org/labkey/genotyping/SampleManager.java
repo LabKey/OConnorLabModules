@@ -188,8 +188,8 @@ public class SampleManager
             return "SampleKey{" +
                     "mid5=" + _mid5 +
                     ", mid3=" + _mid3 +
-                    ", amplicon='" + _amplicon + '\'' +
-                    '}';
+                    ", amplicon=" + (null != _amplicon ? "'" + _amplicon + "'" : null) +
+                    "}";
         }
     }
 }

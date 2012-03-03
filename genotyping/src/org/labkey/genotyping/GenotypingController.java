@@ -683,7 +683,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public void validateCommand(MySettingsForm form, Errors errors)
         {
-            String key = form.getGalaxyKey().trim();
+            String key = form.getGalaxyKey();
 
             if (null == key)
             {
@@ -691,6 +691,7 @@ public class GenotypingController extends SpringActionController
             }
             else
             {
+                key = key.trim();
                 String advice = " Please copy the web API key from your Galaxy server account (User -> Preferences -> Manage your information) and paste it below.";
 
                 if (key.length() != 32)

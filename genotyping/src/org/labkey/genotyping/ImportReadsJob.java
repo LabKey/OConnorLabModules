@@ -15,9 +15,11 @@
  */
 package org.labkey.genotyping;
 
+import org.apache.commons.lang3.StringUtils;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
@@ -85,7 +87,19 @@ public class ImportReadsJob extends PipelineJob
         try
         {
             updateRunStatus(Status.Importing);
-            importReads();
+
+            try
+            {
+                importReads();
+            }
+            catch (SQLException se)
+            {
+                if (SqlDialect.isConstraintException(se) && StringUtils.containsIgnoreCase(se.getMessage(), "uq_reads_name"))
+                    throw new RuntimeException("A readname in this file already exists in the database; this run may have been imported previously", se);
+                else
+                    throw se;
+            }
+
             updateRunStatus(Status.Complete);
             info("Import reads complete");
             setStatus(COMPLETE_STATUS);
@@ -94,6 +108,16 @@ public class ImportReadsJob extends PipelineJob
         {
             error("Import reads failed", e);
             setStatus(ERROR_STATUS);
+
+            try
+            {
+                info("Deleting run " + _run.getRowId());
+                GenotypingManager.get().deleteRun(_run);
+            }
+            catch (SQLException se)
+            {
+                error("Failed to delete run " + _run.getRowId(), se);
+            }
         }
     }
 

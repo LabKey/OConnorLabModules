@@ -25,6 +25,7 @@ import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.util.FileUtil;
+import org.labkey.api.util.MinorConfigurationException;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.util.URLHelper;
@@ -74,10 +75,10 @@ public class SubmitAnalysisJob extends PipelineJob
         _analysisDir = new File(_dir, "analysis_" + _analysis.getRowId());
 
         if (_analysisDir.exists())
-            throw new IllegalStateException("Analysis directory already exists: " + _analysisDir.getPath());
+            throw new MinorConfigurationException("Analysis directory already exists: " + _analysisDir.getPath());
 
         if (!_analysisDir.mkdir())
-            throw new IllegalStateException("Can't create analysis directory: " + _analysisDir.getPath());
+            throw new MinorConfigurationException("Can't create analysis directory: " + _analysisDir.getPath());
 
         setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")));
         info("Creating analysis directory: " + _analysisDir.getName());
