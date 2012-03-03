@@ -67,6 +67,7 @@ import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.HelpTopic;
+import org.labkey.api.util.MinorConfigurationException;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.Pair;
 import org.labkey.api.util.ResultSetUtil;
@@ -1327,9 +1328,12 @@ public class GenotypingController extends SpringActionController
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(getContainer(), analysisId);
         File analysisDir = new File(analysis.getPath());
 
-        if (!pipelineDir.equals(analysisDir))
-            throw new FileNotFoundException("Analysis path (\"" + analysisDir.getAbsolutePath() +
-                    "\") doesn't match specified path (\"" + pipelineDir.getAbsolutePath() + "\")");
+        String pipelinePath = pipelineDir.getCanonicalPath();
+        String analysisPath = analysisDir.getCanonicalPath();
+
+        if (!pipelinePath.equals(analysisPath))
+            throw new FileNotFoundException("Analysis path (\"" + analysisPath +
+                    "\") doesn't match specified path (\"" + pipelinePath + "\")");
 
         boolean success = GenotypingManager.get().updateAnalysisStatus(analysis, user, Status.Submitted, Status.Importing);
 
@@ -1342,7 +1346,27 @@ public class GenotypingController extends SpringActionController
         }
         else
         {
-            throw new IllegalStateException("Current analysis status is not \"Submitted\"");
+            Status currentStatus = Status.getStatus(analysis.getStatus());
+            String message = "Could not import an analysis: it was ";
+
+            // First case would be a race condition...
+            switch (currentStatus)
+            {
+                case Submitted:
+                    message += "not completely submitted";
+                    break;
+                case NotSubmitted:
+                    message += "not submitted";
+                    break;
+                case Importing:
+                    message += "already importing";
+                    break;
+                case Complete:
+                    message += "previously imported";
+                    break;
+            }
+
+            throw new MinorConfigurationException(message);
         }
     }
 
