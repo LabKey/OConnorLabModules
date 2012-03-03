@@ -24,6 +24,7 @@ import org.labkey.api.action.QueryViewAction;
 import org.labkey.api.action.QueryViewAction.QueryExportForm;
 import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.ReturnUrlForm;
+import org.labkey.api.action.SimpleErrorView;
 import org.labkey.api.action.SimpleRedirectAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
@@ -1042,12 +1043,15 @@ public class GenotypingController extends SpringActionController
                 Results results = SampleManager.get().selectSamples(getContainer(), getUser(), run, "library_sample_name, library_sample_species, key", "creating an analysis");
                 rs = results.getResultSet();
                 Map<FieldKey, ColumnInfo> fieldMap = results.getFieldMap();
+                ColumnInfo sampleNameColumn = getColumnInfo(fieldMap, "library_sample_name");
+                ColumnInfo sampleSpeciesColumn = getColumnInfo(fieldMap, "library_sample_species");
+                ColumnInfo keyColumn = getColumnInfo(fieldMap, "key");
 
                 while (null != rs && rs.next())
                 {
-                    String sampleName = (String)fieldMap.get(FieldKey.fromString("library_sample_name")).getValue(rs);
-                    String species = (String)fieldMap.get(FieldKey.fromString("library_sample_species")).getValue(rs);
-                    int sampleId = (Integer)fieldMap.get(FieldKey.fromString("key")).getValue(rs);
+                    String sampleName = (String)sampleNameColumn.getValue(rs);
+                    String species = (String)sampleSpeciesColumn.getValue(rs);
+                    int sampleId = (Integer)keyColumn.getValue(rs);
                     sampleMap.put(sampleId, new Pair<String, String>(sampleName, species));
                 }
             }
@@ -1057,6 +1061,17 @@ public class GenotypingController extends SpringActionController
             }
 
             return new JspView<AnalyzeBean>("/org/labkey/genotyping/view/analyze.jsp", new AnalyzeBean(views, sampleMap, form.getReturnActionURL()), errors);
+        }
+
+        // Throws NotFoundException if column doesn't exist
+        private ColumnInfo getColumnInfo(Map<FieldKey, ColumnInfo> fieldMap, String columnName)
+        {
+            ColumnInfo column = fieldMap.get(FieldKey.fromString(columnName));
+
+            if (null == column)
+                throw new NotFoundException("Expected to find a column named \"" + columnName + "\" in the samples query");
+
+            return column;
         }
 
         @Override
@@ -1283,21 +1298,25 @@ public class GenotypingController extends SpringActionController
             File analysisDir = matches.getParentFile();
 
             // Load properties to determine the run.
-            Properties props;
-
-            try
-            {
-                props = GenotypingManager.get().readProperties(analysisDir);
-            }
-            catch (IOException e)
-            {
-                throw new RuntimeException(e);
-            }
-
+            Properties props = GenotypingManager.get().readProperties(analysisDir);
             Integer analysisId = Integer.parseInt((String)props.get("analysis"));
             importAnalysis(analysisId, analysisDir, getUser());
 
             return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
+        }
+
+        @Override
+        protected ModelAndView getErrorView(Exception e, BindException errors) throws Exception
+        {
+            try
+            {
+                throw e;
+            }
+            catch (IOException ioe)
+            {
+                errors.reject("importAnalysis", ioe.getMessage());
+                return new SimpleErrorView(errors);
+            }
         }
     }
 
