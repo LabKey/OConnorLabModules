@@ -86,6 +86,7 @@ import org.labkey.genotyping.GenotypingQuerySchema.TableType;
 import org.labkey.genotyping.galaxy.GalaxyFolderSettings;
 import org.labkey.genotyping.galaxy.GalaxyManager;
 import org.labkey.genotyping.galaxy.GalaxyUserSettings;
+import org.labkey.genotyping.galaxy.GalaxyUtils;
 import org.labkey.genotyping.sequences.FastqGenerator;
 import org.labkey.genotyping.sequences.FastqWriter;
 import org.labkey.genotyping.sequences.SequenceManager;
@@ -493,19 +494,19 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public String getGalaxyURL()
+        public @Nullable String getGalaxyURL()
         {
             return _galaxyURL;
         }
 
         @SuppressWarnings({"UnusedDeclaration"})
-        public void setGalaxyURL(String galaxyURL)
+        public void setGalaxyURL(@Nullable String galaxyURL)
         {
             _galaxyURL = galaxyURL;
         }
 
         @Override
-        public String getSequencesQuery()
+        public @Nullable String getSequencesQuery()
         {
             return _sequencesQuery;
         }
@@ -516,7 +517,8 @@ public class GenotypingController extends SpringActionController
             _sequencesQuery = sequencesQuery;
         }
 
-        public String getRunsQuery()
+        @Override
+        public @Nullable String getRunsQuery()
         {
             return _runsQuery;
         }
@@ -528,7 +530,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public String getSamplesQuery()
+        public @Nullable String getSamplesQuery()
         {
             return _samplesQuery;
         }
@@ -1016,6 +1018,9 @@ public class GenotypingController extends SpringActionController
         {
             GenotypingRun run = GenotypingManager.get().getRun(getContainer(), form.getRun());
 
+            // Verify that galaxy properties are set before submitting job.  This will throw NotFoundException if either URL or web API key isn't set.
+            GalaxyUtils.get(getContainer(), getUser());
+
             SortedSet<CustomView> views = new TreeSet<CustomView>(new Comparator<CustomView>() {
                     @Override
                     public int compare(CustomView c1, CustomView c2)
@@ -1163,8 +1168,6 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    private static String FAILURE_PREFACE = "Failed to queue import analysis job: ";
-
     @RequiresNoPermission
     public class WorkflowCompleteAction extends SimpleViewAction<ImportAnalysisForm>
     {
@@ -1175,6 +1178,8 @@ public class GenotypingController extends SpringActionController
             String message;
 
             // Send any exceptions back to the Galaxy task so it can log it as well.
+            String FAILURE_PREFACE = "Failed to queue import analysis job: ";
+
             try
             {
                 int analysisId = form.getAnalysis();
@@ -1278,7 +1283,7 @@ public class GenotypingController extends SpringActionController
             File analysisDir = matches.getParentFile();
 
             // Load properties to determine the run.
-            Properties props = null;
+            Properties props;
 
             try
             {

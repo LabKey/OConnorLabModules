@@ -1,5 +1,6 @@
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
 
@@ -22,24 +23,24 @@ class NonValidatingGenotypingFolderSettings implements GenotypingFolderSettings
     }
 
     @Override
-    public String getSequencesQuery()
+    public @Nullable String getSequencesQuery()
     {
         return getQuery(GenotypingManager.Setting.ReferenceSequencesQuery);
     }
 
     @Override
-    public String getRunsQuery()
+    public @Nullable String getRunsQuery()
     {
         return getQuery(GenotypingManager.Setting.RunsQuery);
     }
 
     @Override
-    public String getSamplesQuery()
+    public @Nullable String getSamplesQuery()
     {
         return getQuery(GenotypingManager.Setting.SamplesQuery);
     }
 
-    protected String getQuery(GenotypingManager.Setting setting)
+    protected @Nullable String getQuery(GenotypingManager.Setting setting)
     {
         return _map.get(setting.getKey());
     }

@@ -26,12 +26,9 @@ public interface GenotypingFolderSettings
 {
     String SEPARATOR = "~";
 
-    @Nullable
     String getSequencesQuery();
 
-    @Nullable
     String getRunsQuery();
 
-    @Nullable
     String getSamplesQuery();
 }

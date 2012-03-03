@@ -1,5 +1,6 @@
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AdminPermission;
@@ -23,7 +24,28 @@ public class ValidatingGenotypingFolderSettings extends NonValidatingGenotypingF
     }
 
     @Override
-    protected String getQuery(GenotypingManager.Setting setting)
+    public @NotNull String getSequencesQuery()
+    {
+        //noinspection ConstantConditions
+        return super.getSequencesQuery();
+    }
+
+    @Override
+    public @NotNull String getRunsQuery()
+    {
+        //noinspection ConstantConditions
+        return super.getRunsQuery();
+    }
+
+    @Override
+    public @NotNull String getSamplesQuery()
+    {
+        //noinspection ConstantConditions
+        return super.getSamplesQuery();
+    }
+
+    @Override
+    protected @NotNull String getQuery(GenotypingManager.Setting setting)
     {
         String query = super.getQuery(setting);
 
