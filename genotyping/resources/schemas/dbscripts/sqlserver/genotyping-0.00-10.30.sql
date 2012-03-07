@@ -16,7 +16,8 @@
 
 /* genotyping-0.00-10.29.sql */
 
-EXEC sp_addapprole 'genotyping', 'password';
+CREATE SCHEMA genotyping;
+GO
 
 CREATE TABLE genotyping.Dictionaries
 (
