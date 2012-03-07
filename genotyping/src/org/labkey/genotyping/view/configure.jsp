@@ -25,11 +25,13 @@
 //    Ext.QuickTips.init();
 //    window.onbeforeunload = LABKEY.beforeunload();    // TODO: Check for dirty
     LABKEY.requiresScript("viewPicker.js");
+    var queries = {};
 
     function update(query, hiddenId, divId)
     {
         document.getElementById(hiddenId).value = query;
         document.getElementById(divId).innerHTML = getDisplayValue(query);
+        queries[hiddenId] = query;
     }
 
     function updateSequencesQuery(query)
@@ -64,6 +66,11 @@
         return html;
     }
 
+    function includeSchema(schemaName)
+    {
+        return 'genotyping' != schemaName;
+    }
+
     Ext.onReady(function()
     {
         updateSequencesQuery(<%=q(form.getSequencesQuery())%>);
@@ -90,7 +97,7 @@
             <td>External source of DNA reference sequences&nbsp;&nbsp;</td>
             <td><div id="sequencesQueryDiv"></div></td>
             <td>
-                <%=textLink("configure", "#", "chooseView('Choose DNA reference sequences query', 'Select a query that represents an external source of DNA reference sequences.  This query will be used periodically to replace the reference sequences that link to results.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateSequencesQuery(query);});return false;", "id")%>
+                <%=textLink("configure", "#", "chooseView('Choose DNA reference sequences query', 'Select a query that represents an external source of DNA reference sequences.  This query will be used periodically to replace the reference sequences that link to results.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateSequencesQuery(query);}, queries['sequencesQuery'], includeSchema);return false;", "id")%>
                 <input type="hidden" name="sequencesQuery" id="sequencesQuery">
             </td>
         </tr>
@@ -98,7 +105,7 @@
             <td>Runs</td>
             <td><div id="runsQueryDiv"></div></td>
             <td>
-                <%=textLink("configure", "#", "chooseView('Choose runs query', 'Select a query where runs are stored.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateRunsQuery(query);});return false;", "id")%>
+                <%=textLink("configure", "#", "chooseView('Choose runs query', 'Select a query where runs are stored.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateRunsQuery(query);}, queries['runsQuery'], includeSchema);return false;", "id")%>
                 <input type="hidden" name="runsQuery" id="runsQuery">
             </td>
         </tr>
@@ -106,7 +113,7 @@
             <td>Samples</td>
             <td><div id="samplesQueryDiv"></div></td>
             <td>
-                <%=textLink("configure", "#", "chooseView('Choose samples query', 'Select a query that provides a list of samples.  This query is filtered by the library number specified in the run to produce the sample.txt file.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateSamplesQuery(query);});return false;", "id")%>
+                <%=textLink("configure", "#", "chooseView('Choose samples query', 'Select a query that provides a list of samples.  This query is filtered by the library number specified in the run to produce the sample.txt file.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateSamplesQuery(query);}, queries['samplesQuery'], includeSchema);return false;", "id")%>
                 <input type="hidden" name="samplesQuery" id="samplesQuery">
             </td>
         </tr>
