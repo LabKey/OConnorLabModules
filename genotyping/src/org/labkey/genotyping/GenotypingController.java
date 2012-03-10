@@ -163,6 +163,7 @@ public class GenotypingController extends SpringActionController
         private Integer _analysis = null;
         private boolean _alter = false;
         private Integer _highlightId = null;
+        private String _error = null;
 
         public Integer getAnalysis()
         {
@@ -196,6 +197,17 @@ public class GenotypingController extends SpringActionController
         {
             _highlightId = highlightId;
         }
+
+        public String getError()
+        {
+            return _error;
+        }
+
+        @SuppressWarnings({"UnusedDeclaration"})
+        public void setError(String error)
+        {
+            _error = error;
+        }
     }
 
 
@@ -212,22 +224,29 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(AnalysisForm form, BindException errors) throws Exception
         {
-            // Now that the form has populated "highlightId", eliminate this parameter from the current ActionURL.  We don't want
-            // links to propagate it.
-            ActionURL currentURL = getViewContext().cloneActionURL().deleteParameter("highlightId");
+            // Now that the form has populated "highlightId" and "error", eliminate these parameters from the current
+            // ActionURL.  We don't want links to propagate it.
+            ActionURL currentURL = getViewContext().cloneActionURL().deleteParameter("highlightId").deleteParameter("error");
             currentURL.setReadOnly();
             getViewContext().setActionURL(currentURL);
 
-            ModelAndView qv = super.getView(form, errors);
+            String error = form.getError();
+            VBox vbox = new VBox();
+
+            if (null != error)
+            {
+                // Unfortunately, this doesn't work... DataRegion never bothers to render the errors TODO: Fix DataView/DataRegion
+                errors.reject("form", error);
+                // So throw an error view at the top of the page
+                vbox.addView(new SimpleErrorView(errors, false));
+            }
+
+            vbox.addView(super.getView(form, errors));
 
             if (form.getAlter() && !form.isExport())
-            {
-                return new VBox(qv, new JspView("/org/labkey/genotyping/view/matchCombiner.jsp"));
-            }
-            else
-            {
-                return qv;
-            }
+                vbox.addView(new JspView("/org/labkey/genotyping/view/matchCombiner.jsp"));
+
+            return vbox;
         }
 
         @Override
@@ -376,14 +395,20 @@ public class GenotypingController extends SpringActionController
     public class CombineMatchesAction extends RedirectAction<CombineForm>
     {
         private Integer _newId = null;
+        private String _error = null;
 
         @Override
         public URLHelper getSuccessURL(CombineForm form)
         {
             ActionURL url = form.getReturnActionURL();
 
-            if (null != url && null != _newId)
-                url.replaceParameter("highlightId", String.valueOf(_newId));
+            if (null != url)
+            {
+                if (null != _error)
+                    url.replaceParameter("error", _error);
+                else if  (null != _newId)
+                    url.replaceParameter("highlightId", String.valueOf(_newId));
+            }
 
             return url;
         }
@@ -391,7 +416,14 @@ public class GenotypingController extends SpringActionController
         @Override
         public boolean doAction(CombineForm form, BindException errors) throws Exception
         {
-            _newId = GenotypingManager.get().combineMatches(getContainer(), getUser(), form.getAnalysis(), form.getMatchIds(), form.getAlleleIds());
+            try
+            {
+                _newId = GenotypingManager.get().combineMatches(getContainer(), getUser(), form.getAnalysis(), form.getMatchIds(), form.getAlleleIds());
+            }
+            catch (IllegalStateException e)
+            {
+                _error = "Combine failed: " + e.getMessage();
+            }
             return true;
         }
 
@@ -411,7 +443,8 @@ public class GenotypingController extends SpringActionController
     @RequiresPermissionClass(DeletePermission.class)
     public class DeleteMatchesAction extends RedirectAction<MatchesForm>
     {
-        int _count = 0;
+        private int _count = 0;
+        private String _error = null;
 
         @Override
         public URLHelper getSuccessURL(MatchesForm form)
@@ -419,7 +452,9 @@ public class GenotypingController extends SpringActionController
             ActionURL url = getAnalysisURL(getContainer(), form.getAnalysis());
             url.addParameter("alter", 1);
 
-            if (_count > 0)
+            if (null != _error)
+                url.addParameter("error", _error);
+            else if (_count > 0)
                 url.addParameter("delete", _count);
 
             return url;
@@ -434,7 +469,14 @@ public class GenotypingController extends SpringActionController
             for (String id : ids)
                 matchIds.add(Integer.parseInt(id));
 
-            _count = GenotypingManager.get().deleteMatches(getContainer(), getUser(), form.getAnalysis(), matchIds);
+            try
+            {
+                _count = GenotypingManager.get().deleteMatches(getContainer(), getUser(), form.getAnalysis(), matchIds);
+            }
+            catch (IllegalStateException e)
+            {
+                _error = "Delete failed: " + e.getMessage();
+            }
             return true;
         }
 
@@ -854,7 +896,7 @@ public class GenotypingController extends SpringActionController
             ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(getContainer(), getUser(), "importing reads");
             TableInfo runs = new QueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo();
             settings.getSamplesQuery();  // Pipeline job will flag this if missing, but let's proactively validate before we launch the job
-            List<Integer> allRuns = new ArrayList<Integer>(Arrays.asList(Table.executeArray(runs, "run_num", null, new Sort("-run_num"), Integer.class)));
+            List<Integer> allRuns = new ArrayList<Integer>(Arrays.asList(Table.executeArray(runs, "run_num", null, new Sort("-run_num"), Integer.class)));   // TODO: Should restrict to this folder, #14278
             allRuns.removeAll(Arrays.asList(Table.executeArray(GenotypingSchema.get().getRunsTable(), "MetaDataId", null, null, Integer.class)));
 
             return new JspView<ImportReadsBean>("/org/labkey/genotyping/view/importReads.jsp", new ImportReadsBean(allRuns, form.getReadsPath()), errors);

@@ -21,9 +21,11 @@ import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.security.User;
 import org.labkey.api.util.ResultSetUtil;
+import org.labkey.api.view.NotFoundException;
 
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
@@ -61,6 +63,11 @@ public class SampleManager
     {
         ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, action);
         QueryHelper qHelper = new QueryHelper(c, user, settings.getSamplesQuery());
+
+        TableInfo ti = qHelper.getTableInfo();
+        if (null == ti.getColumn("library_number"))
+            throw new NotFoundException("Samples query must include a library_number column");
+
         SimpleFilter extraFilter = new SimpleFilter("library_number", run.getMetaDataRun(user, action).getSampleLibrary());
 
         List<FieldKey> fieldKeys = new LinkedList<FieldKey>();

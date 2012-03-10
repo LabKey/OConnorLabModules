@@ -143,8 +143,11 @@ public class ImportAnalysisJob extends PipelineJob
                             Integer sequenceId = sequences.get(allele);
 
                             if (null == sequenceId)
+                            {
+                                String view = _analysis.getSequencesView();
                                 throw new NotFoundException("Allele name \"" + allele + "\" not found in reference sequences dictionary " +
-                                        _analysis.getSequenceDictionary() + ", view \"" + _analysis.getSequencesView() + "\"");
+                                        _analysis.getSequenceDictionary() + ", view \"" + (null != view ? view : "<default>") + "\"");
+                            }
 
                             alleleIds[i] = sequenceId;
                         }
