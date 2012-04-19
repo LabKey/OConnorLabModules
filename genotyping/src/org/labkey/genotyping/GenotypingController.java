@@ -1783,18 +1783,24 @@ public class GenotypingController extends SpringActionController
             settings.getBaseSort().insertSortColumn("RowId");
             handleSettings(settings);
 
+            GenotypingRun _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
+            final String platform = _run.getPlatform();
+
             QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors)
             {
                 @Override
                 public PanelButton createExportButton(boolean exportAsWebPage)
                 {
                     PanelButton result = super.createExportButton(exportAsWebPage);
-                    ActionURL url = getViewContext().cloneActionURL();
-                    url.addParameter("exportType", FASTQ_FORMAT);
 
-                    HttpView filesView = new JspView<ActionURL>("/org/labkey/genotyping/view/fastqExportOptions.jsp", url);
-                    result.addSubPanel("FASTQ", filesView);
+                    if(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString().equals(platform))
+                    {
+                        ActionURL url = getViewContext().cloneActionURL();
+                        url.addParameter("exportType", FASTQ_FORMAT);
 
+                        HttpView filesView = new JspView<ActionURL>("/org/labkey/genotyping/view/fastqExportOptions.jsp", url);
+                        result.addSubPanel("FASTQ", filesView);
+                    }
                     return result;
                 }
             };

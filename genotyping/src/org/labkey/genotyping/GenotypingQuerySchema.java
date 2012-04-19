@@ -29,6 +29,7 @@ import org.labkey.api.data.MultiValuedLookupColumn;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.exp.query.ExpSchema;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.DetailsURL;
 import org.labkey.api.query.FieldKey;
@@ -289,15 +290,35 @@ public class GenotypingQuerySchema extends UserSchema
 
         SequenceFiles() {
             @Override
-            FilteredTable createTable(Container c, User user)
+            FilteredTable createTable(final Container c, final User user)
             {
                 FilteredTable table = new FilteredTable(GS.getSequenceFilesTable(), c);
                 table.wrapAllColumns(true);
-                table.getColumn("DataId").setDisplayField(table.getColumn("DataId/Name"));
+                table.getColumn("DataId").setLabel("Filename");
+                table.getColumn("DataId").setFk(new LookupForeignKey("RowId")
+                {
+                    @Override
+                    public TableInfo getLookupTableInfo()
+                    {
+                        return new ExpSchema(user, c).getDatasTable();
+                    }
+                });
+
+                final ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, "query");
+                final QueryHelper qHelper = new QueryHelper(c, user, settings.getSamplesQuery());
+
+                table.getColumn("SampleId").setFk(new LookupForeignKey(qHelper.getQueryGridURL(), SampleManager.KEY_COLUMN_NAME, SampleManager.KEY_COLUMN_NAME, SampleManager.KEY_COLUMN_NAME)
+                {
+                    @Override
+                    public TableInfo getLookupTableInfo()
+                    {
+                        return qHelper.getTableInfo();
+                    }
+                });
                 //SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getSequenceFilesTable() + ".Run) = ?");
                 //containerCondition.add(c.getId());
                 //table.addCondition(containerCondition);
-                setDefaultVisibleColumns(table, "Run, DataId/Name, DataId/DownloadLink, SampleId");
+                setDefaultVisibleColumns(table, "Run, DataId, DataId/DownloadLink, SampleId");
                 table.setDescription("Contains one row per sequence file imported with runs");
 
                 return table;

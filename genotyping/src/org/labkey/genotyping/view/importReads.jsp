@@ -27,14 +27,14 @@
     String extensions = StringUtils.join(SequenceManager.FASTQ_EXTENSIONS, "\", \"");
 %>
 <form <%=formAction(GenotypingController.ImportReadsAction.class, Method.Post)%> name="importReads">
-    If you select "<%=h(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString())%>", the pipeline will extract reads from the file "<%=h(GenotypingManager.READS_FILE_NAME)%>".
+    If you select "<%=h(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString())%>", the pipeline will load reads from the file "<%=h(GenotypingManager.READS_FILE_NAME)%>".
     <p></p>
     If you select "<%=h(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString())%>", the pipeline will attempt to load any files in this folder with the following extensions: "<%=h(extensions)%>" or gzipped versions of them.  If you choose a FASTQ prefix, only files beginning with the prefix will be used.
     <p></p>
 
     <table id="analysesTable">
         <%=formatMissedErrorsInTable("form", 2)%>
-        <tr><td colspan="2">Run Information</td></tr>
+        <tr><td colspan="2"><b>Run Information</b></td></tr>
         <tr><td>Associated Run:</td><td><select name="run"><%
             for (Integer run : bean.getRuns())
             { %><option><%=h(run)%></option>
@@ -52,7 +52,7 @@
             %>
             </select>
         </td></tr>
-        <tr><td>FASTQ Prefix (Illumina only):</td>
+        <tr><td>FASTQ Prefix (Optional, illumina only):</td>
         <td><input type="text" name="prefix" value="<%=h(bean.getPrefix())%>"></td></tr>
         <tr><td>&nbsp;</td></tr>
         <tr><td>
