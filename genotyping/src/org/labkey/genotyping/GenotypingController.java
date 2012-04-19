@@ -45,6 +45,7 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
+import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.pipeline.PipelineUrls;
 import org.labkey.api.pipeline.browse.PipelinePathForm;
@@ -798,6 +799,8 @@ public class GenotypingController extends SpringActionController
         private Integer _metaDataRun = null;
         private boolean _analyze = false;
         private boolean _pipeline = false;
+        private String _platform;
+        private String _prefix;
 
         public String getReadsPath()
         {
@@ -851,18 +854,44 @@ public class GenotypingController extends SpringActionController
         {
             _pipeline = pipeline;
         }
+
+        public String getPlatform()
+        {
+            return _platform;
+        }
+
+        @SuppressWarnings({"UnusedDeclaration"})
+        public void setPlatform(String platform)
+        {
+            _platform = platform;
+        }
+
+        public String getPrefix()
+        {
+            return _prefix;
+        }
+
+        @SuppressWarnings({"UnusedDeclaration"})
+        public void setPrefix(String prefix)
+        {
+            _prefix = prefix;
+        }
     }
 
 
     public static class ImportReadsBean
     {
         private List<Integer> _runs;
+        private String _platform;
         private String _readsPath;
+        private String _prefix;
 
-        private ImportReadsBean(List<Integer> runs, String readsPath)
+        private ImportReadsBean(List<Integer> runs, String readsPath, @Nullable String platform, @Nullable String prefix)
         {
             _runs = runs;
             _readsPath = readsPath;
+            _platform = platform;
+            _prefix = prefix;
         }
 
         public List<Integer> getRuns()
@@ -873,6 +902,21 @@ public class GenotypingController extends SpringActionController
         public String getReadsPath()
         {
             return _readsPath;
+        }
+
+        public String getPlatform()
+        {
+            return _platform;
+        }
+
+        public String getPrefix()
+        {
+            return _prefix;
+        }
+
+        public void setPrefix(String prefix)
+        {
+            _prefix = prefix;
         }
     }
 
@@ -899,7 +943,7 @@ public class GenotypingController extends SpringActionController
             List<Integer> allRuns = new ArrayList<Integer>(Arrays.asList(Table.executeArray(runs, "run_num", null, new Sort("-run_num"), Integer.class)));   // TODO: Should restrict to this folder, #14278
             allRuns.removeAll(Arrays.asList(Table.executeArray(GenotypingSchema.get().getRunsTable(), "MetaDataId", null, null, Integer.class)));
 
-            return new JspView<ImportReadsBean>("/org/labkey/genotyping/view/importReads.jsp", new ImportReadsBean(allRuns, form.getReadsPath()), errors);
+            return new JspView<ImportReadsBean>("/org/labkey/genotyping/view/importReads.jsp", new ImportReadsBean(allRuns, form.getReadsPath(), form.getPath(), form.getPrefix()), errors);
         }
 
         @Override
@@ -941,6 +985,9 @@ public class GenotypingController extends SpringActionController
             if (null == form.getRun())
                 return "You must specify a run number";
 
+            if (null == form.getPlatform())
+                return "You must specify a sequence platform";
+
             try
             {
                 File readsFile = new File(form.getReadsPath());
@@ -948,7 +995,7 @@ public class GenotypingController extends SpringActionController
 
                 try
                 {
-                    run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), form.getMetaDataRun(), readsFile);
+                    run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), form.getMetaDataRun(), readsFile, form.getPlatform());
                 }
                 catch (SQLException e)
                 {
@@ -960,8 +1007,20 @@ public class GenotypingController extends SpringActionController
 
                 ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
                 PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
-                PipelineJob prepareRunJob = new ImportReadsJob(vbi, root, new File(form.getReadsPath()), run);
-                PipelineService.get().queueJob(prepareRunJob);
+
+                if (form.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString()))
+                {
+                    PipelineJob prepareRunJob = new Import454ReadsJob(vbi, root, new File(form.getReadsPath()), run);
+                    PipelineService.get().queueJob(prepareRunJob);
+                }
+                else if (form.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString()))
+                {
+                    PipelineJob prepareRunJob = new ImportIlluminaReadsJob(vbi, root, new File(form.getReadsPath()), run, form.getPrefix());
+                    PipelineService.get().queueJob(prepareRunJob);
+                }
+                else{
+                    throw new IllegalArgumentException("Unknown sequence platform: " + form.getPlatform());
+                }
             }
             catch (Exception e)
             {
@@ -1647,6 +1706,7 @@ public class GenotypingController extends SpringActionController
     {
         private static final String DATA_REGION_NAME = "Reads";
         private static final String FASTQ_FORMAT = "FASTQ";
+        private static final String FASTQ_FILE_FORMAT = "FASTQ_FILE";
 
         private ReadsAction(Class<? extends FORM> formClass)
         {
@@ -1656,6 +1716,9 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(FORM form, BindException errors) throws Exception
         {
+            GenotypingRun _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
+            String platform = _run.getPlatform();
+
             if (FASTQ_FORMAT.equals(form.getExportType()))
             {
                 QueryView qv = createQueryView(form, errors, true, form.getExportRegion());
@@ -1704,7 +1767,10 @@ public class GenotypingController extends SpringActionController
 
                 return null;
             }
+            else if (FASTQ_FILE_FORMAT.equals(form.getExportType()))
+            {
 
+            }
             return super.getView(form, errors);
         }
 
@@ -1761,7 +1827,10 @@ public class GenotypingController extends SpringActionController
             if (null == _run)
                 throw new NotFoundException("Run not found");
 
-            ModelAndView readsView = super.getView(form, errors);
+            final boolean allowAnalysis = GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString().equals(_run.getPlatform());
+
+            ModelAndView readsView;
+            readsView = super.getView(form, errors);
 
             // Just return the view in export case
             if (form.isExport())
@@ -1790,8 +1859,11 @@ public class GenotypingController extends SpringActionController
                     @Override
                     protected void renderInternal(Object model, PrintWriter out) throws Exception
                     {
-                        submitAnalysis.render(new RenderContext(getViewContext()), out);
-                        out.println("<br><br>");
+                        if(allowAnalysis)
+                        {
+                            submitAnalysis.render(new RenderContext(getViewContext()), out);
+                            out.println("<br><br>");
+                        }
                     }
                 });
             }
@@ -1810,7 +1882,8 @@ public class GenotypingController extends SpringActionController
         @Override
         protected String getTableName()
         {
-            return TableType.Reads.toString();
+            return GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString().equals(_run.getPlatform())
+                ? TableType.SequenceFiles.toString() : TableType.Reads.toString();
         }
 
         @Override

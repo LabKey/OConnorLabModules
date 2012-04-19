@@ -52,15 +52,15 @@ import java.util.zip.DataFormatException;
 
 // This job imports all the reads for the run.  Once imported, users can (optionally) submit an analysis
 // of this run to Galaxy (see GalaxySubmitJob).
-public class ImportReadsJob extends PipelineJob
+public class Import454ReadsJob extends PipelineJob
 {
     private final File _reads;
     private final GenotypingRun _run;
     private final static boolean TEST_COMRESSION = false;
 
-    public ImportReadsJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run)
+    public Import454ReadsJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run)
     {
-        super("Import Reads", info, root);
+        super("Import 454 Reads", info, root);
         _reads = reads;
         _run = run;
         setLogFile(new File(_reads.getParentFile(), FileUtil.makeFileNameWithTimestamp("import_reads", "log")));
@@ -77,7 +77,7 @@ public class ImportReadsJob extends PipelineJob
     @Override
     public String getDescription()
     {
-        return "Import reads for run " + _run.getRowId();
+        return "Import 454 reads for run " + _run.getRowId();
     }
 
 
@@ -101,12 +101,12 @@ public class ImportReadsJob extends PipelineJob
             }
 
             updateRunStatus(Status.Complete);
-            info("Import reads complete");
+            info("Import 454 reads complete");
             setStatus(COMPLETE_STATUS);
         }
         catch (Exception e)
         {
-            error("Import reads failed", e);
+            error("Import 454 reads failed", e);
             setStatus(ERROR_STATUS);
 
             try

@@ -53,6 +53,7 @@ import java.util.Map;
 public class SequenceManager
 {
     private static final SequenceManager _instance = new SequenceManager();
+    public static final String[] FASTQ_EXTENSIONS = {"fastq", "fq"};
 
     private SequenceManager()
     {

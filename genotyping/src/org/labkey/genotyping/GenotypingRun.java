@@ -35,6 +35,7 @@ public class GenotypingRun
     private int _createdBy;
     private Date _created;
     private String _path;
+    private String _platform;
     private String _fileName;
     private Integer _metaDataId = null;
     private int _status = Status.NotSubmitted.getStatusId();
@@ -44,13 +45,14 @@ public class GenotypingRun
         assert MemTracker.put(this);
     }
 
-    public GenotypingRun(Container c, File readsFile, int runId, @Nullable MetaDataRun metaDataRun)
+    public GenotypingRun(Container c, File readsFile, int runId, @Nullable MetaDataRun metaDataRun, String platform)
     {
         this();
         setContainer(c);
         setPath(readsFile.getParent());
         setFileName(readsFile.getName());
         setRowId(runId);
+        setPlatform(platform);
 
         if (null != metaDataRun)
         {
@@ -124,6 +126,16 @@ public class GenotypingRun
     public void setPath(String path)
     {
         _path = path;
+    }
+
+    public String getPlatform()
+    {
+        return _platform;
+    }
+
+    public void setPlatform(String platform)
+    {
+        _platform = platform;
     }
 
     public String getFileName()

@@ -45,7 +45,7 @@ public class GenotypingModule extends DefaultModule
 
     public double getVersion()
     {
-        return 12.10;
+        return 12.11;
     }
 
     public boolean hasScripts()
@@ -67,7 +67,8 @@ public class GenotypingModule extends DefaultModule
     {
         // add a container listener so we'll know when our container is deleted:
         ContainerManager.addContainerListener(new GenotypingContainerListener());
-        PipelineService.get().registerPipelineProvider(new ImportReadsPipelineProvider(this));
+        PipelineService.get().registerPipelineProvider(new Import454ReadsPipelineProvider(this));
+        PipelineService.get().registerPipelineProvider(new ImportIlluminaReadsPipelineProvider(this));
         PipelineService.get().registerPipelineProvider(new SubmitAnalysisPipelineProvider(this));
         PipelineService.get().registerPipelineProvider(new ImportAnalysisPipelineProvider(this));
         GenotypingQuerySchema.register(this);

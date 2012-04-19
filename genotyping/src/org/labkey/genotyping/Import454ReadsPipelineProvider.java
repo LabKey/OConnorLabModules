@@ -32,11 +32,11 @@ import java.io.FileFilter;
  * Date: Sep 10, 2010
  * Time: 8:42:36 PM
  */
-public class ImportReadsPipelineProvider extends PipelineProvider
+public class Import454ReadsPipelineProvider extends PipelineProvider
 {
-    public ImportReadsPipelineProvider(Module owningModule)
+    public Import454ReadsPipelineProvider(Module owningModule)
     {
-        super("Import Reads", owningModule);
+        super("Import 454 Reads", owningModule);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class ImportReadsPipelineProvider extends PipelineProvider
         importURL.addParameter("pipeline", true);    // Distinguish between manual pipeline submission and automated scripts
 
         String actionId = createActionId(ImportReadsAction.class, null);
-        addAction(actionId, importURL, "Import Reads", directory, directory.listFiles(new ReadsFilter()), false, false, includeAll);
+        addAction(actionId, importURL, "Import 454 Reads", directory, directory.listFiles(new ReadsFilter()), false, false, includeAll);
     }
 
     private static class ReadsFilter implements FileFilter

@@ -66,6 +66,11 @@ public class GenotypingSchema
         return getSchema().getTable("Sequences");
     }
 
+    public TableInfo getSequenceFilesTable()
+    {
+        return getSchema().getTable("SequenceFiles");
+    }
+
     public TableInfo getReadsTable()
     {
         return getSchema().getTable("Reads");

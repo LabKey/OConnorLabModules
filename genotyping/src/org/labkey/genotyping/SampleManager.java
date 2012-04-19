@@ -47,6 +47,7 @@ public class SampleManager
     public static final String MID3_COLUMN_NAME = "threemid";
     public static final String AMPLICON_COLUMN_NAME = "amplicon";
     public static final String KEY_COLUMN_NAME = "key";
+    public static final String SAMPLE_ID_COLUMN_NAME = "sample";
 
     static final Set<String> POSSIBLE_SAMPLE_KEYS = new CaseInsensitiveHashSet(MID5_COLUMN_NAME, MID3_COLUMN_NAME, AMPLICON_COLUMN_NAME);
 
@@ -149,6 +150,11 @@ public class SampleManager
         public Integer getSampleId(Integer mid5, Integer mid3, String amplicon)
         {
             return _map.get(getSampleKey(mid5, mid3, amplicon));
+        }
+
+        public boolean isValidSampleKey(int key)
+        {
+            return _map.containsValue(key);
         }
     }
 

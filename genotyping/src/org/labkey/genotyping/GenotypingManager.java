@@ -34,8 +34,10 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.security.User;
+import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.NotFoundException;
+import org.labkey.genotyping.sequences.SequenceManager;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,6 +48,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -63,6 +66,18 @@ public class GenotypingManager
     public static final String READS_FILE_NAME = "reads.txt";
     public static final String MATCHES_FILE_NAME = "matches.txt";
     public static final String SEQUENCES_FILE_NAME = "sequences.fasta";
+
+    public enum SEQUENCE_PLATFORMS {
+        LS454("LS454"),
+        ILLUMINA("Illumina")
+        ;
+
+        private SEQUENCE_PLATFORMS(final String text) {
+            this.text = text;
+        }
+
+        private final String text;
+    }
 
     private GenotypingManager()
     {
@@ -111,14 +126,14 @@ public class GenotypingManager
         PropertyManager.saveProperties(map);
     }
 
-    public GenotypingRun createRun(Container c, User user, int runId, @Nullable Integer metaDataId, File readsFile) throws SQLException
+    public GenotypingRun createRun(Container c, User user, int runId, @Nullable Integer metaDataId, File readsFile, String platform) throws SQLException
     {
         MetaDataRun mdRun = null;
 
         if (null != metaDataId)
             mdRun = getMetaDataRun(c, user, metaDataId, "importing reads");
 
-        GenotypingRun run = new GenotypingRun(c, readsFile, runId, mdRun);
+        GenotypingRun run = new GenotypingRun(c, readsFile, runId, mdRun, platform);
         return Table.insert(user, GenotypingSchema.get().getRunsTable(), run);
     }
 
@@ -556,4 +571,44 @@ public class GenotypingManager
 
         return matchIds.size();
     }
+
+    // because ilumina sample CSV files do not provide a clear way to identify the FASTQ files/
+    // this method accepts the CSV input and an optional FASTQ file prefix.  it will return any
+    // FASTQ files in the same folder as the CSV and filter using the prefix, if provided.
+    public static List<File> inferIlluminaInputsFromCSV(File sampleFile)
+    {
+        return inferIlluminaInputsFromCSV(sampleFile, null);
+    }
+
+    public static List<File> inferIlluminaInputsFromCSV(File sampleFile, String fastqPrefix)
+    {
+        File folder = sampleFile.getParentFile();
+        List<File> _fastqFiles = new ArrayList<File>();
+
+        String path;
+        List<String> extensions = new ArrayList(Arrays.asList(SequenceManager.FASTQ_EXTENSIONS));
+
+        for (File f : folder.listFiles())
+        {
+            String extension = FileUtil.getExtension(f);
+            if("gz".equalsIgnoreCase(extension))
+            {
+                path = f.getPath().replaceAll("\\.gz$", "");
+                extension = FileUtil.getExtension(path);
+            }
+            if(null == extension)
+                continue;
+
+            if(extensions.contains(extension.toLowerCase()))
+            {
+                if(fastqPrefix != null && !f.getName().startsWith(fastqPrefix))
+                    continue;
+
+                _fastqFiles.add(f);
+            }
+        }
+
+        return _fastqFiles;
+    }
+
 }

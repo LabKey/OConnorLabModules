@@ -285,6 +285,22 @@ public class GenotypingQuerySchema extends UserSchema
                 table.setDescription("Contains one row per genotyping match");
 
                 return table;
+            }},
+
+        SequenceFiles() {
+            @Override
+            FilteredTable createTable(Container c, User user)
+            {
+                FilteredTable table = new FilteredTable(GS.getSequenceFilesTable(), c);
+                table.wrapAllColumns(true);
+                table.getColumn("DataId").setDisplayField(table.getColumn("DataId/Name"));
+                //SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getSequenceFilesTable() + ".Run) = ?");
+                //containerCondition.add(c.getId());
+                //table.addCondition(containerCondition);
+                setDefaultVisibleColumns(table, "Run, DataId/Name, DataId/DownloadLink, SampleId");
+                table.setDescription("Contains one row per sequence file imported with runs");
+
+                return table;
             }};
 
         abstract FilteredTable createTable(Container c, User user);
