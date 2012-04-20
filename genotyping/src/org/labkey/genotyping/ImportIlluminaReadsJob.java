@@ -124,123 +124,125 @@ public class ImportIlluminaReadsJob extends PipelineJob
         Table.update(getUser(), GenotypingSchema.get().getRunsTable(), map, _run.getRowId());
     }
 
-    private void importReads() throws IOException, PipelineJobException
+    private void importReads() throws PipelineJobException
     {
-        info("Importing Run From File: " + _sampleFile.getName());
-        setStatus("IMPORTING READS");
-
-        CSVReader reader = null;
-        DbScope scope = null;
-
         try
         {
-            reader = new CSVReader(new FileReader(_sampleFile));
+            info("Importing Run From File: " + _sampleFile.getName());
+            setStatus("IMPORTING READS");
 
-            Set<String> columns = new HashSet<String>() {{
-                add(SampleManager.MID5_COLUMN_NAME);
-                add(SampleManager.MID3_COLUMN_NAME);
-                add(SampleManager.AMPLICON_COLUMN_NAME);
-            }};
+            CSVReader reader = null;
+            DbScope scope = null;
 
-            SampleManager.SampleIdFinder finder = new SampleManager.SampleIdFinder(_run, getUser(), columns, "importing reads");
+            try
+            {
+                reader = new CSVReader(new FileReader(_sampleFile));
 
-            //parse the samples file
-            String [] nextLine;
-            List<Integer> sampleList = new ArrayList<Integer>();
-            sampleList.add(0); //placeholder for control and unmapped reads
+                Set<String> columns = new HashSet<String>() {{
+                    add(SampleManager.MID5_COLUMN_NAME);
+                    add(SampleManager.MID3_COLUMN_NAME);
+                    add(SampleManager.AMPLICON_COLUMN_NAME);
+                }};
 
-            Boolean inSamples = false;
-            while ((nextLine = reader.readNext()) != null) {
-                if(nextLine.length > 0 && "[Data]".equals(nextLine[0]))
-                {
-                    inSamples = true;
-                    continue;
+                SampleManager.SampleIdFinder finder = new SampleManager.SampleIdFinder(_run, getUser(), columns, "importing reads");
+
+                //parse the samples file
+                String [] nextLine;
+                List<Integer> sampleList = new ArrayList<Integer>();
+                sampleList.add(0); //placeholder for control and unmapped reads
+
+                Boolean inSamples = false;
+                while ((nextLine = reader.readNext()) != null) {
+                    if(nextLine.length > 0 && "[Data]".equals(nextLine[0]))
+                    {
+                        inSamples = true;
+                        continue;
+                    }
+
+                    //NOTE: for now we only parse samples.  at a future point we might consider using more of this file
+                    if(!inSamples)
+                        continue;
+
+                    if(nextLine.length == 0 || null == nextLine[0])
+                        continue;
+
+                    if("Sample_ID".equalsIgnoreCase(nextLine[0]))
+                        continue;
+
+                    int sampleId;
+                    try
+                    {
+                        sampleId = Integer.parseInt(nextLine[0]);
+
+                        if(!finder.isValidSampleKey(sampleId))
+                            throw new PipelineJobException("Invalid sample Id for this run: " + nextLine[0]);
+
+                        sampleList.add(sampleId);
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        throw new PipelineJobException("The sample Id was not an integer: " + nextLine[0]);
+                    }
                 }
 
-                //NOTE: for now we only parse samples.  at a future point we might consider using more of this file
-                if(!inSamples)
-                    continue;
-
-                if(nextLine.length == 0 || null == nextLine[0])
-                    continue;
-
-                if("Sample_ID".equalsIgnoreCase(nextLine[0]))
-                    continue;
-
-                int sampleId;
-                try
+                //find the files
+                if(null == _fastqFiles)
                 {
-                    sampleId = Integer.parseInt(nextLine[0]);
-
-                    if(!finder.isValidSampleKey(sampleId))
-                        throw new PipelineJobException("Invalid sample Id for this run: " + nextLine[0]);
-
-                    sampleList.add(sampleId);
+                    _fastqFiles = GenotypingManager.inferIlluminaInputsFromCSV(_sampleFile, _fastqPrefix);
                 }
-                catch (NumberFormatException e)
+
+                if(_fastqFiles.size() == 0)
                 {
-                    throw new PipelineJobException("The sample Id was not an integer: " + nextLine[0]);
+                    throw new PipelineJobException("No FASTQ files" + (_fastqPrefix==null ? "" : " matching the prefix '" + _fastqPrefix) + "' were found");
                 }
-            }
 
-            //find the files
-            if(null == _fastqFiles)
-            {
-                _fastqFiles = GenotypingManager.inferIlluminaInputsFromCSV(_sampleFile, _fastqPrefix);
-            }
+                //now bin the FASTQ files into 2 per sample
+                IlluminaFastqParser parser = new IlluminaFastqParser(_run, sampleList, getLogger(), _fastqFiles.toArray(new File[_fastqFiles.size()]));
+                Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles();
 
-            if(_fastqFiles.size() == 0)
-            {
-                throw new PipelineJobException("No FASTQ files" + (_fastqPrefix==null ? "" : " matching the prefix '" + _fastqPrefix) + "' were found");
-            }
+                info("Created " + fileMap.keySet().size() + " FASTQ files");
+                info("Compressing FASTQ files");
 
-            //now bin the FASTQ files into 2 per sample
-            IlluminaFastqParser parser = new IlluminaFastqParser(_run, sampleList, getLogger(), _fastqFiles.toArray(new File[_fastqFiles.size()]));
-            Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles();
-
-            info("Created " + fileMap.keySet().size() + " FASTQ files");
-            info("Compressing FASTQ files");
-
-            //GZIP and create record for each file
-            Map<String, Object> row;
-            for(Pair<Integer, Integer> sampleKey : fileMap.keySet())
-            {
-                row = new CaseInsensitiveHashMap<Object>();
-                row.put("Run", _run.getRowId());
-                if(sampleKey.getKey() > 0)
-                    row.put("SampleId", sampleKey.getKey());
-
-                File input = fileMap.get(sampleKey);
-                File output = Compress.compressGzip(input);
-                //TODO: not working
-                boolean success;
-                if(output.exists())
+                //GZIP and create record for each file
+                Map<String, Object> row;
+                for(Pair<Integer, Integer> sampleKey : fileMap.keySet())
                 {
-                    success = input.delete();
+                    row = new CaseInsensitiveHashMap<Object>();
+                    row.put("Run", _run.getRowId());
+                    if(sampleKey.getKey() > 0)
+                        row.put("SampleId", sampleKey.getKey());
+
+                    File input = fileMap.get(sampleKey);
+                    File output = Compress.compressGzip(input);
+                    input.delete();
 
                     if(input.exists())
                         throw new PipelineJobException("Unable to delete file: " + input.getPath());
+
+                    ExpData data = ExperimentService.get().createData(getContainer(), new DataType("Illumina FASTQ File " + sampleKey.getValue()));
+                    data.setDataFileURI(output.toURI());
+                    data.setName(output.getName());
+                    data.save(getUser());
+                    row.put("DataId", data.getRowId());
+
+                    Table.insert(getUser(), GenotypingSchema.get().getSequenceFilesTable(), row);
                 }
-
-                ExpData data = ExperimentService.get().createData(getContainer(), new DataType("Illumina FASTQ File " + sampleKey.getValue()));
-                data.setDataFileURI(output.toURI());
-                data.setName(output.getName());
-                data.save(getUser());
-                row.put("DataId", data.getRowId());
-
-                Table.insert(getUser(), GenotypingSchema.get().getSequenceFilesTable(), row);
+            }
+            catch (SQLException e)
+            {
+                throw new PipelineJobException(e);
+            }
+            finally
+            {
+                if (null != scope)
+                    scope.closeConnection();
+                if (null != reader)
+                    reader.close();
             }
         }
-        catch (SQLException e)
+        catch (IOException e)
         {
             throw new PipelineJobException(e);
-        }
-        finally
-        {
-            if (null != scope)
-                scope.closeConnection();
-            if (null != reader)
-                reader.close();
         }
     }
 }
