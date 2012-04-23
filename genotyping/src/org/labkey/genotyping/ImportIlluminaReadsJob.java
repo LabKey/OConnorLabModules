@@ -26,12 +26,12 @@ import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
+import org.labkey.api.sequence.IlluminaFastqParser;
 import org.labkey.api.util.Compress;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.Pair;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
-import org.labkey.genotyping.sequences.IlluminaFastqParser;
 
 import java.io.File;
 import java.io.FileReader;
@@ -188,7 +188,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 //find the files
                 if(null == _fastqFiles)
                 {
-                    _fastqFiles = GenotypingManager.inferIlluminaInputsFromCSV(_sampleFile, _fastqPrefix);
+                    _fastqFiles = IlluminaFastqParser.inferIlluminaInputsFromPath(_sampleFile.getParent(), _fastqPrefix);
                 }
 
                 if(_fastqFiles.size() == 0)
@@ -197,7 +197,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 }
 
                 //now bin the FASTQ files into 2 per sample
-                IlluminaFastqParser parser = new IlluminaFastqParser(_run, sampleList, getLogger(), _fastqFiles.toArray(new File[_fastqFiles.size()]));
+                IlluminaFastqParser parser = new IlluminaFastqParser(FileUtil.getBaseName(_run.getFileName()), sampleList, getLogger(), _fastqFiles.toArray(new File[_fastqFiles.size()]));
                 Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles();
 
                 info("Created " + fileMap.keySet().size() + " FASTQ files");
