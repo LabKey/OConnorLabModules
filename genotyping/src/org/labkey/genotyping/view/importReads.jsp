@@ -37,31 +37,29 @@
     <table id="analysesTable">
         <%=formatMissedErrorsInTable("form", 2)%>
         <tr><td colspan="2"><b>Run Information</b></td></tr>
+        <tr><td>Platform:</td><td><%=h(bean.getPlatform())%></td></tr>
         <tr><td>Associated Run:</td><td><select name="run"><%
             for (Integer run : bean.getRuns())
             { %><option><%=h(run)%></option>
              <%
             }
         %></select></td></tr>
-        <tr><td>Platform:</td><td>
-            <select name="platform"><%
-                for (GenotypingManager.SEQUENCE_PLATFORMS platform : GenotypingManager.SEQUENCE_PLATFORMS.values())
-                { %><option
-                    <%=platform.toString().equals(bean.getPlatform()) ? "selected" : ""%>
-                    ><%=h(platform.toString())%></option>
-                 <%
-                }
-            %>
-            </select>
-        </td></tr>
-        <tr><td>FASTQ Prefix (Optional, Illumina only):</td>
+<%
+    if(bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString())){
+%>
+        <tr><td>FASTQ Prefix (Optional):</td>
         <td><input type="text" name="prefix" value="<%=h(bean.getPrefix())%>"></td></tr>
+<%}
+%>
         <tr><td>&nbsp;</td></tr>
         <tr><td>
+            <input type="hidden" name="platform" value="<%=h(bean.getPlatform())%>">
             <input type="hidden" name="pipeline" value="1">
             <input type="hidden" name="readsPath" value="<%=h(bean.getReadsPath())%>">
             <input type="hidden" name="analyze" value="0">
         </td></tr>
-        <tr><td><%=generateSubmitButton("Import Reads")%><%=PageFlowUtil.generateSubmitButton("Import Reads And Analyze", "document.importReads.analyze.value=1;")%></td></tr>
+        <tr><td><%=generateSubmitButton("Import Reads")%>
+            <%=bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString()) ? PageFlowUtil.generateSubmitButton("Import Reads And Analyze", "document.importReads.analyze.value=1;") : ""%>
+        </td></tr>
     </table>
 </form>
