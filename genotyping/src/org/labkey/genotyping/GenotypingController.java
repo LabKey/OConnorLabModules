@@ -884,12 +884,14 @@ public class GenotypingController extends SpringActionController
         private List<Integer> _runs;
         private String _platform;
         private String _readsPath;
+        private String _path;
         private String _prefix;
 
-        private ImportReadsBean(List<Integer> runs, String readsPath, @Nullable String platform, @Nullable String prefix)
+        private ImportReadsBean(List<Integer> runs, String readsPath, String path, @Nullable String platform, @Nullable String prefix)
         {
             _runs = runs;
             _readsPath = readsPath;
+            _path = path;
             _platform = platform;
             _prefix = prefix;
         }
@@ -918,6 +920,11 @@ public class GenotypingController extends SpringActionController
         {
             _prefix = prefix;
         }
+
+        public String getPath()
+        {
+            return _path;
+        }
     }
 
 
@@ -943,7 +950,7 @@ public class GenotypingController extends SpringActionController
             List<Integer> allRuns = new ArrayList<Integer>(Arrays.asList(Table.executeArray(runs, "run_num", null, new Sort("-run_num"), Integer.class)));   // TODO: Should restrict to this folder, #14278
             allRuns.removeAll(Arrays.asList(Table.executeArray(GenotypingSchema.get().getRunsTable(), "MetaDataId", null, null, Integer.class)));
 
-            return new JspView<ImportReadsBean>("/org/labkey/genotyping/view/importReads.jsp", new ImportReadsBean(allRuns, form.getReadsPath(), form.getPath(), form.getPrefix()), errors);
+            return new JspView<ImportReadsBean>("/org/labkey/genotyping/view/importReads.jsp", new ImportReadsBean(allRuns, form.getReadsPath(), form.getPath(), form.getPlatform(), form.getPrefix()), errors);
         }
 
         @Override

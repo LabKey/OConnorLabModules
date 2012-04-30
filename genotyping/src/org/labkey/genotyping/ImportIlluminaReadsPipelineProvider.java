@@ -49,8 +49,9 @@ public class ImportIlluminaReadsPipelineProvider extends PipelineProvider
         ActionURL importURL = directory.cloneHref();
         importURL.setAction(ImportReadsAction.class);
         importURL.addParameter("pipeline", true);    // Distinguish between manual pipeline submission and automated scripts
+        importURL.addParameter("platform", "ILLUMINA");
 
-        String actionId = createActionId(ImportReadsAction.class, null);
+        String actionId = createActionId(ImportReadsAction.class, "Illumina");
         addAction(actionId, importURL, "Import Illumina Reads", directory, directory.listFiles(new SampleCSVFilter()), false, false, includeAll);
     }
 

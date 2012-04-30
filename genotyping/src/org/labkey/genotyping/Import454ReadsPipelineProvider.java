@@ -48,8 +48,9 @@ public class Import454ReadsPipelineProvider extends PipelineProvider
         ActionURL importURL = directory.cloneHref();
         importURL.setAction(ImportReadsAction.class);
         importURL.addParameter("pipeline", true);    // Distinguish between manual pipeline submission and automated scripts
+        importURL.addParameter("platform", "LS454");
 
-        String actionId = createActionId(ImportReadsAction.class, null);
+        String actionId = createActionId(ImportReadsAction.class, "454");
         addAction(actionId, importURL, "Import 454 Reads", directory, directory.listFiles(new ReadsFilter()), false, false, includeAll);
     }
 

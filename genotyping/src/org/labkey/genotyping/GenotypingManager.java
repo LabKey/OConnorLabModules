@@ -233,6 +233,7 @@ public class GenotypingManager
         deleteAnalyses(" WHERE Run = ? AND Run IN (SELECT RowId FROM " + gs.getRunsTable() + " WHERE Container = ?)", run.getRowId(), run.getContainer());
 
         Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsTable() + " WHERE Run = ?", run.getRowId());
+        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getSequenceFilesTable() + " WHERE Run = ?", run.getRowId());
         Table.execute(gs.getSchema(), "DELETE FROM " + gs.getRunsTable() + " WHERE RowId = ?", run.getRowId());
     }
 

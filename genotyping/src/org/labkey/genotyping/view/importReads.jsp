@@ -21,10 +21,12 @@
 <%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
 <%@ page import="java.io.File" %>
 <%@ page import="org.apache.commons.lang3.StringUtils" %>
+<%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     GenotypingController.ImportReadsBean bean = (GenotypingController.ImportReadsBean)getModelBean();
     String extensions = StringUtils.join(SequenceManager.FASTQ_EXTENSIONS, "\", \"");
+    //String platform = getViewContext().getActionURL().getParameter("platform");
 %>
 <form <%=formAction(GenotypingController.ImportReadsAction.class, Method.Post)%> name="importReads">
     If you select "<%=h(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString())%>", the pipeline will load reads from the file "<%=h(GenotypingManager.READS_FILE_NAME)%>".
@@ -45,14 +47,14 @@
             <select name="platform"><%
                 for (GenotypingManager.SEQUENCE_PLATFORMS platform : GenotypingManager.SEQUENCE_PLATFORMS.values())
                 { %><option
-                    <%=platform.equals(bean.getPlatform()) ? "selected" : ""%>
+                    <%=platform.toString().equals(bean.getPlatform()) ? "selected" : ""%>
                     ><%=h(platform.toString())%></option>
                  <%
                 }
             %>
             </select>
         </td></tr>
-        <tr><td>FASTQ Prefix (Optional, illumina only):</td>
+        <tr><td>FASTQ Prefix (Optional, Illumina only):</td>
         <td><input type="text" name="prefix" value="<%=h(bean.getPrefix())%>"></td></tr>
         <tr><td>&nbsp;</td></tr>
         <tr><td>
