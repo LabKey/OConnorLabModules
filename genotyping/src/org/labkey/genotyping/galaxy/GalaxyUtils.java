@@ -37,13 +37,13 @@ public class GalaxyUtils
         if (null == settings.getGalaxyURL())
         {
             String who = c.hasPermission(user, AdminPermission.class) ? "you" : "an administrator";
-            throw new NotFoundException("Before creating an analysis, " + who + " must configure the Galaxy server URL via the genotyping admin page.");
+            throw new NotFoundException("To submit data to Galaxy, " + who + " must configure a Galaxy server URL via the genotyping admin page.");
         }
 
         GalaxyUserSettings userSettings = GalaxyManager.get().getUserSettings(c, user);
 
         if (null == userSettings.getGalaxyKey())
-            throw new NotFoundException("Before creating an analysis, you must first configure your Galaxy web API key using the \"my settings\" link");
+            throw new NotFoundException("To submit data to Galaxy, you must first configure your Galaxy web API key using the \"my settings\" link");
 
         return new GalaxyServer(settings.getGalaxyURL(), userSettings.getGalaxyKey());
     }

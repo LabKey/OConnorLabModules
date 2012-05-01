@@ -16,6 +16,7 @@
 package org.labkey.genotyping;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TSVWriter;
@@ -29,6 +30,7 @@ import org.labkey.api.util.MinorConfigurationException;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.util.URLHelper;
+import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.genotyping.galaxy.GalaxyServer;
 import org.labkey.genotyping.galaxy.GalaxyUtils;
@@ -109,11 +111,20 @@ public class SubmitAnalysisJob extends PipelineJob
         {
             // Do this first to ensure that the Galaxy server is configured properly and the user has set a web API key
             info("Verifying Galaxy configuration");
-            GalaxyServer server = GalaxyUtils.get(getContainer(), getUser());
+            GalaxyServer server = null;
+
+            try
+            {
+                server = GalaxyUtils.get(getContainer(), getUser());
+            }
+            catch (NotFoundException e)
+            {
+                warn("Can't submit to Galaxy server: " + e.getMessage());
+            }
 
             writeAnalysisSamples();
             writeReads();
-            writeProperties();
+            writeProperties(server);
             writeFasta();
             sendFilesToGalaxy(server);
             monitorCompletion();
@@ -182,7 +193,7 @@ public class SubmitAnalysisJob extends PipelineJob
     }
 
 
-    private void writeProperties() throws IOException
+    private void writeProperties(@Nullable GalaxyServer server) throws IOException
     {
         info("Writing properties file");
         setStatus("WRITING PROPERTIES");
@@ -194,7 +205,7 @@ public class SubmitAnalysisJob extends PipelineJob
 
         // Tell Galaxy "workflow complete" task to write a file when the workflow is done.  In many dev mode configurations
         // the Galaxy server can't communicate via HTTP with LabKey Server, so watch for this file as a backup plan.
-        if (AppProps.getInstance().isDevMode())
+        if (AppProps.getInstance().isDevMode() || null == server)
         {
             _completionFile = new File(_analysisDir, "analysis_complete.txt");
 
@@ -219,14 +230,14 @@ public class SubmitAnalysisJob extends PipelineJob
 
     private void sendFilesToGalaxy(GalaxyServer server) throws IOException, URISyntaxException
     {
+        if (!shouldUseGalaxy(server))
+            return;
+
         info("Sending files to Galaxy");
         setStatus("SENDING TO GALAXY");
 
         try
         {
-            if (!shouldUseGalaxy(server))
-                return;
-
             GalaxyServer.DataLibrary library = server.createLibrary(_dir.getName() + "_" + _analysis.getRowId(), "MHC analysis " + _analysis.getRowId() + " for run " + _analysis.getRun(), "An MHC genotyping analysis");
             GalaxyServer.Folder root = library.getRootFolder();
             root.uploadFromImportDirectory(_dir.getName() + "/" + _analysisDir.getName(), "txt", null, true);
@@ -260,19 +271,24 @@ public class SubmitAnalysisJob extends PipelineJob
     }
 
 
-    private synchronized boolean shouldUseGalaxy(GalaxyServer server)
+    private synchronized boolean shouldUseGalaxy(@Nullable GalaxyServer server)
     {
         // First time through
         if (null == _useGalaxy)
         {
-            if (!AppProps.getInstance().isDevMode())
+            if (null == server)
             {
-                // In production mode, always try to connect to Galaxy server (even if failures occur).
+                // Galaxy is not configured, so don't use it
+                _useGalaxy = false;
+            }
+            else if (!AppProps.getInstance().isDevMode())
+            {
+                // With a Galaxy configuration in production mode, always try to connect to Galaxy server (even if failures occur)
                 _useGalaxy = true;
             }
             else
             {
-                // In dev mode, attempt a connection now and if it fails skip subsequent connections.
+                // In dev mode, attempt a connection now and if it fails skip subsequent connections
                 _useGalaxy = server.canConnect();
 
                 if (!_useGalaxy)
@@ -281,7 +297,7 @@ public class SubmitAnalysisJob extends PipelineJob
         }
         else
         {
-            if (!_useGalaxy)
+            if (!_useGalaxy && null != server)  // We already warned in the null case
                 warn("Skipping submit to Galaxy server due to previous connection failure");
         }
 

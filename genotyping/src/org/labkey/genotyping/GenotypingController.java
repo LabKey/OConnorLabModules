@@ -1130,7 +1130,8 @@ public class GenotypingController extends SpringActionController
             GenotypingRun run = GenotypingManager.get().getRun(getContainer(), form.getRun());
 
             // Verify that galaxy properties are set before submitting job.  This will throw NotFoundException if either URL or web API key isn't set.
-            GalaxyUtils.get(getContainer(), getUser());
+            // 12.1: relax this requirement... allow users to submit jobs without a galaxy server configured or available
+            //GalaxyUtils.get(getContainer(), getUser());
 
             SortedSet<CustomView> views = new TreeSet<CustomView>(new Comparator<CustomView>() {
                     @Override
