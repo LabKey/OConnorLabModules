@@ -163,6 +163,7 @@
           </ns:fk>
       </ns:column>
       <ns:column columnName="SampleId"/>
+      <ns:column columnName="ReadCount"/>
     </ns:columns>
   </ns:table>
 </ns:tables>
