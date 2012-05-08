@@ -318,7 +318,7 @@ public class GenotypingQuerySchema extends UserSchema
                 //SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getSequenceFilesTable() + ".Run) = ?");
                 //containerCondition.add(c.getId());
                 //table.addCondition(containerCondition);
-                setDefaultVisibleColumns(table, "Run, DataId, DataId/DownloadLink, SampleId, ReadCount");
+                setDefaultVisibleColumns(table, "Run, DataId, SampleId, ReadCount");
                 table.setDescription("Contains one row per sequence file imported with runs");
 
                 return table;

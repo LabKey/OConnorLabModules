@@ -87,3 +87,4 @@ genotyping/src/org/labkey/genotyping/view/matchCombiner.jsp -text
 genotyping/src/org/labkey/genotyping/view/mhcQuery.jsp -text
 genotyping/src/org/labkey/genotyping/view/mySettings.jsp -text
 genotyping/src/org/labkey/genotyping/view/overview.jsp -text
+genotyping/webapp/genotyping/RunExportWindow.js -text

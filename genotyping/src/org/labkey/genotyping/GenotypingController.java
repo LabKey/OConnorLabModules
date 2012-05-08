@@ -16,8 +16,10 @@
 
 package org.labkey.genotyping;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.action.ExportAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.HasViewContext;
 import org.labkey.api.action.QueryViewAction;
@@ -43,6 +45,8 @@ import org.labkey.api.data.Sort;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.dialect.SqlDialect;
+import org.labkey.api.exp.api.ExpData;
+import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
@@ -56,6 +60,7 @@ import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserSchema;
+import org.labkey.api.security.IgnoresTermsOfUse;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermissionClass;
 import org.labkey.api.security.User;
@@ -99,9 +104,11 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -109,8 +116,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -679,6 +688,87 @@ public class GenotypingController extends SpringActionController
         }
     }
 
+    @RequiresPermissionClass(ReadPermission.class)
+    @IgnoresTermsOfUse
+    public class MergeFastqFilesAction extends ExportAction<MergeFastqFilesForm>
+    {
+        public void export(MergeFastqFilesForm form, HttpServletResponse response, BindException errors) throws Exception
+        {
+            if(form.getDataIds() == null || form.getDataIds().length == 0)
+            {
+                errors.reject("No files provided");
+            }
+
+            String filename = form.getZipFileName();
+            if(filename == null)
+            {
+                errors.reject("Must provide a filename for the archive");
+            }
+            filename += ".fastq.gz";
+
+            Set<File> files = new HashSet<File>();
+            for (Integer id : form.getDataIds())
+            {
+                ExpData d = ExperimentService.get().getExpData(id);
+                if (d == null)
+                {
+                    errors.reject("Unable to find ExpData for ID: " + id);
+                    return;
+                }
+                if (!d.getContainer().hasPermission(getUser(), ReadPermission.class))
+                {
+                    errors.reject("You do not have read permissions for the file with ID: " + id);
+                    return;
+                }
+                files.add(d.getFile());
+            }
+
+            PageFlowUtil.prepareResponseForFile(response, Collections.<String, String>emptyMap(), filename, true);
+            FileInputStream in = null;
+            try
+            {
+                for (File f : files)
+                {
+                    in = new FileInputStream(f);
+                    IOUtils.copy(in, response.getOutputStream());
+                    in.close();
+                }
+            }
+            finally
+            {
+                if(in != null)
+                    in.close();
+            }
+
+            //merger.mergeFiles(response.getOutputStream());
+        }
+    }
+
+    public static class MergeFastqFilesForm extends ReturnUrlForm
+    {
+        private int[] _dataIds;
+        private String _zipFileName;
+
+        public int[] getDataIds()
+        {
+            return _dataIds;
+        }
+
+        public void setDataIds(int[] dataIds)
+        {
+            _dataIds = dataIds;
+        }
+
+        public String getZipFileName()
+        {
+            return _zipFileName;
+        }
+
+        public void setZipFileName(String zipFileName)
+        {
+            _zipFileName = zipFileName;
+        }
+    }
 
     public static class MySettingsForm extends ReturnUrlForm implements GalaxyUserSettings, HasViewContext
     {
@@ -1810,6 +1900,34 @@ public class GenotypingController extends SpringActionController
                         result.addSubPanel("FASTQ", filesView);
                     }
                     return result;
+                }
+
+                @Override
+                protected void populateButtonBar(DataView view, ButtonBar bar)
+                {
+                    super.populateButtonBar(view, bar, false);
+
+                    //add custom button to download files
+                    if(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString().equals(platform))
+                    {
+                        ActionButton btn = new ActionButton("Download Selected"){
+                            public void render(RenderContext ctx, Writer
+                                    out) throws IOException
+                            {
+                                out.write("<script type=\"text/javascript\">\n");
+                                out.write("LABKEY.requiresExt4ClientAPI()\n");
+                                out.write("LABKEY.requiresScript('genotyping/RunExportWindow.js')\n");
+                                out.write("</script>\n");
+                                super.render(ctx, out);
+                            }
+                        };
+
+                        btn.setScript("LABKEY.Genotyping.exportFilesBtnHandler('" + view.getDataRegion().getName() + "');");
+
+                        btn.setRequiresSelection(true);
+                        bar.add(btn);
+                    }
+
                 }
             };
 
