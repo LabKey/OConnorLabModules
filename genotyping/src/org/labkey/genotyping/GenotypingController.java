@@ -739,8 +739,6 @@ public class GenotypingController extends SpringActionController
                 if(in != null)
                     in.close();
             }
-
-            //merger.mergeFiles(response.getOutputStream());
         }
     }
 
@@ -1139,7 +1137,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            return root.addChild("Import Reads and Metrics");
+            return root.addChild("Import Reads");
         }
     }
 

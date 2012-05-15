@@ -29,9 +29,18 @@
     //String platform = getViewContext().getActionURL().getParameter("platform");
 %>
 <form <%=formAction(GenotypingController.ImportReadsAction.class, Method.Post)%> name="importReads">
-    If you select "<%=h(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString())%>", the pipeline will load reads from the file "<%=h(GenotypingManager.READS_FILE_NAME)%>".
-    <p></p>
-    If you select "<%=h(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString())%>", the pipeline will attempt to load any files in this folder with the following extensions: "<%=h(extensions)%>" or gzipped versions of them.  If you choose a FASTQ prefix, only files beginning with the prefix will be used.
+
+<%
+    if(bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString())){
+%>
+    The pipeline will load reads from the file "<%=h(GenotypingManager.READS_FILE_NAME)%>".
+
+<%
+    }
+    if(bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString())){
+%>
+    The pipeline will attempt to load any files in this folder with the following extensions: "<%=h(extensions)%>" or gzipped versions of them.  If you choose a FASTQ prefix, only files beginning with the prefix will be used.
+<%}%>
     <p></p>
 
     <table id="analysesTable">
