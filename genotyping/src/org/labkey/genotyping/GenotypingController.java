@@ -1285,6 +1285,12 @@ public class GenotypingController extends SpringActionController
             String description = form.getDescription();
             String sequencesView = DEFAULT_VIEW_PLACEHOLDER.equals(sequencesViewName) ? null : sequencesViewName;
             String samples = form.getSamples();
+            if(samples == null)
+            {
+                errors.reject(ERROR_MSG, "Must provide a list of sample IDs");
+                return false;
+            }
+
             Set<Integer> sampleKeys;
             String[] keys = samples.split(",");
             sampleKeys = new HashSet<Integer>(keys.length);
