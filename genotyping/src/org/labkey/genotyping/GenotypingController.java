@@ -696,13 +696,13 @@ public class GenotypingController extends SpringActionController
         {
             if(form.getDataIds() == null || form.getDataIds().length == 0)
             {
-                errors.reject("No files provided");
+                throw new NotFoundException("No files provided");
             }
 
             String filename = form.getZipFileName();
             if(filename == null)
             {
-                errors.reject("Must provide a filename for the archive");
+                throw new NotFoundException("Must provide a filename for the archive");
             }
             filename += ".fastq.gz";
 
@@ -712,13 +712,11 @@ public class GenotypingController extends SpringActionController
                 ExpData d = ExperimentService.get().getExpData(id);
                 if (d == null)
                 {
-                    errors.reject("Unable to find ExpData for ID: " + id);
-                    return;
+                    throw new NotFoundException("Unable to find ExpData for ID: " + id);
                 }
                 if (!d.getContainer().hasPermission(getUser(), ReadPermission.class))
                 {
-                    errors.reject("You do not have read permissions for the file with ID: " + id);
-                    return;
+                    throw new SecurityException("You do not have read permissions for the file with ID: " + id);
                 }
                 files.add(d.getFile());
             }
@@ -729,6 +727,10 @@ public class GenotypingController extends SpringActionController
             {
                 for (File f : files)
                 {
+                    if(!f.exists())
+                    {
+                        throw new NotFoundException("File " + f.getPath() + " does not exist");
+                    }
                     in = new FileInputStream(f);
                     IOUtils.copy(in, response.getOutputStream());
                     in.close();
