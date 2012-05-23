@@ -1881,14 +1881,23 @@ public class GenotypingController extends SpringActionController
         @Override
         protected QueryView createQueryView(FORM form, BindException errors, boolean forExport, String dataRegion) throws Exception
         {
+            GenotypingRun _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
+            final String platform = _run.getPlatform();
+
             QuerySettings settings = new QuerySettings(getViewContext(), DATA_REGION_NAME, getTableName());
             settings.setAllowChooseQuery(false);
             settings.setAllowChooseView(true);
-            settings.getBaseSort().insertSortColumn("RowId");
+            if(platform.equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString()))
+            {
+                settings.getBaseSort().insertSortColumn("DataId/Name");
+                settings.getBaseSort().insertSortColumn("SampleId");
+            }
+            else
+            {
+                settings.getBaseSort().insertSortColumn("RowId");
+            }
             handleSettings(settings);
 
-            GenotypingRun _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
-            final String platform = _run.getPlatform();
 
             QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors)
             {
