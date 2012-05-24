@@ -39,7 +39,7 @@
     }
     if(bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString())){
 %>
-    The pipeline will attempt to load any files in this folder with the following extensions: "<%=h(extensions)%>" or gzipped versions of them.  If you choose a FASTQ prefix, only files beginning with the prefix will be used.
+    The pipeline will attempt to load any files in this folder with the following extensions: "<%=h(extensions)%>" or gzipped versions of them.  If you enter a FASTQ prefix, only files beginning with the prefix will be used.
 <%}%>
     <p></p>
 
