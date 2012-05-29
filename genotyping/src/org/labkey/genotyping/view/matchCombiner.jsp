@@ -83,7 +83,7 @@
         // Validate that we got back the number of rows we expected
         if (!rows || matches != expectedCount)
         {
-            alert("Error: Queried matches differ from selected matches.");
+            alert("Error: Selected match" + (1 == expectedCount ? " has" : "es have") + " been modified.");
             return;
         }
 

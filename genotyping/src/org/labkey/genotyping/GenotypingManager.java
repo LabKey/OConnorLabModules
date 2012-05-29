@@ -34,7 +34,6 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.security.User;
-import org.labkey.api.sequence.IlluminaFastqParser;
 import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.NotFoundException;
 
@@ -406,11 +405,11 @@ public class GenotypingManager
 
             // Verify that the selected match count equals the number of rowIds posted...
             if (matchCount != matchIdList.size())
-                throw new IllegalStateException("Queried matches differed from selected matches");
+                throw new IllegalStateException("Selected match" + (1 == matchIdList.size() ? " has" : "es have") + " been modified");
 
             // Verify all matches are from the same sample
             if (sampleIds.size() != 1)
-                throw new IllegalStateException("Queried matches differed from selected matches");
+                throw new IllegalStateException("Matches were detected from different samples");
         }
         catch (SQLException e)
         {
@@ -557,7 +556,7 @@ public class GenotypingManager
 
         // Verify that the selected match count equals the number of rowIds posted...
         if (selector.getRowCount() != matchIds.size())
-            throw new IllegalStateException("Queried matches differed from selected matches");
+            throw new IllegalStateException("Selected match" + (1 == matchIds.size() ? " has" : "es have") + " been modified");
 
         // Mark all the posted matches with ParentId = 0; this will filter them out from all displays and queries,
         // effectively "deleting" them. In the future, we could add a mode to show these matches again, to audit changes.

@@ -15,13 +15,11 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.genotyping.GenotypingController" %>
+<%@ page import="org.apache.commons.lang3.StringUtils" %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
+<%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.genotyping.GenotypingManager" %>
 <%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
-<%@ page import="java.io.File" %>
-<%@ page import="org.apache.commons.lang3.StringUtils" %>
-<%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     GenotypingController.ImportReadsBean bean = (GenotypingController.ImportReadsBean)getModelBean();
@@ -39,7 +37,7 @@
     }
     if(bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString())){
 %>
-    The pipeline will attempt to load any files in this folder with the following extensions: "<%=h(extensions)%>" or gzipped versions of them.  If you enter a FASTQ prefix, only files beginning with the prefix will be used.
+    The pipeline will attempt to load any files in this folder with the following extensions: "<%=h(extensions)%>" or gzipped versions of them.  If you enter a FASTQ prefix, only files beginning with that prefix will be used.
 <%}%>
     <p></p>
 
