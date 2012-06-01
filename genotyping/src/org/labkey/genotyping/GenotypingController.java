@@ -1301,8 +1301,16 @@ public class GenotypingController extends SpringActionController
                 sampleKeys.add(Integer.parseInt(key));
 
             GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, null == description ? null : description, sequencesView);
-            PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsPath, analysis, sampleKeys);
-            PipelineService.get().queueJob(analysisJob);
+            try
+            {
+                PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsPath, analysis, sampleKeys);
+                PipelineService.get().queueJob(analysisJob);
+            }
+            catch (MinorConfigurationException e)
+            {
+                errors.reject(ERROR_MSG, e.getMessage());
+                return false;
+            }
 
             return true;
         }
