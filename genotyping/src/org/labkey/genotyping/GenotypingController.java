@@ -52,6 +52,7 @@ import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.pipeline.PipelineUrls;
+import org.labkey.api.pipeline.PipelineValidationException;
 import org.labkey.api.pipeline.browse.PipelinePathForm;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.CustomView;
@@ -1536,7 +1537,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    private void importAnalysis(int analysisId, File pipelineDir, User user) throws IOException, SQLException
+    private void importAnalysis(int analysisId, File pipelineDir, User user) throws IOException, SQLException, PipelineValidationException
     {
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(getContainer(), analysisId);
         File analysisDir = new File(analysis.getPath());
