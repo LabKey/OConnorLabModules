@@ -166,4 +166,15 @@
       <ns:column columnName="ReadCount"/>
     </ns:columns>
   </ns:table>
+  <ns:table tableName="IlluminaTemplates" tableDbType="TABLE">
+    <ns:columns>
+      <ns:column columnName="Name"/>
+      <ns:column columnName="Json"/>
+      <ns:column columnName="Editable"/>
+      <ns:column columnName="CreatedBy"/>
+      <ns:column columnName="Created"/>
+      <ns:column columnName="ModifiedBy"/>
+      <ns:column columnName="Modified"/>
+    </ns:columns>
+  </ns:table>
 </ns:tables>
