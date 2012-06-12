@@ -1,0 +1,39 @@
+<script type="text/javascript">
+    LABKEY.requiresExt4ClientAPI();
+    LABKEY.requiresScript('/genotyping/IlluminaExportPanel.js');
+</script>
+<script type="text/javascript">
+
+Ext4.onReady(function(){
+    var webpart = <%=webpartContext%>;
+
+    var pks = LABKEY.ActionURL.getParameterArray('pks');
+    var schemaName = 'lists';
+    var queryName = 'Samples';
+
+    LABKEY.Query.selectRows({
+         schemaName: schemaName,
+         queryName: queryName,
+         filterArray: [
+             LABKEY.Filter.create('Key', pks.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)
+         ],
+         columns: 'key,library_number,fivemid,threemid,library_sample_name,fivemid/mid_sequence,threemid/mid_sequence',
+         scope: this,
+         success: function(result){
+             if(result && result.rows.length){
+                 Ext4.create('Genotyping.ext.IlluminaSampleExportPanel', {
+                     rows: result.rows,
+                     renderTo: webpart.wrapperDivId
+                 }).render();
+             }
+             else {
+                 alert('No rows found')
+             }
+         },
+         failure: function(error){
+             alert('ERROR: ' + error.exception);
+         }
+     });
+ });
+
+</script>

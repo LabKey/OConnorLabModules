@@ -17,6 +17,8 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.Sets;
+import org.labkey.api.data.ActionButton;
+import org.labkey.api.data.ButtonBar;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
@@ -26,26 +28,43 @@ import org.labkey.api.data.ForeignKey;
 import org.labkey.api.data.HighlightingDisplayColumn;
 import org.labkey.api.data.MultiValuedForeignKey;
 import org.labkey.api.data.MultiValuedLookupColumn;
+import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.etl.DataIterator;
 import org.labkey.api.exp.query.ExpSchema;
+import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.DefaultQueryUpdateService;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.DetailsURL;
+import org.labkey.api.query.DuplicateKeyException;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.LookupForeignKey;
 import org.labkey.api.query.QuerySchema;
+import org.labkey.api.query.QuerySettings;
+import org.labkey.api.query.QueryUpdateService;
+import org.labkey.api.query.QueryUpdateServiceException;
+import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserIdQueryForeignKey;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.util.StringExpression;
+import org.labkey.api.view.ActionURL;
+import org.labkey.api.view.DataView;
+import org.labkey.api.view.ViewContext;
+import org.springframework.validation.BindException;
 
+import java.io.IOException;
+import java.io.Writer;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -322,7 +341,51 @@ public class GenotypingQuerySchema extends UserSchema
                 table.setDescription("Contains one row per sequence file imported with runs");
 
                 return table;
-            }};
+            }},
+
+        Samples() {
+            @Override
+            FilteredTable createTable(Container c, User user)
+            {
+                String samplesQuery = new NonValidatingGenotypingFolderSettings(c).getSamplesQuery();
+
+                if (null != samplesQuery)
+                {
+                    QueryHelper qHelper = new QueryHelper(c, user, samplesQuery);
+                    TableInfo table = qHelper.getTableInfo();
+                    FilteredTable ft = new FilteredTable(table);
+
+                    //table.setDescription("Contains genotyping matches joined to their corresponding reads");
+
+                    return ft;
+                }
+
+                return null;
+            }},
+
+        IlluminaTemplates() {
+            @Override
+            FilteredTable createTable(Container c, User user)
+            {
+                FilteredTable table = new FilteredTable(GS.getIlluminaTemplatesTable(), c)
+                {
+                    @Override
+                    public QueryUpdateService getUpdateService()
+                    {
+                        return new GenotypingIlluminaQueryUpdateService(this);
+                    }
+                };
+                table.wrapAllColumns(true);
+                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
+                table.getColumn("ModifiedBy").setFk(new UserIdQueryForeignKey(user, c));
+
+
+                setDefaultVisibleColumns(table, "Name, json, editable");
+                table.setDescription("Contains one row per saved illumina import template");
+
+                return table;
+            }
+        };
 
         abstract FilteredTable createTable(Container c, User user);
 
@@ -437,5 +500,58 @@ public class GenotypingQuerySchema extends UserSchema
     public Set<String> getTableNames()
     {
         return TABLE_NAMES;
+    }
+
+    @Override
+    public QueryView createView(ViewContext context, QuerySettings settings, BindException errors)
+    {
+        if(settings.getQueryName().equalsIgnoreCase(TableType.Samples.name()))
+        {
+            return new QueryView(this, settings, errors)
+            {
+                @Override
+                protected void populateButtonBar(DataView view, ButtonBar bar)
+                {
+                    populateButtonBar(view, bar, false);
+
+
+                    ActionButton btn = new ActionButton("Create Illumina Template");
+                    btn.setActionType(ActionButton.Action.SCRIPT);
+                    btn.setScript("var dataRegion = LABKEY.DataRegions[" + view.getDataRegion().getName() + "];\n" +
+                        "var checked = dataRegion.getChecked();\n" +
+                        "if(!checked.length){\n" +
+                        "    alert('Must select one or more rows');\n" +
+                        "    return;\n" +
+                        "}\n" +
+                        "window.location = LABKEY.ActionURL.buildURL('genotyping', 'illuminaTemplateExport', null, {\n" +
+                        "    pks: checked,\n" +
+                        "})\n"
+                    );
+                    bar.add(btn);
+                }
+            };
+        }
+
+        return new QueryView(this, settings, errors);
+    }
+
+    static class GenotypingIlluminaQueryUpdateService extends DefaultQueryUpdateService
+    {
+        public GenotypingIlluminaQueryUpdateService(TableInfo q)
+        {
+            super(q, GS.getIlluminaTemplatesTable());
+        }
+
+        @Override
+        public List<Map<String, Object>> insertRows(User user, Container container, List<Map<String, Object>> rows, BatchValidationException errors, Map<String, Object> extraScriptContext) throws DuplicateKeyException, QueryUpdateServiceException, SQLException
+        {
+            return super._insertRowsUsingETL(user, container, rows, errors, extraScriptContext);
+        }
+
+        @Override
+        public int importRows(User user, Container container, DataIterator rows, BatchValidationException errors, Map<String, Object> extraScriptContext) throws SQLException
+        {
+            return super._importRowsUsingETL(user, container, rows, null, errors, extraScriptContext, true);
+        }
     }
 }

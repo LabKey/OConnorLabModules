@@ -100,4 +100,9 @@ public class GenotypingSchema
     {
         return getSchema().getTable("AnalysisSamples");
     }
+
+    public TableInfo getIlluminaTemplatesTable()
+    {
+        return getSchema().getTable("IlluminaTemplates");
+    }
 }
