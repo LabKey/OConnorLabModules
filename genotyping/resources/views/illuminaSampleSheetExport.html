@@ -22,9 +22,8 @@ Ext4.onReady(function(){
          success: function(result){
              if(result && result.rows.length){
                  Ext4.create('Genotyping.ext.IlluminaSampleExportPanel', {
-                     rows: result.rows,
-                     renderTo: webpart.wrapperDivId
-                 }).render();
+                     rows: result.rows
+                 }).render(webpart.wrapperDivId);
              }
              else {
                  alert('No rows found')

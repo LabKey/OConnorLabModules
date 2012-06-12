@@ -26,6 +26,9 @@
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.genotyping.GenotypingManager" %>
 <%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
+<%@ page import="org.labkey.api.query.QueryService" %>
+<%@ page import="org.labkey.api.query.QueryAction" %>
+<%@ page import="org.labkey.genotyping.GenotypingQuerySchema" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     ViewContext ctx = getViewContext();
@@ -33,6 +36,14 @@
     User user = ctx.getUser();
     ActionURL submitURL = urlProvider(PipelineUrls.class).urlBrowse(c, null);
     ActionURL statusURL = urlProvider(PipelineUrls.class).urlBegin(c);
+    ActionURL samplesURL = new ActionURL("query", QueryAction.executeQuery.toString(), c);
+    samplesURL.addParameter("schemaName", "genotyping");
+    samplesURL.addParameter("query.queryName", GenotypingQuerySchema.TableType.Samples.toString());
+
+    ActionURL runMetadataURL = new ActionURL("query", QueryAction.executeQuery.toString(), c);
+    runMetadataURL.addParameter("schemaName", "genotyping");
+    runMetadataURL.addParameter("query.queryName", GenotypingQuerySchema.TableType.RunMetadata.toString());
+
 
     String containerType = c.isProject() ? "Project" : "Folder";
     int runCount = GenotypingManager.get().getRunCount(c);
@@ -55,6 +66,13 @@
     }
     %>
     <tr><td></td><td><%=textLink("View Pipeline Status", statusURL)%></td></tr>
+
+    <tr><td colspan="3" class="labkey-announcement-title"><span>Manage Sample Information</span></td></tr>
+    <tr><td colspan="3" class="labkey-title-area-line"></td></tr>
+    <%--<tr><td></td><td><%=textLink("MIDs", submitURL)%></td></tr>--%>
+<%--TODO--%>
+    <tr><td></td><td><%=textLink("Run Metadata", runMetadataURL)%></td></tr>
+    <tr><td></td><td><%=textLink("Samples", samplesURL)%></td></tr>
 
     <tr><td colspan="3" class="labkey-announcement-title"><span>Settings</span></td></tr>
     <tr><td colspan="3" class="labkey-title-area-line"></td></tr>

@@ -22,49 +22,42 @@ import org.labkey.api.data.ButtonBar;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DatabaseTableType;
 import org.labkey.api.data.DisplayColumn;
 import org.labkey.api.data.DisplayColumnFactory;
 import org.labkey.api.data.ForeignKey;
 import org.labkey.api.data.HighlightingDisplayColumn;
 import org.labkey.api.data.MultiValuedForeignKey;
 import org.labkey.api.data.MultiValuedLookupColumn;
-import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
-import org.labkey.api.etl.DataIterator;
 import org.labkey.api.exp.query.ExpSchema;
-import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.DefaultQueryUpdateService;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.DetailsURL;
-import org.labkey.api.query.DuplicateKeyException;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.LookupForeignKey;
 import org.labkey.api.query.QuerySchema;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryUpdateService;
-import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserIdQueryForeignKey;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.security.UserPrincipal;
+import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.util.StringExpression;
-import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
 import org.labkey.api.view.ViewContext;
 import org.springframework.validation.BindException;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -354,8 +347,7 @@ public class GenotypingQuerySchema extends UserSchema
                     QueryHelper qHelper = new QueryHelper(c, user, samplesQuery);
                     TableInfo table = qHelper.getTableInfo();
                     FilteredTable ft = new FilteredTable(table);
-
-                    //table.setDescription("Contains genotyping matches joined to their corresponding reads");
+                    ft.setDescription("Contains sample information and metadata");
 
                     return ft;
                 }
@@ -363,24 +355,52 @@ public class GenotypingQuerySchema extends UserSchema
                 return null;
             }},
 
-        IlluminaTemplates() {
+        RunMetadata() {
             @Override
             FilteredTable createTable(Container c, User user)
             {
-                FilteredTable table = new FilteredTable(GS.getIlluminaTemplatesTable(), c)
+                String queryName = new NonValidatingGenotypingFolderSettings(c).getRunsQuery();
+
+                if (null != queryName)
+                {
+                    QueryHelper qHelper = new QueryHelper(c, user, queryName);
+                    TableInfo table = qHelper.getTableInfo();
+                    FilteredTable ft = new FilteredTable(table);
+                    ft.setDescription("Contains metadata about each genotyping run");
+
+                    return ft;
+                }
+
+                return null;
+            }
+        },
+
+        IlluminaTemplates() {
+            @Override
+            FilteredTable createTable(final Container c, User user)
+            {
+                FilteredTable table = new FilteredTable(GS.getIlluminaTemplatesTable())
                 {
                     @Override
                     public QueryUpdateService getUpdateService()
                     {
-                        return new GenotypingIlluminaQueryUpdateService(this);
+                        TableInfo table = getRealTable();
+                        return (table != null && table.getTableType() == DatabaseTableType.TABLE ?
+                                new DefaultQueryUpdateService(this, table):
+                                null);
+                    }
+
+                    @Override
+                    public boolean hasPermission(UserPrincipal user, Class<? extends Permission> perm)
+                    {
+                        return c.hasPermission(user, perm);
                     }
                 };
                 table.wrapAllColumns(true);
                 table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
                 table.getColumn("ModifiedBy").setFk(new UserIdQueryForeignKey(user, c));
 
-
-                setDefaultVisibleColumns(table, "Name, json, editable");
+                setDefaultVisibleColumns(table, "Name, Json, Editable");
                 table.setDescription("Contains one row per saved illumina import template");
 
                 return table;
@@ -515,15 +535,16 @@ public class GenotypingQuerySchema extends UserSchema
                     populateButtonBar(view, bar, false);
 
 
-                    ActionButton btn = new ActionButton("Create Illumina Template");
+                    ActionButton btn = new ActionButton("Create Illumina Sample Sheet");
                     btn.setActionType(ActionButton.Action.SCRIPT);
-                    btn.setScript("var dataRegion = LABKEY.DataRegions[" + view.getDataRegion().getName() + "];\n" +
+                    btn.setRequiresSelection(true);
+                    btn.setScript("var dataRegion = LABKEY.DataRegions['" + view.getDataRegion().getName() + "'];\n" +
                         "var checked = dataRegion.getChecked();\n" +
                         "if(!checked.length){\n" +
                         "    alert('Must select one or more rows');\n" +
                         "    return;\n" +
                         "}\n" +
-                        "window.location = LABKEY.ActionURL.buildURL('genotyping', 'illuminaTemplateExport', null, {\n" +
+                        "window.location = LABKEY.ActionURL.buildURL('genotyping', 'illuminaSampleSheetExport', null, {\n" +
                         "    pks: checked,\n" +
                         "})\n"
                     );
@@ -533,25 +554,5 @@ public class GenotypingQuerySchema extends UserSchema
         }
 
         return new QueryView(this, settings, errors);
-    }
-
-    static class GenotypingIlluminaQueryUpdateService extends DefaultQueryUpdateService
-    {
-        public GenotypingIlluminaQueryUpdateService(TableInfo q)
-        {
-            super(q, GS.getIlluminaTemplatesTable());
-        }
-
-        @Override
-        public List<Map<String, Object>> insertRows(User user, Container container, List<Map<String, Object>> rows, BatchValidationException errors, Map<String, Object> extraScriptContext) throws DuplicateKeyException, QueryUpdateServiceException, SQLException
-        {
-            return super._insertRowsUsingETL(user, container, rows, errors, extraScriptContext);
-        }
-
-        @Override
-        public int importRows(User user, Container container, DataIterator rows, BatchValidationException errors, Map<String, Object> extraScriptContext) throws SQLException
-        {
-            return super._importRowsUsingETL(user, container, rows, null, errors, extraScriptContext, true);
-        }
     }
 }

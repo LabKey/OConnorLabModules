@@ -44,7 +44,6 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                     bodyStyle: 'padding: 5px;',
                     defaults: {
                         width: 400,
-                        labelableRenderTpl: LABKEY.ext.Ext4Helper.labelableRenderTpl,
                         labelWidth: 150,
                         listeners: {
                             scope: this,
@@ -57,9 +56,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                         xtype: 'textfield',
                         allowBlank: false,
                         fieldLabel: 'Flow Cell Id',
-                        renderData: {
-                            helpPopup: 'This should match the ID of the Illumina flow cell.  It will be used as the filename of the template.  If you do not have this value, you can always rename the template file later'
-                        },
+                        helpPopup: 'This should match the ID of the Illumina flow cell.  It will be used as the filename of the template.  If you do not have this value, you can always rename the template file later',
                         itemId: 'fileName',
                         value: 'Illumina'
                     },{
@@ -95,13 +92,13 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                         fieldLabel: 'Template',
                         queryMode: 'local',
                         allowBlank: false,
-                        displayField: 'name',
-                        valueField: 'name',
+                        displayField: 'Name',
+                        valueField: 'Name',
                         value: 'Default',
                         store: Ext4.create('LABKEY.ext4.Store', {
                             schemaName: 'genotyping',
                             queryName: 'IlluminaTemplates',
-                            columns: 'name,json,editable',
+                            columns: 'Name,Json,Editable',
                             autoLoad: true
                         })
                     }]
@@ -183,7 +180,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         });
     },
 
-    populatePreviewTab: function(){;
+    populatePreviewTab: function(){
         var previewTab = this.down('#previewTab');
 
         var items = this.generateTemplatePreview();
@@ -235,11 +232,11 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
     },
 
     buildValuesObj: function(){
-        this.down('form').items.each(function(field){
-            if(field.isFormField && !field.isValid()){
-                console.log(field.itemId);
-            }
-        });
+//        this.down('form').items.each(function(field){
+//            if(field.isFormField && !field.isValid()){
+//
+//            }
+//        });
 
         var valuesObj = {};
         Ext4.each(this.sectionNames, function(header){
@@ -257,10 +254,10 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         var templateField = this.down('form').down('#template');
         var recIdx = templateField.store.find(templateField.valueField, templateField.getValue());
         var rec = templateField.store.getAt(recIdx);
-        if(rec && rec.get('json')){
+        if(rec && rec.get('Json')){
             try
             {
-                var json = Ext4.JSON.decode(rec.get('json'));
+                var json = Ext4.JSON.decode(rec.get('Json'));
                 for (var i in json){
                     if(!valuesObj[i])
                         valuesObj[i] = [];
@@ -477,17 +474,17 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         }
 
         var templateField = this.down('#defaultTab').down('#template');
-        var recIdx = templateField.store.find('name', 'Custom');
+        var recIdx = templateField.store.find('Name', 'Custom');
         if(recIdx == -1){
             var recs = templateField.store.add(new templateField.store.model({}, 'Custom'));
             recs[0].set({
-                name: 'Custom',
-                json: Ext4.JSON.encode(json)
+                Name: 'Custom',
+                Json: Ext4.JSON.encode(json)
             });
             recs[0].phantom = true;
         }
         else {
-            templateField.store.getAt(recIdx).set('json', json);
+            templateField.store.getAt(recIdx).set('Json', json);
         }
 
         templateField.setValue('Custom');
@@ -519,15 +516,15 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         this.onDoneEditing();
 
         var field = this.down('#defaultTab').down('#template');
-        var rec = field.store.getAt(field.store.find('name', field.getValue()));
+        var rec = field.store.getAt(field.store.find('Name', field.getValue()));
 
         if(!rec.dirty && !rec.phantom){
             alert('Template is already saved');
         }
         else {
-            if(rec.phantom || !rec.get('editable')){
+            if(rec.phantom || !rec.get('Editable')){
                 var msg = 'Choose a name for this template';
-                if(!rec.get('editable'))
+                if(!rec.get('Editable'))
                     msg = 'This template cannot be edited.  Please choose a different name:';
 
                 Ext4.Msg.prompt('Choose Name', msg, function(btn, msg){
@@ -544,7 +541,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                             this.onSaveTemplate();
                             return;
                         }
-                        rec.set('name', msg);
+                        rec.set('Name', msg);
                         this.down('#defaultTab').down('#template').setValue(msg);
                         this.saveTemplate(rec);
                     }
@@ -563,8 +560,6 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             rows: [rec.data],
             scope: this,
             success: function(){
-                console.log('success');
-
                 var field = this.down('#defaultTab').down('#template');
                 field.store.load();
             }
