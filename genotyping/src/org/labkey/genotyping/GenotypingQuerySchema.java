@@ -346,10 +346,10 @@ public class GenotypingQuerySchema extends UserSchema
                 {
                     QueryHelper qHelper = new QueryHelper(c, user, samplesQuery);
                     TableInfo table = qHelper.getTableInfo();
-                    FilteredTable ft = new FilteredTable(table);
-                    ft.setDescription("Contains sample information and metadata");
+                    //FilteredTable ft = new FilteredTable(table);
+                    //ft.setDescription("Contains sample information and metadata");
 
-                    return ft;
+                    return (FilteredTable)table;
                 }
 
                 return null;
@@ -365,10 +365,10 @@ public class GenotypingQuerySchema extends UserSchema
                 {
                     QueryHelper qHelper = new QueryHelper(c, user, queryName);
                     TableInfo table = qHelper.getTableInfo();
-                    FilteredTable ft = new FilteredTable(table);
-                    ft.setDescription("Contains metadata about each genotyping run");
+                    //FilteredTable ft = new FilteredTable(table);
+                    //ft.setDescription("Contains metadata about each genotyping run");
 
-                    return ft;
+                    return (FilteredTable)table;
                 }
 
                 return null;

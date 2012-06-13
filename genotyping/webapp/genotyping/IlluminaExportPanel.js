@@ -17,7 +17,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         Ext4.QuickTips.init();
 
         Ext4.apply(this, {
-            title: 'Create Illumina Template',
+            title: 'Create Illumina Sample Sheet',
             itemId: 'illuminaPanel',
             width: '100%',
             defaults: {
@@ -35,6 +35,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                 },
                 listeners: {
                     scope: this,
+                    beforetabchange: this.onBeforeTabChange,
                     tabchange: this.onTabChange
                 },
                 items: [{
@@ -56,7 +57,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                         xtype: 'textfield',
                         allowBlank: false,
                         fieldLabel: 'Flow Cell Id',
-                        helpPopup: 'This should match the ID of the Illumina flow cell.  It will be used as the filename of the template.  If you do not have this value, you can always rename the template file later',
+                        helpPopup: 'This should match the ID of the Illumina flow cell.  It will be used as the filename of the sample sheet.  If you do not have this value, you can always rename the file later',
                         itemId: 'fileName',
                         value: 'Illumina'
                     },{
@@ -143,6 +144,14 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         }
     },
 
+    onBeforeTabChange: function(){
+        var template = this.down('#defaultTab').down('#template').getValue();
+        if(!template){
+            Ext4.Msg.alert('Error', 'You must choose a template');
+            return false;
+        }
+    },
+
     onTabChange: function(panel, newTab, oldTab){
         if (newTab.itemId == 'defaultTab'){
 
@@ -165,7 +174,6 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         previewTab.add({
             border: false,
             xtype: 'container',
-            height: 200,
             defaults: {
                 border: false
             },
@@ -196,7 +204,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             items: items,
             buttonAlign: 'left',
             buttons: [{
-                text: 'Edit Template',
+                text: 'Edit Sheet',
                 scope: this,
                 handler: this.onEditTemplate
             }]
@@ -413,7 +421,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             xtype: 'form',
             bodyStyle: 'padding: 5px;',
             items: [{
-                html: 'This view allows you to edit the raw text in the template.  The template is divided into sections, with each section beginning with a term in brackets (ie. \'[Header]\').  The supported section names are: ' + this.sectionNames.join(', ') + '; however, Data cannot be edited through this page.  Within each section, you can enter rows as name/value pairs, which are separated by a comma. When you are finished editing, hit \'Done Editing\' to view the result.<br><br>NOTE: None of the fields on the General Info tab will be included if you save this template.',
+                html: 'This view allows you to edit the raw text in the sample sheet.  The sheet is divided into sections, with each section beginning with a term in brackets (ie. \'[Header]\').  The supported section names are: ' + this.sectionNames.join(', ') + '; however, Data cannot be edited through this page.  Within each section, you can enter rows as name/value pairs, which are separated by a comma. When you are finished editing, hit \'Done Editing\' to view the result.<br><br>NOTE: None of the fields on the General Info tab will be included if you save this as a template.',
                 width: 800,
                 style: 'padding-bottom: 10px;',
                 border: false
