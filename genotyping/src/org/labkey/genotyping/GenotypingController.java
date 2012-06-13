@@ -49,7 +49,6 @@ import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
-import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.pipeline.PipelineUrls;
 import org.labkey.api.pipeline.PipelineValidationException;
@@ -95,7 +94,6 @@ import org.labkey.genotyping.GenotypingQuerySchema.TableType;
 import org.labkey.genotyping.galaxy.GalaxyFolderSettings;
 import org.labkey.genotyping.galaxy.GalaxyManager;
 import org.labkey.genotyping.galaxy.GalaxyUserSettings;
-import org.labkey.genotyping.galaxy.GalaxyUtils;
 import org.labkey.genotyping.sequences.FastqGenerator;
 import org.labkey.genotyping.sequences.FastqWriter;
 import org.labkey.genotyping.sequences.SequenceManager;
@@ -120,7 +118,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -1830,7 +1827,7 @@ public class GenotypingController extends SpringActionController
         public ModelAndView getView(FORM form, BindException errors) throws Exception
         {
             GenotypingRun _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
-            String platform = _run.getPlatform();
+            String platform = null==_run ? "" : _run.getPlatform();
 
             if (FASTQ_FORMAT.equals(form.getExportType()))
             {
@@ -1891,7 +1888,7 @@ public class GenotypingController extends SpringActionController
         protected QueryView createQueryView(FORM form, BindException errors, boolean forExport, String dataRegion) throws Exception
         {
             GenotypingRun _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
-            final String platform = _run.getPlatform();
+            final String platform = null==_run?"":_run.getPlatform();
 
             QuerySettings settings = new QuerySettings(getViewContext(), DATA_REGION_NAME, getTableName());
             settings.setAllowChooseQuery(false);
