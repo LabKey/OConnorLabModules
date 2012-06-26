@@ -63,7 +63,7 @@ public class GenotypingModule extends DefaultModule
         addController("genotyping", GenotypingController.class);
     }
 
-    public void startup(ModuleContext moduleContext)
+    public void doStartup(ModuleContext moduleContext)
     {
         // add a container listener so we'll know when our container is deleted:
         ContainerManager.addContainerListener(new GenotypingContainerListener());
