@@ -85,7 +85,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                     },{
                         xtype: 'textfield',
                         itemId: 'description',
-                        fieldLabel: 'Descripton',
+                        fieldLabel: 'Description',
                         section: 'Header'
                     },{
                         xtype: 'combo',
@@ -562,6 +562,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
     },
 
     saveTemplate: function(rec){
+        rec.set('Editable', true);
         var config = {
             schemaName: 'genotyping',
             queryName: 'IlluminaTemplates',
