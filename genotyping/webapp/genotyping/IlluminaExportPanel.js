@@ -46,12 +46,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                     defaults: {
                         width: 400,
                         labelWidth: 150,
-                        listeners: {
-                            scope: this,
-                            change: function(field, val){
-
-                            }
-                        }
+                        maskRe: /[^,]/
                     },
                     items: [{
                         xtype: 'textfield',
@@ -59,7 +54,9 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                         fieldLabel: 'Flow Cell Id',
                         helpPopup: 'This should match the ID of the Illumina flow cell.  It will be used as the filename of the sample sheet.  If you do not have this value, you can always rename the file later',
                         itemId: 'fileName',
-                        value: 'Illumina'
+                        value: 'Illumina',
+                        maskRe: /[0-9a-z_-]/,
+                        maxLength: 100
                     },{
                         xtype: 'textfield',
                         itemId: 'investigator',
@@ -240,11 +237,21 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
     },
 
     buildValuesObj: function(){
-//        this.down('form').items.each(function(field){
-//            if(field.isFormField && !field.isValid()){
-//
-//            }
-//        });
+        var errors = [];
+        this.down('form').items.each(function(field){
+            if(field.isFormField && !field.isValid()){
+                Ext4.each(field.getErrors(), function(e){
+                    errors.push(field.fieldLabel + ': ' + e);
+                }, this);
+            }
+        });
+
+        if(errors.length){
+            errors = Ext4.unique(errors);
+            errors = errors.join('<br>');
+            Ext4.Msg.alert("Error", "There are errors in the form:<br>" + errors);
+            return;
+        }
 
         var valuesObj = {};
         Ext4.each(this.sectionNames, function(header){
@@ -283,6 +290,9 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
     generateTemplatePreview: function(){
         var obj = this.buildValuesObj();
+        if (!obj)
+            return;
+
         var rows = [];
         Ext4.each(this.sectionNames, function(section){
             if(obj[section]){
@@ -339,6 +349,9 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
     generateHeaderArray: function(){
         var obj = this.buildValuesObj();
+        if (!obj)
+            return;
+
         var rows = [];
         Ext4.each(this.sectionNames, function(section){
             if(obj[section]){
@@ -492,7 +505,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             recs[0].phantom = true;
         }
         else {
-            templateField.store.getAt(recIdx).set('Json', json);
+            templateField.store.getAt(recIdx).set('Json', Ext4.JSON.encode(json));
         }
 
         templateField.setValue('Custom');
@@ -500,6 +513,9 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
     onDownload: function(btn){
         this.onDoneEditing();
+
+        if(!this.down('form').getForm().isValid())
+            return;
 
         var fileNamePrefix = this.down('#defaultTab').down('#fileName').getValue();
         if(!fileNamePrefix){
