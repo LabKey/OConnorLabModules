@@ -12,6 +12,8 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
     sectionNames: ['Header', 'Reads', 'Settings', 'Data'],
 
+    ignoredSectionNames: ['Data'],
+
     initComponent: function(){
 
         Ext4.QuickTips.init();
@@ -213,15 +215,24 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
         var vals = {};
         var activeSection = '';
-        Ext4.each(text, function(line){
+        var errors = [];
+        Ext4.each(text, function(line, idx){
             if(!line)
                 return;
 
             line = line.split(/[\,|\t]+/g);
 
+            if(line.length > 2)
+                errors.push('Error reading line ' + (idx+1) + '. Line contains too many elements: "' + line.join(',') + '"');
+
             var prop = line.shift();
             if(prop.match(/^\[/)){
                 prop = prop.replace(/\]|\[/g, '');
+                if(this.sectionNames.indexOf(prop) == -1)
+                    errors.push('Unknown section name: ' + prop);
+                if(this.ignoredSectionNames.indexOf(prop) != -1)
+                    errors.push('Cannot edit section: [' + prop + '] from this page');
+
                 activeSection = prop;
                 return;
             }
@@ -232,6 +243,11 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             var val = line.join('');
             vals[activeSection].push([prop, val]);
         }, this);
+
+        if(errors.length){
+            Ext4.Msg.alert("Error", errors.join('<br>'));
+            return false;
+        }
 
         return vals;
     },
@@ -467,6 +483,9 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             var field = this.down('#sourceField');
             if(field.isDirty()){
                 var val = this.parseText(field.getValue());
+                if(val === false)
+                    return false;
+
                 this.setValuesFromText(val);
             }
         }
@@ -512,7 +531,8 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
     },
 
     onDownload: function(btn){
-        this.onDoneEditing();
+        if(this.onDoneEditing() === false)
+            return;
 
         if(!this.down('form').getForm().isValid())
             return;
@@ -537,7 +557,8 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
     onSaveTemplate: function(btn){
         //if we're editing the source, need to save first
-        this.onDoneEditing();
+        if(this.onDoneEditing() === false)
+            return false;
 
         var field = this.down('#defaultTab').down('#template');
         var rec = field.store.getAt(field.store.find('Name', field.getValue()));
