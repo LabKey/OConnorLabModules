@@ -33,7 +33,7 @@ class NonValidatingGenotypingFolderSettings implements GenotypingFolderSettings
 
     NonValidatingGenotypingFolderSettings(Container c)
     {
-        _map = PropertyManager.getProperties(c.getId(), GenotypingManager.FOLDER_CATEGORY);
+        _map = PropertyManager.getProperties(c, GenotypingManager.FOLDER_CATEGORY);
         _c = c;
     }
 

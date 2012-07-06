@@ -116,7 +116,7 @@ public class GenotypingManager
 
     public void saveSettings(Container c, GenotypingFolderSettings settings)
     {
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(c.getId(), FOLDER_CATEGORY, true);
+        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(c, FOLDER_CATEGORY, true);
         map.put(Setting.ReferenceSequencesQuery.getKey(), settings.getSequencesQuery());
         map.put(Setting.RunsQuery.getKey(), settings.getRunsQuery());
         map.put(Setting.SamplesQuery.getKey(), settings.getSamplesQuery());
