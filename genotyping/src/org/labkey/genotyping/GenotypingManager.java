@@ -441,8 +441,11 @@ public class GenotypingManager
         SimpleFilter matchFilter = new SimpleFilter("Analysis", analysis.getRowId());
         matchFilter.addInClause("RowId", matchIdList);
 
+        // Keyword on some databases
+        String percent = gs.getMatchesTable().getColumn("Percent").getSelectName();
+
         // Sum all the counts and the percentage coverage; calculate new average length
-        SQLFragment sql = new SQLFragment("SELECT Analysis, SampleId, CAST(SUM(Reads) AS INT) AS reads, SUM(Percent) AS percent, SUM(Reads * AverageLength) / SUM(Reads) AS avg_length, ");
+        SQLFragment sql = new SQLFragment("SELECT Analysis, SampleId, CAST(SUM(Reads) AS INT) AS reads, SUM(" + percent + ") AS " + percent + ", SUM(Reads * AverageLength) / SUM(Reads) AS avg_length, ");
         sql.append("CAST(SUM(PosReads) AS INT) AS pos_reads, CAST(SUM(NegReads) AS INT) AS neg_reads, CAST(SUM(PosExtReads) AS INT) AS pos_ext_reads, CAST(SUM(NegExtReads) AS INT) AS neg_ext_reads FROM ");
         sql.append(gs.getMatchesTable(), "matches");
         sql.append(" ");
@@ -464,7 +467,7 @@ public class GenotypingManager
 
             // Update ParentId column for all combined matches
             SQLFragment updateSql = new SQLFragment("UPDATE ");
-            updateSql.append(gs.getMatchesTable(), "matches");
+            updateSql.append(gs.getMatchesTable());   // Hmmm... can't provide alias in UPDATE statement on SQL Server
             updateSql.append(" SET ParentId = ? ");
             updateSql.add(newMatchId);
             updateSql.append(matchFilter.getSQLFragment(gs.getSqlDialect()));
