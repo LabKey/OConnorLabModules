@@ -81,7 +81,6 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 FilteredTable table = new FilteredTable(GS.getRunsTable(), c);
                 table.wrapAllColumns(true);
-                table.removeColumn(table.getColumn("Container"));
                 table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
                 setDefaultVisibleColumns(table, "RowId, MetaDataId, Created, CreatedBy");
 
