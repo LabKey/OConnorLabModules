@@ -39,6 +39,7 @@ import org.labkey.api.query.DetailsURL;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.LookupForeignKey;
+import org.labkey.api.query.QueryHelper;
 import org.labkey.api.query.QuerySchema;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryUpdateService;
@@ -83,13 +84,15 @@ public class GenotypingQuerySchema extends UserSchema
                 table.wrapAllColumns(true);
                 table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
                 setDefaultVisibleColumns(table, "RowId, MetaDataId, Created, CreatedBy");
+                //TODO
+                //table.setDetailsURL(DetailsURL.fromString(c, "/genotyping/runs.view?run=${RowId}"));
 
                 // Ignore meta data if not configured
                 String runsQuery = new NonValidatingGenotypingFolderSettings(c).getRunsQuery();
 
                 if (null != runsQuery)
                 {
-                    final QueryHelper qHelper = new QueryHelper(c, user, runsQuery);
+                    final QueryHelper qHelper = new GenotypingQueryHelper(c, user, runsQuery);
 
                     ColumnInfo metaData = table.getColumn("MetaDataId");
                     metaData.setFk(new LookupForeignKey("run_num", "run_num") {
@@ -144,7 +147,7 @@ public class GenotypingQuerySchema extends UserSchema
 
                 if (null != samplesQuery)
                 {
-                    QueryHelper qHelper = new QueryHelper(c, user, samplesQuery);
+                    QueryHelper qHelper = new GenotypingQueryHelper(c, user, samplesQuery);
                     final TableInfo samples = qHelper.getTableInfo();
 
                     ColumnInfo sampleId = table.getColumn("SampleId");
@@ -276,7 +279,7 @@ public class GenotypingQuerySchema extends UserSchema
 
                 if (null != samplesQuery)
                 {
-                    QueryHelper qHelper = new QueryHelper(c, user, samplesQuery);
+                    QueryHelper qHelper = new GenotypingQueryHelper(c, user, samplesQuery);
                     final TableInfo samples = qHelper.getTableInfo();
 
                     ColumnInfo sampleId = table.getColumn("SampleId");
@@ -316,7 +319,7 @@ public class GenotypingQuerySchema extends UserSchema
                 });
 
                 final ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, "query");
-                final QueryHelper qHelper = new QueryHelper(c, user, settings.getSamplesQuery());
+                final QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getSamplesQuery());
 
                 table.getColumn("SampleId").setFk(new LookupForeignKey(qHelper.getQueryGridURL(), SampleManager.KEY_COLUMN_NAME, SampleManager.KEY_COLUMN_NAME, SampleManager.KEY_COLUMN_NAME)
                 {
@@ -343,7 +346,7 @@ public class GenotypingQuerySchema extends UserSchema
 
                 if (null != samplesQuery)
                 {
-                    QueryHelper qHelper = new QueryHelper(c, user, samplesQuery);
+                    QueryHelper qHelper = new GenotypingQueryHelper(c, user, samplesQuery);
                     TableInfo table = qHelper.getTableInfo();
                     //FilteredTable ft = new FilteredTable(table);
                     //ft.setDescription("Contains sample information and metadata");
@@ -362,7 +365,7 @@ public class GenotypingQuerySchema extends UserSchema
 
                 if (null != queryName)
                 {
-                    QueryHelper qHelper = new QueryHelper(c, user, queryName);
+                    QueryHelper qHelper = new GenotypingQueryHelper(c, user, queryName);
                     TableInfo table = qHelper.getTableInfo();
                     //FilteredTable ft = new FilteredTable(table);
                     //ft.setDescription("Contains metadata about each genotyping run");

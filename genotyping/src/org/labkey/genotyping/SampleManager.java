@@ -23,6 +23,7 @@ import org.labkey.api.data.Results;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.FieldKey;
+import org.labkey.api.query.QueryHelper;
 import org.labkey.api.security.User;
 import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.NotFoundException;
@@ -63,7 +64,7 @@ public class SampleManager
     public Results selectSamples(Container c, User user, GenotypingRun run, String columnNames, String action) throws SQLException
     {
         ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, action);
-        QueryHelper qHelper = new QueryHelper(c, user, settings.getSamplesQuery());
+        QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getSamplesQuery());
 
         TableInfo ti = qHelper.getTableInfo();
         if (null == ti.getColumn("library_number"))
@@ -76,7 +77,7 @@ public class SampleManager
         for (String name : columnNames.split(",\\s*"))
             fieldKeys.add(FieldKey.fromString(name));
 
-        return qHelper.select(extraFilter, fieldKeys);
+        return qHelper.select(fieldKeys, extraFilter);
     }
 
 

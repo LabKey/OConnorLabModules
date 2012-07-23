@@ -45,13 +45,12 @@ public class GenotypingRun
         assert MemTracker.put(this);
     }
 
-    public GenotypingRun(Container c, File readsFile, int runId, @Nullable MetaDataRun metaDataRun, String platform)
+    public GenotypingRun(Container c, File readsFile, @Nullable MetaDataRun metaDataRun, String platform)
     {
         this();
         setContainer(c);
         setPath(readsFile.getParent());
         setFileName(readsFile.getName());
-        setRowId(runId);
         setPlatform(platform);
 
         if (null != metaDataRun)

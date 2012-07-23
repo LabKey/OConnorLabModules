@@ -32,6 +32,7 @@ import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
+import org.labkey.api.query.QueryHelper;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.security.User;
 import org.labkey.api.util.ResultSetUtil;
@@ -123,14 +124,14 @@ public class GenotypingManager
         PropertyManager.saveProperties(map);
     }
 
-    public GenotypingRun createRun(Container c, User user, int runId, @Nullable Integer metaDataId, File readsFile, String platform) throws SQLException
+    public GenotypingRun createRun(Container c, User user, Integer metaDataId, File readsFile, String platform) throws SQLException
     {
         MetaDataRun mdRun = null;
 
         if (null != metaDataId)
             mdRun = getMetaDataRun(c, user, metaDataId, "importing reads");
 
-        GenotypingRun run = new GenotypingRun(c, readsFile, runId, mdRun, platform);
+        GenotypingRun run = new GenotypingRun(c, readsFile, mdRun, platform);
         return Table.insert(user, GenotypingSchema.get().getRunsTable(), run);
     }
 
@@ -142,7 +143,7 @@ public class GenotypingManager
     public MetaDataRun getMetaDataRun(Container c, User user, int runId, String action)
     {
         ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, action);
-        QueryHelper qHelper = new QueryHelper(c, user, settings.getRunsQuery());
+        QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getRunsQuery());
         MetaDataRun run = Table.selectObject(qHelper.getTableInfo(), runId, MetaDataRun.class);
         run.setContainer(c);
 

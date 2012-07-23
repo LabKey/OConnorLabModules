@@ -507,6 +507,17 @@ public class GenotypingController extends SpringActionController
 
             return form.getReturnURLHelper(getPortalURL());
         }
+
+        @Override
+        public void validate(ReturnUrlForm form, BindException errors)
+        {
+            //Issue 15583: if sequences table has not been set properly, reject the import
+            ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(getContainer(), getUser(), "loading sequences");
+            GenotypingQueryHelper qHelper = new GenotypingQueryHelper(getContainer(), getUser(), settings.getSequencesQuery());
+
+            if (qHelper.getTableInfo() == null)
+                errors.reject("Could not find sequences query " + settings.getSequencesQuery());
+        }
     }
 
 
@@ -1033,10 +1044,13 @@ public class GenotypingController extends SpringActionController
         public ModelAndView getView(ImportReadsForm form, boolean reshow, BindException errors) throws Exception
         {
             ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(getContainer(), getUser(), "importing reads");
-            TableInfo runs = new QueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo();
+            TableInfo runs = new GenotypingQueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo();
             settings.getSamplesQuery();  // Pipeline job will flag this if missing, but let's proactively validate before we launch the job
             List<Integer> allRuns = new ArrayList<Integer>(Arrays.asList(Table.executeArray(runs, "run_num", null, new Sort("-run_num"), Integer.class)));   // TODO: Should restrict to this folder, #14278
-            allRuns.removeAll(Arrays.asList(Table.executeArray(GenotypingSchema.get().getRunsTable(), "MetaDataId", null, null, Integer.class)));
+
+            // Issue 14278: segregate genotyping runs by container
+            SimpleFilter filter = new SimpleFilter("container", getContainer().getId());
+            allRuns.removeAll(Arrays.asList(Table.executeArray(GenotypingSchema.get().getRunsTable(), "MetaDataId", filter, null, Integer.class)));
 
             return new JspView<ImportReadsBean>("/org/labkey/genotyping/view/importReads.jsp", new ImportReadsBean(allRuns, form.getReadsPath(), form.getPath(), form.getPlatform(), form.getPrefix()), errors);
         }
@@ -1090,7 +1104,7 @@ public class GenotypingController extends SpringActionController
 
                 try
                 {
-                    run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getRun(), form.getMetaDataRun(), readsFile, form.getPlatform());
+                    run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getMetaDataRun(), readsFile, form.getPlatform());
                 }
                 catch (SQLException e)
                 {

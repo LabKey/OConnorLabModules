@@ -20,17 +20,18 @@
 <%@ page import="org.labkey.api.security.User" %>
 <%@ page import="org.labkey.api.util.DateUtil" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
-<%@ page import="org.labkey.genotyping.QueryHelper" %>
+<%@ page import="org.labkey.api.query.QueryHelper" %>
 <%@ page import="org.labkey.genotyping.ValidatingGenotypingFolderSettings" %>
 <%@ page import="org.labkey.genotyping.sequences.SequenceDictionary" %>
 <%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
+<%@ page import="org.labkey.genotyping.GenotypingQueryHelper" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     ReturnUrlForm form = (ReturnUrlForm)getModelBean();
     Container c = getViewContext().getContainer();
     User user = getViewContext().getUser();
     ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, "loading sequences");
-    QueryHelper qHelper = new QueryHelper(c, user, settings.getSequencesQuery());
+    QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getSequencesQuery());
     SequenceDictionary dictionary = SequenceManager.get().getCurrentDictionary(c, user, false);
 %>
 <form <%=formAction(GenotypingController.LoadSequencesAction.class, Method.Post)%>>

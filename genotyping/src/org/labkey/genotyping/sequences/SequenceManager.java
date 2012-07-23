@@ -27,6 +27,7 @@ import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
+import org.labkey.api.query.QueryHelper;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.util.ResultSetUtil;
@@ -34,8 +35,8 @@ import org.labkey.api.view.NotFoundException;
 import org.labkey.api.writer.FastaEntry;
 import org.labkey.api.writer.FastaWriter;
 import org.labkey.api.writer.ResultSetFastaGenerator;
+import org.labkey.genotyping.GenotypingQueryHelper;
 import org.labkey.genotyping.GenotypingSchema;
-import org.labkey.genotyping.QueryHelper;
 import org.labkey.genotyping.ValidatingGenotypingFolderSettings;
 
 import java.io.File;
@@ -75,7 +76,7 @@ public class SequenceManager
         int dictionaryId = getCurrentDictionary(c, user).getRowId();
 
         ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, "loading sequences");
-        QueryHelper qHelper = new QueryHelper(c, user, settings.getSequencesQuery());
+        QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getSequencesQuery());
 
         SimpleFilter viewFilter = qHelper.getViewFilter();
         TableInfo destination = GenotypingSchema.get().getSequencesTable();
