@@ -17,6 +17,7 @@ package org.labkey.genotyping;
 
 import org.apache.commons.lang3.StringUtils;
 import org.labkey.api.data.DbScope;
+import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.dialect.SqlDialect;
@@ -33,9 +34,11 @@ import org.labkey.api.view.ViewBackgroundInfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -122,8 +125,29 @@ public class Import454ReadsJob extends PipelineJob
     }
 
 
-    private void updateRunStatus(Status status) throws SQLException
+    private void updateRunStatus(Status status) throws PipelineJobException, SQLException
     {
+        // Issue 14880: if a job has run and failed, we will have deleted the run.  trying to update the status of this non-existant row
+        // causes an OptimisticConflictException.  therefore we first test whether the runs exists
+        SimpleFilter f = new SimpleFilter("rowid", _run.getRowId());
+        ResultSet rs = Table.select(GenotypingSchema.get().getRunsTable(), Collections.singleton("RowId"), f, null);
+        if (!rs.next()){
+            try
+            {
+                File file = new File(_run.getPath(), _run.getFileName());
+                GenotypingRun newRun = GenotypingManager.get().createRun(getContainer(), getUser(), _run.getMetaDataId(), file, _run.getPlatform());
+                _run.setRowId(newRun.getRowId());
+            }
+            catch (SQLException e)
+            {
+                rs.close();
+                if (SqlDialect.isConstraintException(e))
+                    throw new PipelineJobException("Run " + _run.getMetaDataId() + " has already been imported");
+                else
+                    throw e;
+            }
+        }
+
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("Status", status.getStatusId());
         Table.update(getUser(), GenotypingSchema.get().getRunsTable(), map, _run.getRowId());
