@@ -22,6 +22,7 @@ import org.labkey.api.data.ButtonBar;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.DatabaseTableType;
 import org.labkey.api.data.DisplayColumn;
 import org.labkey.api.data.DisplayColumnFactory;
@@ -135,7 +136,23 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(Container c, User user)
             {
-                FilteredTable table = new FilteredTable(GS.getReadsTable(), c);
+                FilteredTable table = new FilteredTable(GS.getReadsTable(), c)
+                {
+                    @Override
+                    protected void applyContainerFilter(ContainerFilter filter)
+                    {
+                        FieldKey containerFieldKey = FieldKey.fromParts("Container");
+                        clearConditions(containerFieldKey);
+                        SQLFragment sql = new SQLFragment("Run IN (SELECT r.RowId FROM ");
+                        sql.append(GS.getRunsTable(), "r");
+                        sql.append(" WHERE ");
+                        sql.append(filter.getSQLFragment(getSchema(), "r.Container", getContainer()));
+                        sql.append(")");
+                        addCondition(sql, containerFieldKey);
+                    }
+                };
+                table.setContainerFilter(table.getContainerFilter());
+
                 table.wrapAllColumns(true);
                 SQLFragment containerCondition = new SQLFragment("Run IN (SELECT Run FROM " + GS.getRunsTable().getFromSQL("r") + " WHERE Container = ?)");
                 containerCondition.add(c.getId());
@@ -197,7 +214,23 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(Container c, User user)
             {
-                FilteredTable table = new FilteredTable(GS.getAnalysesTable(), c);
+                FilteredTable table = new FilteredTable(GS.getAnalysesTable(), c)
+                {
+                    @Override
+                    protected void applyContainerFilter(ContainerFilter filter)
+                    {
+                        FieldKey containerFieldKey = FieldKey.fromParts("Container");
+                        clearConditions(containerFieldKey);
+                        SQLFragment sql = new SQLFragment("Run IN (SELECT r.RowId FROM ");
+                        sql.append(GS.getRunsTable(), "r");
+                        sql.append(" WHERE ");
+                        sql.append(filter.getSQLFragment(getSchema(), "r.Container", getContainer()));
+                        sql.append(")");
+                        addCondition(sql, containerFieldKey);
+                    }
+                };
+                table.setContainerFilter(table.getContainerFilter());
+
                 table.wrapAllColumns(true);
                 table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getAnalysesTable() + ".Run) = ?");
@@ -222,6 +255,8 @@ public class GenotypingQuerySchema extends UserSchema
             public FilteredTable createTable(Container c, User user, @Nullable final Integer analysisId)
             {
                 FilteredTable table = new FilteredTable(GS.getMatchesTable(), c);
+                //TODO: filter on container??
+
                 table.wrapAllColumns(true);
 
                 // Big hack to work around our lack of multi-column foreign keys and fix bad performance issues related to
@@ -306,7 +341,23 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(final Container c, final User user)
             {
-                FilteredTable table = new FilteredTable(GS.getSequenceFilesTable(), c);
+                FilteredTable table = new FilteredTable(GS.getSequenceFilesTable(), c)
+                {
+                    @Override
+                    protected void applyContainerFilter(ContainerFilter filter)
+                    {
+                        FieldKey containerFieldKey = FieldKey.fromParts("Container");
+                        clearConditions(containerFieldKey);
+                        SQLFragment sql = new SQLFragment("Run IN (SELECT r.RowId FROM ");
+                        sql.append(GS.getRunsTable(), "r");
+                        sql.append(" WHERE ");
+                        sql.append(filter.getSQLFragment(getSchema(), "r.Container", getContainer()));
+                        sql.append(")");
+                        addCondition(sql, containerFieldKey);
+                    }
+                };
+                table.setContainerFilter(table.getContainerFilter());
+
                 table.wrapAllColumns(true);
                 table.getColumn("DataId").setLabel("Filename");
                 table.getColumn("DataId").setFk(new LookupForeignKey("RowId")

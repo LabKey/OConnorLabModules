@@ -126,24 +126,31 @@ public class ImportIlluminaReadsJob extends PipelineJob
         // Issue 14880: if a job has run and failed, we will have deleted the run.  trying to update the status of this non-existant row
         // causes an OptimisticConflictException.  therefore we first test whether the runs exists
         SimpleFilter f = new SimpleFilter("rowid", _run.getRowId());
-        ResultSet rs = Table.select(GenotypingSchema.get().getRunsTable(), Collections.singleton("RowId"), f, null);
-        if (!rs.next()){
-            try
-            {
-                File file = new File(_run.getPath(), _run.getFileName());
-                GenotypingRun newRun = GenotypingManager.get().createRun(getContainer(), getUser(), _run.getMetaDataId(), file, _run.getPlatform());
-                _run.setRowId(newRun.getRowId());
-            }
-            catch (SQLException e)
-            {
-                rs.close();
-                if (SqlDialect.isConstraintException(e))
-                    throw new PipelineJobException("Run " + _run.getMetaDataId() + " has already been imported");
-                else
-                    throw e;
+        ResultSet rs = null;
+        try
+        {
+            rs = Table.select(GenotypingSchema.get().getRunsTable(), Collections.singleton("RowId"), f, null);
+            if (!rs.next()){
+                try
+                {
+                    File file = new File(_run.getPath(), _run.getFileName());
+                    GenotypingRun newRun = GenotypingManager.get().createRun(getContainer(), getUser(), _run.getMetaDataId(), file, _run.getPlatform());
+                    _run.setRowId(newRun.getRowId());
+                }
+                catch (SQLException e)
+                {
+                    if (SqlDialect.isConstraintException(e))
+                        throw new PipelineJobException("Run " + _run.getMetaDataId() + " has already been imported");
+                    else
+                        throw e;
+                }
             }
         }
-        rs.close();
+        finally
+        {
+            if (rs != null)
+                rs.close();
+        }
 
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("Status", status.getStatusId());
