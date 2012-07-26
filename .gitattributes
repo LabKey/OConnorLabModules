@@ -7,6 +7,7 @@ genotyping/resources/schemas/dbscripts/postgresql/genotyping-10.30-11.10.sql -te
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-11.10-11.20.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-11.20-11.30.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-12.10-12.11.sql -text
+genotyping/resources/schemas/dbscripts/postgresql/genotyping-12.10-12.20.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-12.11-12.12.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-12.12-12.13.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-12.13-12.14.sql -text
@@ -26,6 +27,7 @@ genotyping/resources/schemas/dbscripts/sqlserver/genotyping-10.30-11.10.sql -tex
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-11.10-11.20.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-11.20-11.30.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-12.10-12.11.sql -text
+genotyping/resources/schemas/dbscripts/sqlserver/genotyping-12.10-12.20.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-12.11-12.12.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-12.12-12.13.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-12.13-12.14.sql -text
