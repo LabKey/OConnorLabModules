@@ -99,7 +99,12 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                             schemaName: 'genotyping',
                             queryName: 'IlluminaTemplates',
                             columns: 'Name,Json,Editable',
-                            autoLoad: true
+                            autoLoad: true,
+                            supressErrorAlert: true,
+                            exception: function(error){
+                                console.log('There was an error loading templates');
+                                console.log(error)
+                            }
                         })
                     }]
                 },{
@@ -608,6 +613,10 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             success: function(){
                 var field = this.down('#defaultTab').down('#template');
                 field.store.load();
+            },
+            failure: function(error){
+                console.log('Error saving templates');
+                console.log(error);
             }
         }
 
