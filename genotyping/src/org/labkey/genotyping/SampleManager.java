@@ -70,7 +70,15 @@ public class SampleManager
         if (null == ti.getColumn("library_number"))
             throw new NotFoundException("Samples query must include a library_number column");
 
-        SimpleFilter extraFilter = new SimpleFilter("library_number", run.getMetaDataRun(user, action).getSampleLibrary());
+        //Issue 15663: Avoid NullPointerException if the metadataRun is not found
+        if (null == run)
+            throw new NotFoundException("No run was provided");
+
+        MetaDataRun metaDataRun = run.getMetaDataRun(user, action);
+        if (null == metaDataRun)
+            throw new NotFoundException("Could not find run with MetaDataId: " + run.getMetaDataId());
+
+        SimpleFilter extraFilter = new SimpleFilter(FieldKey.fromString("library_number"), metaDataRun.getSampleLibrary());
 
         List<FieldKey> fieldKeys = new LinkedList<FieldKey>();
 
