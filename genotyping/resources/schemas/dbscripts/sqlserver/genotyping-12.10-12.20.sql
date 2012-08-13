@@ -100,12 +100,12 @@ CREATE TABLE genotyping.Runs
 
     CONSTRAINT PK_Runs PRIMARY KEY (RowId)
 );
-GO
+
 SET IDENTITY_INSERT genotyping.Runs ON;
-GO
+
 INSERT INTO genotyping.Runs (RowId, MetaDataId, Container, CreatedBy, Created, Path, FileName, Status, Platform)
   SELECT RowId, MetaDataId, Container, CreatedBy, Created, Path, FileName, Status, Platform FROM genotyping.Runs2;
-GO
+
 SET IDENTITY_INSERT genotyping.Runs OFF;
 
 -- drop the original (now empty) table
