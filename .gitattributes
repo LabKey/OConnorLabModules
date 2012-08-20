@@ -94,5 +94,6 @@ genotyping/src/org/labkey/genotyping/view/matchCombiner.jsp -text
 genotyping/src/org/labkey/genotyping/view/mhcQuery.jsp -text
 genotyping/src/org/labkey/genotyping/view/mySettings.jsp -text
 genotyping/src/org/labkey/genotyping/view/overview.jsp -text
+genotyping/tools/Illumina.pl -text
 genotyping/webapp/genotyping/IlluminaExportPanel.js -text
 genotyping/webapp/genotyping/RunExportWindow.js -text
