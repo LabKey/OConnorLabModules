@@ -108,8 +108,11 @@ public class GenotypingQuerySchema extends UserSchema
 
                     // TODO: Better way to do this?
                     StringExpression url = qHelper.getTableInfo().getDetailsURL(Collections.singleton(new FieldKey(null, "run_num")), c);
-                    url = DetailsURL.fromString(url.getSource().replace("run_num", "MetaDataId"));
-                    metaData.setURL(url);
+                    if (url != null)
+                    {
+                        url = DetailsURL.fromString(url.getSource().replace("run_num", "MetaDataId"));
+                        metaData.setURL(url);
+                    }
                 }
 
                 table.setDescription("Contains one row per sequencing run");
@@ -178,8 +181,11 @@ public class GenotypingQuerySchema extends UserSchema
 
                     // TODO: Better way to do this?
                     StringExpression url = samples.getDetailsURL(Collections.singleton(new FieldKey(null, "key")), c);
-                    url = DetailsURL.fromString(url.getSource().replace("Key", "sampleId"));
-                    sampleId.setURL(url);
+                    if (url != null)
+                    {
+                        url = DetailsURL.fromString(url.getSource().replace("Key", "sampleId"));
+                        sampleId.setURL(url);
+                    }
                 }
 
                 table.setDescription("Contains one row per sequencing read");
@@ -328,8 +334,11 @@ public class GenotypingQuerySchema extends UserSchema
 
                     // TODO: Better way to do this?
                     StringExpression url = samples.getDetailsURL(Collections.singleton(new FieldKey(null, "key")), c);
-                    url = DetailsURL.fromString(url.getSource().replace("Key", "sampleId"));
-                    sampleId.setURL(url);
+                    if (url != null)
+                    {
+                        url = DetailsURL.fromString(url.getSource().replace("Key", "sampleId"));
+                        sampleId.setURL(url);
+                    }
                 }
 
                 table.setDescription("Contains one row per genotyping match");
@@ -426,6 +435,12 @@ public class GenotypingQuerySchema extends UserSchema
 
                 return null;
             }
+
+            @Override
+            boolean isAvailable(Container c, User user)
+            {
+                return createTable(c, user) != null;
+            }
         },
 
         IlluminaTemplates() {
@@ -461,6 +476,10 @@ public class GenotypingQuerySchema extends UserSchema
         };
 
         abstract FilteredTable createTable(Container c, User user);
+        boolean isAvailable(Container c, User user)
+        {
+            return true;
+        }
 
         // Special factory method for Matches table, to pass through analysis id (if present)
         FilteredTable createTable(Container c, User user, @Nullable Integer analysisId)
@@ -572,13 +591,22 @@ public class GenotypingQuerySchema extends UserSchema
     @Override
     public Set<String> getTableNames()
     {
-        return TABLE_NAMES;
+        Set<String> names = new LinkedHashSet<String>();
+
+        for (TableType type : TableType.values())
+        {
+            if (type.isAvailable(getContainer(), getUser()))
+            {
+                names.add(type.toString());
+            }
+        }
+        return names;
     }
 
     @Override
     public QueryView createView(ViewContext context, QuerySettings settings, BindException errors)
     {
-        if(settings.getQueryName().equalsIgnoreCase(TableType.Samples.name()))
+        if(TableType.Samples.name().equalsIgnoreCase(settings.getQueryName()))
         {
             return new QueryView(this, settings, errors)
             {
