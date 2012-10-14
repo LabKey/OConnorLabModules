@@ -406,15 +406,15 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         var sampleColumns = [
             ['Sample_ID', 'Key'],
             ['Sample_Name', 'library_sample_name'],
-            ['Sample_Plate', ''],
-            ['Sample_Well', ''],
-            ['Sample_Project', ''],
+            ['Sample_Plate', 'Sample_Plate'],
+            ['Sample_Well', 'Sample_Well'],
+            ['Sample_Project', 'Sample_Project'],
             ['index', 'fivemid/mid_sequence'],
             ['I7_Index_ID', 'fivemid'],
             ['index2', 'threemid/mid_sequence'],
             ['I5_Index_ID', 'threemid'],
-            ['Description', ''],
-            ['GenomeFolder', '']
+            ['Description', 'description'],
+            ['GenomeFolder', 'GenomeFolder']
         ];
 
         var headerRow = [];

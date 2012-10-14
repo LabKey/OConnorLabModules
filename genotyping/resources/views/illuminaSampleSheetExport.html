@@ -17,7 +17,7 @@ Ext4.onReady(function(){
          filterArray: [
              LABKEY.Filter.create('Key', pks.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)
          ],
-         columns: 'key,library_number,fivemid,threemid,library_sample_name,fivemid/mid_sequence,threemid/mid_sequence',
+         columns: 'key,library_number,fivemid,threemid,library_sample_name,fivemid/mid_sequence,threemid/mid_sequence,description,GenomeFolder,Sample_Plate,Sample_Well,Sample_Project',
          scope: this,
          success: function(result){
              if(result && result.rows.length){

@@ -132,7 +132,7 @@ public class SampleManager
                 while (rs.next())
                 {
                     // Use getObject() to allow null values
-                    SampleKey key = getSampleKey((Integer)rs.getObject(1), (Integer)rs.getObject(2), (String)rs.getObject(3));
+                    SampleKey key = getSampleKey(rs.getObject(1), rs.getObject(2), rs.getObject(3));
                     Integer previousId = _map.put(key, rs.getInt(4));
 
                     if (null != previousId)
@@ -146,7 +146,7 @@ public class SampleManager
         }
 
 
-        private SampleKey getSampleKey(Integer mid5, Integer mid3, String amplicon)
+        private SampleKey getSampleKey(Object mid5, Object mid3, Object amplicon)
         {
             return new SampleKey(
                 _sampleKeyColumns.contains(MID5_COLUMN_NAME) ? mid5 : null,
@@ -169,11 +169,11 @@ public class SampleManager
 
     private static class SampleKey
     {
-        private final Integer _mid5;
-        private final Integer _mid3;
-        private final String _amplicon;
+        private final Object _mid5;
+        private final Object _mid3;
+        private final Object _amplicon;
 
-        private SampleKey(Integer mid5, Integer mid3, String amplicon)
+        private SampleKey(Object mid5, Object mid3, Object amplicon)
         {
             _mid5 = mid5;
             _mid3 = mid3;
