@@ -17,9 +17,21 @@
 %>
 <%@ page import="org.labkey.genotyping.GenotypingController"%>
 <%@ page import="org.labkey.genotyping.GenotypingFolderSettings" %>
+<%@ page import="org.labkey.api.util.PageFlowUtil" %>
+<%@ page import="org.labkey.api.exp.api.ExperimentUrls" %>
+<%@ page import="org.labkey.genotyping.GenotypingQuerySchema" %>
+<%@ page import="org.labkey.api.view.ViewContext" %>
+<%@ page import="org.labkey.api.exp.property.PropertyService" %>
+<%@ page import="org.labkey.api.view.ActionURL" %>
+<%@ page import="org.labkey.api.action.ReturnUrlForm" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     GenotypingController.AdminForm form = (GenotypingController.AdminForm)getModelBean();
+    ViewContext ctx = getViewContext();
+    GenotypingQuerySchema schema = new GenotypingQuerySchema(ctx.getUser(), ctx.getContainer());
+
+    ActionURL animalEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Animal.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Animal.name(), ctx.getContainer(), ctx.getUser());
+    animalEditDomainURL.addParameter(ActionURL.Param.returnUrl, ctx.getActionURL().toString());
 %>
 <script type="text/javascript">
 //    Ext.QuickTips.init();
@@ -56,7 +68,7 @@
         if (query)
         {
             var parts = query.split('<%=GenotypingFolderSettings.SEPARATOR%>');
-            html = parts[0] + '.' + parts[1] + '.' + parts[2];
+            html = parts[0] + '.' + parts[1] + ((parts[2] && parts[2].length() > 0) ? ('.' + parts[2]) : '');
         }
         else
         {
@@ -115,6 +127,13 @@
             <td>
                 <%=textLink("configure", "#", "chooseView('Choose samples query', 'Select a query that provides a list of samples.  This query is filtered by the library number specified in the run to produce the sample.txt file.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateSamplesQuery(query);}, queries['samplesQuery'], includeSchema);return false;", "id")%>
                 <input type="hidden" name="samplesQuery" id="samplesQuery">
+            </td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr>
+            <td>Animal</td>
+            <td>
+                <%=textLink("configure", animalEditDomainURL)%>
             </td>
         </tr>
         <tr><td>&nbsp;</td></tr>

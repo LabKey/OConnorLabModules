@@ -16,6 +16,7 @@
 package org.labkey.genotyping;
 
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.collections.Sets;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.ButtonBar;
@@ -45,6 +46,7 @@ import org.labkey.api.query.QuerySchema;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryView;
+import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserIdQueryForeignKey;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
@@ -52,6 +54,7 @@ import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.util.StringExpression;
 import org.labkey.api.view.DataView;
+import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.ViewContext;
 import org.springframework.validation.BindException;
 
@@ -70,6 +73,7 @@ import java.util.Set;
 public class GenotypingQuerySchema extends UserSchema
 {
     private static final GenotypingSchema GS = GenotypingSchema.get();
+    public static final String NAME = GS.getSchemaName();
     private static final Set<String> TABLE_NAMES;
 
     @Nullable private final Integer _analysisId;
@@ -79,21 +83,21 @@ public class GenotypingQuerySchema extends UserSchema
     {
         Runs() {
             @Override
-            FilteredTable createTable(Container c, User user)
+            FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable(GS.getRunsTable(), c);
+                FilteredTable table = new FilteredTable(GS.getRunsTable(), schema.getContainer());
                 table.wrapAllColumns(true);
-                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
+                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer()));
                 setDefaultVisibleColumns(table, "RowId, MetaDataId, Created, CreatedBy");
                 //TODO
                 //table.setDetailsURL(DetailsURL.fromString(c, "/genotyping/runs.view?run=${RowId}"));
 
                 // Ignore meta data if not configured
-                String runsQuery = new NonValidatingGenotypingFolderSettings(c).getRunsQuery();
+                String runsQuery = new NonValidatingGenotypingFolderSettings(schema.getContainer()).getRunsQuery();
 
                 if (null != runsQuery)
                 {
-                    final QueryHelper qHelper = new GenotypingQueryHelper(c, user, runsQuery);
+                    final QueryHelper qHelper = new GenotypingQueryHelper(schema.getContainer(), schema.getUser(), runsQuery);
 
                     ColumnInfo metaData = table.getColumn("MetaDataId");
                     metaData.setFk(new LookupForeignKey("run_num", "run_num") {
@@ -107,7 +111,7 @@ public class GenotypingQuerySchema extends UserSchema
                     metaData.setLabel(qHelper.getQueryName());
 
                     // TODO: Better way to do this?
-                    StringExpression url = qHelper.getTableInfo().getDetailsURL(Collections.singleton(new FieldKey(null, "run_num")), c);
+                    StringExpression url = qHelper.getTableInfo().getDetailsURL(Collections.singleton(new FieldKey(null, "run_num")), schema.getContainer());
                     if (url != null)
                     {
                         url = DetailsURL.fromString(url.getSource().replace("run_num", "MetaDataId"));
@@ -122,12 +126,12 @@ public class GenotypingQuerySchema extends UserSchema
 
         Sequences() {
             @Override
-            FilteredTable createTable(Container c, User user)
+            FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable(GS.getSequencesTable(), c);
+                FilteredTable table = new FilteredTable(GS.getSequencesTable(), schema.getContainer());
                 table.wrapAllColumns(true);
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getDictionariesTable().getFromSQL("d") + " WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
-                containerCondition.add(c.getId());
+                containerCondition.add(schema.getContainer().getId());
                 table.addCondition(containerCondition);
                 removeFromDefaultVisibleColumns(table, "Dictionary");
                 table.setDescription("Contains one row per reference sequence");
@@ -137,9 +141,9 @@ public class GenotypingQuerySchema extends UserSchema
 
         Reads() {
             @Override
-            FilteredTable createTable(Container c, User user)
+            FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable(GS.getReadsTable(), c)
+                FilteredTable table = new FilteredTable(GS.getReadsTable(), schema.getContainer())
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -158,16 +162,16 @@ public class GenotypingQuerySchema extends UserSchema
 
                 table.wrapAllColumns(true);
                 SQLFragment containerCondition = new SQLFragment("Run IN (SELECT Run FROM " + GS.getRunsTable().getFromSQL("r") + " WHERE Container = ?)");
-                containerCondition.add(c.getId());
+                containerCondition.add(schema.getContainer().getId());
                 table.addCondition(containerCondition);
                 setDefaultVisibleColumns(table, "Name, SampleId, Sequence, Quality");
 
                 // No validation... ignore sample meta data if not set
-                String samplesQuery = new NonValidatingGenotypingFolderSettings(c).getSamplesQuery();
+                String samplesQuery = new NonValidatingGenotypingFolderSettings(schema.getContainer()).getSamplesQuery();
 
                 if (null != samplesQuery)
                 {
-                    QueryHelper qHelper = new GenotypingQueryHelper(c, user, samplesQuery);
+                    QueryHelper qHelper = new GenotypingQueryHelper(schema.getContainer(), schema.getUser(), samplesQuery);
                     final TableInfo samples = qHelper.getTableInfo();
 
                     ColumnInfo sampleId = table.getColumn("SampleId");
@@ -180,7 +184,7 @@ public class GenotypingQuerySchema extends UserSchema
                     });
 
                     // TODO: Better way to do this?
-                    StringExpression url = samples.getDetailsURL(Collections.singleton(new FieldKey(null, "key")), c);
+                    StringExpression url = samples.getDetailsURL(Collections.singleton(new FieldKey(null, "key")), schema.getContainer());
                     if (url != null)
                     {
                         url = DetailsURL.fromString(url.getSource().replace("Key", "sampleId"));
@@ -195,9 +199,9 @@ public class GenotypingQuerySchema extends UserSchema
 
         MatchReads() {
             @Override
-            FilteredTable createTable(Container c, User user)
+            FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = Reads.createTable(c, user);
+                FilteredTable table = Reads.createTable(schema);
                 table.setDescription("Contains genotyping matches joined to their corresponding reads");
 
                 ColumnInfo readId = table.getColumn("RowId");
@@ -218,9 +222,9 @@ public class GenotypingQuerySchema extends UserSchema
 
         Analyses() {
             @Override
-            FilteredTable createTable(Container c, User user)
+            FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable(GS.getAnalysesTable(), c)
+                FilteredTable table = new FilteredTable(GS.getAnalysesTable(), schema.getContainer())
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -238,9 +242,9 @@ public class GenotypingQuerySchema extends UserSchema
                 table.setContainerFilter(table.getContainerFilter());
 
                 table.wrapAllColumns(true);
-                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
+                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer()));
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getAnalysesTable() + ".Run) = ?");
-                containerCondition.add(c.getId());
+                containerCondition.add(schema.getContainer().getId());
                 table.addCondition(containerCondition);
                 setDefaultVisibleColumns(table, "RowId, Run, Created, CreatedBy, Description, SequenceDictionary, SequencesView");
                 table.setDescription("Contains one row per genotyping analysis");
@@ -253,14 +257,14 @@ public class GenotypingQuerySchema extends UserSchema
 
         Matches() {
             @Override
-            FilteredTable createTable(Container c, User user)
+            FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                return createTable(c, user, null);
+                return createTable(schema, null);
             }
 
-            public FilteredTable createTable(Container c, User user, @Nullable final Integer analysisId)
+            public FilteredTable createTable(GenotypingQuerySchema schema, @Nullable final Integer analysisId)
             {
-                FilteredTable table = new FilteredTable(GS.getMatchesTable(), c);
+                FilteredTable table = new FilteredTable(GS.getMatchesTable(), schema.getContainer());
                 //TODO: filter on container??
 
                 table.wrapAllColumns(true);
@@ -308,7 +312,7 @@ public class GenotypingQuerySchema extends UserSchema
                 }
 
                 SQLFragment containerCondition = new SQLFragment("Analysis IN (SELECT a.RowId FROM " + GS.getAnalysesTable().getFromSQL("a") + " INNER JOIN " + GS.getRunsTable().getFromSQL("r") + " ON a.Run = r.RowId WHERE Container = ?)");
-                containerCondition.add(c.getId());
+                containerCondition.add(schema.getContainer().getId());
                 table.addCondition(containerCondition);
 
                 // Normal matches view never shows children of combined / altered / deleted matches
@@ -316,11 +320,11 @@ public class GenotypingQuerySchema extends UserSchema
                 setDefaultVisibleColumns(table, "SampleId, Reads, Percent, AverageLength, PosReads, NegReads, PosExtReads, NegExtReads, Alleles/AlleleName");
 
                 // Ignore samples meta data if not configured
-                String samplesQuery = new NonValidatingGenotypingFolderSettings(c).getSamplesQuery();
+                String samplesQuery = new NonValidatingGenotypingFolderSettings(schema.getContainer()).getSamplesQuery();
 
                 if (null != samplesQuery)
                 {
-                    QueryHelper qHelper = new GenotypingQueryHelper(c, user, samplesQuery);
+                    QueryHelper qHelper = new GenotypingQueryHelper(schema.getContainer(), schema.getUser(), samplesQuery);
                     final TableInfo samples = qHelper.getTableInfo();
 
                     ColumnInfo sampleId = table.getColumn("SampleId");
@@ -333,7 +337,7 @@ public class GenotypingQuerySchema extends UserSchema
                     });
 
                     // TODO: Better way to do this?
-                    StringExpression url = samples.getDetailsURL(Collections.singleton(new FieldKey(null, "key")), c);
+                    StringExpression url = samples.getDetailsURL(Collections.singleton(new FieldKey(null, "key")), schema.getContainer());
                     if (url != null)
                     {
                         url = DetailsURL.fromString(url.getSource().replace("Key", "sampleId"));
@@ -348,9 +352,9 @@ public class GenotypingQuerySchema extends UserSchema
 
         SequenceFiles() {
             @Override
-            FilteredTable createTable(final Container c, final User user)
+            FilteredTable createTable(final GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable(GS.getSequenceFilesTable(), c)
+                FilteredTable table = new FilteredTable(GS.getSequenceFilesTable(), schema.getContainer())
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -374,12 +378,12 @@ public class GenotypingQuerySchema extends UserSchema
                     @Override
                     public TableInfo getLookupTableInfo()
                     {
-                        return new ExpSchema(user, c).getDatasTable();
+                        return new ExpSchema(schema.getUser(), schema.getContainer()).getDatasTable();
                     }
                 });
 
-                final ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, "query");
-                final QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getSamplesQuery());
+                final ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(schema.getContainer(), schema.getUser(), "query");
+                final QueryHelper qHelper = new GenotypingQueryHelper(schema.getContainer(), schema.getUser(), settings.getSamplesQuery());
 
                 table.getColumn("SampleId").setFk(new LookupForeignKey(qHelper.getQueryGridURL(), SampleManager.KEY_COLUMN_NAME, SampleManager.KEY_COLUMN_NAME, SampleManager.KEY_COLUMN_NAME)
                 {
@@ -400,13 +404,13 @@ public class GenotypingQuerySchema extends UserSchema
 
         Samples() {
             @Override
-            FilteredTable createTable(Container c, User user)
+            FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                String samplesQuery = new NonValidatingGenotypingFolderSettings(c).getSamplesQuery();
+                String samplesQuery = new NonValidatingGenotypingFolderSettings(schema.getContainer()).getSamplesQuery();
 
                 if (null != samplesQuery)
                 {
-                    QueryHelper qHelper = new GenotypingQueryHelper(c, user, samplesQuery);
+                    QueryHelper qHelper = new GenotypingQueryHelper(schema.getContainer(), schema.getUser(), samplesQuery);
                     TableInfo table = qHelper.getTableInfo();
                     //FilteredTable ft = new FilteredTable(table);
                     //ft.setDescription("Contains sample information and metadata");
@@ -419,13 +423,13 @@ public class GenotypingQuerySchema extends UserSchema
 
         RunMetadata() {
             @Override
-            FilteredTable createTable(Container c, User user)
+            FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                String queryName = new NonValidatingGenotypingFolderSettings(c).getRunsQuery();
+                String queryName = new NonValidatingGenotypingFolderSettings(schema.getContainer()).getRunsQuery();
 
                 if (null != queryName)
                 {
-                    QueryHelper qHelper = new GenotypingQueryHelper(c, user, queryName);
+                    QueryHelper qHelper = new GenotypingQueryHelper(schema.getContainer(), schema.getUser(), queryName);
                     TableInfo table = qHelper.getTableInfo();
                     //FilteredTable ft = new FilteredTable(table);
                     //ft.setDescription("Contains metadata about each genotyping run");
@@ -437,15 +441,15 @@ public class GenotypingQuerySchema extends UserSchema
             }
 
             @Override
-            boolean isAvailable(Container c, User user)
+            boolean isAvailable(GenotypingQuerySchema schema)
             {
-                return createTable(c, user) != null;
+                return createTable(schema) != null;
             }
         },
 
         IlluminaTemplates() {
             @Override
-            FilteredTable createTable(final Container c, User user)
+            FilteredTable createTable(final GenotypingQuerySchema schema)
             {
                 FilteredTable table = new FilteredTable(GS.getIlluminaTemplatesTable())
                 {
@@ -461,30 +465,62 @@ public class GenotypingQuerySchema extends UserSchema
                     @Override
                     public boolean hasPermission(UserPrincipal user, Class<? extends Permission> perm)
                     {
-                        return c.hasPermission(user, perm);
+                        return schema.getContainer().hasPermission(user, perm);
                     }
                 };
                 table.wrapAllColumns(true);
-                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(user, c));
-                table.getColumn("ModifiedBy").setFk(new UserIdQueryForeignKey(user, c));
+                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer()));
+                table.getColumn("ModifiedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer()));
 
                 setDefaultVisibleColumns(table, "Name, Json, Editable");
                 table.setDescription("Contains one row per saved illumina import template");
 
                 return table;
             }
+        },
+        Animal()
+        {
+            @Override
+            FilteredTable createTable(GenotypingQuerySchema schema)
+            {
+                return new SimpleUserSchema.SimpleTable(schema, GS.getAnimalTable());
+            }
+        },
+        Haplotype()
+        {
+            @Override
+            FilteredTable createTable(GenotypingQuerySchema schema)
+            {
+                return new SimpleUserSchema.SimpleTable(schema, GS.getHaplotypeTable());
+            }
+        },
+        HaplotypeAnalysis()
+        {
+            @Override
+            FilteredTable createTable(GenotypingQuerySchema schema)
+            {
+                return new SimpleUserSchema.SimpleTable(schema, GS.getHaplotypeAnalysisTable());
+            }
+        },
+        AnimalHaplotypeAssignment()
+        {
+            @Override
+            FilteredTable createTable(GenotypingQuerySchema schema)
+            {
+                return new SimpleUserSchema.SimpleTable(schema, GS.getAnimalHaplotypeAssignmentTable());
+            }
         };
 
-        abstract FilteredTable createTable(Container c, User user);
-        boolean isAvailable(Container c, User user)
+        abstract FilteredTable createTable(GenotypingQuerySchema schema);
+        boolean isAvailable(GenotypingQuerySchema schema)
         {
             return true;
         }
 
         // Special factory method for Matches table, to pass through analysis id (if present)
-        FilteredTable createTable(Container c, User user, @Nullable Integer analysisId)
+        FilteredTable createTable(GenotypingQuerySchema schema, @Nullable Integer analysisId)
         {
-            return createTable(c, user);
+            return createTable(schema);
         }
 
         // Set an explicit list of default columns by name
@@ -526,12 +562,12 @@ public class GenotypingQuerySchema extends UserSchema
             names.add(type.toString());
         }
 
-        TABLE_NAMES = Collections.unmodifiableSet(names);
+        TABLE_NAMES = Collections.unmodifiableSet(new CaseInsensitiveHashSet(names));
     }
 
     public static void register(final GenotypingModule module)
     {
-        DefaultSchema.registerProvider(GS.getSchemaName(), new DefaultSchema.SchemaProvider()
+        DefaultSchema.registerProvider(NAME, new DefaultSchema.SchemaProvider()
         {
             public QuerySchema getSchema(DefaultSchema schema)
             {
@@ -550,7 +586,7 @@ public class GenotypingQuerySchema extends UserSchema
 
     public GenotypingQuerySchema(User user, Container container, @Nullable Integer analysisId)
     {
-        super(GS.getSchemaName(), "Contains genotyping data", user, container, GS.getSchema());
+        super(NAME, "Contains genotyping data", user, container, GS.getSchema());
         _analysisId = analysisId;
     }
 
@@ -579,11 +615,20 @@ public class GenotypingQuerySchema extends UserSchema
                 }
             }
 
-            return TableType.Matches.createTable(getContainer(), getUser(), analysisId);
+            return TableType.Matches.createTable(this, analysisId);
         }
 
         if (TABLE_NAMES.contains(name))
-            return TableType.valueOf(name).createTable(getContainer(), getUser());
+        {
+            // Can't just use TableType.valueOf() because we need to be case-insensitive
+            for (TableType tableType : TableType.values())
+            {
+                if (name.equalsIgnoreCase(tableType.name()))
+                {
+                    return tableType.createTable(this);
+                }
+            }
+        }
 
         return null;
     }
@@ -595,7 +640,7 @@ public class GenotypingQuerySchema extends UserSchema
 
         for (TableType type : TableType.values())
         {
-            if (type.isAvailable(getContainer(), getUser()))
+            if (type.isAvailable(this))
             {
                 names.add(type.toString());
             }
@@ -635,5 +680,17 @@ public class GenotypingQuerySchema extends UserSchema
         }
 
         return new QueryView(this, settings, errors);
+    }
+
+    @Override
+    public String getDomainURI(String queryName)
+    {
+        TableInfo table = getTable(queryName);
+        if (table == null)
+            throw new NotFoundException("Table '" + queryName + "' not found in this container '" + getContainer().getPath() + "'.");
+
+        if (table instanceof SimpleUserSchema.SimpleTable)
+            return ((SimpleUserSchema.SimpleTable)table).getDomainURI();
+        return null;
     }
 }

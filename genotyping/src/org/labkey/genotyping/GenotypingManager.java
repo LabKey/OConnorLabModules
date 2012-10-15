@@ -392,7 +392,7 @@ public class GenotypingManager
             // Count the corresponding matches in the database, making sure they belong to this analysis
             SimpleFilter filter = new SimpleFilter("Analysis", analysis.getRowId());
             filter.addInClause("RowId", matchIdList);
-            TableInfo tinfo = GenotypingQuerySchema.TableType.Matches.createTable(c, user, analysis.getRowId());
+            TableInfo tinfo = GenotypingQuerySchema.TableType.Matches.createTable(new GenotypingQuerySchema(user, c), analysis.getRowId());
             results = QueryService.get().select(tinfo, tinfo.getColumns("SampleId"), filter, null);
             Set<Integer> sampleIds = new HashSet<Integer>();
             int matchCount = 0;
@@ -555,7 +555,7 @@ public class GenotypingManager
         // Count the corresponding matches in the database, making sure they belong to this analysis
         SimpleFilter filter = new SimpleFilter("Analysis", analysis.getRowId());
         filter.addInClause("RowId", matchIds);
-        TableInfo tinfo = GenotypingQuerySchema.TableType.Matches.createTable(c, user, analysis.getRowId());
+        TableInfo tinfo = GenotypingQuerySchema.TableType.Matches.createTable(new GenotypingQuerySchema(user, c), analysis.getRowId());
         TableSelector selector = new TableSelector(tinfo, tinfo.getColumns("RowId"), filter, null);
 
         // Verify that the selected match count equals the number of rowIds posted...

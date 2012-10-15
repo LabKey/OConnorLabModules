@@ -17,6 +17,7 @@
 package org.labkey.genotyping;
 
 import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.data.TableInfo;
 
@@ -104,5 +105,25 @@ public class GenotypingSchema
     public TableInfo getIlluminaTemplatesTable()
     {
         return getSchema().getTable("IlluminaTemplates");
+    }
+
+    public SchemaTableInfo getAnimalTable()
+    {
+        return getSchema().getTable("Animal");
+    }
+
+    public SchemaTableInfo getHaplotypeTable()
+    {
+        return getSchema().getTable("Haplotype");
+    }
+
+    public SchemaTableInfo getHaplotypeAnalysisTable()
+    {
+        return getSchema().getTable("HaplotypeAnalysis");
+    }
+
+    public SchemaTableInfo getAnimalHaplotypeAssignmentTable()
+    {
+        return getSchema().getTable("AnimalHaplotypeAssignment");
     }
 }
