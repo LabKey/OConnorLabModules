@@ -40,7 +40,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -181,10 +180,11 @@ public class ImportIlluminaReadsJob extends PipelineJob
 
                 //parse the samples file
                 String [] nextLine;
-                List<Integer> sampleList = new ArrayList<Integer>();
-                sampleList.add(0); //placeholder for control and unmapped reads
+                Map<Integer, Object> sampleMap = new HashMap<Integer, Object>();
+                sampleMap.put(0, 0); //placeholder for control and unmapped reads
 
                 Boolean inSamples = false;
+                int sampleIdx = 0;
                 while ((nextLine = reader.readNext()) != null) {
                     if(nextLine.length > 0 && "[Data]".equals(nextLine[0]))
                     {
@@ -210,7 +210,8 @@ public class ImportIlluminaReadsJob extends PipelineJob
                         if(!finder.isValidSampleKey(sampleId))
                             throw new PipelineJobException("Invalid sample Id for this run: " + nextLine[0]);
 
-                        sampleList.add(sampleId);
+                        sampleIdx++;
+                        sampleMap.put(sampleIdx, sampleId);
                     }
                     catch (NumberFormatException e)
                     {
@@ -230,20 +231,21 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 }
 
                 //now bin the FASTQ files into 2 per sample
-                IlluminaFastqParser parser = new IlluminaFastqParser(FileUtil.getBaseName(_run.getFileName()), sampleList, getLogger(), _fastqFiles.toArray(new File[_fastqFiles.size()]));
-                Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles();
-                Map<Pair<Integer, Integer>, Integer> readcounts = parser.getReadCounts();
+                IlluminaFastqParser parser = new IlluminaFastqParser(FileUtil.getBaseName(_run.getFileName()), sampleMap, getLogger(), _fastqFiles.toArray(new File[_fastqFiles.size()]));
+                Map<Pair<Object, Integer>, File> fileMap = parser.parseFastqFiles();
+                Map<Pair<Object, Integer>, Integer> readcounts = parser.getReadCounts();
 
                 info("Created " + fileMap.keySet().size() + " FASTQ files");
                 info("Compressing FASTQ files");
 
                 //GZIP and create record for each file
                 Map<String, Object> row;
-                for(Pair<Integer, Integer> sampleKey : fileMap.keySet())
+                for(Pair<Object, Integer> sampleKey : fileMap.keySet())
                 {
                     row = new CaseInsensitiveHashMap<Object>();
                     row.put("Run", _run.getRowId());
-                    if(sampleKey.getKey() > 0)
+                    Integer sampleId = (Integer)sampleKey.getKey();
+                    if(sampleId > 0)
                         row.put("SampleId", sampleKey.getKey());
 
                     if(readcounts.containsKey(sampleKey))
