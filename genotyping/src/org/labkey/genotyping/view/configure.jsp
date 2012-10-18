@@ -32,6 +32,9 @@
 
     ActionURL animalEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Animal.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Animal.name(), ctx.getContainer(), ctx.getUser());
     animalEditDomainURL.addParameter(ActionURL.Param.returnUrl, ctx.getActionURL().toString());
+
+    ActionURL haplotypeEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Haplotype.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Haplotype.name(), ctx.getContainer(), ctx.getUser());
+    haplotypeEditDomainURL.addParameter(ActionURL.Param.returnUrl, ctx.getActionURL().toString());
 %>
 <script type="text/javascript">
 //    Ext.QuickTips.init();
@@ -134,6 +137,12 @@
             <td>Animal</td>
             <td>
                 <%=textLink("configure", animalEditDomainURL)%>
+            </td>
+        </tr>
+        <tr>
+            <td>Haplotype</td>
+            <td>
+                <%=textLink("configure", haplotypeEditDomainURL)%>
             </td>
         </tr>
         <tr><td>&nbsp;</td></tr>

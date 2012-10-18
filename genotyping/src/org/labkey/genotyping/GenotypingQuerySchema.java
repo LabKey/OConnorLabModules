@@ -494,6 +494,14 @@ public class GenotypingQuerySchema extends UserSchema
                 return new SimpleUserSchema.SimpleTable(schema, GS.getHaplotypeTable());
             }
         },
+        AnimalAnalysis()
+        {
+            @Override
+            FilteredTable createTable(GenotypingQuerySchema schema)
+            {
+                return new SimpleUserSchema.SimpleTable(schema, GS.getAnimalAnalysisTable());
+            }
+        },
         AnimalHaplotypeAssignment()
         {
             @Override

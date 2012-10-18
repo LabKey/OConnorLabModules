@@ -21,6 +21,7 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.UpgradeCode;
+import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleLoader;
@@ -46,7 +47,7 @@ public class GenotypingModule extends DefaultModule
 
     public double getVersion()
     {
-        return 12.21;
+        return 12.22;
     }
 
     public boolean hasScripts()
@@ -75,6 +76,7 @@ public class GenotypingModule extends DefaultModule
         GenotypingQuerySchema.register(this);
         ModuleLoader.getInstance().registerFolderType(this, new GenotypingFolderType(this));
         AssayService.get().registerAssayProvider(new HaplotypeAssayProvider());
+        ExperimentService.get().registerExperimentDataHandler(new HaplotypeDataHandler());
     }
 
     @Override

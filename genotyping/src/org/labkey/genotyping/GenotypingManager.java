@@ -223,6 +223,14 @@ public class GenotypingManager
         SQLFragment deleteDictionariesSql = new SQLFragment("DELETE FROM ");
         deleteDictionariesSql.append(gs.getDictionariesTable().getSelectName()).append(" WHERE Container = ?").add(c);
         new SqlExecutor(gs.getSchema(), deleteDictionariesSql).execute();
+
+        SQLFragment deleteAnimalSql = new SQLFragment("DELETE FROM ");
+        deleteAnimalSql.append(gs.getAnimalTable().getSelectName()).append(" WHERE Container = ?").add(c);
+        new SqlExecutor(gs.getSchema(), deleteAnimalSql).execute();
+
+        SQLFragment deleteHaplotypeSql = new SQLFragment("DELETE FROM ");
+        deleteHaplotypeSql.append(gs.getHaplotypeTable().getSelectName()).append(" WHERE Container = ?").add(c);
+        new SqlExecutor(gs.getSchema(), deleteHaplotypeSql).execute();
     }
 
 
