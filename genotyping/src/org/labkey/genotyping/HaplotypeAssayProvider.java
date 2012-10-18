@@ -15,6 +15,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.study.actions.AssayRunUploadForm;
 import org.labkey.api.study.assay.AbstractAssayProvider;
 import org.labkey.api.study.assay.AssayDataType;
+import org.labkey.api.study.assay.AssayProtocolSchema;
 import org.labkey.api.study.assay.AssaySchema;
 import org.labkey.api.study.assay.AssayTableMetadata;
 import org.labkey.api.study.assay.ParticipantVisitResolverType;
@@ -72,7 +73,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     }
 
     @Override
-    public ContainerFilterable createDataTable(final AssaySchema schema, final ExpProtocol protocol, boolean includeCopiedToStudyColumns)
+    public ContainerFilterable createDataTable(final AssayProtocolSchema schema, boolean includeCopiedToStudyColumns)
     {
         TableInfo table = new GenotypingQuerySchema(schema.getUser(), schema.getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalHaplotypeAssignment.name());
         table.getColumn("RunId").setFk(new LookupForeignKey()
@@ -80,7 +81,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
             @Override
             public TableInfo getLookupTableInfo()
             {
-                return schema.getTable(AssaySchema.getRunsTableName(protocol));
+                return schema.getTable(AssaySchema.getRunsTableName(schema.getProtocol(), false));
             }
         });
         return (ContainerFilterable) table;
