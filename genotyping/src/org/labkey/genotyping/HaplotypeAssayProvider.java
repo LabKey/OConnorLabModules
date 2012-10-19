@@ -70,7 +70,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     }
 
     @Override @NotNull
-    public AssayTableMetadata getTableMetadata(ExpProtocol protocol)
+    public AssayTableMetadata getTableMetadata(@NotNull ExpProtocol protocol)
     {
         return new AssayTableMetadata(this, protocol, null, FieldKey.fromParts("RunId"), FieldKey.fromParts("RowId"));
     }
@@ -100,18 +100,9 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     }
 
     @Override
-    public FilteredTable createDataTable(final AssayProtocolSchema schema, boolean includeCopiedToStudyColumns)
+    public AssayProtocolSchema createProtocolSchema(User user, Container container, @NotNull ExpProtocol protocol, @Nullable Container targetStudy)
     {
-        FilteredTable table = (FilteredTable)new GenotypingQuerySchema(schema.getUser(), schema.getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name());
-        table.getColumn("RunId").setFk(new LookupForeignKey()
-        {
-            @Override
-            public TableInfo getLookupTableInfo()
-            {
-                return schema.getTable(AssaySchema.getRunsTableName(schema.getProtocol(), false));
-            }
-        });
-        return table;
+        return new HaplotypeProtocolSchema(user, container, protocol, targetStudy);
     }
 
     @Override
