@@ -12,6 +12,7 @@ import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.DomainProperty;
 import org.labkey.api.pipeline.PipelineProvider;
 import org.labkey.api.query.FieldKey;
+import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.LookupForeignKey;
 import org.labkey.api.security.User;
 import org.labkey.api.study.actions.AssayRunUploadForm;
@@ -99,9 +100,9 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     }
 
     @Override
-    public ContainerFilterable createDataTable(final AssayProtocolSchema schema, boolean includeCopiedToStudyColumns)
+    public FilteredTable createDataTable(final AssayProtocolSchema schema, boolean includeCopiedToStudyColumns)
     {
-        TableInfo table = new GenotypingQuerySchema(schema.getUser(), schema.getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name());
+        FilteredTable table = (FilteredTable)new GenotypingQuerySchema(schema.getUser(), schema.getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name());
         table.getColumn("RunId").setFk(new LookupForeignKey()
         {
             @Override
@@ -110,7 +111,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
                 return schema.getTable(AssaySchema.getRunsTableName(schema.getProtocol(), false));
             }
         });
-        return (ContainerFilterable) table;
+        return table;
     }
 
     @Override
