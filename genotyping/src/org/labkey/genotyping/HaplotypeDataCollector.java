@@ -59,8 +59,6 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
             throw new ExperimentException("Data contained zero data rows");
         }
 
-        // TODO: reshow with data on error
-
         // verify that all of the column header mapping values are present
         for (Pair<String, String> property : HaplotypeAssayProvider.COLUMN_HEADER_MAPPING_PROPERTIES)
         {

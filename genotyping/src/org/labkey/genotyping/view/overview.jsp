@@ -80,7 +80,7 @@
     if (c.hasPermission(user, AdminPermission.class))
     {
     %>
-    <tr><td></td><td><%=textLink("Admin", GenotypingController.getAdminURL(c, ctx.getActionURL()))%></td></tr><%
+    <tr><td></td><td><%=textLink("Admin", GenotypingController.getAdminURL(c, ctx.getActionURL()), "adminSettings")%></td></tr><%
     }
     %>
 </table>
