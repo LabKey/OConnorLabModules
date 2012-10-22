@@ -224,6 +224,21 @@ public class GenotypingManager
         deleteDictionariesSql.append(gs.getDictionariesTable().getSelectName()).append(" WHERE Container = ?").add(c);
         new SqlExecutor(gs.getSchema(), deleteDictionariesSql).execute();
 
+        // delete the haplotype assignment junction tables and animal/haplotype rows
+        SQLFragment deleteAssignmentSql = new SQLFragment("DELETE FROM ");
+        deleteAssignmentSql.append(gs.getAnimalHaplotypeAssignmentTable().getSelectName());
+        deleteAssignmentSql.append(" WHERE AnimalAnalysisId IN (SELECT RowId FROM ");
+        deleteAssignmentSql.append(gs.getAnimalAnalysisTable().getSelectName());
+        deleteAssignmentSql.append(" WHERE RunId IN (SELECT RowId FROM exp.ExperimentRun ");
+        deleteAssignmentSql.append(" WHERE Container = ?))").add(c);
+        new SqlExecutor(gs.getSchema(), deleteAssignmentSql).execute();
+
+        SQLFragment deleteAnimalAnalysisSql = new SQLFragment("DELETE FROM ");
+        deleteAnimalAnalysisSql.append(gs.getAnimalAnalysisTable().getSelectName());
+        deleteAnimalAnalysisSql.append(" WHERE RunId IN (SELECT RowId FROM exp.ExperimentRun ");
+        deleteAnimalAnalysisSql.append(" WHERE Container = ?)").add(c);
+        new SqlExecutor(gs.getSchema(), deleteAnimalAnalysisSql).execute();
+
         SQLFragment deleteAnimalSql = new SQLFragment("DELETE FROM ");
         deleteAnimalSql.append(gs.getAnimalTable().getSelectName()).append(" WHERE Container = ?").add(c);
         new SqlExecutor(gs.getSchema(), deleteAnimalSql).execute();

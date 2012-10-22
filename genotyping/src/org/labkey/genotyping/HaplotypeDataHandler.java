@@ -5,7 +5,9 @@ import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.CaseInsensitiveTreeMap;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.RuntimeSQLException;
+import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
@@ -347,30 +349,34 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
     @Override
     public void beforeDeleteData(List<ExpData> data) throws ExperimentException
     {
-        try
+        for (ExpData expData : data)
         {
-            GenotypingSchema gs = GenotypingSchema.get();
-            for (ExpData expData : data)
-            {
-                // clean up the AnimalHaplotypeAssignment table
-                Table.execute(gs.getSchema(), "DELETE FROM " + gs.getAnimalHaplotypeAssignmentTable() +
-                        " WHERE AnimalAnalysisId IN (SELECT RowId FROM " + gs.getAnimalAnalysisTable() +
-                        " WHERE RunId = ?)", expData.getRunId());
-
-                // clean up the AnimalAnalysis table
-                Table.execute(gs.getSchema(), "DELETE FROM " + gs.getAnimalAnalysisTable() +
-                        " WHERE RunId = ?", expData.getRunId());
-            }
-        }
-        catch (SQLException e)
-        {
-            throw new RuntimeSQLException(e);
+            deleteDatas(expData);
         }
     }
 
     @Override
     public void deleteData(ExpData data, Container container, User user)
     {
+        deleteDatas(data);
+    }
+
+    private void deleteDatas(ExpData data)
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+        if (data.getRunId() != null)
+        {
+            // clean up the AnimalHaplotypeAssignment table
+            SQLFragment deleteAssignmentSql = new SQLFragment("DELETE FROM " + gs.getAnimalHaplotypeAssignmentTable() +
+                " WHERE AnimalAnalysisId IN (SELECT RowId FROM " + gs.getAnimalAnalysisTable() +
+                " WHERE RunId = ?)", data.getRunId());
+            new SqlExecutor(gs.getSchema(), deleteAssignmentSql).execute();
+
+            // clean up the AnimalAnalysis table
+            SQLFragment deleteAnimalAnalysisSql = new SQLFragment("DELETE FROM " + gs.getAnimalAnalysisTable() +
+                " WHERE RunId = ?", data.getRunId());
+            new SqlExecutor(gs.getSchema(), deleteAnimalAnalysisSql).execute();
+        }
     }
 
     public class HaplotypeAssignmentDataRow

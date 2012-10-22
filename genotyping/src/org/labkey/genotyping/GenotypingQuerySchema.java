@@ -512,15 +512,14 @@ public class GenotypingQuerySchema extends UserSchema
                     + "\n            JOIN " + GS.getHaplotypeTable() + " h ON aha.HaplotypeId = h.RowId");
 
                 // add a concatenated string of the haplotypes assigned to the given animalId
-//                SQLFragment haplotypeConcatSql = new SQLFragment("(SELECT array_to_string(core.array_accum(x.Haplotype), ',')"
-//                    + "\n  FROM (SELECT y.AnimalAnalysisId, y.Haplotype FROM "
-//                    + "\n           (" + haplotypeSubselectSql + ") AS y"
-//                    + "\n        WHERE y.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID"
-//                    + "\n        ORDER BY y.Haplotype"
-//                    + "\n       ) x"
-//                    + "\n  GROUP BY x.AnimalAnalysisId)");
-//                ExprColumn haplotypeConcatCol = new ExprColumn(table, "ConcatenatedHaplotypes", haplotypeConcatSql, JdbcType.VARCHAR);
-//                table.addColumn(haplotypeConcatCol);
+                SQLFragment haplotypeConcatSql = new SQLFragment("(SELECT " + GS.getSqlDialect().getGroupConcat(new SQLFragment("x.Haplotype"), false, true)
+                    + "\n  FROM (SELECT y.AnimalAnalysisId, y.Haplotype FROM "
+                    + "\n           (" + haplotypeSubselectSql + ") AS y"
+                    + "\n        WHERE y.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID"
+                    + "\n       ) x"
+                    + "\n  GROUP BY x.AnimalAnalysisId)");
+                ExprColumn haplotypeConcatCol = new ExprColumn(table, "ConcatenatedHaplotypes", haplotypeConcatSql, JdbcType.VARCHAR);
+                table.addColumn(haplotypeConcatCol);
 
                 // add min/max values to display the Mamu-A and Mamu-B Haplotypes
                 SQLFragment mamuAMinSql = new SQLFragment("(SELECT min(x.Haplotype) "

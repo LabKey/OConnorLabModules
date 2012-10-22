@@ -8,7 +8,11 @@
 <%
     JspView<HaplotypeDataCollector> me = (JspView<HaplotypeDataCollector>) HttpView.currentView();
     HaplotypeDataCollector bean = me.getModelBean();
-    String reshowData = bean.getData() != null && !bean.getData().equals("") ? bean.getData() : null;
+    String[] reshowData = {};
+    if (bean.getData() != null && !bean.getData().equals(""))
+    {
+        reshowData = bean.getData().split("\\r?\\n");
+    }
 
     final String copyPasteDivId = "copypasteDiv" + getRequestScopedUID();
 %>
@@ -25,6 +29,14 @@
     }
     %>
 
+    var reshowData = ""
+    <%
+    for (String line : reshowData)
+    {
+        %>+ "<%=h(line)%> \n"<%
+    }
+    %>
+
     Ext4.onReady(function(){
         var items = [{
             xtype: 'textarea',
@@ -32,7 +44,7 @@
             labelAlign: 'top',
             itemId: '<%=h(HaplotypeAssayProvider.DATA_PROPERTY_NAME)%>',
             name: '<%=h(HaplotypeAssayProvider.DATA_PROPERTY_NAME)%>',
-            //value: Ext4.encode("h(reshowData)"),
+            value: reshowData,
             allowBlank: false,
             width:580,
             height:300,
@@ -52,7 +64,7 @@
                 width: 400,
                 name: header.name,
                 fieldLabel: header.label,
-                disabled: true,
+                disabled: <%=reshowData.length == 0%>,
                 queryMode: 'local',
                 displayField: 'header',
                 valueField: 'header',
@@ -102,6 +114,12 @@
         });
         copyPasteForm.render(<%=h(copyPasteDivId)%>);
 
+        <%
+        if (reshowData.length > 0)
+        {
+            %>copyPasteForm.down('textarea').fireEvent('change', copyPasteForm.down('textarea'));<%
+        }
+        %>
     });
 
 </script>

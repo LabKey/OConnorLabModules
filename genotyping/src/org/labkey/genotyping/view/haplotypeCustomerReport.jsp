@@ -92,7 +92,7 @@
                     + "      WHERE AnimalAnalysisId.AnimalId.LabAnimalId IN (" + this.getIdInClauseStr(idArr) + ")) AS x "
                     + "GROUP BY Animal, Haplotype "
                     + "PIVOT Counts BY Animal "
-                    + "ORDER BY Haplotype LIMIT " + idArr.length;
+                    + "ORDER BY Haplotype LIMIT " + (idArr.length*4);
             }
         });
         idEntryForm.render('<%=h(idEntryFormDivId)%>');
