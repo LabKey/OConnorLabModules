@@ -21,9 +21,14 @@ import java.util.Map;
  */
 public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<HaplotypeAssayProvider>> extends AbstractTempDirDataCollector<ContextType>
 {
+    private String _data = null;
+
     @Override
     public HttpView getView(ContextType context) throws ExperimentException
     {
+        // if reshowing on error, get the data param out of the context for the JSP to use
+        _data = context.getRequest().getParameter(HaplotypeAssayProvider.DATA_PROPERTY_NAME);
+
         return new JspView<HaplotypeDataCollector>("/org/labkey/genotyping/view/importHaplotypeAssignments.jsp", this);
     }
 
@@ -61,7 +66,7 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
         {
             String value = context.getRequest().getParameter(property.first);
             if (value == null || value.equals(""))
-                throw new ExperimentException("Column header mapping missing for " + property.second);
+                throw new ExperimentException("Column header mapping missing for \"" + property.second + "\"");
         }
 
         // NOTE: We use a 'tmp' file extension so that DataLoaderService will sniff the file type by parsing the file's header.
@@ -71,5 +76,10 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
 
         writeFile(bIn, file);
         return Collections.singletonMap(PRIMARY_FILE, file);
+    }
+
+    public String getData()
+    {
+        return _data;
     }
 }

@@ -77,6 +77,7 @@ import org.labkey.api.util.MinorConfigurationException;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.Pair;
 import org.labkey.api.util.ResultSetUtil;
+import org.labkey.api.util.ReturnURLString;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
@@ -2187,6 +2188,23 @@ public class GenotypingController extends SpringActionController
             SimpleFilter baseFilter = settings.getBaseFilter();
             baseFilter.addCondition("Run", _analysis.getRun());
             baseFilter.addCondition("RowId/MatchId", _matchId);
+        }
+    }
+
+    @RequiresPermissionClass(ReadPermission.class)
+    public class HaplotypeCustomerReportAction extends SimpleViewAction<ReturnUrlForm>
+    {
+        @Override
+        public ModelAndView getView(ReturnUrlForm form, BindException errors) throws Exception
+        {
+            form.setReturnUrl(new ReturnURLString(PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer()).getLocalURIString()));
+            return new JspView<ReturnUrlForm>("/org/labkey/genotyping/view/haplotypeCustomerReport.jsp", form);
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return root.addChild("Haplotype Assignment Customer Report");
         }
     }
 }

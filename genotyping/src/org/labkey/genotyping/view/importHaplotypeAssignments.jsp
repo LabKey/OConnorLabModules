@@ -3,16 +3,17 @@
 <%@ page import="org.labkey.api.view.HttpView" %>
 <%@ page import="org.labkey.genotyping.HaplotypeDataCollector" %>
 <%@ page import="org.labkey.api.view.JspView" %>
-<%@ page import="java.util.List" %>
 <%@ page import="org.labkey.genotyping.HaplotypeAssayProvider" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     JspView<HaplotypeDataCollector> me = (JspView<HaplotypeDataCollector>) HttpView.currentView();
     HaplotypeDataCollector bean = me.getModelBean();
+    String reshowData = bean.getData() != null && !bean.getData().equals("") ? bean.getData() : null;
+
     final String copyPasteDivId = "copypasteDiv" + getRequestScopedUID();
 %>
 <form action="importHaplotypeAssignments.post" method="post">
-    <div id="<%=copyPasteDivId%>"></div>
+    <div id="<%=h(copyPasteDivId)%>"></div>
 </form>
 
 <script type="text/javascript">
@@ -20,7 +21,7 @@
     <%
     for (Pair<String, String> entry : HaplotypeAssayProvider.COLUMN_HEADER_MAPPING_PROPERTIES)
     {
-        %>expectedHeaders.push({name: '<%=entry.first%>', label: '<%=entry.second%>'});<%
+        %>expectedHeaders.push({name: '<%=h(entry.first)%>', label: '<%=h(entry.second)%>'});<%
     }
     %>
 
@@ -29,8 +30,9 @@
             xtype: 'textarea',
             fieldLabel: 'Copy/Paste the header rows into the text area below',
             labelAlign: 'top',
-            itemId: '<%=HaplotypeAssayProvider.DATA_PROPERTY_NAME%>',
-            name: '<%=HaplotypeAssayProvider.DATA_PROPERTY_NAME%>',
+            itemId: '<%=h(HaplotypeAssayProvider.DATA_PROPERTY_NAME)%>',
+            name: '<%=h(HaplotypeAssayProvider.DATA_PROPERTY_NAME)%>',
+            //value: Ext4.encode("h(reshowData)"),
             allowBlank: false,
             width:580,
             height:300,
@@ -98,7 +100,7 @@
                 });
             }
         });
-        copyPasteForm.render(<%=copyPasteDivId%>);
+        copyPasteForm.render(<%=h(copyPasteDivId)%>);
 
     });
 

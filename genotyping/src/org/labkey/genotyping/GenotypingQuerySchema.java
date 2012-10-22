@@ -29,6 +29,7 @@ import org.labkey.api.data.DisplayColumn;
 import org.labkey.api.data.DisplayColumnFactory;
 import org.labkey.api.data.ForeignKey;
 import org.labkey.api.data.HighlightingDisplayColumn;
+import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.MultiValuedForeignKey;
 import org.labkey.api.data.MultiValuedLookupColumn;
 import org.labkey.api.data.SQLFragment;
@@ -38,6 +39,7 @@ import org.labkey.api.exp.query.ExpSchema;
 import org.labkey.api.query.DefaultQueryUpdateService;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.DetailsURL;
+import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.LookupForeignKey;
@@ -483,7 +485,9 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                return new SimpleUserSchema.SimpleTable(schema, GS.getAnimalTable());
+                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalTable());
+                table.setDescription("Contains one row per animal");
+                return table;
             }
         },
         Haplotype()
@@ -491,7 +495,9 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                return new SimpleUserSchema.SimpleTable(schema, GS.getHaplotypeTable());
+                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getHaplotypeTable());
+                table.setDescription("Contains one row per haplotype");
+                return table;
             }
         },
         AnimalAnalysis()
@@ -499,7 +505,66 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                return new SimpleUserSchema.SimpleTable(schema, GS.getAnimalAnalysisTable());
+                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalAnalysisTable());
+
+                SQLFragment haplotypeSubselectSql = new SQLFragment("SELECT aha.AnimalAnalysisId, h.Name AS Haplotype, h.Type"
+                    + "\n            FROM " + GS.getAnimalHaplotypeAssignmentTable() + " aha"
+                    + "\n            JOIN " + GS.getHaplotypeTable() + " h ON aha.HaplotypeId = h.RowId");
+
+                // add a concatenated string of the haplotypes assigned to the given animalId
+//                SQLFragment haplotypeConcatSql = new SQLFragment("(SELECT array_to_string(core.array_accum(x.Haplotype), ',')"
+//                    + "\n  FROM (SELECT y.AnimalAnalysisId, y.Haplotype FROM "
+//                    + "\n           (" + haplotypeSubselectSql + ") AS y"
+//                    + "\n        WHERE y.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID"
+//                    + "\n        ORDER BY y.Haplotype"
+//                    + "\n       ) x"
+//                    + "\n  GROUP BY x.AnimalAnalysisId)");
+//                ExprColumn haplotypeConcatCol = new ExprColumn(table, "ConcatenatedHaplotypes", haplotypeConcatSql, JdbcType.VARCHAR);
+//                table.addColumn(haplotypeConcatCol);
+
+                // add min/max values to display the Mamu-A and Mamu-B Haplotypes
+                SQLFragment mamuAMinSql = new SQLFragment("(SELECT min(x.Haplotype) "
+                        + "\n FROM (" + haplotypeSubselectSql + ") AS x"
+                        + "\n WHERE x.Type = 'Mamu-A'"
+                        + "\n  AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+                ExprColumn mamuAMinCol = new ExprColumn(table, "MamuAHaplotype1", mamuAMinSql, JdbcType.VARCHAR);
+                mamuAMinCol.setLabel("Mamu-A Haplotype 1");
+                table.addColumn(mamuAMinCol);
+
+                SQLFragment mamuAMaxSql = new SQLFragment("(SELECT max(x.Haplotype) "
+                        + "\n FROM (" + haplotypeSubselectSql + ") AS x"
+                        + "\n WHERE x.Type = 'Mamu-A'"
+                        + "\n  AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+                ExprColumn mamuAMaxCol = new ExprColumn(table, "MamuAHaplotype2", mamuAMaxSql, JdbcType.VARCHAR);
+                mamuAMaxCol.setLabel("Mamu-A Haplotype 2");
+                table.addColumn(mamuAMaxCol);
+
+                SQLFragment mamuBMinSql = new SQLFragment("(SELECT min(x.Haplotype) "
+                        + "\n FROM (" + haplotypeSubselectSql + ") AS x"
+                        + "\n WHERE x.Type = 'Mamu-B'"
+                        + "\n  AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+                ExprColumn mamuBMinCol = new ExprColumn(table, "MamuBHaplotype1", mamuBMinSql, JdbcType.VARCHAR);
+                mamuBMinCol.setLabel("Mamu-B Haplotype 1");
+                table.addColumn(mamuBMinCol);
+
+                SQLFragment mamuBMaxSql = new SQLFragment("(SELECT max(x.Haplotype) "
+                        + "\n FROM (" + haplotypeSubselectSql + ") AS x"
+                        + "\n WHERE x.Type = 'Mamu-B'"
+                        + "\n  AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+                ExprColumn mamuBMaxCol = new ExprColumn(table, "MamuBHaplotype2", mamuBMaxSql, JdbcType.VARCHAR);
+                mamuBMaxCol.setLabel("Mamu-B Haplotype 2");
+                table.addColumn(mamuBMaxCol);
+
+                // calculated field for % Unknown = (Total Reads - Identified Reads) / Total Reads
+                SQLFragment percUnknownSql = new SQLFragment("((TotalReads-IdentifiedReads)*100.0/TotalReads)");
+                ExprColumn percUnknownCol = new ExprColumn(table, "PercentUnknown", percUnknownSql, JdbcType.DOUBLE);
+                percUnknownCol.setLabel("% Unknown");
+                table.addColumn(percUnknownCol);
+
+                setDefaultVisibleColumns(table, "AnimalId, TotalReads, IdentifiedReads, PercentUnknown, ConcatenatedHaplotypes, MamuAHaplotype1, MamuAHaplotype2, MamuBHaplotype1, MamuBHaplotype2, Enabled");
+                table.setDescription("Contains one row per animal in a given run");
+
+                return table;
             }
         },
         AnimalHaplotypeAssignment()
@@ -507,7 +572,10 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                return new SimpleUserSchema.SimpleTable(schema, GS.getAnimalHaplotypeAssignmentTable());
+                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalHaplotypeAssignmentTable());
+                setDefaultVisibleColumns(table, "AnimalAnalysisId/RunId, AnimalAnalysisId/AnimalId, HaplotypeId");
+                table.setDescription("Contains one row per animal/haplotype assignment in a given run");
+                return table;
             }
         };
 

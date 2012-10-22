@@ -131,7 +131,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             String animalId = dataRow.getMapValue(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN_NAME);
             if (animals.containsKey(animalId))
             {
-                throw new ExperimentException("Duplicate value found in Lab Animal ID column: " + animalId);
+                throw new ExperimentException("Duplicate value found in Lab Animal ID column: \"" + animalId + "\"");
             }
             animals.put(animalId, dataRow.getMapValue(HaplotypeAssayProvider.CUSTOMER_ANIMAL_COLUMN_NAME));
 
