@@ -1942,6 +1942,7 @@ public class GenotypingController extends SpringActionController
                 @Override
                 protected void populateButtonBar(DataView view, ButtonBar bar)
                 {
+                    //add custom button to download files
                     if(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString().equals(platform))
                     {
                         ActionButton btn = new ActionButton("Download Selected"){
@@ -1962,8 +1963,8 @@ public class GenotypingController extends SpringActionController
                         bar.add(btn);
                     }
 
-                    //add custom button to download files
-                    super.populateButtonBar(view, bar, false);
+                    // At the lab's request, hide the standard buttons
+//                    super.populateButtonBar(view, bar, false);
                 }
             };
 
