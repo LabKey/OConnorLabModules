@@ -1046,8 +1046,9 @@ public class GenotypingController extends SpringActionController
         {
             ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(getContainer(), getUser(), "importing reads");
             TableInfo runs = new GenotypingQueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo();
+            GenotypingQueryHelper.validateRunsQuery(runs);
             settings.getSamplesQuery();  // Pipeline job will flag this if missing, but let's proactively validate before we launch the job
-            List<Integer> allRuns = new ArrayList<Integer>(Arrays.asList(Table.executeArray(runs, "run_num", null, new Sort("-run_num"), Integer.class)));   // TODO: Should restrict to this folder, #14278
+            List<Integer> allRuns = new ArrayList<Integer>(Arrays.asList(Table.executeArray(runs, GenotypingQueryHelper.RUN_NUM, null, new Sort("-run_num"), Integer.class)));   // TODO: Should restrict to this folder, #14278
 
             // Issue 14278: segregate genotyping runs by container
             SimpleFilter filter = new SimpleFilter("container", getContainer().getId());
@@ -1941,9 +1942,6 @@ public class GenotypingController extends SpringActionController
                 @Override
                 protected void populateButtonBar(DataView view, ButtonBar bar)
                 {
-                    super.populateButtonBar(view, bar, false);
-
-                    //add custom button to download files
                     if(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString().equals(platform))
                     {
                         ActionButton btn = new ActionButton("Download Selected"){
@@ -1964,6 +1962,8 @@ public class GenotypingController extends SpringActionController
                         bar.add(btn);
                     }
 
+                    //add custom button to download files
+                    super.populateButtonBar(view, bar, false);
                 }
             };
 

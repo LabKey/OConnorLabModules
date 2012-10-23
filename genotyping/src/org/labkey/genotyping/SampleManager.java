@@ -67,8 +67,7 @@ public class SampleManager
         QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getSamplesQuery());
 
         TableInfo ti = qHelper.getTableInfo();
-        if (null == ti.getColumn("library_number"))
-            throw new NotFoundException("Samples query must include a library_number column");
+        GenotypingQueryHelper.validateSamplesQuery(ti);
 
         //Issue 15663: Avoid NullPointerException if the metadataRun is not found
         if (null == run)
@@ -78,7 +77,7 @@ public class SampleManager
         if (null == metaDataRun)
             throw new NotFoundException("Could not find run with MetaDataId: " + run.getMetaDataId());
 
-        SimpleFilter extraFilter = new SimpleFilter(FieldKey.fromString("library_number"), metaDataRun.getSampleLibrary());
+        SimpleFilter extraFilter = new SimpleFilter(FieldKey.fromParts(GenotypingQueryHelper.LIBRARY_NUMBER), metaDataRun.getSampleLibrary());
 
         List<FieldKey> fieldKeys = new LinkedList<FieldKey>();
 

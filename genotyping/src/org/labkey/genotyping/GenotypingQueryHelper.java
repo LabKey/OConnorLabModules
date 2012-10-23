@@ -16,9 +16,13 @@
 package org.labkey.genotyping;
 
 import org.jetbrains.annotations.NotNull;
+import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.JdbcType;
+import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.QueryHelper;
 import org.labkey.api.security.User;
+import org.labkey.api.view.NotFoundException;
 
 /**
  * Created by IntelliJ IDEA.
@@ -28,8 +32,40 @@ import org.labkey.api.security.User;
  */
 public class GenotypingQueryHelper extends QueryHelper
 {
+    public static final String RUN_NUM = "run_num";
+    public static final String LIBRARY_NUMBER = "library_number";
+
     public GenotypingQueryHelper(Container c, User user, @NotNull String schemaQueryView)
     {
         super(c, user, schemaQueryView.split(GenotypingFolderSettings.SEPARATOR));
+    }
+
+    public static void validateSamplesQuery(TableInfo table)
+    {
+        if (table == null)
+        {
+            throw new IllegalArgumentException("No samples query found. It may not be configured, or it may be pointing a query that doesn't exist.");
+        }
+
+        if (null == table.getColumn(LIBRARY_NUMBER))
+            throw new NotFoundException("Samples query must include a '" + LIBRARY_NUMBER + "' column");
+    }
+
+    public static void validateRunsQuery(TableInfo table)
+    {
+        if (table == null)
+        {
+            throw new IllegalArgumentException("No runs query found. It may not be configured, or it may be pointing a query that doesn't exist.");
+        }
+
+        ColumnInfo runNumColumn = table.getColumn(RUN_NUM);
+        if (runNumColumn == null)
+        {
+            throw new IllegalArgumentException("Runs query is expected to have a '" + GenotypingQueryHelper.RUN_NUM + "' column that is an Integer, but no column was found");
+        }
+        if (runNumColumn.getJdbcType() != JdbcType.INTEGER)
+        {
+            throw new IllegalArgumentException("Runs query is expected to have a '" + GenotypingQueryHelper.RUN_NUM + "' column that is an Integer, but is was of type " + runNumColumn.getJdbcType());
+        }
     }
 }

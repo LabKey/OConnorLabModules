@@ -102,7 +102,7 @@ public class GenotypingQuerySchema extends UserSchema
                     final QueryHelper qHelper = new GenotypingQueryHelper(schema.getContainer(), schema.getUser(), runsQuery);
 
                     ColumnInfo metaData = table.getColumn("MetaDataId");
-                    metaData.setFk(new LookupForeignKey("run_num", "run_num") {
+                    metaData.setFk(new LookupForeignKey(GenotypingQueryHelper.RUN_NUM, GenotypingQueryHelper.RUN_NUM) {
                         @Override
                         public TableInfo getLookupTableInfo()
                         {
@@ -113,10 +113,10 @@ public class GenotypingQuerySchema extends UserSchema
                     metaData.setLabel(qHelper.getQueryName());
 
                     // TODO: Better way to do this?
-                    StringExpression url = qHelper.getTableInfo().getDetailsURL(Collections.singleton(new FieldKey(null, "run_num")), schema.getContainer());
+                    StringExpression url = qHelper.getTableInfo().getDetailsURL(Collections.singleton(FieldKey.fromParts(GenotypingQueryHelper.RUN_NUM)), schema.getContainer());
                     if (url != null)
                     {
-                        url = DetailsURL.fromString(url.getSource().replace("run_num", "MetaDataId"));
+                        url = DetailsURL.fromString(url.getSource().replace(GenotypingQueryHelper.RUN_NUM, "MetaDataId"));
                         metaData.setURL(url);
                     }
                 }
