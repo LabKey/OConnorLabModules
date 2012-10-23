@@ -1,6 +1,8 @@
 package org.labkey.genotyping;
 
+import junit.framework.Assert;
 import org.apache.log4j.Logger;
+import org.junit.Test;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.CaseInsensitiveTreeMap;
 import org.labkey.api.data.Container;
@@ -79,7 +81,9 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             Map<String, String> animalIds = new CaseInsensitiveTreeMap<String>();
             List<Pair<String, String>> haplotypes = new ArrayList<Pair<String, String>>();
             List<HaplotypeAssignmentDataRow> dataRows = new ArrayList<HaplotypeAssignmentDataRow>();
-            parseHaplotypeData(dataFile, colHeaderMap, animalIds, haplotypes, dataRows);
+            TabLoader tabLoader = new TabLoader(dataFile, true);
+            List<Map<String, Object>> rowsMap = tabLoader.load();
+            parseHaplotypeData(rowsMap, colHeaderMap, animalIds, haplotypes, dataRows);
 
             // insert the new animal and haplotype records
             Map<String, Integer> animalRowIdMap = ensureAnimalIds(animalIds, data, info.getUser(), info.getContainer());
@@ -117,11 +121,10 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         return colHeaderMap;
     }
 
-    private List<HaplotypeAssignmentDataRow> parseHaplotypeData(File dataFile, Map<String, String> colHeaderMap,
+    private List<HaplotypeAssignmentDataRow> parseHaplotypeData(List<Map<String, Object>> tabLoaderData, Map<String, String> colHeaderMap,
                 Map<String, String> animals, List<Pair<String, String>> haplotypes, List<HaplotypeAssignmentDataRow> dataRows) throws Exception
     {
-        TabLoader tabLoader = new TabLoader(dataFile, true);
-        for (Map<String, Object> rowMap : tabLoader)
+        for (Map<String, Object> rowMap : tabLoaderData)
         {
             HaplotypeAssignmentDataRow dataRow = new HaplotypeAssignmentDataRow();
             for (Map.Entry<String, String> colHeader : colHeaderMap.entrySet())
@@ -412,6 +415,77 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
                 rowHaplotypes.add(new Pair<String, String>(_dataMap.get(columnName), type));
             }
             return rowHaplotypes;
+        }
+    }
+
+    public static class TestCase extends Assert
+    {
+        @Test
+        public void testParseHaplotypeData()
+        {
+            try
+            {
+                Map<String, String> animals = new CaseInsensitiveTreeMap<String>();
+                List<Pair<String, String>> haplotypes = new ArrayList<Pair<String, String>>();
+                List<HaplotypeAssignmentDataRow> datarows = new ArrayList<HaplotypeAssignmentDataRow>();
+                Map<String, String> colMap = new CaseInsensitiveTreeMap<String>();
+                List<Map<String, Object>> rowsMap = new ArrayList<Map<String, Object>>();
+
+                // populate the column header map
+                for (Pair<String, String> property : HaplotypeAssayProvider.COLUMN_HEADER_MAPPING_PROPERTIES)
+                {
+                    colMap.put(property.getKey(), property.getKey());
+                }
+
+                // add rows to the row map (to represent the results from a TabLoader
+                rowsMap.add(getRowMap(new String[]{"ID-1", "x59045", "6,927", "5550", "A007", "A008", "B048", "B043a"}));
+                rowsMap.add(getRowMap(new String[]{"ID-2", "x43290", "4,339", "3522", "A007", "A004", "B048", "B069a"}));
+                rowsMap.add(getRowMap(new String[]{"ID-3", "x00495", "4,068", "3362", "A023", "A026", "B017", "B017(H)"}));
+                rowsMap.add(getRowMap(new String[]{"ID-4", "x45763", "4,603", "3889", "A023", "A023(H)", "B017", "B015a"}));
+                rowsMap.add(getRowMap(new String[]{"ID-5", "x90453", "5,836", "5020", "A002", "A002", "B012b", "B012b"}));
+
+                List<HaplotypeAssignmentDataRow> response = new HaplotypeDataHandler().parseHaplotypeData(
+                        rowsMap, colMap, animals, haplotypes, datarows);
+
+                // check the list of animals
+                assertEquals("Unexpected number of animal IDs", 5, animals.size());
+                assertEquals("x59045", animals.get("ID-1"));
+                assertEquals("x90453", animals.get("ID-5"));
+                // check the list of haplotypes
+                assertEquals("Unexpected number of haplotype names", 20, haplotypes.size());
+                assertEquals(new Pair<String, String>("A007", "Mamu-A"), haplotypes.get(0));
+                assertEquals(new Pair<String, String>("B012b", "Mamu-B"), haplotypes.get(19));
+                // check the last data row
+                assertEquals("Unexpected number of HaplotypeAssignmentDataRows parsed", 5, response.size());
+                HaplotypeAssignmentDataRow r = response.get(4);
+                assertEquals("A002", r.getHaplotypeList().get(0).first);
+                assertEquals("Mamu-A", r.getHaplotypeList().get(0).second);
+                assertEquals("A002", r.getHaplotypeList().get(1).first);
+                assertEquals("Mamu-A", r.getHaplotypeList().get(1).second);
+                assertEquals("B012b", r.getHaplotypeList().get(2).first);
+                assertEquals("Mamu-B", r.getHaplotypeList().get(2).second);
+                assertEquals("B012b", r.getHaplotypeList().get(3).first);
+                assertEquals("Mamu-B", r.getHaplotypeList().get(3).second);
+                assertEquals("x90453", r.getMapValue(HaplotypeAssayProvider.CUSTOMER_ANIMAL_COLUMN_NAME));
+                assertEquals(new Integer(5836), r.getIntegerValue(HaplotypeAssayProvider.TOTAL_READS_COLUMN_NAME));
+                assertEquals(new Integer(5020), r.getIntegerValue(HaplotypeAssayProvider.IDENTIFIED_READS_COLUMN_NAME));
+            }
+            catch(Exception e)
+            {
+                fail(e.getMessage());
+            }
+        }
+
+        private Map<String, Object> getRowMap(String[] valuesArr)
+        {
+            Map<String, Object> row = new HashMap<String, Object>();
+            int index = 0;
+            for (Pair<String, String> property : HaplotypeAssayProvider.COLUMN_HEADER_MAPPING_PROPERTIES)
+            {
+                row.put(property.first, valuesArr[index]);
+                index++;
+            }
+            return row;
         }
     }
 }

@@ -142,4 +142,11 @@ public class GenotypingModule extends DefaultModule
     {
         return new GenotypingUpgradeCode();
     }
+
+    @NotNull
+    @Override
+    public Set<Class> getUnitTests()
+    {
+        return PageFlowUtil.<Class>set(HaplotypeDataHandler.TestCase.class);
+    }
 }
