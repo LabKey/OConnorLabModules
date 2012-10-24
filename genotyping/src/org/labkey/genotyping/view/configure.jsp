@@ -140,13 +140,13 @@
         <tr>
             <td><a href="<%=animalQueryURL.getLocalURIString()%>">Animal</a></td>
             <td>
-                <%=textLink("configure", animalEditDomainURL)%>
+                <%=textLink("configure", animalEditDomainURL, "configureAnimal")%>
             </td>
         </tr>
         <tr>
             <td><a href="<%=haplotypeQueryURL.getLocalURIString()%>">Haplotype</a></td>
             <td>
-                <%=textLink("configure", haplotypeEditDomainURL)%>
+                <%=textLink("configure", haplotypeEditDomainURL, "configureHaplotype")%>
             </td>
         </tr>
         <tr><td>&nbsp;</td></tr>

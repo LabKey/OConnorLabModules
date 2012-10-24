@@ -42,8 +42,9 @@
     function init(assayName)
     {
         var idEntryForm = Ext4.create('Ext.form.FormPanel', {
-            border: false,
+            border: true,
             width: 525,
+            bodyPadding: 11,
             itemId: 'idEntryForm',
             items: [
                 {
@@ -129,7 +130,7 @@
                        + '  SELECT AnimalId.' + searchId + ' AS Id, '
                        + '  COUNT(AnimalId) AS NumRecords '
                        + '  FROM Data '
-                       + '  WHERE Enabled AND RunId.enabled '
+                       + '  WHERE Enabled=TRUE AND RunId.enabled=TRUE '
                        + '    AND AnimalId.' + searchId + ' IN (' + this.getIdInClauseStr(idArr) + ')'
                        + '  GROUP BY AnimalId.' + searchId + ') AS x '
                        + 'WHERE x.NumRecords > 1',
@@ -160,6 +161,7 @@
                     schemaName: 'genotyping',
                     sql: this.getAssignmentPivotSQL(idArr, searchId, displayId),
                     showDetailsColumn: false,
+                    dataRegionName: 'report',
                     buttonBar: {
                         includeStandardButtons: false,
                         items:[
@@ -192,10 +194,10 @@
                     + "      JOIN assay.Haplotype.\"" + assayName + "\".Runs AS runs "
                 	+ "            ON runs.RowId = AnimalAnalysisId.RunId "
                     + "      WHERE AnimalAnalysisId.AnimalId." + searchId + " IN (" + this.getIdInClauseStr(idArr) + ") "
-                    + "            AND AnimalAnalysisId.Enabled AND runs.enabled) AS x "
+                    + "            AND AnimalAnalysisId.Enabled=TRUE AND runs.enabled=TRUE) AS x "
                     + "GROUP BY Animal, Haplotype "
                     + "PIVOT Counts BY Animal "
-                    + "ORDER BY Haplotype LIMIT " + (idArr.length*4);
+                    + "ORDER BY Haplotype LIMIT " + (idArr.length*10);
             }
         });
         idEntryForm.render('<%=h(idEntryFormDivId)%>');

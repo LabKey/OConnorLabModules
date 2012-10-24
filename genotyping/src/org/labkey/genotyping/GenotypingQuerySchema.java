@@ -18,6 +18,7 @@ package org.labkey.genotyping;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.collections.Sets;
+import org.labkey.api.data.AbstractTableInfo;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.ButtonBar;
 import org.labkey.api.data.ColumnInfo;
@@ -557,6 +558,12 @@ public class GenotypingQuerySchema extends UserSchema
                 percUnknownCol.setLabel("% Unknown");
                 percUnknownCol.setFormat("0.0");
                 table.addColumn(percUnknownCol);
+
+                // disable the insert, update, etc. urls to hide the button bar buttons for Insert New, Import Data, etc. for this table
+                table.setInsertURL(AbstractTableInfo.LINK_DISABLER);
+                table.setUpdateURL(AbstractTableInfo.LINK_DISABLER);
+                table.setDeleteURL(AbstractTableInfo.LINK_DISABLER);
+                table.setImportURL(AbstractTableInfo.LINK_DISABLER);
 
                 setDefaultVisibleColumns(table, "AnimalId, TotalReads, IdentifiedReads, PercentUnknown, ConcatenatedHaplotypes, MamuAHaplotype1, MamuAHaplotype2, MamuBHaplotype1, MamuBHaplotype2, Enabled");
                 table.setDescription("Contains one row per animal in a given run");
