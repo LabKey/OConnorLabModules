@@ -507,49 +507,46 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalAnalysisTable());
 
-                SQLFragment haplotypeSubselectSql = new SQLFragment("SELECT aha.AnimalAnalysisId, h.Name AS Haplotype, h.Type"
-                    + "\n            FROM " + GS.getAnimalHaplotypeAssignmentTable() + " aha"
-                    + "\n            JOIN " + GS.getHaplotypeTable() + " h ON aha.HaplotypeId = h.RowId");
+                SQLFragment haplotypeSubselectSql = new SQLFragment("SELECT aha.AnimalAnalysisId, h.Name AS Haplotype, h.Type FROM ");
+                haplotypeSubselectSql.append(GS.getAnimalHaplotypeAssignmentTable(), "aha");
+                haplotypeSubselectSql.append(" JOIN ");
+                haplotypeSubselectSql.append(GS.getHaplotypeTable(), "h");
+                haplotypeSubselectSql.append(" ON aha.HaplotypeId = h.RowId");
 
                 // add a concatenated string of the haplotypes assigned to the given animalId
-                SQLFragment haplotypeConcatSql = new SQLFragment("(SELECT " + GS.getSqlDialect().getGroupConcat(new SQLFragment("x.Haplotype"), false, true)
-                    + "\n  FROM (SELECT y.AnimalAnalysisId, y.Haplotype FROM "
-                    + "\n           (" + haplotypeSubselectSql + ") AS y"
-                    + "\n        WHERE y.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID"
-                    + "\n       ) x"
-                    + "\n  GROUP BY x.AnimalAnalysisId)");
+                SQLFragment haplotypeConcatSql = new SQLFragment("(SELECT " + GS.getSqlDialect().getGroupConcat(new SQLFragment("x.Haplotype"), false, true));
+                haplotypeConcatSql.append(" FROM (SELECT y.AnimalAnalysisId, y.Haplotype FROM (");
+                haplotypeConcatSql.append(haplotypeSubselectSql);
+                haplotypeConcatSql.append(") AS y WHERE y.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID) x");
+                haplotypeConcatSql.append(" GROUP BY x.AnimalAnalysisId)");
                 ExprColumn haplotypeConcatCol = new ExprColumn(table, "ConcatenatedHaplotypes", haplotypeConcatSql, JdbcType.VARCHAR);
                 table.addColumn(haplotypeConcatCol);
 
                 // add min/max values to display the Mamu-A and Mamu-B Haplotypes
-                SQLFragment mamuAMinSql = new SQLFragment("(SELECT min(x.Haplotype) "
-                        + "\n FROM (" + haplotypeSubselectSql + ") AS x"
-                        + "\n WHERE x.Type = 'Mamu-A'"
-                        + "\n  AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+                SQLFragment mamuAMinSql = new SQLFragment("(SELECT min(x.Haplotype) FROM (");
+                mamuAMinSql.append(haplotypeSubselectSql);
+                mamuAMinSql.append(") AS x WHERE x.Type = 'Mamu-A' AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
                 ExprColumn mamuAMinCol = new ExprColumn(table, "MamuAHaplotype1", mamuAMinSql, JdbcType.VARCHAR);
                 mamuAMinCol.setLabel("Mamu-A Haplotype 1");
                 table.addColumn(mamuAMinCol);
 
-                SQLFragment mamuAMaxSql = new SQLFragment("(SELECT max(x.Haplotype) "
-                        + "\n FROM (" + haplotypeSubselectSql + ") AS x"
-                        + "\n WHERE x.Type = 'Mamu-A'"
-                        + "\n  AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+                SQLFragment mamuAMaxSql = new SQLFragment("(SELECT max(x.Haplotype) FROM (");
+                mamuAMaxSql.append(haplotypeSubselectSql);
+                mamuAMaxSql.append(") AS x WHERE x.Type = 'Mamu-A'  AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
                 ExprColumn mamuAMaxCol = new ExprColumn(table, "MamuAHaplotype2", mamuAMaxSql, JdbcType.VARCHAR);
                 mamuAMaxCol.setLabel("Mamu-A Haplotype 2");
                 table.addColumn(mamuAMaxCol);
 
-                SQLFragment mamuBMinSql = new SQLFragment("(SELECT min(x.Haplotype) "
-                        + "\n FROM (" + haplotypeSubselectSql + ") AS x"
-                        + "\n WHERE x.Type = 'Mamu-B'"
-                        + "\n  AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+                SQLFragment mamuBMinSql = new SQLFragment("(SELECT min(x.Haplotype) FROM (");
+                mamuBMinSql.append(haplotypeSubselectSql);
+                mamuBMinSql.append(") AS x WHERE x.Type = 'Mamu-B' AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
                 ExprColumn mamuBMinCol = new ExprColumn(table, "MamuBHaplotype1", mamuBMinSql, JdbcType.VARCHAR);
                 mamuBMinCol.setLabel("Mamu-B Haplotype 1");
                 table.addColumn(mamuBMinCol);
 
-                SQLFragment mamuBMaxSql = new SQLFragment("(SELECT max(x.Haplotype) "
-                        + "\n FROM (" + haplotypeSubselectSql + ") AS x"
-                        + "\n WHERE x.Type = 'Mamu-B'"
-                        + "\n  AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+                SQLFragment mamuBMaxSql = new SQLFragment("(SELECT max(x.Haplotype) FROM (");
+                mamuBMaxSql.append(haplotypeSubselectSql);
+                mamuBMaxSql.append(") AS x WHERE x.Type = 'Mamu-B' AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
                 ExprColumn mamuBMaxCol = new ExprColumn(table, "MamuBHaplotype2", mamuBMaxSql, JdbcType.VARCHAR);
                 mamuBMaxCol.setLabel("Mamu-B Haplotype 2");
                 table.addColumn(mamuBMaxCol);
@@ -558,6 +555,7 @@ public class GenotypingQuerySchema extends UserSchema
                 SQLFragment percUnknownSql = new SQLFragment("((TotalReads-IdentifiedReads)*100.0/TotalReads)");
                 ExprColumn percUnknownCol = new ExprColumn(table, "PercentUnknown", percUnknownSql, JdbcType.DOUBLE);
                 percUnknownCol.setLabel("% Unknown");
+                percUnknownCol.setFormat("0.0");
                 table.addColumn(percUnknownCol);
 
                 setDefaultVisibleColumns(table, "AnimalId, TotalReads, IdentifiedReads, PercentUnknown, ConcatenatedHaplotypes, MamuAHaplotype1, MamuAHaplotype2, MamuBHaplotype1, MamuBHaplotype2, Enabled");

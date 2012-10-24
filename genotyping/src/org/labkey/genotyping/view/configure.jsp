@@ -24,15 +24,19 @@
 <%@ page import="org.labkey.api.exp.property.PropertyService" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.api.action.ReturnUrlForm" %>
+<%@ page import="org.labkey.api.query.QueryService" %>
+<%@ page import="org.labkey.api.query.QueryAction" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     GenotypingController.AdminForm form = (GenotypingController.AdminForm)getModelBean();
     ViewContext ctx = getViewContext();
     GenotypingQuerySchema schema = new GenotypingQuerySchema(ctx.getUser(), ctx.getContainer());
 
+    ActionURL animalQueryURL = QueryService.get().urlFor(ctx.getUser(), ctx.getContainer(), QueryAction.executeQuery, "genotyping", "Animal");
     ActionURL animalEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Animal.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Animal.name(), ctx.getContainer(), ctx.getUser());
     animalEditDomainURL.addParameter(ActionURL.Param.returnUrl, ctx.getActionURL().toString());
 
+    ActionURL haplotypeQueryURL = QueryService.get().urlFor(ctx.getUser(), ctx.getContainer(), QueryAction.executeQuery, "genotyping", "Haplotype");
     ActionURL haplotypeEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Haplotype.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Haplotype.name(), ctx.getContainer(), ctx.getUser());
     haplotypeEditDomainURL.addParameter(ActionURL.Param.returnUrl, ctx.getActionURL().toString());
 %>
@@ -134,13 +138,13 @@
         </tr>
         <tr><td>&nbsp;</td></tr>
         <tr>
-            <td>Animal</td>
+            <td><a href="<%=animalQueryURL.getLocalURIString()%>">Animal</a></td>
             <td>
                 <%=textLink("configure", animalEditDomainURL)%>
             </td>
         </tr>
         <tr>
-            <td>Haplotype</td>
+            <td><a href="<%=haplotypeQueryURL.getLocalURIString()%>">Haplotype</a></td>
             <td>
                 <%=textLink("configure", haplotypeEditDomainURL)%>
             </td>

@@ -82,6 +82,8 @@
                     combo.select(store.getAt(index));
                 else
                     combo.reset();
+
+                combo.enable();
             }, this, {buffer: 500});
 
             items.push(combo);
@@ -108,7 +110,6 @@
                 var combos = Ext4.ComponentQuery.query('#copyPasteForm > combo');
                 Ext4.each(combos, function(combo){
                     combo.getStore().loadData(colHeaders);
-                    combo.enable();
                 });
             }
         });

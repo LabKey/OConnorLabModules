@@ -101,7 +101,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
         catch (Exception e)
         {
-            throw new ExperimentException(e.getMessage());
+            throw new ExperimentException(e.toString(), e);
         }
     }
 
@@ -129,7 +129,8 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             HaplotypeAssignmentDataRow dataRow = new HaplotypeAssignmentDataRow();
             for (Map.Entry<String, String> colHeader : colHeaderMap.entrySet())
             {
-                dataRow.addToDataMap(colHeader.getKey(), rowMap.get(colHeader.getValue()).toString());
+                Object value = rowMap.get(colHeader.getValue());
+                dataRow.addToDataMap(colHeader.getKey(), value != null ? value.toString() : null);
             }
             dataRows.add(dataRow);
 
@@ -411,8 +412,11 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             List<Pair<String, String>> rowHaplotypes = new ArrayList<Pair<String, String>>();
             for (String columnName : HaplotypeAssayProvider.HAPLOTYPE_COLUMN_NAMES)
             {
-                String type = columnName.startsWith("mamuA") ? "Mamu-A" : (columnName.startsWith("mamuB") ? "Mamu-B" : null);
-                rowHaplotypes.add(new Pair<String, String>(_dataMap.get(columnName), type));
+                if (_dataMap.get(columnName) != null)
+                {
+                    String type = columnName.startsWith("mamuA") ? "Mamu-A" : (columnName.startsWith("mamuB") ? "Mamu-B" : null);
+                    rowHaplotypes.add(new Pair<String, String>(_dataMap.get(columnName), type));
+                }
             }
             return rowHaplotypes;
         }
