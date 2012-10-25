@@ -130,7 +130,7 @@
                 });
             }
         });
-        copyPasteForm.render(<%=h(copyPasteDivId)%>);
+        copyPasteForm.render('<%=h(copyPasteDivId)%>');
 
         <%
         if (reshowData.length > 0)
