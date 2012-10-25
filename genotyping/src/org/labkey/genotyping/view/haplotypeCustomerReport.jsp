@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.api.action.ReturnUrlForm" %>
 <%@ page import="org.labkey.api.view.JspView" %>
 <%@ page import="org.labkey.api.view.HttpView" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
+<%@ page import="org.labkey.api.study.actions.ProtocolIdForm" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
-    JspView<ReturnUrlForm> me = (JspView<ReturnUrlForm>) HttpView.currentView();
-    ReturnUrlForm bean = me.getModelBean();
+    JspView<ProtocolIdForm> me = (JspView<ProtocolIdForm>) HttpView.currentView();
+    ProtocolIdForm bean = me.getModelBean();
     final String idEntryFormDivId = "idEntryForm" + getRequestScopedUID();
     final String queryWebPartDivId = "queryWebPart" + getRequestScopedUID();
     final String duplicatesDivId = "duplicates" + getRequestScopedUID();

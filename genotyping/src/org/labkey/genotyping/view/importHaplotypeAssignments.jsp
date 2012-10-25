@@ -26,9 +26,9 @@
     JspView<HaplotypeDataCollector> me = (JspView<HaplotypeDataCollector>) HttpView.currentView();
     HaplotypeDataCollector bean = me.getModelBean();
     String[] reshowData = {};
-    if (bean.getData() != null && !bean.getData().equals(""))
+    if (bean.getReshowValue("data") != null && !bean.getReshowValue("data").equals(""))
     {
-        reshowData = bean.getData().split("\\r?\\n");
+        reshowData = bean.getReshowValue("data").split("\\r?\\n");
     }
 
     final String copyPasteDivId = "copypasteDiv" + getRequestScopedUID();
@@ -42,7 +42,7 @@
     <%
     for (Pair<String, String> entry : HaplotypeAssayProvider.COLUMN_HEADER_MAPPING_PROPERTIES)
     {
-        %>expectedHeaders.push({name: '<%=h(entry.first)%>', label: '<%=h(entry.second)%>'});<%
+        %>expectedHeaders.push({name: '<%=h(entry.first)%>', label: '<%=h(entry.second)%>', reshowValue: '<%=h(bean.getReshowValue(entry.first))%>'});<%
     }
     %>
 
@@ -94,9 +94,12 @@
             });
             combo.store.on('datachanged', function(store){
                 // select the combo item, if there is a match
-                var index = store.find('header', header.label, 0, false, false, true);
-                if (index != null && index > -1)
-                    combo.select(store.getAt(index));
+                var index1 = store.find('header', getReshowValue(header.name), 0, false, false, true);
+                var index2 = store.find('header', header.label, 0, false, false, true);
+                if (index1 != null && index1 > -1)
+                    combo.select(store.getAt(index1));
+                else if (index2 != null && index2 > -1)
+                    combo.select(store.getAt(index2));
                 else
                     combo.reset();
 
@@ -139,5 +142,17 @@
         }
         %>
     });
+
+    function getReshowValue(headerName)
+    {
+        var reshowVal = null;
+        Ext4.each(expectedHeaders, function(headerProperty){
+            if (headerProperty.name == headerName)
+            {
+                reshowVal = headerProperty.reshowValue;
+            }
+        });
+        return reshowVal;
+    }
 
 </script>

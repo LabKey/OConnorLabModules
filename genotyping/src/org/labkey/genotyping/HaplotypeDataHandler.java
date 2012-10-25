@@ -282,13 +282,15 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
 
         // insert the animal/run values (totalReads, identifiedreads, etc.)
         List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
-        for (HaplotypeAssignmentDataRow dataRow : dataRows)
+        for (int i = 0; i < dataRows.size(); i++)
         {
+            HaplotypeAssignmentDataRow dataRow = dataRows.get(i);
+
             Map<String, Object> values = new CaseInsensitiveHashMap<Object>();
             values.put("animalid", animalRowIdMap.get(dataRow.getMapValue(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN_NAME)));
             values.put("runid", run.getRowId());
-            values.put(HaplotypeAssayProvider.TOTAL_READS_COLUMN_NAME, dataRow.getIntegerValue(HaplotypeAssayProvider.TOTAL_READS_COLUMN_NAME));
-            values.put(HaplotypeAssayProvider.IDENTIFIED_READS_COLUMN_NAME, dataRow.getIntegerValue(HaplotypeAssayProvider.IDENTIFIED_READS_COLUMN_NAME));
+            values.put(HaplotypeAssayProvider.TOTAL_READS_COLUMN_NAME, dataRow.getIntegerValue(HaplotypeAssayProvider.TOTAL_READS_COLUMN_NAME, i));
+            values.put(HaplotypeAssayProvider.IDENTIFIED_READS_COLUMN_NAME, dataRow.getIntegerValue(HaplotypeAssayProvider.IDENTIFIED_READS_COLUMN_NAME, i));
             rows.add(values);
         }
 
@@ -417,9 +419,16 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             return _dataMap.get(key);
         }
 
-        public Integer getIntegerValue(String key)
+        public Integer getIntegerValue(String key, int rowIndex) throws ExperimentException
         {
-            return Integer.parseInt(_dataMap.get(key).replaceAll(",", ""));
+            try
+            {
+                return Integer.parseInt(_dataMap.get(key).replaceAll(",", ""));
+            }
+            catch(NumberFormatException e)
+            {
+                throw new ExperimentException("Error parsing integer value from column \"" + key + "\" for row " + (rowIndex+1) + ": " + _dataMap.get(key), e);
+            }
         }
 
         public List<Pair<String, String>> getHaplotypeList()
@@ -486,8 +495,8 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
                 assertEquals("B012b", r.getHaplotypeList().get(3).first);
                 assertEquals("Mamu-B", r.getHaplotypeList().get(3).second);
                 assertEquals("x90453", r.getMapValue(HaplotypeAssayProvider.CUSTOMER_ANIMAL_COLUMN_NAME));
-                assertEquals(new Integer(5836), r.getIntegerValue(HaplotypeAssayProvider.TOTAL_READS_COLUMN_NAME));
-                assertEquals(new Integer(5020), r.getIntegerValue(HaplotypeAssayProvider.IDENTIFIED_READS_COLUMN_NAME));
+                assertEquals(new Integer(5836), r.getIntegerValue(HaplotypeAssayProvider.TOTAL_READS_COLUMN_NAME, 0));
+                assertEquals(new Integer(5020), r.getIntegerValue(HaplotypeAssayProvider.IDENTIFIED_READS_COLUMN_NAME, 0));
             }
             catch(Exception e)
             {

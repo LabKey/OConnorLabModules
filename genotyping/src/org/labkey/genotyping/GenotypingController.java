@@ -46,6 +46,7 @@ import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.exp.api.ExpData;
+import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
@@ -71,6 +72,10 @@ import org.labkey.api.security.permissions.DeletePermission;
 import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
+import org.labkey.api.study.actions.AssayHeaderView;
+import org.labkey.api.study.actions.AssayRunsAction;
+import org.labkey.api.study.actions.ProtocolIdForm;
+import org.labkey.api.study.assay.AssayUrls;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.HelpTopic;
 import org.labkey.api.util.MinorConfigurationException;
@@ -2193,19 +2198,33 @@ public class GenotypingController extends SpringActionController
     }
 
     @RequiresPermissionClass(ReadPermission.class)
-    public class HaplotypeCustomerReportAction extends SimpleViewAction<ReturnUrlForm>
+    public class HaplotypeCustomerReportAction extends SimpleViewAction<ProtocolIdForm>
     {
+        private ExpProtocol _protocol;
+
         @Override
-        public ModelAndView getView(ReturnUrlForm form, BindException errors) throws Exception
+        public ModelAndView getView(ProtocolIdForm form, BindException errors) throws Exception
         {
+            _protocol = form.getProtocol();
+
+            VBox result = new VBox();
+            AssayHeaderView header = new AssayHeaderView(form.getProtocol(), form.getProvider(), false, true, null);
+            result.addView(header);
+
             form.setReturnUrl(new ReturnURLString(PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer()).getLocalURIString()));
-            return new JspView<ReturnUrlForm>("/org/labkey/genotyping/view/haplotypeCustomerReport.jsp", form);
+            JspView report = new JspView<ProtocolIdForm>("/org/labkey/genotyping/view/haplotypeCustomerReport.jsp", form);
+            result.addView(report);
+
+            return result;
         }
 
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            return root.addChild("Haplotype Assignment Customer Report");
+            NavTree navTree = root.addChild("Assay List", PageFlowUtil.urlProvider(AssayUrls.class).getAssayListURL(getContainer()));
+            navTree.addChild(_protocol.getName(), new ActionURL(AssayRunsAction.class, getContainer()).addParameter("rowId", _protocol.getRowId()));
+            navTree.addChild("Haplotype Assignment Customer Report");
+            return navTree;
         }
     }
 }

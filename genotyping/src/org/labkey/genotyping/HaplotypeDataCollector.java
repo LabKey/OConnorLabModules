@@ -18,16 +18,21 @@ package org.labkey.genotyping;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.exp.ExperimentException;
 import org.labkey.api.exp.api.ExpProtocol;
+import org.labkey.api.gwt.client.util.StringUtils;
 import org.labkey.api.study.assay.AbstractTempDirDataCollector;
 import org.labkey.api.study.assay.AssayRunUploadContext;
 import org.labkey.api.util.Pair;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,13 +41,19 @@ import java.util.Map;
  */
 public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<HaplotypeAssayProvider>> extends AbstractTempDirDataCollector<ContextType>
 {
-    private String _data = null;
+    private Map<String, String> _reshowMap;
 
     @Override
     public HttpView getView(ContextType context) throws ExperimentException
     {
         // if reshowing on error, get the data param out of the context for the JSP to use
-        _data = context.getRequest().getParameter(HaplotypeAssayProvider.DATA_PROPERTY_NAME);
+        HttpServletRequest request = context.getRequest();
+        _reshowMap = new HashMap<String, String>();
+        _reshowMap.put(HaplotypeAssayProvider.DATA_PROPERTY_NAME, request.getParameter(HaplotypeAssayProvider.DATA_PROPERTY_NAME));
+        for (Pair<String, String> property : HaplotypeAssayProvider.COLUMN_HEADER_MAPPING_PROPERTIES)
+        {
+            _reshowMap.put(property.first, request.getParameter(property.first));
+        }
 
         return new JspView<HaplotypeDataCollector>("/org/labkey/genotyping/view/importHaplotypeAssignments.jsp", this);
     }
@@ -75,11 +86,16 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
         }
 
         // verify that all of the column header mapping values are present
+        List<String> errorColHeaders = new ArrayList<String>();
         for (Pair<String, String> property : HaplotypeAssayProvider.COLUMN_HEADER_MAPPING_PROPERTIES)
         {
             String value = context.getRequest().getParameter(property.first);
             if (value == null || value.equals(""))
-                throw new ExperimentException("Column header mapping missing for \"" + property.second + "\"");
+                errorColHeaders.add(property.second);
+        }
+        if (errorColHeaders.size() > 0)
+        {
+            throw new ExperimentException("Column header mapping missing for: " + StringUtils.join(errorColHeaders, ", "));
         }
 
         // NOTE: We use a 'tmp' file extension so that DataLoaderService will sniff the file type by parsing the file's header.
@@ -91,8 +107,8 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
         return Collections.singletonMap(PRIMARY_FILE, file);
     }
 
-    public String getData()
+    public String getReshowValue(String key)
     {
-        return _data;
+        return _reshowMap.get(key);
     }
 }
