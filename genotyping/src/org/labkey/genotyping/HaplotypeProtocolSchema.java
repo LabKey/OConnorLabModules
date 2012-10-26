@@ -44,7 +44,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
             @Override
             public TableInfo getLookupTableInfo()
             {
-                return getTable(AssaySchema.getRunsTableName(getProtocol(), false));
+                return getTable(RUNS_TABLE_NAME);
             }
         });
         return table;
