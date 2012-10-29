@@ -50,9 +50,9 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
         HttpServletRequest request = context.getRequest();
         _reshowMap = new HashMap<String, String>();
         _reshowMap.put(HaplotypeAssayProvider.DATA_PROPERTY_NAME, request.getParameter(HaplotypeAssayProvider.DATA_PROPERTY_NAME));
-        for (Pair<String, String> property : HaplotypeAssayProvider.COLUMN_HEADER_MAPPING_PROPERTIES)
+        for (String propName : HaplotypeAssayProvider.getColumnMappingProperties().keySet())
         {
-            _reshowMap.put(property.first, request.getParameter(property.first));
+            _reshowMap.put(propName, request.getParameter(propName));
         }
 
         return new JspView<HaplotypeDataCollector>("/org/labkey/genotyping/view/importHaplotypeAssignments.jsp", this);
@@ -87,11 +87,11 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
 
         // verify that all of the column header mapping values are present
         List<String> errorColHeaders = new ArrayList<String>();
-        for (Pair<String, String> property : HaplotypeAssayProvider.COLUMN_HEADER_MAPPING_PROPERTIES)
+        for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties().entrySet())
         {
-            String value = context.getRequest().getParameter(property.first);
-            if (value == null || value.equals(""))
-                errorColHeaders.add(property.second);
+            String value = context.getRequest().getParameter(property.getKey());
+            if (property.getValue().isRequired() && (value == null || value.equals("")))
+                errorColHeaders.add(property.getValue().getLabel());
         }
         if (errorColHeaders.size() > 0)
         {

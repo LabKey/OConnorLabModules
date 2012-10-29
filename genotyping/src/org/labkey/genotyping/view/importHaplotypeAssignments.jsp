@@ -21,6 +21,8 @@
 <%@ page import="org.labkey.genotyping.HaplotypeDataCollector" %>
 <%@ page import="org.labkey.api.view.JspView" %>
 <%@ page import="org.labkey.genotyping.HaplotypeAssayProvider" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="org.labkey.genotyping.HaplotypeColumnMappingProperty" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     JspView<HaplotypeDataCollector> me = (JspView<HaplotypeDataCollector>) HttpView.currentView();
@@ -40,9 +42,9 @@
 <script type="text/javascript">
     var expectedHeaders = [];
     <%
-    for (Pair<String, String> entry : HaplotypeAssayProvider.COLUMN_HEADER_MAPPING_PROPERTIES)
+    for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties().entrySet())
     {
-        %>expectedHeaders.push({name: '<%=h(entry.first)%>', label: '<%=h(entry.second)%>', reshowValue: '<%=h(bean.getReshowValue(entry.first))%>'});<%
+        %>expectedHeaders.push({name: '<%=h(property.getKey())%>', label: '<%=h(property.getValue().getLabel())%>', reshowValue: '<%=h(bean.getReshowValue(property.getKey()))%>', required: <%=h(property.getValue().isRequired())%>});<%
     }
     %>
 
@@ -77,15 +79,15 @@
         Ext4.each(expectedHeaders, function(header){
             var combo = Ext4.create('Ext.form.ComboBox', {
                 xtype: 'combo',
-                labelWidth: 170,
-                width: 400,
+                labelWidth: 180,
+                width: 410,
                 name: header.name,
-                fieldLabel: header.label,
+                fieldLabel: header.label + (header.required ? " *" : ""),
                 disabled: <%=reshowData.length == 0%>,
                 queryMode: 'local',
                 displayField: 'header',
                 valueField: 'header',
-                allowBlank: false,
+                allowBlank: !header.required,
                 editable: false,
                 store: Ext4.create('Ext.data.Store', {
                     fields: ['header'],
@@ -123,7 +125,7 @@
                 {
                     var tokens = lines[0].split('\t');
                     for (var i = 0; i < tokens.length; i++)
-                        colHeaders.push({header: tokens[i]});
+                        colHeaders.push({header: tokens[i].trim()});
                 }
 
                 // load the column headers data into the combo boxes

@@ -48,6 +48,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,21 +65,17 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
 
     public static final String DATA_PROPERTY_NAME = "data";
     public static final String ENABLED_PROPERTY_NAME = "enabled";
-    public static final String LAB_ANIMAL_COLUMN_NAME = "labAnimalId";
-    public static final String CUSTOMER_ANIMAL_COLUMN_NAME = "customerAnimalId";
-    public static final String TOTAL_READS_COLUMN_NAME = "totalReads";
-    public static final String IDENTIFIED_READS_COLUMN_NAME = "identifiedReads";
-    public static final String[] HAPLOTYPE_COLUMN_NAMES = {"mamuAHaplotype1", "mamuAHaplotype2", "mamuBHaplotype1", "mamuBHaplotype2"};
-    public static final List<Pair<String, String>> COLUMN_HEADER_MAPPING_PROPERTIES = Arrays.asList( // Pair: first = name, second = label
-            new Pair<String, String>(LAB_ANIMAL_COLUMN_NAME, "Lab Animal ID"),
-            new Pair<String, String>(CUSTOMER_ANIMAL_COLUMN_NAME, "Customer Animal ID"),
-            new Pair<String, String>(TOTAL_READS_COLUMN_NAME, "Total # Reads Evaluated"),
-            new Pair<String, String>(IDENTIFIED_READS_COLUMN_NAME, "Total # Reads Identified"),
-            new Pair<String, String>(HAPLOTYPE_COLUMN_NAMES[0], "Mamu-A Haplotype 1"),
-            new Pair<String, String>(HAPLOTYPE_COLUMN_NAMES[1], "Mamu-A Haplotype 2"),
-            new Pair<String, String>(HAPLOTYPE_COLUMN_NAMES[2], "Mamu-B Haplotype 1"),
-            new Pair<String, String>(HAPLOTYPE_COLUMN_NAMES[3], "Mamu-B Haplotype 2")
-    );
+
+    public static final HaplotypeColumnMappingProperty LAB_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty("labAnimalId", "Lab Animal ID", true);
+    public static final HaplotypeColumnMappingProperty CUSTOMER_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty("customerAnimalId", "Customer Animal ID", false);
+    public static final HaplotypeColumnMappingProperty TOTAL_READS_COLUMN = new HaplotypeColumnMappingProperty("totalReads", "Total # Reads Evaluated", true);
+    public static final HaplotypeColumnMappingProperty IDENTIFIED_READS_COLUMN = new HaplotypeColumnMappingProperty("identifiedReads","Total # Reads Identified", true);
+    public static final HaplotypeColumnMappingProperty[] HAPLOTYPE_COLUMNS = {
+            new HaplotypeColumnMappingProperty("mamuAHaplotype1", "Mamu-A Haplotype 1", true),
+            new HaplotypeColumnMappingProperty("mamuAHaplotype2", "Mamu-A Haplotype 2", true),
+            new HaplotypeColumnMappingProperty("mamuBHaplotype1", "Mamu-B Haplotype 1", true),
+            new HaplotypeColumnMappingProperty("mamuBHaplotype2", "Mamu-B Haplotype 2", true)
+    };
 
     public HaplotypeAssayProvider()
     {
@@ -154,10 +151,10 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         addProperty(runDomain, ENABLED_PROPERTY_NAME, PropertyType.BOOLEAN).setLabel("Enabled");
 
         // add run properties (hidden from insert view) that will be used for the mapping of the column headers for the input data
-        for (Pair<String, String> property : COLUMN_HEADER_MAPPING_PROPERTIES)
+        for (Map.Entry<String, HaplotypeColumnMappingProperty> property : getColumnMappingProperties().entrySet())
         {
-            DomainProperty dp = addProperty(runDomain, property.first, PropertyType.STRING);
-            dp.setLabel(property.second);
+            DomainProperty dp = addProperty(runDomain, property.getKey(), PropertyType.STRING);
+            dp.setLabel(property.getValue().getLabel());
             dp.setDescription("Used for mapping the column headers in the tsv data with this key field.");
             dp.setShownInInsertView(false);
             dp.setShownInUpdateView(false);
@@ -178,9 +175,9 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
             domainMap.put(ExpProtocol.ASSAY_DOMAIN_RUN, runProperties);
         }
         runProperties.add(ENABLED_PROPERTY_NAME);
-        for (Pair<String, String> prop : COLUMN_HEADER_MAPPING_PROPERTIES)
+        for (String propName : getColumnMappingProperties().keySet())
         {
-            runProperties.add(prop.first);
+            runProperties.add(propName);
         }
 
         return domainMap;
@@ -201,5 +198,19 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         result.add(new NavTree("produce customer report", url));
 
         return result;
+    }
+
+    public static Map<String, HaplotypeColumnMappingProperty> getColumnMappingProperties()
+    {
+        Map<String, HaplotypeColumnMappingProperty> properties = new LinkedHashMap<String, HaplotypeColumnMappingProperty>();
+        properties.put(LAB_ANIMAL_COLUMN.getName(), LAB_ANIMAL_COLUMN);
+        properties.put(CUSTOMER_ANIMAL_COLUMN.getName(), CUSTOMER_ANIMAL_COLUMN);
+        properties.put(TOTAL_READS_COLUMN.getName(), TOTAL_READS_COLUMN);
+        properties.put(IDENTIFIED_READS_COLUMN.getName(), IDENTIFIED_READS_COLUMN);
+        properties.put(HAPLOTYPE_COLUMNS[0].getName(), HAPLOTYPE_COLUMNS[0]);
+        properties.put(HAPLOTYPE_COLUMNS[1].getName(), HAPLOTYPE_COLUMNS[1]);
+        properties.put(HAPLOTYPE_COLUMNS[2].getName(), HAPLOTYPE_COLUMNS[2]);
+        properties.put(HAPLOTYPE_COLUMNS[3].getName(), HAPLOTYPE_COLUMNS[3]);
+        return properties;
     }
 }

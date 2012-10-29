@@ -65,6 +65,7 @@ genotyping/src/org/labkey/genotyping/GenotypingSchema.java -text
 genotyping/src/org/labkey/genotyping/GenotypingUpgradeCode.java -text
 genotyping/src/org/labkey/genotyping/GenotypingWebPart.java -text
 genotyping/src/org/labkey/genotyping/HaplotypeAssayProvider.java -text
+genotyping/src/org/labkey/genotyping/HaplotypeColumnMappingProperty.java -text
 genotyping/src/org/labkey/genotyping/HaplotypeDataCollector.java -text
 genotyping/src/org/labkey/genotyping/HaplotypeDataHandler.java -text
 genotyping/src/org/labkey/genotyping/HaplotypeProtocolSchema.java -text
