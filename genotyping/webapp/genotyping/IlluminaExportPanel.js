@@ -53,11 +53,11 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                     items: [{
                         xtype: 'textfield',
                         allowBlank: false,
-                        fieldLabel: 'Flow Cell Id',
-                        helpPopup: 'This should match the ID of the Illumina flow cell.  It will be used as the filename of the sample sheet.  If you do not have this value, you can always rename the file later',
+                        fieldLabel: 'Reagent Cassette Id',
+                        helpPopup: 'This should match the ID of the Reagent cassette.  It will be used as the filename of the sample sheet.  If you do not have this value, you can always rename the file later',
                         itemId: 'fileName',
                         value: 'Illumina',
-                        maskRe: /[0-9a-z_-]/,
+                        maskRe: /[0-9A-Za-z_-]/,
                         maxLength: 100
                     },{
                         xtype: 'textfield',
@@ -68,7 +68,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                     },{
                         xtype: 'textfield',
                         itemId: 'experimentName',
-                        fieldLabel: 'Experiment Name',
+                        fieldLabel: 'Experiment Number',
                         section: 'Header'
                     },{
                         xtype: 'textfield',
@@ -410,12 +410,30 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             ['Sample_Well', 'Sample_Well'],
             ['Sample_Project', 'Sample_Project'],
             ['index', 'fivemid/mid_sequence'],
-            ['I7_Index_ID', 'fivemid'],
-            ['index2', 'threemid/mid_sequence'],
-            ['I5_Index_ID', 'threemid'],
+            ['I7_Index_ID', 'fivemid']
+        ];
+
+        // Only include the I5 columns if we have data for at least one row
+        var hasI5 = false;
+        Ext4.each(this.rows, function(row){
+            if (row['threemid'])
+            {
+                hasI5 = true;
+            }
+        }, this);
+
+        if (hasI5)
+        {
+            sampleColumns.push(
+                ['index2', 'threemid/mid_sequence'],
+                ['I5_Index_ID', 'threemid']
+            );
+        }
+
+        sampleColumns.push(
             ['Description', 'description'],
             ['GenomeFolder', 'GenomeFolder']
-        ];
+        );
 
         var headerRow = [];
         Ext4.each(sampleColumns, function(col){
