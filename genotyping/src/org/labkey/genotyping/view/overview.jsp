@@ -29,6 +29,8 @@
 <%@ page import="org.labkey.api.query.QueryService" %>
 <%@ page import="org.labkey.api.query.QueryAction" %>
 <%@ page import="org.labkey.genotyping.GenotypingQuerySchema" %>
+<%@ page import="org.labkey.genotyping.ValidatingGenotypingFolderSettings" %>
+<%@ page import="org.labkey.api.view.NotFoundException" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     ViewContext ctx = getViewContext();
@@ -36,6 +38,8 @@
     User user = ctx.getUser();
     ActionURL submitURL = urlProvider(PipelineUrls.class).urlBrowse(c, null);
     ActionURL statusURL = urlProvider(PipelineUrls.class).urlBegin(c);
+
+    ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c,  user, "managing sample information");
     ActionURL samplesURL = new ActionURL("query", QueryAction.executeQuery.toString(), c);
     samplesURL.addParameter("schemaName", "genotyping");
     samplesURL.addParameter("query.queryName", GenotypingQuerySchema.TableType.Samples.toString());
@@ -71,8 +75,32 @@
     <tr><td colspan="3" class="labkey-title-area-line"></td></tr>
     <%--<tr><td></td><td><%=textLink("MIDs", submitURL)%></td></tr>--%>
 <%--TODO--%>
-    <tr><td></td><td><%=textLink("Run Metadata", runMetadataURL)%></td></tr>
-    <tr><td></td><td><%=textLink("Samples", samplesURL)%></td></tr>
+    <tr><td></td><td>
+    <%
+        try
+        {
+            String runsQuery = settings.getRunsQuery();
+            %><%=textLink("Run Metadata", runMetadataURL)%><%
+        }
+        catch(NotFoundException e)
+        {
+            %><%=h(e.getMessage())%><%
+        }
+    %>
+    </td></tr>
+    <tr><td></td><td>
+    <%
+        try
+        {
+            String samplesQuery = settings.getSamplesQuery();
+            %><%=textLink("Samples", samplesURL)%><%
+        }
+        catch(NotFoundException e)
+        {
+            %><%=h(e.getMessage())%><%
+        }
+    %>
+    </td></tr>
 
     <tr><td colspan="3" class="labkey-announcement-title"><span>Settings</span></td></tr>
     <tr><td colspan="3" class="labkey-title-area-line"></td></tr>
