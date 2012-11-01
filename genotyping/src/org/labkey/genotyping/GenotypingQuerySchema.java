@@ -553,7 +553,8 @@ public class GenotypingQuerySchema extends UserSchema
                 table.addColumn(mamuBMaxCol);
 
                 // calculated field for % Unknown = (Total Reads - Identified Reads) / Total Reads
-                SQLFragment percUnknownSql = new SQLFragment("((TotalReads-IdentifiedReads)*100.0/TotalReads)");
+                SQLFragment percUnknownSql = new SQLFragment("(CASE WHEN (IdentifiedReads IS NULL OR TotalReads IS NULL OR TotalReads = 0) THEN NULL "
+                        + "ELSE ((TotalReads-IdentifiedReads)*100.0/TotalReads) END)");
                 ExprColumn percUnknownCol = new ExprColumn(table, "PercentUnknown", percUnknownSql, JdbcType.DOUBLE);
                 percUnknownCol.setLabel("% Unknown");
                 percUnknownCol.setFormat("0.0");

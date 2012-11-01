@@ -431,7 +431,11 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         {
             try
             {
-                return Integer.parseInt(_dataMap.get(key).replaceAll(",", ""));
+                String value = _dataMap.get(key);
+                if (value != null)
+                    return Integer.parseInt(value.replaceAll(",", ""));
+                else
+                    return null;
             }
             catch(NumberFormatException e)
             {
@@ -505,6 +509,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
                 assertEquals("x90453", r.getMapValue(HaplotypeAssayProvider.CUSTOMER_ANIMAL_COLUMN.getName()));
                 assertEquals(new Integer(5836), r.getIntegerValue(HaplotypeAssayProvider.TOTAL_READS_COLUMN.getName(), 0));
                 assertEquals(new Integer(5020), r.getIntegerValue(HaplotypeAssayProvider.IDENTIFIED_READS_COLUMN.getName(), 0));
+                assertEquals(null, r.getIntegerValue("keyDoesntExist", 0));
             }
             catch(Exception e)
             {
