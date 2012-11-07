@@ -15,7 +15,7 @@
  */
 package org.labkey.genotyping;
 
-import org.labkey.api.module.DefaultFolderType;
+import org.labkey.api.module.MultiPortalFolderType;
 import org.labkey.api.view.Portal;
 
 import java.util.Arrays;
@@ -25,7 +25,7 @@ import java.util.Arrays;
  * Date: Oct 6, 2010
  * Time: 1:52:59 PM
  */
-public class GenotypingFolderType extends DefaultFolderType
+public class GenotypingFolderType extends MultiPortalFolderType
 {
     public GenotypingFolderType(GenotypingModule module)
     {
