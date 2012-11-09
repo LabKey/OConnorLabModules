@@ -18,6 +18,7 @@ package org.labkey.genotyping;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
+import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.MemTracker;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public class GenotypingRun
     {
         this();
         setContainer(c);
-        setPath(readsFile.getParent());
+        setPath(FileUtil.getAbsoluteCaseSensitiveFile(readsFile.getParentFile()).getPath());
         setFileName(readsFile.getName());
         setPlatform(platform);
 
