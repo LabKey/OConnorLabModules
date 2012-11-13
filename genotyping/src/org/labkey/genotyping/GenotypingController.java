@@ -1968,8 +1968,7 @@ public class GenotypingController extends SpringActionController
                         bar.add(btn);
                     }
 
-                    // At the lab's request, hide the standard buttons
-//                    super.populateButtonBar(view, bar, false);
+                    super.populateButtonBar(view, bar, false);
                 }
             };
 
