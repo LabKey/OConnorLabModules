@@ -199,7 +199,7 @@
       </ns:column>
       <ns:column columnName="Container"/>
       <ns:column columnName="LabAnimalId"/>
-      <ns:column columnName="CustomerAnimalId"/>
+      <ns:column columnName="ClientAnimalId"/>
       <ns:column columnName="Lsid"/>
       <ns:column columnName="CreatedBy"/>
       <ns:column columnName="Created"/>

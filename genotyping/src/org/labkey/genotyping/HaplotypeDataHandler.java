@@ -21,11 +21,9 @@ import org.junit.Test;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.CaseInsensitiveTreeMap;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlExecutor;
-import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.ExperimentException;
@@ -50,13 +48,11 @@ import org.labkey.api.view.ViewBackgroundInfo;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * User: cnathe
@@ -160,7 +156,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             {
                 throw new ExperimentException("Duplicate value found in Lab Animal ID column: " + animalId);
             }
-            animals.put(animalId, dataRow.getMapValue(HaplotypeAssayProvider.CUSTOMER_ANIMAL_COLUMN.getName()));
+            animals.put(animalId, dataRow.getMapValue(HaplotypeAssayProvider.CLIENT_ANIMAL_COLUMN.getName()));
 
             haplotypes.addAll(dataRow.getHaplotypeList());
         }
@@ -184,7 +180,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             Map<String, Object> keys = new CaseInsensitiveHashMap<Object>();
             keys.putAll(runPropertyValues); // if there are run fields that match up with fields on the Animal table, we should propagate the values over for all new animals
             keys.put(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName(), entry.getKey());
-            keys.put(HaplotypeAssayProvider.CUSTOMER_ANIMAL_COLUMN.getName(), entry.getValue());
+            keys.put(HaplotypeAssayProvider.CLIENT_ANIMAL_COLUMN.getName(), entry.getValue());
             rows.add(keys);
         }
 
@@ -506,7 +502,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
                 assertEquals("Mamu-B", r.getHaplotypeList().get(2).second);
                 assertEquals("B012b", r.getHaplotypeList().get(3).first);
                 assertEquals("Mamu-B", r.getHaplotypeList().get(3).second);
-                assertEquals("x90453", r.getMapValue(HaplotypeAssayProvider.CUSTOMER_ANIMAL_COLUMN.getName()));
+                assertEquals("x90453", r.getMapValue(HaplotypeAssayProvider.CLIENT_ANIMAL_COLUMN.getName()));
                 assertEquals(new Integer(5836), r.getIntegerValue(HaplotypeAssayProvider.TOTAL_READS_COLUMN.getName(), 0));
                 assertEquals(new Integer(5020), r.getIntegerValue(HaplotypeAssayProvider.IDENTIFIED_READS_COLUMN.getName(), 0));
                 assertEquals(null, r.getIntegerValue("keyDoesntExist", 0));

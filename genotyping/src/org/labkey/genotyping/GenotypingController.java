@@ -2197,7 +2197,7 @@ public class GenotypingController extends SpringActionController
     }
 
     @RequiresPermissionClass(ReadPermission.class)
-    public class HaplotypeCustomerReportAction extends SimpleViewAction<ProtocolIdForm>
+    public class HaplotypeAssignmentReportAction extends SimpleViewAction<ProtocolIdForm>
     {
         private ExpProtocol _protocol;
 
@@ -2211,7 +2211,7 @@ public class GenotypingController extends SpringActionController
             result.addView(header);
 
             form.setReturnUrl(new ReturnURLString(PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer()).getLocalURIString()));
-            JspView report = new JspView<ProtocolIdForm>("/org/labkey/genotyping/view/haplotypeCustomerReport.jsp", form);
+            JspView report = new JspView<ProtocolIdForm>("/org/labkey/genotyping/view/haplotypeAssignmentReport.jsp", form);
             result.addView(report);
 
             return result;
@@ -2222,7 +2222,7 @@ public class GenotypingController extends SpringActionController
         {
             NavTree navTree = root.addChild("Assay List", PageFlowUtil.urlProvider(AssayUrls.class).getAssayListURL(getContainer()));
             navTree.addChild(_protocol.getName(), new ActionURL(AssayRunsAction.class, getContainer()).addParameter("rowId", _protocol.getRowId()));
-            navTree.addChild("Haplotype Assignment Customer Report");
+            navTree.addChild("Haplotype Assignment Report");
             return navTree;
         }
     }

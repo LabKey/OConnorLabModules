@@ -75,7 +75,7 @@
                         fields: ['label', 'value'],
                         data: [
                             {label: 'Lab Animal ID', value: 'LabAnimalId'},
-                            {label: 'Customer Animal ID', value: 'CustomerAnimalId'}
+                            {label: 'Client Animal ID', value: 'ClientAnimalId'}
                         ]
                     }),
                     queryMode: 'local',
@@ -94,7 +94,7 @@
                         fields: ['label', 'value'],
                         data: [
                             {label: 'Lab Animal ID', value: 'LabAnimalId'},
-                            {label: 'Customer Animal ID', value: 'CustomerAnimalId'}
+                            {label: 'Client Animal ID', value: 'ClientAnimalId'}
                         ]
                     }),
                     queryMode: 'local',

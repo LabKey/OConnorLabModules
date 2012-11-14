@@ -45,7 +45,6 @@ import org.labkey.api.view.NavTree;
 import org.labkey.api.view.ViewContext;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -67,7 +66,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     public static final String ENABLED_PROPERTY_NAME = "enabled";
 
     public static final HaplotypeColumnMappingProperty LAB_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty("labAnimalId", "Lab Animal ID", true);
-    public static final HaplotypeColumnMappingProperty CUSTOMER_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty("customerAnimalId", "Customer Animal ID", false);
+    public static final HaplotypeColumnMappingProperty CLIENT_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty("clientAnimalId", "Client Animal ID", false);
     public static final HaplotypeColumnMappingProperty TOTAL_READS_COLUMN = new HaplotypeColumnMappingProperty("totalReads", "Total # Reads Evaluated", true);
     public static final HaplotypeColumnMappingProperty IDENTIFIED_READS_COLUMN = new HaplotypeColumnMappingProperty("identifiedReads","Total # Reads Identified", true);
     public static final HaplotypeColumnMappingProperty[] HAPLOTYPE_COLUMNS = {
@@ -194,8 +193,8 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     {
         List<NavTree> result = super.getHeaderLinks(viewContext, protocol, containerFilter);
 
-        ActionURL url = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(viewContext.getContainer(), protocol, GenotypingController.HaplotypeCustomerReportAction.class);
-        result.add(new NavTree("produce customer report", url));
+        ActionURL url = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(viewContext.getContainer(), protocol, GenotypingController.HaplotypeAssignmentReportAction.class);
+        result.add(new NavTree("produce report", url));
 
         return result;
     }
@@ -204,7 +203,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     {
         Map<String, HaplotypeColumnMappingProperty> properties = new LinkedHashMap<String, HaplotypeColumnMappingProperty>();
         properties.put(LAB_ANIMAL_COLUMN.getName(), LAB_ANIMAL_COLUMN);
-        properties.put(CUSTOMER_ANIMAL_COLUMN.getName(), CUSTOMER_ANIMAL_COLUMN);
+        properties.put(CLIENT_ANIMAL_COLUMN.getName(), CLIENT_ANIMAL_COLUMN);
         properties.put(TOTAL_READS_COLUMN.getName(), TOTAL_READS_COLUMN);
         properties.put(IDENTIFIED_READS_COLUMN.getName(), IDENTIFIED_READS_COLUMN);
         properties.put(HAPLOTYPE_COLUMNS[0].getName(), HAPLOTYPE_COLUMNS[0]);
