@@ -30,8 +30,8 @@ import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.study.assay.AssayService;
-import org.labkey.api.util.Formats;
 import org.labkey.api.util.PageFlowUtil;
+import org.labkey.api.util.StringUtilsLabKey;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.genotyping.sequences.SequenceManager;
 
@@ -96,7 +96,7 @@ public class GenotypingModule extends DefaultModule
         if (runCount > 0)
         {
             long readCount = gm.getReadCount(c, null);
-            list.add(pluralize(runCount, "sequencing run") + " containing " + pluralize(readCount, "read"));
+            list.add(StringUtilsLabKey.pluralize(runCount, "sequencing run") + " containing " + StringUtilsLabKey.pluralize(readCount, "read"));
         }
 
         int analysisCount = gm.getAnalysisCount(c, null);
@@ -104,7 +104,7 @@ public class GenotypingModule extends DefaultModule
         if (analysisCount > 0)
         {
             long matchCount = gm.getMatchCount(c, null);
-            list.add(pluralize(analysisCount, "genotyping analysis", "genotyping analyses") + " containing " + pluralize(matchCount, "match", "matches"));
+            list.add(StringUtilsLabKey.pluralize(analysisCount, "genotyping analysis", "genotyping analyses") + " containing " + StringUtilsLabKey.pluralize(matchCount, "match", "matches"));
         }
 
         SequenceManager sm = SequenceManager.get();
@@ -113,20 +113,10 @@ public class GenotypingModule extends DefaultModule
         if (dictionaryCount > 0)
         {
             long sequenceCount = sm.getSequenceCount(c);
-            list.add(pluralize(dictionaryCount, "dictionary", "dictionaries") + " containing " + pluralize(sequenceCount, "reference sequence"));
+            list.add(StringUtilsLabKey.pluralize(dictionaryCount, "dictionary", "dictionaries") + " containing " + StringUtilsLabKey.pluralize(sequenceCount, "reference sequence"));
         }
 
         return list;
-    }
-
-    private String pluralize(long count, String singular)
-    {
-        return pluralize(count, singular, singular + "s");
-    }
-
-    private String pluralize(long count, String singular, String plural)
-    {
-        return Formats.commaf0.format(count) + " " + (1 == count ? singular : plural);
     }
 
     @Override
