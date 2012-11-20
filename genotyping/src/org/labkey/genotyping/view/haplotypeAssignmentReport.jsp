@@ -17,16 +17,17 @@
 %>
 <%@ page import="org.labkey.api.view.JspView" %>
 <%@ page import="org.labkey.api.view.HttpView" %>
-<%@ page import="org.labkey.api.view.ActionURL" %>
-<%@ page import="org.labkey.api.study.actions.ProtocolIdForm" %>
+<%@ page import="org.labkey.genotyping.GenotypingController" %>
+<%@ page import="org.labkey.api.gwt.client.util.StringUtils" %>
+<%@ page import="java.util.Arrays" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
-    JspView<ProtocolIdForm> me = (JspView<ProtocolIdForm>) HttpView.currentView();
-    ProtocolIdForm bean = me.getModelBean();
+    JspView<GenotypingController.AssignmentReportBean> me = (JspView<GenotypingController.AssignmentReportBean>) HttpView.currentView();
+    GenotypingController.AssignmentReportBean bean = me.getModelBean();
     final String idEntryFormDivId = "idEntryForm" + getRequestScopedUID();
     final String queryWebPartDivId = "queryWebPart" + getRequestScopedUID();
     final String duplicatesDivId = "duplicates" + getRequestScopedUID();
-    ActionURL cancelURL = bean.getReturnActionURL();
+    String initialIds = StringUtils.join(Arrays.asList(bean.getId()), ";");
 %>
 <div id='<%=h(idEntryFormDivId)%>'></div>
 <br/>
@@ -37,27 +38,33 @@
 <script type="text/javascript">
 
     Ext4.onReady(function(){
-        // lookup the Assay design name based on the rowid param
-        var rowid = LABKEY.ActionURL.getParameter("rowId");
-        if (rowid)
+        // lookup the Animal IDs if there were any selected from the results grid
+        var ids = '<%=h(initialIds)%>';
+        if (ids.length > 0)
         {
             LABKEY.Query.selectRows({
-                schemaName: 'assay',
-                queryName: 'AssayList',
-                filterArray: [LABKEY.Filter.create('RowId', rowid)],
-                columns: 'Name',
+                schemaName: 'genotyping',
+                queryName: 'Animal',
+                filterArray: [LABKEY.Filter.create('RowId', ids, LABKEY.Filter.Types.IN)],
+                columns: 'LabAnimalId',
                 success: function(data){
-                    if (data.rows.length == 1)
-                        init(data.rows[0].Name);
+                    var animalIds = [];
+                    Ext4.each(data.rows, function(row){
+                        animalIds.push(row.LabAnimalId);
+                    });
+
+                    init(animalIds.join(", "));
                 }
             });
         }
         else
-            Ext4.get('<%=h(duplicatesDivId)%>').update('Error: no assay design rowId parameter');
+            init();
     });
 
-    function init(assayName)
+    function init(initialIds)
     {
+        var assayName = '<%=bean.getAssayName()%>'
+
         var idEntryForm = Ext4.create('Ext.form.FormPanel', {
             border: true,
             width: 525,
@@ -108,6 +115,7 @@
                     labelAlign: 'top',
                     itemId: 'idsTextArea',
                     name: 'idsTextArea',
+                    value: initialIds,
                     allowBlank: false,
                     width:500,
                     height:150
@@ -117,27 +125,31 @@
             buttons: [
                 {
                     formBind: true,
+                    itemId: 'submitBtn',
                     text: 'Submit',
                     handler: function(){
-                        var form = this.up('form');
-                        var values = form.getForm().getValues();
-                        var searchId = values["searchId"];
-                        var displayId = values["displayId"];
-                        var idArr = values["idsTextArea"].trim().split(/[,;\s]+/);
-                        if (idArr.length > 0)
-                        {
-                            form.getQueryWebPart(idArr, searchId, displayId);
-                            form.checkDuplicateIds(idArr, searchId);
-                        }
+                        idEntryForm.submitReport();
                     }
                 },
                 {
                     text: 'Cancel',
                     handler: function(){
-                        window.location = '<%=cancelURL.getLocalURIString()%>';
+                        window.location = '<%=bean.getReturnURL()%>';
                     }
                 }
             ],
+
+            submitReport: function(){
+                var values = idEntryForm.getForm().getValues();
+                var searchId = values["searchId"];
+                var displayId = values["displayId"];
+                var idArr = values["idsTextArea"].trim().split(/[,;\s]+/);
+                if (idArr.length > 0)
+                {
+                    idEntryForm.getQueryWebPart(idArr, searchId, displayId);
+                    idEntryForm.checkDuplicateIds(idArr, searchId);
+                }
+            },
 
             checkDuplicateIds: function(idArr, searchId)
             {
@@ -218,6 +230,10 @@
             }
         });
         idEntryForm.render('<%=h(idEntryFormDivId)%>');
+
+        // if we have initial IDs values for the form, render the grid
+        if (initialIds && initialIds.length > 0)
+            idEntryForm.submitReport();
     }
 
 </script>

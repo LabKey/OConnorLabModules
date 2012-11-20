@@ -39,13 +39,11 @@ import org.labkey.api.data.DataRegionSelection;
 import org.labkey.api.data.PanelButton;
 import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.Results;
-import org.labkey.api.data.Selector;
 import org.labkey.api.data.ShowRows;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
-import org.labkey.api.data.TableSelector;
 import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpProtocol;
@@ -76,7 +74,10 @@ import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.study.actions.AssayHeaderView;
 import org.labkey.api.study.actions.AssayRunsAction;
+import org.labkey.api.study.actions.BaseAssayAction;
 import org.labkey.api.study.actions.ProtocolIdForm;
+import org.labkey.api.study.assay.AbstractAssayView;
+import org.labkey.api.study.assay.AssaySchema;
 import org.labkey.api.study.assay.AssayUrls;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.HelpTopic;
@@ -93,11 +94,9 @@ import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.NotFoundException;
-import org.labkey.api.view.URLException;
 import org.labkey.api.view.VBox;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.api.view.ViewContext;
-import org.labkey.api.view.ViewForm;
 import org.labkey.api.view.WebPartView;
 import org.labkey.api.view.template.PageConfig;
 import org.labkey.genotyping.GenotypingQuerySchema.TableType;
@@ -128,7 +127,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -2201,6 +2199,50 @@ public class GenotypingController extends SpringActionController
         }
     }
 
+    public class AssignmentReportBean
+    {
+        private Integer[] _id;
+        private String _assayName;
+        private String _returnURL;
+
+        public AssignmentReportBean(Integer[] id, String assayName, String returnURL)
+        {
+            _id = id;
+            _assayName = assayName;
+            _returnURL = returnURL;
+        }
+
+        public Integer[] getId()
+        {
+            return _id;
+        }
+
+        public void setId(Integer[] id)
+        {
+            _id = id;
+        }
+
+        public String getAssayName()
+        {
+            return _assayName;
+        }
+
+        public void setAssayName(String assayName)
+        {
+            _assayName = assayName;
+        }
+
+        public String getReturnURL()
+        {
+            return _returnURL;
+        }
+
+        public void setReturnURL(String returnURL)
+        {
+            _returnURL = returnURL;
+        }
+    }
+
     @RequiresPermissionClass(ReadPermission.class)
     public class HaplotypeAssignmentReportAction extends SimpleViewAction<ProtocolIdForm>
     {
@@ -2211,12 +2253,29 @@ public class GenotypingController extends SpringActionController
         {
             _protocol = form.getProtocol();
 
+            // when coming from the results grid, we use the selected rows as the initial set of IDs for the report form
+            Set<String> selectedStrings = DataRegionSelection.getSelected(getViewContext(), false);
+            Integer[] selected;
+            if (selectedStrings.size() > 0)
+            {
+                selected = new Integer[selectedStrings.size()];
+                int index = 0;
+                for (String idStr : selectedStrings)
+                    selected[index++] = Integer.parseInt(idStr);
+            }
+            else
+                selected = new Integer[0];
+
             VBox result = new VBox();
             AssayHeaderView header = new AssayHeaderView(form.getProtocol(), form.getProvider(), false, true, null);
             result.addView(header);
 
-            form.setReturnUrl(new ReturnURLString(PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer()).getLocalURIString()));
-            JspView report = new JspView<ProtocolIdForm>("/org/labkey/genotyping/view/haplotypeAssignmentReport.jsp", form);
+            ActionURL returnURL = form.getReturnActionURL();
+            if (returnURL == null)
+                returnURL = PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
+
+            AssignmentReportBean bean = new AssignmentReportBean(selected, _protocol.getName(), returnURL.getLocalURIString());
+            JspView report = new JspView<AssignmentReportBean>("/org/labkey/genotyping/view/haplotypeAssignmentReport.jsp", bean);
             result.addView(report);
 
             return result;
@@ -2229,6 +2288,33 @@ public class GenotypingController extends SpringActionController
             navTree.addChild(_protocol.getName(), new ActionURL(AssayRunsAction.class, getContainer()).addParameter("rowId", _protocol.getRowId()));
             navTree.addChild("Haplotype Assignment Report");
             return navTree;
+        }
+    }
+
+    @RequiresPermissionClass(ReadPermission.class)
+    public class DuplicateAssignmentReportAction extends BaseAssayAction<ProtocolIdForm>
+    {
+        private ExpProtocol _protocol;
+
+        @Override
+        public ModelAndView getView(ProtocolIdForm form, BindException errors) throws Exception
+        {
+            _protocol = form.getProtocol();
+
+            AbstractAssayView result = new AbstractAssayView();
+            AssaySchema schema = form.getProvider().createProtocolSchema(getUser(), getContainer(), form.getProtocol(), null);
+            QuerySettings settings = new QuerySettings(getViewContext(), "query", HaplotypeProtocolSchema.DUPLICATE_ASSIGNMENT_QUERY_NAME);
+            QueryView view = new QueryView(schema, settings, errors);
+            result.setupViews(view, false, form.getProvider(), _protocol);
+
+            return result;
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            NavTree result = super.appendNavTrail(root);
+            return result.addChild(_protocol.getName() + ": Duplicate Assignment Report");
         }
     }
 

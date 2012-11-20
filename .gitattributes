@@ -2,6 +2,8 @@
 genotyping/Genotyping.iml -text
 genotyping/build.xml -text
 genotyping/module.properties -text
+genotyping/resources/assay/Haplotype/queries/DuplicateAssignment.query.xml -text
+genotyping/resources/assay/Haplotype/queries/DuplicateAssignment.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.00-10.30.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-10.30-11.10.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-11.10-11.20.sql -text
