@@ -36,6 +36,7 @@ import org.labkey.api.data.MultiValuedLookupColumn;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.query.ExpSchema;
 import org.labkey.api.query.DefaultQueryUpdateService;
 import org.labkey.api.query.DefaultSchema;
@@ -56,6 +57,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.util.StringExpression;
+import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
 import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.ViewContext;
@@ -506,7 +508,22 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalAnalysisTable());
+                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalAnalysisTable())
+                {
+                    @Override
+                    protected void applyContainerFilter(ContainerFilter filter)
+                    {
+                        FieldKey containerFieldKey = FieldKey.fromParts("Container");
+                        clearConditions(containerFieldKey);
+                        SQLFragment sql = new SQLFragment("RunId IN (SELECT RowId FROM ");
+                        sql.append(ExperimentService.get().getTinfoExperimentRun(), "r");
+                        sql.append(" WHERE ");
+                        sql.append(filter.getSQLFragment(getSchema(), containerFieldKey, getContainer()));
+                        sql.append(")");
+                        addCondition(sql, containerFieldKey);
+                    }
+                };
+                table.setContainerFilter(table.getContainerFilter());
 
                 SQLFragment haplotypeSubselectSql = new SQLFragment("SELECT aha.AnimalAnalysisId, h.Name AS Haplotype, h.Type FROM ");
                 haplotypeSubselectSql.append(GS.getAnimalHaplotypeAssignmentTable(), "aha");
@@ -560,11 +577,14 @@ public class GenotypingQuerySchema extends UserSchema
                 percUnknownCol.setFormat("0.0");
                 table.addColumn(percUnknownCol);
 
-                // disable the insert, update, etc. urls to hide the button bar buttons for Insert New, Import Data, etc. for this table
+                // disable the insert, delete, and import urls to hide the button bar buttons for Insert New, Import Data, etc. for this table
                 table.setInsertURL(AbstractTableInfo.LINK_DISABLER);
-                table.setUpdateURL(AbstractTableInfo.LINK_DISABLER);
                 table.setDeleteURL(AbstractTableInfo.LINK_DISABLER);
                 table.setImportURL(AbstractTableInfo.LINK_DISABLER);
+
+                // set the edit link URL to use the custom haplotype assignment editing page
+                ActionURL updateUrl = new ActionURL(GenotypingController.EditHaplotypeAssignmentAction.class, null);
+                table.setUpdateURL(new DetailsURL(updateUrl, Collections.singletonMap("rowId", FieldKey.fromString("RowId"))));
 
                 setDefaultVisibleColumns(table, "AnimalId, TotalReads, IdentifiedReads, PercentUnknown, ConcatenatedHaplotypes, MamuAHaplotype1, MamuAHaplotype2, MamuBHaplotype1, MamuBHaplotype2, Enabled");
                 table.setDescription("Contains one row per animal in a given run");
@@ -577,7 +597,26 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalHaplotypeAssignmentTable());
+                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalHaplotypeAssignmentTable())
+                {
+                    @Override
+                    protected void applyContainerFilter(ContainerFilter filter)
+                    {
+                        FieldKey containerFieldKey = FieldKey.fromParts("Container");
+                        clearConditions(containerFieldKey);
+                        SQLFragment sql = new SQLFragment("AnimalAnalysisid IN (SELECT aa.RowId FROM ");
+                        sql.append(GS.getAnimalAnalysisTable(), "aa");
+                        sql.append(" JOIN ");
+                        sql.append(ExperimentService.get().getTinfoExperimentRun(), "r");
+                        sql.append(" ON aa.RunId = r.RowId ");
+                        sql.append(" WHERE ");
+                        sql.append(filter.getSQLFragment(getSchema(), new SQLFragment("r.Container"), getContainer()));
+                        sql.append(")");
+                        addCondition(sql, containerFieldKey);
+                    }
+                };
+                table.setContainerFilter(table.getContainerFilter());
+
                 setDefaultVisibleColumns(table, "AnimalAnalysisId/RunId, AnimalAnalysisId/AnimalId, HaplotypeId");
                 table.setDescription("Contains one row per animal/haplotype assignment in a given run");
                 return table;

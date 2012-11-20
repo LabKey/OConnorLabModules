@@ -39,11 +39,13 @@ import org.labkey.api.data.DataRegionSelection;
 import org.labkey.api.data.PanelButton;
 import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.Results;
+import org.labkey.api.data.Selector;
 import org.labkey.api.data.ShowRows;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpProtocol;
@@ -91,9 +93,11 @@ import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.NotFoundException;
+import org.labkey.api.view.URLException;
 import org.labkey.api.view.VBox;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.api.view.ViewContext;
+import org.labkey.api.view.ViewForm;
 import org.labkey.api.view.WebPartView;
 import org.labkey.api.view.template.PageConfig;
 import org.labkey.genotyping.GenotypingQuerySchema.TableType;
@@ -124,6 +128,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -2224,6 +2229,45 @@ public class GenotypingController extends SpringActionController
             navTree.addChild(_protocol.getName(), new ActionURL(AssayRunsAction.class, getContainer()).addParameter("rowId", _protocol.getRowId()));
             navTree.addChild("Haplotype Assignment Report");
             return navTree;
+        }
+    }
+
+    @RequiresPermissionClass(UpdatePermission.class)
+    public class EditHaplotypeAssignmentAction extends SimpleViewAction<AssignmentForm>
+    {
+        @Override
+        public ModelAndView getView(AssignmentForm form, BindException errors) throws Exception
+        {
+            if (form.getRowId() == -1)
+                errors.reject(ERROR_MSG, "Error: Please provide an rowId for the AnimalAnalysis table.");
+
+            return new JspView<AssignmentForm>("/org/labkey/genotyping/view/editHaplotypeAssignment.jsp", form, errors);
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return root.addChild("Edit Haplotype Assignments");
+        }
+    }
+
+    public static class AssignmentForm extends ReturnUrlForm
+    {
+        private int _rowId = -1; // i.e. rowId for the AnimalAnalysis table
+
+        public int getRowId()
+        {
+            return _rowId;
+        }
+
+        public void setRowId(int rowId)
+        {
+            _rowId = rowId;
+        }
+
+        public void setSrcURL(String srcURL)
+        {
+            setReturnUrl(new ReturnURLString(srcURL));
         }
     }
 }
