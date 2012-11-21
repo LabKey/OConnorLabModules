@@ -286,9 +286,17 @@ public class GenotypingManager
     public void writeProperties(Properties props, File directory) throws IOException
     {
         File propXml = new File(directory, PROPERTIES_FILE_NAME);
-        OutputStream os = new FileOutputStream(propXml);
-        props.storeToXML(os, null);
-        os.close();
+        OutputStream os = null;
+        try
+        {
+            os = new FileOutputStream(propXml);
+            props.storeToXML(os, null);
+        }
+        finally
+        {
+            if (null != os)
+                os.close();
+        }
     }
 
     public Properties readProperties(File directory) throws IOException
@@ -303,9 +311,18 @@ public class GenotypingManager
 
         // Load properties to determine the run.
         Properties props = new Properties();
-        InputStream is = new FileInputStream(properties);
-        props.loadFromXML(is);
-        is.close();
+        InputStream is = null;
+
+        try
+        {
+            is = new FileInputStream(properties);
+            props.loadFromXML(is);
+        }
+        finally
+        {
+            if (null != is)
+                is.close();
+        }
 
         return props;
     }

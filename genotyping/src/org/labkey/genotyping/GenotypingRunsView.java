@@ -38,7 +38,7 @@ public class GenotypingRunsView extends QueryView
 {
     private final boolean _allowDelete;
 
-    public static WebPartFactory FACTORY = new BaseWebPartFactory("Sequencing Runs")
+    public static final WebPartFactory FACTORY = new BaseWebPartFactory("Sequencing Runs")
     {
         public WebPartView getWebPartView(ViewContext ctx, Portal.WebPart webPart) throws Exception
         {

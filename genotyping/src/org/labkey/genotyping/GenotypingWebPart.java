@@ -32,7 +32,7 @@ import java.util.List;
  */
 public class GenotypingWebPart extends JspView
 {
-    public static WebPartFactory FACTORY = new BaseWebPartFactory("Genotyping Overview")
+    public static final WebPartFactory FACTORY = new BaseWebPartFactory("Genotyping Overview")
     {
         public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart) throws Exception
         {
