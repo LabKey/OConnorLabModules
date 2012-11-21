@@ -76,24 +76,31 @@
                                 haplotypeRows.push({RowId: field.haplotypeRowId, HaplotypeId: field.getValue()})
                         });
 
+                        var commands = [{
+                            schemaName: 'genotyping',
+                            queryName: 'AnimalAnalysis',
+                            command: 'update',
+                            rows: [{RowId: <%=bean.getRowId()%>, Enabled: form.findField('enabled').getValue()}]
+                        }];
+                        if (haplotypeRows.length > 0)
+                        {
+                            commands.push({
+                                schemaName: 'genotyping',
+                                queryName: 'AnimalHaplotypeAssignment',
+                                command: 'update',
+                                rows: haplotypeRows
+                            });
+                        }
+
                         LABKEY.Query.saveRows({
-                            commands: [
-                                {
-                                    schemaName: 'genotyping',
-                                    queryName: 'AnimalAnalysis',
-                                    command: 'update',
-                                    rows: [{RowId: <%=bean.getRowId()%>, Enabled: form.findField('enabled').getValue()}]
-                                },
-                                {
-                                    schemaName: 'genotyping',
-                                    queryName: 'AnimalHaplotypeAssignment',
-                                    command: 'update',
-                                    rows: haplotypeRows
-                                }
-                            ],
+                            commands: commands,
                             success: function(data) {
                                 assignmentForm.getEl().unmask();
                                 window.location = '<%=returnURL.getLocalURIString()%>'
+                            },
+                            failure: function(response) {
+                                alert(response.exception);
+                                assignmentForm.getEl().unmask();
                             }
                         });
                     }
