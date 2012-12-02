@@ -72,7 +72,7 @@ public class GalaxyManager
 
     public void saveUserSettings(Container c, User user, GalaxyUserSettings userSettings)
     {
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(user.getUserId(), c, USER_CATEGORY, true);
+        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(user, c, USER_CATEGORY, true);
         map.put(GALAXY_KEY, userSettings.getGalaxyKey());
         PropertyManager.saveProperties(map);
     }
@@ -80,7 +80,7 @@ public class GalaxyManager
     public GalaxyUserSettings getUserSettings(final Container c, final User user)
     {
         return new GalaxyUserSettings() {
-            private final Map<String, String> map = PropertyManager.getProperties(user.getUserId(), c, USER_CATEGORY);
+            private final Map<String, String> map = PropertyManager.getProperties(user, c, USER_CATEGORY);
 
             @Override
             public String getGalaxyKey()
