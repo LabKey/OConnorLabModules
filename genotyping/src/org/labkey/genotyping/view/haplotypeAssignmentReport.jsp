@@ -39,7 +39,7 @@
 
     Ext4.onReady(function(){
         // lookup the Animal IDs if there were any selected from the results grid
-        var ids = '<%=h(initialIds)%>';
+        var ids = <%=q(initialIds)%>;
         if (ids.length > 0)
         {
             LABKEY.Query.selectRows({
@@ -63,7 +63,7 @@
 
     function init(initialIds)
     {
-        var assayName = '<%=bean.getAssayName()%>'
+        var assayName = <%=q(bean.getAssayName())%>;
 
         var idEntryForm = Ext4.create('Ext.form.FormPanel', {
             border: true,

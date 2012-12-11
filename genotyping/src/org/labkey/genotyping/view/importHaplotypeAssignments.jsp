@@ -44,7 +44,7 @@
     <%
     for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties().entrySet())
     {
-        %>expectedHeaders.push({name: '<%=h(property.getKey())%>', label: '<%=h(property.getValue().getLabel())%>', reshowValue: '<%=h(bean.getReshowValue(property.getKey()))%>', required: <%=h(property.getValue().isRequired())%>});<%
+        %>expectedHeaders.push({name: <%=q(property.getKey())%>, label: <%=q(property.getValue().getLabel())%>, reshowValue: <%=q(bean.getReshowValue(property.getKey()))%>, required: <%=h(property.getValue().isRequired())%>});<%
     }
     %>
 
@@ -61,8 +61,8 @@
             xtype: 'textarea',
             fieldLabel: 'Copy/Paste the header rows into the text area below',
             labelAlign: 'top',
-            itemId: '<%=h(HaplotypeAssayProvider.DATA_PROPERTY_NAME)%>',
-            name: '<%=h(HaplotypeAssayProvider.DATA_PROPERTY_NAME)%>',
+            itemId: <%=q(HaplotypeAssayProvider.DATA_PROPERTY_NAME)%>,
+            name: <%=q(HaplotypeAssayProvider.DATA_PROPERTY_NAME)%>,
             value: reshowData,
             allowBlank: false,
             width:580,
