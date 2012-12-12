@@ -74,6 +74,7 @@
             border: false,
             width: 400,
             bodyPadding: 5,
+            bodyStyle : 'background-color: transparent;',
             itemId: 'assignmentForm',
             defaults: {labelWidth: 170},
             items: [],
