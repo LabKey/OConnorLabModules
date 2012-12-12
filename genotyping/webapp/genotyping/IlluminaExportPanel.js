@@ -17,11 +17,17 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
     initComponent: function(){
 
         Ext4.QuickTips.init();
-
+        this.sequenceWarning = Ext4.create('Ext.form.Label', {
+            text : 'Warning:  Sample indexes do not support both color channels at each position.  See Preview Samples tab for more information.',
+            style : 'color:red;',
+            padding : '5px',
+            hidden : true
+        });
         Ext4.apply(this, {
             title: 'Create Illumina Sample Sheet',
             itemId: 'illuminaPanel',
             width: '100%',
+            validSequences: true,
             defaults: {
                 border: false
             },
@@ -30,7 +36,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                 border: false,
                 bodyStyle: 'padding: 5px;',
                 style: 'padding-bottom: 5px;'
-            },{
+            }, this.sequenceWarning, {
                 xtype: 'tabpanel',
                 defaults: {
                     border: false
@@ -138,7 +144,9 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                 }
             }]
         });
-
+        this.validI7Rows = this.validateDataSectionRows(this.getDataSectionRows(), 5);
+        this.validI5Rows = this.validateDataSectionRows(this.getDataSectionRows(), 7);
+        console.log(this.validRows);
         this.callParent();
 
         //button should require selection, so this should never happen...
@@ -350,6 +358,12 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             items: []
         };
 
+        this.redGreenText(rows);
+        var badCollumns = [];
+        badCollumns[5] = this.positionMatches(this.validI7Rows);
+        badCollumns[7] = this.positionMatches(this.validI5Rows);
+        rows.push(badCollumns);
+
         Ext4.each(rows, function(row, idx){
             Ext4.each(row, function(cell){
                 table.items.push({
@@ -366,6 +380,83 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         }, this);
 
         return table;
+    },
+
+    positionMatches: function(validRows){
+      var misses = "";
+        console.log(validRows);
+        for(var i = 0; i < validRows.length; i++){
+            if(!validRows[i]){
+                misses += '<span style="color:green">&nbsp;</span>';
+            }
+            else {
+                misses += '<span style="color:red">X</span>';
+            }
+        }
+        return '<span style="font-family:monospace; font-size:12pt">' + misses + '</span>';
+    },
+
+    redGreenText : function(rows){
+      var coloredString;
+      for(var i = 0; i < rows.length; i++){
+         coloredString = '';
+         for(var q = 0; q < rows[i][5].length; q++){
+             if(rows[i][5].charAt(q) == 'A' || rows[i][5].charAt(q) == 'C'){
+                 coloredString += '<span style="color:red">' + rows[i][5].charAt(q) + '</span>';
+             }
+             else if(rows[i][5].charAt(q) == 'G' || rows[i][5].charAt(q) == 'T'){
+                 coloredString += '<span style="color:green">' + rows[i][5].charAt(q) + '</span>';
+             }
+         }
+         rows[i][5] = '<span style="font-family:monospace; font-size:12pt">' + coloredString + '</span>';
+         coloredString = '';
+         for(var q = 0; q < rows[i][7].length; q++){
+             if(rows[i][7].charAt(q) == 'A' || rows[i][7].charAt(q) == 'C'){
+               coloredString += '<span style="color:red">' + rows[i][7].charAt(q) + '</span>';
+             }
+             else if(rows[i][7].charAt(q) == 'G' || rows[i][7].charAt(q) == 'T'){
+                 coloredString += '<span style="color:green">' + rows[i][7].charAt(q) + '</span>';
+             }
+         }
+         rows[i][7] = '<span style="font-family:monospace; font-size:12pt">' + coloredString + '</span>';
+      }
+    },
+
+    validateDataSectionRows: function(rows, col){
+        var validRows = [];
+        if(rows.length == 2) {
+            this.validSequences = false;
+            this.sequenceWarning.text = 'Warning: You have only selected one sequence.';
+            this.sequenceWarning.show();
+            return [true];
+        }
+        for(var pos = 0, target; pos < rows[1][col].length; pos++){
+            validRows[pos] = true;
+            if(rows[1][col].charAt(pos) == 'A' || rows[1][col].charAt(pos) == 'C'){
+                target = 'RED';
+            }
+            else {
+                target = 'GREEN';
+            }
+
+            for(var i = 2; i < rows.length; i++){
+                if(target == 'RED' && (rows[i][col].charAt(pos) == 'A' || rows[i][col].charAt(pos) == 'C')){
+                    continue;
+                }
+                else if (target == 'GREEN' && (rows[i][col].charAt(pos) == 'G' || rows[i][col].charAt(pos) == 'T')){
+                    continue;
+                }
+                else {
+                    validRows[pos] = false;
+                    break;
+                }
+            }
+            if(validRows[pos]){
+                this.validSequences = false;
+                this.sequenceWarning.show();
+            }
+        }
+        return validRows;
     },
 
     generateHeaderArray: function(){
