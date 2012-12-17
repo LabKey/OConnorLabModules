@@ -214,15 +214,16 @@ public class GenotypingManager
         }
 
         GenotypingSchema gs = GenotypingSchema.get();
+        SqlExecutor executor = new SqlExecutor(gs.getSchema());
 
         SQLFragment deleteSequencesSql = new SQLFragment("DELETE FROM ");
         deleteSequencesSql.append(gs.getSequencesTable().getSelectName()).append(" WHERE Dictionary IN (SELECT RowId FROM ");
         deleteSequencesSql.append(gs.getDictionariesTable().getSelectName()).append(" WHERE Container = ?)").add(c);
-        new SqlExecutor(gs.getSchema(), deleteSequencesSql).execute();
+        executor.execute(deleteSequencesSql);
 
         SQLFragment deleteDictionariesSql = new SQLFragment("DELETE FROM ");
         deleteDictionariesSql.append(gs.getDictionariesTable().getSelectName()).append(" WHERE Container = ?").add(c);
-        new SqlExecutor(gs.getSchema(), deleteDictionariesSql).execute();
+        executor.execute(deleteDictionariesSql);
 
         // delete the haplotype assignment junction tables and animal/haplotype rows
         SQLFragment deleteAssignmentSql = new SQLFragment("DELETE FROM ");
@@ -231,21 +232,21 @@ public class GenotypingManager
         deleteAssignmentSql.append(gs.getAnimalAnalysisTable().getSelectName());
         deleteAssignmentSql.append(" WHERE RunId IN (SELECT RowId FROM exp.ExperimentRun ");
         deleteAssignmentSql.append(" WHERE Container = ?))").add(c);
-        new SqlExecutor(gs.getSchema(), deleteAssignmentSql).execute();
+        executor.execute(deleteAssignmentSql);
 
         SQLFragment deleteAnimalAnalysisSql = new SQLFragment("DELETE FROM ");
         deleteAnimalAnalysisSql.append(gs.getAnimalAnalysisTable().getSelectName());
         deleteAnimalAnalysisSql.append(" WHERE RunId IN (SELECT RowId FROM exp.ExperimentRun ");
         deleteAnimalAnalysisSql.append(" WHERE Container = ?)").add(c);
-        new SqlExecutor(gs.getSchema(), deleteAnimalAnalysisSql).execute();
+        executor.execute(deleteAnimalAnalysisSql);
 
         SQLFragment deleteAnimalSql = new SQLFragment("DELETE FROM ");
         deleteAnimalSql.append(gs.getAnimalTable().getSelectName()).append(" WHERE Container = ?").add(c);
-        new SqlExecutor(gs.getSchema(), deleteAnimalSql).execute();
+        executor.execute(deleteAnimalSql);
 
         SQLFragment deleteHaplotypeSql = new SQLFragment("DELETE FROM ");
         deleteHaplotypeSql.append(gs.getHaplotypeTable().getSelectName()).append(" WHERE Container = ?").add(c);
-        new SqlExecutor(gs.getSchema(), deleteHaplotypeSql).execute();
+        executor.execute(deleteHaplotypeSql);
     }
 
 

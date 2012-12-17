@@ -391,16 +391,17 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         GenotypingSchema gs = GenotypingSchema.get();
         if (data.getRunId() != null)
         {
+            SqlExecutor executor = new SqlExecutor(gs.getSchema());
             // clean up the AnimalHaplotypeAssignment table
             SQLFragment deleteAssignmentSql = new SQLFragment("DELETE FROM " + gs.getAnimalHaplotypeAssignmentTable() +
                 " WHERE AnimalAnalysisId IN (SELECT RowId FROM " + gs.getAnimalAnalysisTable() +
                 " WHERE RunId = ?)", data.getRunId());
-            new SqlExecutor(gs.getSchema(), deleteAssignmentSql).execute();
+            executor.execute(deleteAssignmentSql);
 
             // clean up the AnimalAnalysis table
             SQLFragment deleteAnimalAnalysisSql = new SQLFragment("DELETE FROM " + gs.getAnimalAnalysisTable() +
                 " WHERE RunId = ?", data.getRunId());
-            new SqlExecutor(gs.getSchema(), deleteAnimalAnalysisSql).execute();
+            executor.execute(deleteAnimalAnalysisSql);
         }
     }
 
