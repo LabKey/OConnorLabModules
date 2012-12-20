@@ -16,6 +16,21 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
     initComponent: function(){
 
+        //Store and model for the viewCombo
+        Ext4.define('viewModel', {
+            extend : 'Ext.data.Model',
+            fields : [
+                {name : 'default',      type : 'boolean'},
+                {name : 'name',         type : 'string',  sortType: function(value) { return value.toLowerCase(); }},
+                {name : 'viewDataUrl',  type : 'string'}
+            ]
+        });
+
+        var viewStore = Ext4.create('Ext.data.Store', {
+            model : 'viewModel',
+            sorters: { property: 'name', direction: 'ASC' }
+        });
+
         Ext4.QuickTips.init();
         this.sequenceWarning = Ext4.create('Ext.form.Label', {
             text : 'Warning:  Sample indexes do not support both color channels at each position.  See Preview Samples tab for more information.',
@@ -94,6 +109,23 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                         section: 'Header'
                     },{
                         xtype: 'combo',
+                        itemId: 'customView',
+                        fieldLabel: 'Custom View',
+                        queryMode: 'local',
+                        displayField: 'name',
+                        valueField: 'name',
+                        editable : false,
+                        allowBlank: true,
+                        section: 'Header',
+                        store: viewStore,
+                        listConfig:{
+                            getInnerTpl:function (dfield)
+                            {
+                                return '{' + dfield + ':htmlEncode}'; // 15202
+                            }
+                        }
+                     },{
+                        xtype: 'combo',
                         itemId: 'template',
                         fieldLabel: 'Template',
                         queryMode: 'local',
@@ -112,7 +144,33 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                                 console.log(error)
                             }
                         })
-                    }]
+                    }],
+                    listeners: {render: {fn: function() {
+                        LABKEY.Query.getQueryViews({
+                            scope : this,
+                            schemaName : 'genotyping',
+                            queryName : 'Samples',
+                            successCallback : function(details){
+                                var filteredViews = [];
+                                for(var i = 0; i < details.views.length; i++){
+                                    if (!details.views[i].hidden)
+                                    {
+                                        if(details.views[i].name == ""){
+                                            details.views[i].name = "[default view]";
+                                        }
+                                        if(details.views[i].default == true && details.views[i].name != "[default view]"){
+                                        details.views[i].name += " [default]";
+                                    }
+                                        filteredViews.push(details.views[i]);
+                                    }
+                                }
+                                filteredViews.push({name: ''});
+                                viewStore.loadData(filteredViews);
+                            }
+                        });
+
+                    }
+                    }}
                 },{
                     title: 'Preview Header',
                     itemId: 'previewTab',
@@ -137,15 +195,15 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                 handler: function(btn){
                     var url = LABKEY.ActionURL.getParameter('srcURL');
                     if(url)
-                        window.location = decodeURIComponent(url)
+                        window.location = decodeURIComponent(url);
                     else
                         window.location = LABKEY.ActionURL.buildURL('project', 'start');
-
                 }
             }]
         });
-        this.validI7Rows = this.validateDataSectionRows(this.getDataSectionRows(), 5);
-        this.validI5Rows = this.validateDataSectionRows(this.getDataSectionRows(), 7);
+
+        this.validI7Rows = this.validateDataSectionRows(this.getStandardDataSectionRows(), 5);
+        this.validI5Rows = this.validateDataSectionRows(this.getStandardDataSectionRows(), 7);
         console.log(this.validRows);
         this.callParent();
 
@@ -346,7 +404,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
     },
 
     generateSamplesPreview: function(){
-        var rows = this.getDataSectionRows();
+        var rows = this.getStandardDataSectionRows();
         var table = {
             layout: {
                 type: 'table',
@@ -491,7 +549,59 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         return rowArray.join('\n');
     },
 
-    getDataSectionRows: function(){
+    getExportDataSection: function(finishExport){
+        var viewCombo = this.down('#defaultTab').down('#customView');
+
+        if (!viewCombo.value || viewCombo.value == '')
+        {
+            finishExport(this.getStandardDataSectionRows())
+        }
+        else
+        {
+            var keys = [];
+            Ext4.each(this.rows, function(row){
+                keys.push(row.Key);
+            });
+
+            var pkFilter = LABKEY.Filter.create('Key', keys.join(";"), LABKEY.Filter.Types.IN);
+
+            // Query the selected view and transform to the export format
+            LABKEY.Query.selectRows({
+                schemaName: 'genotyping',
+                queryName: 'Samples',
+                viewName: viewCombo.value,
+                filterArray: [pkFilter],
+                requiredVersion: 9.1,
+                success: function(data){
+                    var exportRows = [];
+                    var fields = data.metaData.fields;
+                    var header = [];
+                    Ext4.each(fields, function(field){
+                        header.push(field.name);
+                    });
+                    exportRows.push(header);
+                    Ext4.each(data.rows, function(row){
+                        var toAdd = [];
+                        Ext4.each(fields, function(fieldMetaData){
+                            var field = row[fieldMetaData.name];
+                            toAdd.push(field.displayValue ? field.displayValue : field.value);
+                        }, this);
+                        exportRows.push(toAdd);
+                    }, this);
+                    finishExport(exportRows);
+                },
+                failure: function(errorInfo, options, responseObj)
+                {
+                    if (errorInfo && errorInfo.exception)
+                        alert("Failure: " + errorInfo.exception);
+                    else
+                        alert("Failure: " + responseObj.statusText);
+                }
+            });
+        }
+    },
+
+    getStandardDataSectionRows: function(){
         var exportRows = [];
 
         var sampleColumns = [
@@ -545,7 +655,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
     generateSampleText: function(){
         var text = '';
-        var rows = this.getDataSectionRows();
+        var rows = this.getStandardDataSectionRows();
         Ext4.each(rows, function(row){
             text += row.join(',') + '\n';
         }, this);
@@ -659,14 +769,16 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
         var text = this.generateHeaderArray();
         text.push(['[Data]']);
-        text = text.concat(this.getDataSectionRows());
 
-        LABKEY.Utils.convertToTable({
-            fileNamePrefix: fileNamePrefix,
-            delim: 'COMMA',
-            exportAsWebPage: LABKEY.ActionURL.getParameter('exportAsWebPage'),
-            rows: text
-        });
+        this.getExportDataSection(function(dataSection) {
+            text = text.concat(dataSection);
+            LABKEY.Utils.convertToTable({
+                fileNamePrefix: fileNamePrefix,
+                delim: 'COMMA',
+                exportAsWebPage: LABKEY.ActionURL.getParameter('exportAsWebPage'),
+                rows: text
+            });
+        })
     },
 
     onSaveTemplate: function(btn){
