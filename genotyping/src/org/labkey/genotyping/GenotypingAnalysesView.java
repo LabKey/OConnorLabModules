@@ -83,9 +83,7 @@ public class GenotypingAnalysesView extends QueryView
 
     private static QuerySettings getQuerySettings(ViewContext ctx, String dataRegion, @Nullable SimpleFilter baseFilter)
     {
-
         QuerySettings settings = new QuerySettings(ctx, dataRegion, GenotypingQuerySchema.TableType.Analyses.toString());
-        settings.setAllowChooseQuery(false);
         settings.setAllowChooseView(true);
         settings.getBaseSort().insertSortColumn("RowId");
 

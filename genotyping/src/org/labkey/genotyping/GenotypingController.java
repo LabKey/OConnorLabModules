@@ -272,7 +272,6 @@ public class GenotypingController extends SpringActionController
             _analysis = GenotypingManager.get().getAnalysis(getContainer(), form.getAnalysis());
 
             QuerySettings settings = new QuerySettings(getViewContext(), "Analysis", TableType.Matches.toString());
-            settings.setAllowChooseQuery(false);
             settings.setAllowChooseView(true);
             settings.setBaseSort(new Sort("SampleId/library_sample_name,Alleles/AlleleName"));
             settings.getBaseFilter().addCondition("Analysis", form.getAnalysis());
@@ -1647,7 +1646,6 @@ public class GenotypingController extends SpringActionController
         protected QueryView createQueryView(SequencesForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
         {
             QuerySettings settings = new QuerySettings(getViewContext(), "Sequences", TableType.Sequences.toString());
-            settings.setAllowChooseQuery(false);
             settings.setAllowChooseView(true);
             settings.getBaseSort().insertSortColumn("RowId");
             Integer dictionary = form.getDictionary();
@@ -1915,7 +1913,6 @@ public class GenotypingController extends SpringActionController
             final String platform = null==_run?"":_run.getPlatform();
 
             QuerySettings settings = new QuerySettings(getViewContext(), DATA_REGION_NAME, getTableName());
-            settings.setAllowChooseQuery(false);
             settings.setAllowChooseView(true);
             if(platform.equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString()))
             {
