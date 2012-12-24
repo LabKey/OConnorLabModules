@@ -7,11 +7,13 @@
  *
  * @class Genotyping.ext.IlluminaSampleExportPanel
  */
-Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
+
+var defaultView = '[Library QC]';
+var exportRows = null;
+
+var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
     extend: 'Ext.panel.Panel',
-
     sectionNames: ['Header', 'Reads', 'Settings', 'Data'],
-
     ignoredSectionNames: ['Data'],
 
     initComponent: function(){
@@ -20,9 +22,9 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         Ext4.define('viewModel', {
             extend : 'Ext.data.Model',
             fields : [
-                {name : 'default',      type : 'boolean'},
-                {name : 'name',         type : 'string',  sortType: function(value) { return value.toLowerCase(); }},
-                {name : 'viewDataUrl',  type : 'string'}
+                {name : 'default',     type : 'boolean'},
+                {name : 'name',        type : 'string',  sortType: 'asUCText'},
+                {name : 'viewDataUrl', type : 'string'}
             ]
         });
 
@@ -33,11 +35,12 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
         Ext4.QuickTips.init();
         this.sequenceWarning = Ext4.create('Ext.form.Label', {
-            text : 'Warning:  Sample indexes do not support both color channels at each position.  See Preview Samples tab for more information.',
+            text : 'Warning: Sample indexes do not support both color channels at each position.  See Preview Samples tab for more information.',
             style : 'color:red;',
             padding : '5px',
             hidden : true
         });
+
         Ext4.apply(this, {
             title: 'Create Illumina Sample Sheet',
             itemId: 'illuminaPanel',
@@ -115,9 +118,10 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                         displayField: 'name',
                         valueField: 'name',
                         editable : false,
-                        allowBlank: true,
+                        allowBlank: false,
                         section: 'Header',
                         store: viewStore,
+                        value: defaultView,
                         listConfig:{
                             getInnerTpl:function (dfield)
                             {
@@ -152,25 +156,21 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                             queryName : 'Samples',
                             successCallback : function(details){
                                 var filteredViews = [];
-                                for(var i = 0; i < details.views.length; i++){
+                                filteredViews.push({name: defaultView});
+                                for (var i = 0; i < details.views.length; i++){
                                     if (!details.views[i].hidden)
                                     {
-                                        if(details.views[i].name == ""){
-                                            details.views[i].name = "[default view]";
-                                        }
-                                        if(details.views[i].default == true && details.views[i].name != "[default view]"){
-                                        details.views[i].name += " [default]";
-                                    }
+                                        // Skip default view, #16848
+                                        if (details.views[i].name === "" || details.views[i].default)
+                                            continue;
+
                                         filteredViews.push(details.views[i]);
                                     }
                                 }
-                                filteredViews.push({name: ''});
                                 viewStore.loadData(filteredViews);
                             }
                         });
-
-                    }
-                    }}
+                    }}}
                 },{
                     title: 'Preview Header',
                     itemId: 'previewTab',
@@ -202,9 +202,10 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             }]
         });
 
-        this.validI7Rows = this.validateDataSectionRows(this.getStandardDataSectionRows(), 5);
-        this.validI5Rows = this.validateDataSectionRows(this.getStandardDataSectionRows(), 7);
-        console.log(this.validRows);
+        // Use the hard-coded fields to validate; do this at init time since it won't change based on selected view
+        var validationRows = this.getStandardDataSectionRows();
+        this.validI7Rows = this.validateDataSectionRows(validationRows, 5);
+        this.validI5Rows = this.validateDataSectionRows(validationRows, 7);
         this.callParent();
 
         //button should require selection, so this should never happen...
@@ -236,26 +237,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
     },
 
     populatePreviewSamplesTab: function(){
-        var previewTab = this.down('#previewSamplesTab');
-
-        var table = this.generateSamplesPreview();
-
-        previewTab.removeAll();
-        previewTab.add({
-            border: false,
-            xtype: 'container',
-            defaults: {
-                border: false
-            },
-            items: [table],
-            buttonAlign: 'left',
-            buttons: [{
-                text: 'Edit Samples',
-                hidden: true,
-                scope: this,
-                handler: this.onEditSamples
-            }]
-        });
+        this.generateSamplesPreview();
     },
 
     populatePreviewTab: function(){
@@ -404,40 +386,57 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
     },
 
     generateSamplesPreview: function(){
-        var rows = this.getStandardDataSectionRows();
-        var table = {
-            layout: {
-                type: 'table',
-                columns: rows[0].length,
+        this.getExportDataSection(function(exportRows, sequenceColumns, badColumns, scope){
+            if (sequenceColumns.length > 0)
+            {
+                scope.redGreenText(exportRows, sequenceColumns);
+                exportRows.push(badColumns);
+            }
+
+            var table = {
+                layout: {
+                    type: 'table',
+                    columns: exportRows[0].length,
+                    defaults: {
+                        border: false
+                    }
+                },
+                items: []
+            };
+
+            Ext4.each(exportRows, function(row, idx){
+                Ext4.each(row, function(cell){
+                    table.items.push({
+                        tag: 'div',
+                        autoEl: {
+                            style: 'padding: 5px;'
+                        },
+                        border: false,
+                        style: idx ? null : 'border-bottom: black medium solid;',
+                        html: Ext4.isEmpty(cell) ? '&nbsp;' : cell.toString()
+                    });
+                }, this);
+            }, this);
+
+            var previewTab = scope.down('#previewSamplesTab');
+
+            previewTab.removeAll();
+            previewTab.add({
+                border: false,
+                xtype: 'container',
                 defaults: {
                     border: false
-                }
-            },
-            items: []
-        };
-
-        this.redGreenText(rows);
-        var badCollumns = [];
-        badCollumns[5] = this.positionMatches(this.validI7Rows);
-        badCollumns[7] = this.positionMatches(this.validI5Rows);
-        rows.push(badCollumns);
-
-        Ext4.each(rows, function(row, idx){
-            Ext4.each(row, function(cell){
-                table.items.push({
-                    tag: 'div',
-                    autoEl: {
-                        style: 'padding: 5px;'
-                    },
-                    border: false,
-                    style: idx ? null : 'border-bottom: black medium solid;',
-                    html: Ext4.isEmpty(cell) ? '&nbsp;' : cell.toString()
-                });
-
-            }, this);
+                },
+                items: [table],
+                buttonAlign: 'left',
+                buttons: [{
+                    text: 'Edit Samples',
+                    hidden: true,
+                    scope: this,
+                    handler: this.onEditSamples
+                }]
+            });
         }, this);
-
-        return table;
     },
 
     positionMatches: function(validRows){
@@ -454,30 +453,28 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         return '<span style="font-family:monospace; font-size:12pt">' + misses + '</span>';
     },
 
-    redGreenText : function(rows){
-      var coloredString;
-      for(var i = 0; i < rows.length; i++){
-         coloredString = '';
-         for(var q = 0; q < rows[i][5].length; q++){
-             if(rows[i][5].charAt(q) == 'A' || rows[i][5].charAt(q) == 'C'){
-                 coloredString += '<span style="color:red">' + rows[i][5].charAt(q) + '</span>';
-             }
-             else if(rows[i][5].charAt(q) == 'G' || rows[i][5].charAt(q) == 'T'){
-                 coloredString += '<span style="color:green">' + rows[i][5].charAt(q) + '</span>';
-             }
-         }
-         rows[i][5] = '<span style="font-family:monospace; font-size:12pt">' + coloredString + '</span>';
-         coloredString = '';
-         for(var q = 0; q < rows[i][7].length; q++){
-             if(rows[i][7].charAt(q) == 'A' || rows[i][7].charAt(q) == 'C'){
-               coloredString += '<span style="color:red">' + rows[i][7].charAt(q) + '</span>';
-             }
-             else if(rows[i][7].charAt(q) == 'G' || rows[i][7].charAt(q) == 'T'){
-                 coloredString += '<span style="color:green">' + rows[i][7].charAt(q) + '</span>';
-             }
-         }
-         rows[i][7] = '<span style="font-family:monospace; font-size:12pt">' + coloredString + '</span>';
-      }
+    // Apply red/green formatting to all sequences in the specified rows and columns
+    redGreenText : function(rows, columns){
+        for (var i = 0; i < rows.length; i++)
+            for (var j = 0; j < columns.length; j++)
+                this.redGreenTextRow(rows[i], columns[j]);
+    },
+
+    // Apply red/green formatting to a single sequence in the grid
+    redGreenTextRow: function(row, index){
+        var sequence = row[index];
+        var coloredSequence = '';
+
+        for (var q = 0; q < sequence.length; q++){
+            if(sequence.charAt(q) == 'A' || sequence.charAt(q) == 'C'){
+                coloredSequence += '<span style="color:red">' + sequence.charAt(q) + '</span>';
+            }
+            else if(sequence.charAt(q) == 'G' || sequence.charAt(q) == 'T'){
+                coloredSequence += '<span style="color:green">' + sequence.charAt(q) + '</span>';
+            }
+        }
+
+        row[index] = '<span style="font-family:monospace; font-size:12pt">' + coloredSequence + '</span>';
     },
 
     validateDataSectionRows: function(rows, col){
@@ -549,12 +546,12 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         return rowArray.join('\n');
     },
 
-    getExportDataSection: function(finishExport){
+    getExportDataSection: function(finishExport, scope){
         var viewCombo = this.down('#defaultTab').down('#customView');
 
-        if (!viewCombo.value || viewCombo.value == '')
+        if (viewCombo.value === defaultView)
         {
-            finishExport(this.getStandardDataSectionRows())
+            this.finalizeExportDataSection(this.getStandardDataSectionRows(), finishExport, this)
         }
         else
         {
@@ -572,13 +569,14 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                 viewName: viewCombo.value,
                 filterArray: [pkFilter],
                 requiredVersion: 9.1,
+                scope: this,
                 success: function(data){
                     var exportRows = [];
                     var fields = data.metaData.fields;
                     var header = [];
                     Ext4.each(fields, function(field){
-                        header.push(field.name);
-                    });
+                        header.push(this.getHeaderCell(field.caption, field.fieldKey));
+                    }, this);
                     exportRows.push(header);
                     Ext4.each(data.rows, function(row){
                         var toAdd = [];
@@ -588,7 +586,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                         }, this);
                         exportRows.push(toAdd);
                     }, this);
-                    finishExport(exportRows);
+                    this.finalizeExportDataSection(exportRows, finishExport, this);
                 },
                 failure: function(errorInfo, options, responseObj)
                 {
@@ -599,6 +597,33 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                 }
             });
         }
+    },
+
+    finalizeExportDataSection: function(exportRows, finishExport, scope) {
+        var headerRow = exportRows[0];
+        var sequenceColumns = [];
+        var badColumns = [];
+
+        // Find the sequence columns based on header property... then stash the captions in the header
+        for (var i = 0; i < headerRow.length; i++)
+        {
+            var cell = headerRow[i];
+
+            if (cell.i5Sequence)
+            {
+                sequenceColumns.push(i);
+                badColumns[i] = scope.positionMatches(scope.validI5Rows);
+            }
+            else if (cell.i7Sequence)
+            {
+                sequenceColumns.push(i);
+                badColumns[i] = scope.positionMatches(scope.validI7Rows);
+            }
+
+            headerRow[i] = cell.caption;
+        }
+
+        finishExport(exportRows, sequenceColumns, badColumns, scope);
     },
 
     getStandardDataSectionRows: function(){
@@ -638,7 +663,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
         var headerRow = [];
         Ext4.each(sampleColumns, function(col){
-            headerRow.push(col[0]);
+            headerRow.push(this.getHeaderCell(col[0], col[1]));
         }, this);
         exportRows.push(headerRow);
 
@@ -651,6 +676,19 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         }, this);
 
         return exportRows;
+    },
+
+    // Mark i5 and i7 seqence columns based on fieldkey
+    getHeaderCell: function(caption, fieldKey)
+    {
+        var columnHeader = {caption: caption};
+
+        if (fieldKey === "threemid/mid_sequence")
+            columnHeader.i5Sequence = true;
+        else if (fieldKey === "fivemid/mid_sequence")
+            columnHeader.i7Sequence = true;
+
+        return columnHeader;
     },
 
     generateSampleText: function(){
@@ -839,7 +877,7 @@ Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                 console.log('Error saving templates');
                 console.log(error);
             }
-        }
+        };
 
         if(rec.phantom){
             LABKEY.Query.insertRows(config)
