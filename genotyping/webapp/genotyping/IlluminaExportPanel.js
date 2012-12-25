@@ -574,15 +574,19 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                     var exportRows = [];
                     var fields = data.metaData.fields;
                     var header = [];
-                    Ext4.each(fields, function(field){
-                        header.push(this.getHeaderCell(field.caption, field.fieldKey));
+                    Ext4.each(fields, function(fieldMetaData){
+                        if (!fieldMetaData.hidden)
+                            header.push(this.getHeaderCell(fieldMetaData.caption, fieldMetaData.fieldKey));
                     }, this);
                     exportRows.push(header);
                     Ext4.each(data.rows, function(row){
                         var toAdd = [];
                         Ext4.each(fields, function(fieldMetaData){
-                            var field = row[fieldMetaData.name];
-                            toAdd.push(field.displayValue ? field.displayValue : field.value);
+                            if (!fieldMetaData.hidden)
+                            {
+                                var field = row[fieldMetaData.name];
+                                toAdd.push(field.displayValue ? field.displayValue : field.value);
+                            }
                         }, this);
                         exportRows.push(toAdd);
                     }, this);
