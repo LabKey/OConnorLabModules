@@ -18,8 +18,13 @@ package org.labkey.genotyping;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
+import org.labkey.api.data.JdbcType;
+import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.api.ExpProtocol;
+import org.labkey.api.exp.property.DomainProperty;
+import org.labkey.api.query.ExprColumn;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.LookupForeignKey;
 import org.labkey.api.query.QuerySettings;
@@ -33,6 +38,9 @@ import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
 import org.labkey.api.view.ViewContext;
 import org.springframework.validation.BindException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * User: jeckels
@@ -51,6 +59,26 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
     public FilteredTable createDataTable(boolean includeCopiedToStudyColumns)
     {
         FilteredTable table = (FilteredTable)new GenotypingQuerySchema(getUser(), getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name());
+        List<FieldKey> toCopy = table.getDefaultVisibleColumns();
+        List<FieldKey> keys = new ArrayList<FieldKey>(toCopy);
+        DomainProperty[] props = HaplotypeAssayProvider.getDomainProps(getProtocol());
+
+        SQLFragment haplotypeSubselectSql = new SQLFragment("SELECT aha.AnimalAnalysisId, h.Name AS Haplotype, h.Type FROM ");
+        haplotypeSubselectSql.append(GenotypingSchema.get().getAnimalHaplotypeAssignmentTable(), "aha");
+        haplotypeSubselectSql.append(" JOIN ");
+        haplotypeSubselectSql.append(GenotypingSchema.get().getHaplotypeTable(), "h");
+        haplotypeSubselectSql.append(" ON aha.HaplotypeId = h.RowId");
+        ExprColumn col;
+
+        for(int i = 5; i < props.length; i++){
+            col = makeColumnFromRunField(props[i], props[i].getName().endsWith("1"), haplotypeSubselectSql, table);
+            keys.add(FieldKey.fromParts(props[i].getName()));
+            if(table.getColumn(props[i].getName()) == null)
+                table.addColumn(col);
+        }
+
+        table.setDefaultVisibleColumns(keys);
+
         table.getColumn("RunId").setFk(new LookupForeignKey()
         {
             @Override
@@ -60,6 +88,23 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
             }
         });
         return table;
+    }
+
+    private ExprColumn makeColumnFromRunField(DomainProperty prop, boolean max, SQLFragment selectStatement, FilteredTable table){
+
+        String field = prop.getName();
+        String label = prop.getLabel();
+        String type = label.split(" ")[0];
+
+        SQLFragment sql = new SQLFragment("(SELECT ");
+        if(max) sql.append("max");
+        else sql.append("min");
+        sql.append("(x.Haplotype) FROM (");
+        sql.append(selectStatement);
+        sql.append(") AS x WHERE x.Type = '" + type + "' AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+        ExprColumn column = new ExprColumn(table, field, sql, JdbcType.VARCHAR);
+        column.setLabel(label);
+        return column;
     }
 
     @Override

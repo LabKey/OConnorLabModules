@@ -23,14 +23,19 @@
 <%@ page import="org.labkey.genotyping.HaplotypeAssayProvider" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="org.labkey.genotyping.HaplotypeColumnMappingProperty" %>
+<%@ page import="org.labkey.genotyping.HaplotypeProtocolBean" %>
+<%@ page import="org.labkey.api.study.assay.AssayProvider" %>
+<%@ page import="org.labkey.api.study.assay.AssayService" %>
+<%@ page import="org.labkey.api.exp.property.Domain" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
-    JspView<HaplotypeDataCollector> me = (JspView<HaplotypeDataCollector>) HttpView.currentView();
-    HaplotypeDataCollector bean = me.getModelBean();
+    JspView<HaplotypeProtocolBean> me = (JspView<HaplotypeProtocolBean>) HttpView.currentView();
+    HaplotypeProtocolBean bean = me.getModelBean();
+    HaplotypeDataCollector dataCollector = bean.getDataCollector();
     String[] reshowData = {};
-    if (bean.getReshowValue("data") != null && !bean.getReshowValue("data").equals(""))
+    if (dataCollector.getReshowValue("data") != null && !dataCollector.getReshowValue("data").equals(""))
     {
-        reshowData = bean.getReshowValue("data").split("\\r?\\n");
+        reshowData = dataCollector.getReshowValue("data").split("\\r?\\n");
     }
 
     final String copyPasteDivId = "copypasteDiv" + getRequestScopedUID();
@@ -42,9 +47,9 @@
 <script type="text/javascript">
     var expectedHeaders = [];
     <%
-    for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties().entrySet())
+    for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties(bean.getProtocol()).entrySet())
     {
-        %>expectedHeaders.push({name: <%=q(property.getKey())%>, label: <%=q(property.getValue().getLabel())%>, reshowValue: <%=q(bean.getReshowValue(property.getKey()))%>, required: <%=h(property.getValue().isRequired())%>});<%
+        %>expectedHeaders.push({name: '<%=h(property.getKey())%>', label: '<%=h(property.getValue().getLabel())%>', reshowValue: '<%=h(dataCollector.getReshowValue(property.getKey()))%>', required: <%=h(property.getValue().isRequired())%>});<%
     }
     %>
 

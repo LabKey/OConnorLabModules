@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -50,12 +51,12 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
         HttpServletRequest request = context.getRequest();
         _reshowMap = new HashMap<String, String>();
         _reshowMap.put(HaplotypeAssayProvider.DATA_PROPERTY_NAME, request.getParameter(HaplotypeAssayProvider.DATA_PROPERTY_NAME));
-        for (String propName : HaplotypeAssayProvider.getColumnMappingProperties().keySet())
+        for (String propName : HaplotypeAssayProvider.getColumnMappingProperties(context.getProtocol()).keySet())
         {
             _reshowMap.put(propName, request.getParameter(propName));
         }
 
-        return new JspView<HaplotypeDataCollector>("/org/labkey/genotyping/view/importHaplotypeAssignments.jsp", this);
+        return new JspView<HaplotypeProtocolBean>("/org/labkey/genotyping/view/importHaplotypeAssignments.jsp", new HaplotypeProtocolBean(this, context.getProtocol()));
     }
 
     @Override
@@ -87,9 +88,15 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
 
         // verify that all of the column header mapping values are present
         List<String> errorColHeaders = new ArrayList<String>();
-        for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties().entrySet())
+        HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
+
+        for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties(protocol).entrySet())
         {
             String value = context.getRequest().getParameter(property.getKey());
+            String matchLabel = property.getValue().getLabel();
+            if(!matchLabel.split(" ")[0].equals(value.split(" ")[0]) && !defaults.contains(property.getValue().getName()) && !value.equals("")){
+                throw new ExperimentException("The haplotype " + matchLabel + " is not compatible with the column header: " + value);
+            }
             if (property.getValue().isRequired() && (value == null || value.equals("")))
                 errorColHeaders.add(property.getValue().getLabel());
         }

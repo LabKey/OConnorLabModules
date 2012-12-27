@@ -32,6 +32,8 @@ import org.labkey.api.study.assay.AbstractAssayProvider;
 import org.labkey.api.study.assay.AssayDataCollector;
 import org.labkey.api.study.assay.AssayDataType;
 import org.labkey.api.study.assay.AssayProtocolSchema;
+import org.labkey.api.study.assay.AssayProvider;
+import org.labkey.api.study.assay.AssayService;
 import org.labkey.api.study.assay.AssayTableMetadata;
 import org.labkey.api.study.assay.AssayUrls;
 import org.labkey.api.study.assay.ParticipantVisitResolverType;
@@ -212,4 +214,46 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         properties.put(HAPLOTYPE_COLUMNS[3].getName(), HAPLOTYPE_COLUMNS[3]);
         return properties;
     }
+
+    public static Map<String, HaplotypeColumnMappingProperty> getColumnMappingProperties(ExpProtocol protocol)
+    {
+        Map<String, HaplotypeColumnMappingProperty> properties = new LinkedHashMap<String, HaplotypeColumnMappingProperty>();
+        AssayProvider provider = AssayService.get().getProvider(protocol);
+        Domain domain = provider.getRunDomain(protocol);
+        DomainProperty[] props = domain.getProperties();
+        properties.put(LAB_ANIMAL_COLUMN.getName(), LAB_ANIMAL_COLUMN);
+        properties.put(CLIENT_ANIMAL_COLUMN.getName(), CLIENT_ANIMAL_COLUMN);
+        properties.put(TOTAL_READS_COLUMN.getName(), TOTAL_READS_COLUMN);
+        properties.put(IDENTIFIED_READS_COLUMN.getName(), IDENTIFIED_READS_COLUMN);
+
+        String label;
+        HashSet<String> defaults = getDefaultColumns();
+
+        for (int i = 0; i < props.length; i++)
+        {
+            label = props[i].getLabel();
+            if(!props[i].isShownInInsertView() && (label.contains(" ")) && (label.endsWith("1") || label.endsWith("2")) && !defaults.contains(props[i].getName()))
+                properties.put(props[i].getName(), new HaplotypeColumnMappingProperty(props[i].getName(), props[i].getLabel(), false));
+        }
+
+        return properties;
+    }
+
+    public static HashSet<String> getDefaultColumns(){
+        HashSet<String> defaults = new HashSet<String>();
+        defaults.add(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName());
+        defaults.add(HaplotypeAssayProvider.CLIENT_ANIMAL_COLUMN.getName());
+        defaults.add(HaplotypeAssayProvider.TOTAL_READS_COLUMN.getName());
+        defaults.add(HaplotypeAssayProvider.IDENTIFIED_READS_COLUMN.getName());
+
+        return defaults;
+    }
+
+    public static DomainProperty[] getDomainProps(ExpProtocol protocol){
+        AssayProvider provider = AssayService.get().getProvider(protocol);
+        Domain domain = provider.getRunDomain(protocol);
+        DomainProperty[] props = domain.getProperties();
+        return props;
+    }
+
 }
