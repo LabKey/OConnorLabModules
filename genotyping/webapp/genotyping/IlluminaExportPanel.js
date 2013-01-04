@@ -455,7 +455,7 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
     // Apply red/green formatting to all sequences in the specified rows and columns
     redGreenText : function(rows, columns){
-        for (var i = 0; i < rows.length; i++)
+        for (var i = 1; i < rows.length; i++)
             for (var j = 0; j < columns.length; j++)
                 this.redGreenTextRow(rows[i], columns[j]);
     },
