@@ -15,6 +15,7 @@
  */
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
@@ -107,6 +108,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         return column;
     }
 
+    @Nullable
     @Override
     protected RunListQueryView createRunsQueryView(ViewContext context, QuerySettings settings, BindException errors)
     {
@@ -124,6 +126,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         };
     }
 
+    @Nullable
     @Override
     protected ResultsQueryView createDataQueryView(ViewContext context, QuerySettings settings, BindException errors)
     {
