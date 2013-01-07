@@ -17,6 +17,7 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.exp.PropertyType;
@@ -231,7 +232,10 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
 
         for (int i = 0; i < props.length; i++)
         {
+            if(props[i].getLabel() == null)
+                props[i].setLabel(ColumnInfo.labelFromName(props[i].getName()));
             label = props[i].getLabel();
+
             if(!props[i].isShownInInsertView() && (label.contains(" ")) && (label.endsWith("1") || label.endsWith("2")) && !defaults.contains(props[i].getName()))
                 properties.put(props[i].getName(), new HaplotypeColumnMappingProperty(props[i].getName(), props[i].getLabel(), false));
         }

@@ -41,6 +41,7 @@ import org.labkey.api.view.ViewContext;
 import org.springframework.validation.BindException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -62,6 +63,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         FilteredTable table = (FilteredTable)new GenotypingQuerySchema(getUser(), getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name());
         List<FieldKey> toCopy = table.getDefaultVisibleColumns();
         List<FieldKey> keys = new ArrayList<FieldKey>(toCopy);
+        HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
         DomainProperty[] props = HaplotypeAssayProvider.getDomainProps(getProtocol());
 
         SQLFragment haplotypeSubselectSql = new SQLFragment("SELECT aha.AnimalAnalysisId, h.Name AS Haplotype, h.Type FROM ");
@@ -70,12 +72,20 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         haplotypeSubselectSql.append(GenotypingSchema.get().getHaplotypeTable(), "h");
         haplotypeSubselectSql.append(" ON aha.HaplotypeId = h.RowId");
         ExprColumn col;
+        String label;
 
-        for(int i = 5; i < props.length; i++){
-            col = makeColumnFromRunField(props[i], props[i].getName().endsWith("1"), haplotypeSubselectSql, table);
-            keys.add(FieldKey.fromParts(props[i].getName()));
-            if(table.getColumn(props[i].getName()) == null)
-                table.addColumn(col);
+        for(DomainProperty prop : props)
+        {
+            label = prop.getLabel();
+            if(label == null)
+                label = prop.getName();
+            if(!defaults.contains(prop.getName()) && !prop.isShownInInsertView() && (label.contains(" ")) && (label.endsWith("1") || label.endsWith("2")))
+            {
+                col = makeColumnFromRunField(prop, prop.getName().endsWith("2"), haplotypeSubselectSql, table);
+                keys.add(FieldKey.fromParts(prop.getName()));
+                if(table.getColumn(prop.getName()) == null)
+                    table.addColumn(col);
+            }
         }
 
         table.setDefaultVisibleColumns(keys);
