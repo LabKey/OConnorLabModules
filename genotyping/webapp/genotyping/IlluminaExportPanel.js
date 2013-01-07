@@ -466,11 +466,12 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         var coloredSequence = '';
 
         for (var q = 0; q < sequence.length; q++){
-            if(sequence.charAt(q) == 'A' || sequence.charAt(q) == 'C'){
-                coloredSequence += '<span style="color:red">' + sequence.charAt(q) + '</span>';
+            var chr = sequence.charAt(q);
+            if(chr == 'A' || chr == 'C'){
+                coloredSequence += '<span style="color:red">' + chr + '</span>';
             }
-            else if(sequence.charAt(q) == 'G' || sequence.charAt(q) == 'T'){
-                coloredSequence += '<span style="color:green">' + sequence.charAt(q) + '</span>';
+            else if(chr == 'G' || chr == 'T'){
+                coloredSequence += '<span style="color:green">' + chr + '</span>';
             }
         }
 
