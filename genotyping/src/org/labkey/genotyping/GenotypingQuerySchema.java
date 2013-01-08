@@ -90,7 +90,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable(GS.getRunsTable(), schema.getContainer());
+                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getRunsTable(), schema);
                 table.wrapAllColumns(true);
                 table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer()));
                 setDefaultVisibleColumns(table, "RowId, MetaDataId, Created, CreatedBy");
@@ -133,7 +133,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable(GS.getSequencesTable(), schema.getContainer());
+                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getSequencesTable(), schema);
                 table.wrapAllColumns(true);
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getDictionariesTable().getFromSQL("d") + " WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
                 containerCondition.add(schema.getContainer().getId());
@@ -148,7 +148,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable(GS.getReadsTable(), schema.getContainer())
+                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getReadsTable(), schema)
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -204,7 +204,7 @@ public class GenotypingQuerySchema extends UserSchema
 
         MatchReads() {
             @Override
-            FilteredTable createTable(GenotypingQuerySchema schema)
+            FilteredTable createTable(final GenotypingQuerySchema schema)
             {
                 FilteredTable table = Reads.createTable(schema);
                 table.setDescription("Contains genotyping matches joined to their corresponding reads");
@@ -214,7 +214,7 @@ public class GenotypingQuerySchema extends UserSchema
                     @Override
                     public TableInfo getLookupTableInfo()
                     {
-                        FilteredTable junction = new FilteredTable(GS.getReadsJunctionTable());
+                        FilteredTable junction = new FilteredTable(GS.getReadsJunctionTable(), schema);
                         junction.wrapAllColumns(true);
                         ColumnInfo matchId = junction.getColumn("MatchId");
                         matchId.setFk(null);
@@ -229,7 +229,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable(GS.getAnalysesTable(), schema.getContainer())
+                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getAnalysesTable(), schema)
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -267,9 +267,9 @@ public class GenotypingQuerySchema extends UserSchema
                 return createTable(schema, null);
             }
 
-            public FilteredTable createTable(GenotypingQuerySchema schema, @Nullable final Integer analysisId)
+            public FilteredTable createTable(final GenotypingQuerySchema schema, @Nullable final Integer analysisId)
             {
-                FilteredTable table = new FilteredTable(GS.getMatchesTable(), schema.getContainer());
+                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getMatchesTable(), schema);
                 //TODO: filter on container??
 
                 table.wrapAllColumns(true);
@@ -288,7 +288,7 @@ public class GenotypingQuerySchema extends UserSchema
                         // This override lets us filter on analysis ID inside the group by
                         public TableInfo getLookupTableInfo()
                         {
-                            FilteredTable analysisFilteredJunction = new FilteredTable(super.getLookupTableInfo());
+                            FilteredTable analysisFilteredJunction = new FilteredTable(super.getLookupTableInfo(), schema);
                             analysisFilteredJunction.wrapAllColumns(true);
                             analysisFilteredJunction.addCondition(new SimpleFilter("Analysis", analysisId));
 
@@ -359,7 +359,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(final GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable(GS.getSequenceFilesTable(), schema.getContainer())
+                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getSequenceFilesTable(), schema)
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -456,7 +456,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(final GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable(GS.getIlluminaTemplatesTable())
+                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getIlluminaTemplatesTable(), schema)
                 {
                     @Override
                     public QueryUpdateService getUpdateService()
@@ -508,7 +508,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalAnalysisTable())
+                FilteredTable table = new SimpleUserSchema.SimpleTable<GenotypingQuerySchema>(schema, GS.getAnimalAnalysisTable())
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -568,7 +568,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalHaplotypeAssignmentTable())
+                FilteredTable table = new SimpleUserSchema.SimpleTable<GenotypingQuerySchema>(schema, GS.getAnimalHaplotypeAssignmentTable())
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)

@@ -2324,6 +2324,8 @@ public class GenotypingController extends SpringActionController
             if (form.getRowId() == -1)
                 errors.reject(ERROR_MSG, "Error: Please provide an rowId for the AnimalAnalysis table.");
 
+
+
             return new JspView<AssignmentForm>("/org/labkey/genotyping/view/editHaplotypeAssignment.jsp", form, errors);
         }
 
