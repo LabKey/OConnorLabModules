@@ -17,6 +17,7 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ActionButton;
+import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
 import org.labkey.api.data.JdbcType;
@@ -76,9 +77,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
 
         for(DomainProperty prop : props)
         {
-            label = prop.getLabel();
-            if(label == null)
-                label = prop.getName();
+            label = prop.getLabel() != null ? prop.getLabel() : ColumnInfo.labelFromName(prop.getName());
             if(!defaults.contains(prop.getName()) && !prop.isShownInInsertView() && (label.contains(" ")) && (label.endsWith("1") || label.endsWith("2")))
             {
                 col = makeColumnFromRunField(prop, prop.getName().endsWith("2"), haplotypeSubselectSql, table);
@@ -104,8 +103,8 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
     private ExprColumn makeColumnFromRunField(DomainProperty prop, boolean max, SQLFragment selectStatement, FilteredTable table){
 
         String field = prop.getName();
-        String label = prop.getLabel();
-        String type = label.split(" ")[0];
+        String label = prop.getLabel() != null ? prop.getLabel() : ColumnInfo.labelFromName(prop.getName());
+        String type = field.substring(0, prop.getName().length()-1).replaceAll("Haplotype", ""); //ColumnInfo.labelFromName(prop.getName()).split(" ")[0];
 
         SQLFragment sql = new SQLFragment("(SELECT ");
         if(max) sql.append("max");

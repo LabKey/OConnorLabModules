@@ -232,9 +232,9 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
 
         for (int i = 0; i < props.length; i++)
         {
-            if(props[i].getLabel() == null)
-                props[i].setLabel(ColumnInfo.labelFromName(props[i].getName()));
-            label = props[i].getLabel();
+
+           label = props[i].getLabel() != null ? props[i].getLabel() : ColumnInfo.labelFromName(props[i].getName());
+
 
             if(!props[i].isShownInInsertView() && (label.contains(" ")) && (label.endsWith("1") || label.endsWith("2")) && !defaults.contains(props[i].getName()))
                 properties.put(props[i].getName(), new HaplotypeColumnMappingProperty(props[i].getName(), props[i].getLabel(), false));

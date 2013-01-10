@@ -444,7 +444,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         public List<Pair<String, String>> getHaplotypeList(ExpProtocol protocol)
         {
             List<Pair<String, String>> rowHaplotypes = new ArrayList<Pair<String, String>>();
-            String label;
+            String name;
 
             DomainProperty[] props = HaplotypeAssayProvider.getDomainProps(protocol);
 
@@ -454,11 +454,11 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             {
                 if (_dataMap.get(column.getName()) != null)
                 {
-                    label = column.getLabel();
-                    String type = label.split(" ")[0];
+                    name = column.getName();
+                    String type = name.substring(0, name.length()-1).replaceAll("Haplotype", "");
 
-                    if(!column.isShownInInsertView() && !defaults.contains(column.getName()))
-                        rowHaplotypes.add(new Pair<String, String>(_dataMap.get(column.getName()), type));
+                    if(!column.isShownInInsertView() && !defaults.contains(name))
+                        rowHaplotypes.add(new Pair<String, String>(_dataMap.get(name), type));
                 }
             }
             return rowHaplotypes;
