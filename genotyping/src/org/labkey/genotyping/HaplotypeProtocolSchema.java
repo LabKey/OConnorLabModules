@@ -121,7 +121,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
     @Override
     protected RunListQueryView createRunsQueryView(ViewContext context, QuerySettings settings, BindException errors)
     {
-        return new RunListQueryView(getProtocol(), context)
+        return new RunListQueryView(this, settings)
         {
             @Override
             public DataView createDataView()
