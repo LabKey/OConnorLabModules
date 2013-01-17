@@ -23,7 +23,7 @@ import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.UpgradeCode;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.files.FileContentService;
-import org.labkey.api.files.TableUpdaterFileMoveListener;
+import org.labkey.api.files.TableUpdaterFileListener;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleLoader;
@@ -81,8 +81,8 @@ public class GenotypingModule extends DefaultModule
         AssayService.get().registerAssayProvider(new HaplotypeAssayProvider());
         ExperimentService.get().registerExperimentDataHandler(new HaplotypeDataHandler());
 
-        ServiceRegistry.get(FileContentService.class).addFileMoveListener(new TableUpdaterFileMoveListener(GenotypingSchema.get().getRunsTable(), "Path", TableUpdaterFileMoveListener.Type.filePath));
-        ServiceRegistry.get(FileContentService.class).addFileMoveListener(new TableUpdaterFileMoveListener(GenotypingSchema.get().getAnalysesTable(), "Path", TableUpdaterFileMoveListener.Type.filePath));
+        ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getRunsTable(), "Path", TableUpdaterFileListener.Type.filePath));
+        ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getAnalysesTable(), "Path", TableUpdaterFileListener.Type.filePath));
     }
 
     @Override
