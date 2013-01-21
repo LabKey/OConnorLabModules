@@ -19,7 +19,7 @@ package org.labkey.genotyping;
 import org.apache.log4j.Logger;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.SQLFragment;
-import org.labkey.api.data.Table;
+import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.data.UpgradeCode;
 import org.labkey.api.module.ModuleContext;
@@ -85,7 +85,7 @@ public class GenotypingUpgradeCode implements UpgradeCode
                     updateSQL.append(" SET SampleId = ? WHERE Mid = ? AND Run = ?");
                     updateSQL.addAll(new Object[]{entry.getValue(), entry.getKey(), run.getRowId()});
 
-                    Table.execute(gs.getSchema(), updateSQL);
+                    new SqlExecutor(gs.getSchema()).execute(updateSQL);
                 }
             }
         }

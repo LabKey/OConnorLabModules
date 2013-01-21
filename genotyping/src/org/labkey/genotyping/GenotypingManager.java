@@ -514,7 +514,7 @@ public class GenotypingManager
             updateSql.add(newMatchId);
             updateSql.append(matchFilter.getSQLFragment(gs.getSqlDialect()));
 
-            int rows = Table.execute(gs.getSchema(), updateSql);
+            int rows = new SqlExecutor(gs.getSchema()).execute(updateSql);
 
             if (rows != matchIds.length)
                 throw new IllegalStateException("Incorrect number of ParentIds were updated");
