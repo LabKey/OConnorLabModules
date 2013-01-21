@@ -95,7 +95,7 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
             String value = context.getRequest().getParameter(property.getKey());
             String matchLabel = property.getValue().getLabel();
             if(!matchLabel.split(" ")[0].equals(value.split(" ")[0]) && !defaults.contains(property.getValue().getName()) && !value.equals("")){
-                throw new ExperimentException("The haplotype " + matchLabel + " is not compatible with the column header: " + value);
+                throw new ExperimentException("The haplotype " + matchLabel + " is not compatible with the column header: " + value + " (must have matching first word with assigned column).");
             }
             if (property.getValue().isRequired() && (value == null || value.equals("")))
                 errorColHeaders.add(property.getValue().getLabel());

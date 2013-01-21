@@ -237,7 +237,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
 
 
             if(!props[i].isShownInInsertView() && (label.contains(" ")) && (label.endsWith("1") || label.endsWith("2")) && !defaults.contains(props[i].getName()))
-                properties.put(props[i].getName(), new HaplotypeColumnMappingProperty(props[i].getName(), props[i].getLabel(), false));
+                properties.put(props[i].getName(), new HaplotypeColumnMappingProperty(props[i].getName(), label, false));
         }
 
         return properties;
