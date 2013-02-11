@@ -145,7 +145,9 @@ public class GenotypingManager
         ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, action);
         QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getRunsQuery());
         MetaDataRun run = Table.selectObject(qHelper.getTableInfo(), runId, MetaDataRun.class);
-        run.setContainer(c);
+
+        if (null != run)
+            run.setContainer(c);
 
         return run;
     }
