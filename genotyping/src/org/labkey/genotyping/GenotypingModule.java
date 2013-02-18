@@ -127,13 +127,6 @@ public class GenotypingModule extends DefaultModule
     }
 
     @Override
-    @NotNull
-    public Set<DbSchema> getSchemasToTest()
-    {
-        return PageFlowUtil.set(GenotypingSchema.get().getSchema());
-    }
-
-    @Override
     public UpgradeCode getUpgradeCode()
     {
         return new GenotypingUpgradeCode();
