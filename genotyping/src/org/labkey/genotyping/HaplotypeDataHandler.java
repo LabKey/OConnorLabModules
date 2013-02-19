@@ -30,6 +30,7 @@ import org.labkey.api.exp.ExperimentException;
 import org.labkey.api.exp.Lsid;
 import org.labkey.api.exp.XarContext;
 import org.labkey.api.exp.api.AbstractExperimentDataHandler;
+import org.labkey.api.exp.api.DataType;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.exp.api.ExpRun;
@@ -61,6 +62,11 @@ import java.util.Map;
  */
 public class HaplotypeDataHandler extends AbstractExperimentDataHandler
 {
+    @Override
+    public DataType getDataType()
+    {
+        return HaplotypeAssayProvider.HAPLOTYPE_DATA_TYPE;
+    }
 
     @Override
     public void importFile(ExpData data, File dataFile, ViewBackgroundInfo info, Logger log, XarContext context) throws ExperimentException
