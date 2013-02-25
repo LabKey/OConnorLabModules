@@ -81,8 +81,8 @@ public class GenotypingModule extends DefaultModule
         AssayService.get().registerAssayProvider(new HaplotypeAssayProvider());
         ExperimentService.get().registerExperimentDataHandler(new HaplotypeDataHandler());
 
-        ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getRunsTable(), "Path", TableUpdaterFileListener.Type.filePath));
-        ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getAnalysesTable(), "Path", TableUpdaterFileListener.Type.filePath));
+        ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getRunsTable(), "Path", TableUpdaterFileListener.Type.filePath, "RowId"));
+        ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getAnalysesTable(), "Path", TableUpdaterFileListener.Type.filePath, "RowId"));
     }
 
     @Override
