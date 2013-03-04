@@ -205,7 +205,10 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         // Use the hard-coded fields to validate; do this at init time since it won't change based on selected view
         var validationRows = this.getStandardDataSectionRows();
         this.validI7Rows = this.validateDataSectionRows(validationRows, 5);
-        this.validI5Rows = this.validateDataSectionRows(validationRows, 7);
+        if ((validationRows.length < 8 && this.validI7Rows.indexOf(true) != -1 ) || (validationRows.length > 7))
+        {
+            this.validI5Rows = this.validateDataSectionRows(validationRows, 7);
+        }
         this.callParent();
 
         //button should require selection, so this should never happen...
@@ -441,7 +444,6 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
 
     positionMatches: function(validRows){
       var misses = "";
-        console.log(validRows);
         for(var i = 0; i < validRows.length; i++){
             if(!validRows[i]){
                 misses += '<span style="color:green">&nbsp;</span>';
@@ -617,7 +619,8 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             if (cell.i5Sequence)
             {
                 sequenceColumns.push(i);
-                badColumns[i] = scope.positionMatches(scope.validI5Rows);
+                if(scope.validI5Rows)
+                    badColumns[i] = scope.positionMatches(scope.validI5Rows);
             }
             else if (cell.i7Sequence)
             {
