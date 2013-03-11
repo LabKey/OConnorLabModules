@@ -179,8 +179,8 @@ public class GenotypingManager
     }
 
 
-    // Multiple threads could attempt to set the status at roughly the same time.  (For example, there are several ways to
-    // initiate an analysis import: signal from Galaxy, pipeline ui, script, etc.)  Use an AtomicDatabaseInteger to
+    // Multiple threads could attempt to set the status at roughly the same time. (For example, there are several ways
+    // to initiate an analysis import: signal from Galaxy, pipeline ui, script, etc.) Use an AtomicDatabaseInteger to
     // synchronously set the status.  Returns true if status was changed, false if it wasn't.
     public boolean updateAnalysisStatus(GenotypingAnalysis analysis, User user, Status expected, Status update) throws SQLException
     {
