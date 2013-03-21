@@ -379,7 +379,8 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                     rows.push({
                         xtype: 'displayfield',
                         fieldLabel: row[0],
-                        value: value
+                        value: value,
+                        htmlEncode: true
                     });
                 }, this);
             }
