@@ -25,6 +25,7 @@ import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.DomainProperty;
+import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.pipeline.PipelineProvider;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.security.User;
@@ -81,7 +82,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
 
     public HaplotypeAssayProvider()
     {
-        super(LSID_PREFIX, LSID_PREFIX, HAPLOTYPE_DATA_TYPE);
+        super(LSID_PREFIX, LSID_PREFIX, HAPLOTYPE_DATA_TYPE, ModuleLoader.getInstance().getModule(GenotypingModule.class));
     }
 
     @Override @NotNull
