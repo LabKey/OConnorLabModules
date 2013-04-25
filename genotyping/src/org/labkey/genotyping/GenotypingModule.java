@@ -126,12 +126,6 @@ public class GenotypingModule extends DefaultModule
         return Collections.singleton(GenotypingSchema.get().getSchemaName());
     }
 
-    @Override
-    public UpgradeCode getUpgradeCode()
-    {
-        return new GenotypingUpgradeCode();
-    }
-
     @NotNull
     @Override
     public Set<Class> getUnitTests()
