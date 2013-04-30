@@ -1255,7 +1255,7 @@ public class GenotypingController extends SpringActionController
                     }
                 });
             GenotypingSchema gs = GenotypingSchema.get();
-            views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), gs.getSchemaName(), gs.getSequencesTable().getName(), false));
+            views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), getUser(), gs.getSchemaName(), gs.getSequencesTable().getName(), false));
 
             Map<Integer, Pair<String, String>> sampleMap = new TreeMap<Integer, Pair<String, String>>();
             ResultSet rs = null;
