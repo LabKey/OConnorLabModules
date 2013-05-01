@@ -137,14 +137,14 @@ public class GenotypingManager
 
     public @Nullable GenotypingRun getRun(Container c, int runId)
     {
-        return Table.selectObject(GenotypingSchema.get().getRunsTable(), c, runId, GenotypingRun.class);
+        return new TableSelector(GenotypingSchema.get().getRunsTable()).getObject(c, runId, GenotypingRun.class);
     }
 
     public MetaDataRun getMetaDataRun(Container c, User user, int runId, String action)
     {
         ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, action);
         QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getRunsQuery());
-        MetaDataRun run = Table.selectObject(qHelper.getTableInfo(), runId, MetaDataRun.class);
+        MetaDataRun run = new TableSelector(qHelper.getTableInfo()).getObject(runId, MetaDataRun.class);
 
         if (null != run)
             run.setContainer(c);
@@ -162,7 +162,7 @@ public class GenotypingManager
         if (null == analysisId)
             throw new NotFoundException("Analysis parameter is missing");
 
-        GenotypingAnalysis analysis = Table.selectObject(GenotypingSchema.get().getAnalysesTable(), analysisId, GenotypingAnalysis.class);
+        GenotypingAnalysis analysis = new TableSelector(GenotypingSchema.get().getAnalysesTable()).getObject(analysisId, GenotypingAnalysis.class);
 
         if (null != analysis)
         {
