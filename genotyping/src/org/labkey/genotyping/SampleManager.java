@@ -48,7 +48,6 @@ public class SampleManager
     public static final String MID3_COLUMN_NAME = "threemid";
     public static final String AMPLICON_COLUMN_NAME = "amplicon";
     public static final String KEY_COLUMN_NAME = "key";
-    public static final String SAMPLE_ID_COLUMN_NAME = "sample";
 
     static final Set<String> POSSIBLE_SAMPLE_KEYS = new CaseInsensitiveHashSet(MID5_COLUMN_NAME, MID3_COLUMN_NAME, AMPLICON_COLUMN_NAME);
 
@@ -79,7 +78,7 @@ public class SampleManager
 
         SimpleFilter extraFilter = new SimpleFilter(FieldKey.fromParts(GenotypingQueryHelper.LIBRARY_NUMBER), metaDataRun.getSampleLibrary());
 
-        List<FieldKey> fieldKeys = new LinkedList<FieldKey>();
+        List<FieldKey> fieldKeys = new LinkedList<>();
 
         for (String name : columnNames.split(",\\s*"))
             fieldKeys.add(FieldKey.fromString(name));
@@ -98,7 +97,7 @@ public class SampleManager
         public SampleIdFinder(GenotypingRun run, User user, Set<String> sampleKeyColumns, String action) throws SQLException
         {
             _sampleKeyColumns = sampleKeyColumns;
-            _map = new LinkedHashMap<SampleKey, Integer>();
+            _map = new LinkedHashMap<>();
 
             Results rs = null;
 

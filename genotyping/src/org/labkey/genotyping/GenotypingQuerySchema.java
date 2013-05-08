@@ -269,7 +269,7 @@ public class GenotypingQuerySchema extends UserSchema
 
             public FilteredTable createTable(final GenotypingQuerySchema schema, @Nullable final Integer analysisId)
             {
-                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getMatchesTable(), schema);
+                FilteredTable table = new FilteredTable<>(GS.getMatchesTable(), schema);
                 //TODO: filter on container??
 
                 table.wrapAllColumns(true);

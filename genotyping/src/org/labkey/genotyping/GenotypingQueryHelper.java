@@ -25,7 +25,6 @@ import org.labkey.api.security.User;
 import org.labkey.api.view.NotFoundException;
 
 /**
- * Created by IntelliJ IDEA.
  * User: bbimber
  * Date: 7/18/12
  * Time: 4:08 PM
