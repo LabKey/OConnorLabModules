@@ -1,4 +1,20 @@
 * text=auto !eol
+OConnorExperiments/OConnorExperiments.iml -text
+OConnorExperiments/build.xml -text
+OConnorExperiments/module.properties -text
+OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-0.00-13.10.sql -text
+OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-0.00-13.10.sql -text
+OConnorExperiments/resources/schemas/oconnorexperiments.xml -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsContainerListener.java -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsModule.java -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsSchema.java -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/experiment/controller/OConnorExperimentsController.java -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/experiment/model/Experiment.java -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/experiment/model/OConnorExperimentsManager.java -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/experiment/view/details.jsp -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/query/ExperimentsTable.java -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/query/OConnorExperimentsUserSchema.java -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/view/hello.jsp -text
 genotyping/Genotyping.iml -text
 genotyping/build.xml -text
 genotyping/module.properties -text

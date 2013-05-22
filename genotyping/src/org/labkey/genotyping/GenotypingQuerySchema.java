@@ -488,7 +488,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalTable());
+                SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalTable()).init();
                 table.setDescription("Contains one row per animal");
                 return table;
             }
@@ -498,7 +498,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new SimpleUserSchema.SimpleTable(schema, GS.getHaplotypeTable());
+                SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable(schema, GS.getHaplotypeTable()).init();
                 table.setDescription("Contains one row per haplotype");
                 return table;
             }
@@ -508,7 +508,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new SimpleUserSchema.SimpleTable<GenotypingQuerySchema>(schema, GS.getAnimalAnalysisTable())
+                SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable<GenotypingQuerySchema>(schema, GS.getAnimalAnalysisTable())
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -523,6 +523,7 @@ public class GenotypingQuerySchema extends UserSchema
                         addCondition(sql, containerFieldKey);
                     }
                 };
+                table.init();
                 table.setContainerFilter(table.getContainerFilter());
 
                 SQLFragment haplotypeSubselectSql = new SQLFragment("SELECT aha.AnimalAnalysisId, h.Name AS Haplotype, h.Type FROM ");
@@ -568,7 +569,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new SimpleUserSchema.SimpleTable<GenotypingQuerySchema>(schema, GS.getAnimalHaplotypeAssignmentTable())
+                SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable<GenotypingQuerySchema>(schema, GS.getAnimalHaplotypeAssignmentTable())
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -586,6 +587,7 @@ public class GenotypingQuerySchema extends UserSchema
                         addCondition(sql, containerFieldKey);
                     }
                 };
+                table.init();
                 table.setContainerFilter(table.getContainerFilter());
 
                 setDefaultVisibleColumns(table, "AnimalAnalysisId/RunId, AnimalAnalysisId/AnimalId, HaplotypeId");
