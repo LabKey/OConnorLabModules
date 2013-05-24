@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-package org.labkey.oconnorexperiments.experiment.model;
+package org.labkey.oconnorexperiments.model;
+
+import org.labkey.api.data.Container;
+import org.labkey.api.data.Filter;
+import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.TableSelector;
+import org.labkey.api.query.QueryService;
+import org.labkey.oconnorexperiments.OConnorExperimentsSchema;
+import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
 
 public class OConnorExperimentsManager
 {
@@ -29,4 +37,13 @@ public class OConnorExperimentsManager
     {
         return _instance;
     }
+
+    public Experiment getExperiment(Container c)
+    {
+        //Filter filter = SimpleFilter.createContainerFilter(c);
+        TableSelector selector = new TableSelector(OConnorExperimentsSchema.getInstance().createTableInfoExperiments(), null, null);
+        Experiment experiment = selector.getObject(c, c, Experiment.class);
+        return experiment;
+    }
+
 }

@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.labkey.oconnorexperiments.experiment.controller;
+package org.labkey.oconnorexperiments;
 
-import org.labkey.api.action.ConfirmAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.data.Container;
 import org.labkey.api.security.RequiresPermissionClass;
-import org.labkey.api.security.permissions.DeletePermission;
 import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
@@ -55,8 +53,9 @@ public class OConnorExperimentsController extends SpringActionController
         }
     }
 
+    /*
     @RequiresPermissionClass(ReadPermission.class)
-    public class DetailsAction extends SimpleViewAction
+    public class ExperimentDetailsAction extends SimpleViewAction
     {
         @Override
         public ModelAndView getView(Object o, BindException errors) throws Exception
@@ -65,7 +64,7 @@ public class OConnorExperimentsController extends SpringActionController
             if (!c.isWorkbook())
                 throw new NotFoundException("Current container is not a workbook");
 
-            return new JspView<Object>("/org/labkey/oconnorexperiments/experiment/view/details.jsp", errors);
+            return new JspView<Object>("/org/labkey/oconnorexperiments/view/details.jsp", errors);
         }
 
         @Override
@@ -74,15 +73,16 @@ public class OConnorExperimentsController extends SpringActionController
             return root.addChild("Experiments");
         }
     }
+    */
 
 //    @RequiresPermissionClass(UpdatePermission.class)
-//    public class UpdateAction extends FormViewAction
+//    public class UpdateExperimentAction extends FormViewAction
 //    {
 //
 //    }
 //
 //    @RequiresPermissionClass(InsertPermission.class)
-//    public class InsertAction extends FormViewAction
+//    public class InsertExperimentAction extends FormViewAction
 //    {
 //
 //    }

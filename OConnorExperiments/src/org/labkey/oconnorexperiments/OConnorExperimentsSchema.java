@@ -32,9 +32,6 @@ public class OConnorExperimentsSchema
 
     private OConnorExperimentsSchema()
     {
-        // private constructor to prevent instantiation from
-        // outside this class: this singleton should only be
-        // accessed via org.labkey.oconnorexperiments.OConnorExperimentsSchema.getInstance()
     }
 
     public DbSchema getSchema()
@@ -50,5 +47,10 @@ public class OConnorExperimentsSchema
     public SchemaTableInfo createTableInfoExperiments()
     {
         return getSchema().getTable("Experiments");
+    }
+
+    public SchemaTableInfo createTableInfoParentExperiments()
+    {
+        return getSchema().getTable("ParentExperiments");
     }
 }

@@ -1,4 +1,4 @@
-package org.labkey.oconnorexperiments.experiment.model;
+package org.labkey.oconnorexperiments.model;
 
 import org.labkey.api.data.Container;
 import org.labkey.api.data.Entity;

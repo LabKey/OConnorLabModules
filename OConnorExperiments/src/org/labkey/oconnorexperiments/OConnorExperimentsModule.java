@@ -22,7 +22,6 @@ import org.labkey.api.data.ContainerManager;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.view.WebPartFactory;
-import org.labkey.oconnorexperiments.experiment.controller.OConnorExperimentsController;
 import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
 
 import java.util.Collection;
@@ -58,7 +57,7 @@ public class OConnorExperimentsModule extends DefaultModule
     @Override
     protected void init()
     {
-        //addController("oconnorexperiments", OConnorExperimentsController.class);
+        addController("ocexp", OConnorExperimentsController.class);
         OConnorExperimentsUserSchema.register();
     }
 
