@@ -44,6 +44,7 @@ import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpProtocol;
@@ -480,7 +481,7 @@ public class GenotypingController extends SpringActionController
         public boolean doAction(MatchesForm form, BindException errors) throws Exception
         {
             List<String> ids = getViewContext().getList(DataRegion.SELECT_CHECKBOX_NAME);
-            List<Integer> matchIds = new LinkedList<Integer>();
+            List<Integer> matchIds = new LinkedList<>();
 
             for (String id : ids)
                 matchIds.add(Integer.parseInt(id));
@@ -676,7 +677,7 @@ public class GenotypingController extends SpringActionController
                 vbox.addView(loadSequences);
             }
 
-            WebPartView configure = new JspView<AdminForm>("/org/labkey/genotyping/view/configure.jsp", form, errors);
+            WebPartView configure = new JspView<>("/org/labkey/genotyping/view/configure.jsp", form, errors);
             configure.setTitle("Configuration");
             vbox.addView(configure);
 
@@ -723,7 +724,7 @@ public class GenotypingController extends SpringActionController
             }
             filename += ".fastq.gz";
 
-            Set<File> files = new HashSet<File>();
+            Set<File> files = new HashSet<>();
             for (Integer id : form.getDataIds())
             {
                 ExpData d = ExperimentService.get().getExpData(id);
@@ -875,7 +876,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public ModelAndView getView(MySettingsForm form, boolean reshow, BindException errors) throws Exception
         {
-            return new JspView<MySettingsForm>("/org/labkey/genotyping/view/mySettings.jsp", form, errors);
+            return new JspView<>("/org/labkey/genotyping/view/mySettings.jsp", form, errors);
         }
 
         @Override
@@ -1055,13 +1056,13 @@ public class GenotypingController extends SpringActionController
             TableInfo runs = new GenotypingQueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo();
             GenotypingQueryHelper.validateRunsQuery(runs);
             settings.getSamplesQuery();  // Pipeline job will flag this if missing, but let's proactively validate before we launch the job
-            List<Integer> allRuns = new ArrayList<Integer>(Arrays.asList(Table.executeArray(runs, GenotypingQueryHelper.RUN_NUM, null, new Sort("-run_num"), Integer.class)));   // TODO: Should restrict to this folder, #14278
+            List<Integer> allRuns = new TableSelector(runs, PageFlowUtil.set(GenotypingQueryHelper.RUN_NUM), null, new Sort("-run_num")).getArrayList(Integer.class);   // TODO: Should restrict to this folder, #14278
 
             // Issue 14278: segregate genotyping runs by container
-            SimpleFilter filter = new SimpleFilter("container", getContainer().getId());
-            allRuns.removeAll(Arrays.asList(Table.executeArray(GenotypingSchema.get().getRunsTable(), "MetaDataId", filter, null, Integer.class)));
+            SimpleFilter filter = SimpleFilter.createContainerFilter(getContainer());
+            allRuns.removeAll(new TableSelector(GenotypingSchema.get().getRunsTable(), PageFlowUtil.set("MetaDataId"), filter, null).getCollection(Integer.class));
 
-            return new JspView<ImportReadsBean>("/org/labkey/genotyping/view/importReads.jsp", new ImportReadsBean(allRuns, form.getReadsPath(), form.getPath(), form.getPlatform(), form.getPrefix()), errors);
+            return new JspView<>("/org/labkey/genotyping/view/importReads.jsp", new ImportReadsBean(allRuns, form.getReadsPath(), form.getPath(), form.getPlatform(), form.getPrefix()), errors);
         }
 
         @Override
@@ -1244,7 +1245,7 @@ public class GenotypingController extends SpringActionController
             // 12.1: relax this requirement... allow users to submit jobs without a galaxy server configured or available
             //GalaxyUtils.get(getContainer(), getUser());
 
-            SortedSet<CustomView> views = new TreeSet<CustomView>(new Comparator<CustomView>() {
+            SortedSet<CustomView> views = new TreeSet<>(new Comparator<CustomView>() {
                     @Override
                     public int compare(CustomView c1, CustomView c2)
                     {
@@ -1257,7 +1258,7 @@ public class GenotypingController extends SpringActionController
             GenotypingSchema gs = GenotypingSchema.get();
             views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), getUser(), gs.getSchemaName(), gs.getSequencesTable().getName(), false));
 
-            Map<Integer, Pair<String, String>> sampleMap = new TreeMap<Integer, Pair<String, String>>();
+            Map<Integer, Pair<String, String>> sampleMap = new TreeMap<>();
             ResultSet rs = null;
 
             try
@@ -1274,7 +1275,7 @@ public class GenotypingController extends SpringActionController
                     String sampleName = (String)sampleNameColumn.getValue(rs);
                     String species = (String)sampleSpeciesColumn.getValue(rs);
                     int sampleId = (Integer)keyColumn.getValue(rs);
-                    sampleMap.put(sampleId, new Pair<String, String>(sampleName, species));
+                    sampleMap.put(sampleId, new Pair<>(sampleName, species));
                 }
             }
             finally
@@ -1282,7 +1283,7 @@ public class GenotypingController extends SpringActionController
                 ResultSetUtil.close(rs);
             }
 
-            return new JspView<AnalyzeBean>("/org/labkey/genotyping/view/analyze.jsp", new AnalyzeBean(views, sampleMap, form.getReturnActionURL()), errors);
+            return new JspView<>("/org/labkey/genotyping/view/analyze.jsp", new AnalyzeBean(views, sampleMap, form.getReturnActionURL()), errors);
         }
 
         // Throws NotFoundException if column doesn't exist
@@ -1316,7 +1317,7 @@ public class GenotypingController extends SpringActionController
 
             Set<Integer> sampleKeys;
             String[] keys = samples.split(",");
-            sampleKeys = new HashSet<Integer>(keys.length);
+            sampleKeys = new HashSet<>(keys.length);
 
             for (String key : keys)
                 sampleKeys.add(Integer.parseInt(key));
@@ -1938,7 +1939,7 @@ public class GenotypingController extends SpringActionController
                         ActionURL url = getViewContext().cloneActionURL();
                         url.addParameter("exportType", FASTQ_FORMAT);
 
-                        HttpView filesView = new JspView<ActionURL>("/org/labkey/genotyping/view/fastqExportOptions.jsp", url);
+                        HttpView filesView = new JspView<>("/org/labkey/genotyping/view/fastqExportOptions.jsp", url);
                         result.addSubPanel("FASTQ", filesView);
                     }
                     return result;
@@ -2272,7 +2273,7 @@ public class GenotypingController extends SpringActionController
                 returnURL = PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
 
             AssignmentReportBean bean = new AssignmentReportBean(selected, _protocol.getName(), returnURL.getLocalURIString());
-            JspView report = new JspView<AssignmentReportBean>("/org/labkey/genotyping/view/haplotypeAssignmentReport.jsp", bean);
+            JspView report = new JspView<>("/org/labkey/genotyping/view/haplotypeAssignmentReport.jsp", bean);
             result.addView(report);
 
             return result;
@@ -2326,7 +2327,7 @@ public class GenotypingController extends SpringActionController
 
 
 
-            return new JspView<AssignmentForm>("/org/labkey/genotyping/view/editHaplotypeAssignment.jsp", form, errors);
+            return new JspView<>("/org/labkey/genotyping/view/editHaplotypeAssignment.jsp", form, errors);
         }
 
         @Override

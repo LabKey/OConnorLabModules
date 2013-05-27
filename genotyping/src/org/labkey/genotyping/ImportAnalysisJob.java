@@ -188,13 +188,8 @@ public class ImportAnalysisJob extends PipelineJob
     // columnNames: comma-separated list of column names to include; null means include all columns
     private TempTableInfo createTempTable(File file, DbSchema schema, @Nullable String columnNames) throws IOException, SQLException
     {
-        Reader reader = null;
-
-        try
+        try (TabLoader loader = new TabLoader(file, true))
         {
-            reader = new BufferedReader(new FileReader(file));
-            TabLoader loader = new TabLoader(reader, true);         // TODO: Constructor that takes an inputstream
-
             // Load only the specified columns
             if (null != columnNames)
             {
@@ -206,11 +201,6 @@ public class ImportAnalysisJob extends PipelineJob
 
             TempTableWriter ttw = new TempTableWriter(loader);
             return ttw.loadTempTable(schema);
-        }
-        finally
-        {
-            if (null != reader)
-                reader.close();
         }
     }
 

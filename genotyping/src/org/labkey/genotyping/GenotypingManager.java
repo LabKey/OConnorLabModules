@@ -35,6 +35,7 @@ import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.QueryHelper;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.security.User;
+import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.NotFoundException;
 
@@ -506,12 +507,12 @@ public class GenotypingManager
             rs = Table.executeQuery(gs.getSchema(), sql);
             rs.next();
             SimpleFilter readsFilter = new SimpleFilter(new SimpleFilter.InClause("MatchId", matchIdList));
-            Integer[] readIds = Table.executeArray(gs.getReadsJunctionTable(), "ReadId", readsFilter, null, Integer.class);
+            Integer[] readIds = new TableSelector(gs.getReadsJunctionTable(), PageFlowUtil.set("ReadId"), readsFilter, null).getArray(Integer.class);
             newMatchId = insertMatch(user, analysis, rs.getInt("SampleId"), rs, ArrayUtils.toPrimitive(readIds), alleleIds);
 
             // Update ParentId column for all combined matches
             SQLFragment updateSql = new SQLFragment("UPDATE ");
-            updateSql.append(gs.getMatchesTable());   // Hmmm... can't provide alias in UPDATE statement on SQL Server
+            updateSql.append(gs.getMatchesTable().getSelectName());
             updateSql.append(" SET ParentId = ? ");
             updateSql.add(newMatchId);
             updateSql.append(matchFilter.getSQLFragment(gs.getSqlDialect()));
