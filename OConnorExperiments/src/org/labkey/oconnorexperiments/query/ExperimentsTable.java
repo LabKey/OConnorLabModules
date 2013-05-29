@@ -2,6 +2,7 @@ package org.labkey.oconnorexperiments.query;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.RowMapFactory;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.CompareType;
@@ -26,8 +27,10 @@ import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.AbstractQueryUpdateService;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.DetailsURL;
+import org.labkey.api.query.DuplicateKeyException;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.InvalidKeyException;
+import org.labkey.api.query.LookupForeignKey;
 import org.labkey.api.query.QueryAction;
 import org.labkey.api.query.QueryForeignKey;
 import org.labkey.api.query.QueryService;
@@ -71,11 +74,11 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
     public static ExperimentsTable create(OConnorExperimentsUserSchema schema, String name)
     {
         UserSchema core = QueryService.get().getUserSchema(schema.getUser(), schema.getContainer(), SchemaKey.fromParts("core"));
-        TableInfo workbooks = core.getTable("Workbooks");
+        TableInfo workbooksTable = core.getTable("Workbooks");
 
         SchemaTableInfo rootTable = OConnorExperimentsSchema.getInstance().createTableInfoExperiments();
 
-        return new ExperimentsTable(name, schema, rootTable, workbooks).init();
+        return new ExperimentsTable(name, schema, rootTable, workbooksTable).init();
     }
 
     @Override
@@ -88,6 +91,8 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
     protected ColumnInfo getExtendedForeignKeyColumn()
     {
         return getColumn("Container");
+        // XXX: I think we want the hard table column instead of the query column
+        //return getRealTable().getColumn("Container");
     }
 
     @Override
@@ -96,7 +101,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         return getBaseTable().getColumn("EntityId");
     }
 
-    protected ForeignKey createMergeForeignKey()
+    protected ForeignKey createExtendedForeignKey()
     {
         return new QueryForeignKey(getBaseTable(), "EntityId", null);
     }
@@ -105,6 +110,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
     {
         ColumnInfo containerCol = addWrapColumn(getRealTable().getColumn("Container"));
         containerCol.setFk(getExtendedForeignKey());
+        //containerCol.setFk(new QueryForeignKey("core", getUserSchema().getContainer(), getUserSchema().getUser(), "Workbooks", "EntityId", null));
         containerCol.setHidden(true);
 
         ColumnInfo idCol = addBaseTableColumn("ID", "ID");
@@ -197,12 +203,68 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         }
 
         @Override
+        public List<Map<String, Object>> updateRows(User user, Container container, List<Map<String, Object>> rows, List<Map<String, Object>> oldKeys, Map<String, Object> extraScriptContext) throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
+        {
+            // TODO: Handle MultiValueFK junction entries in SimpleQueryUpdateService instead of here...
+            deleteParentExperiments(user, container, rows, extraScriptContext);
+            try
+            {
+                insertParentExperiments(user, container, rows, extraScriptContext);
+            }
+            catch (DuplicateKeyException e)
+            {
+                throw new QueryUpdateServiceException(e);
+            }
+            return _wrapped.updateRows(user, container, rows, oldKeys, extraScriptContext);
+        }
+
+        @Override
         public List<Map<String, Object>> deleteRows(User user, Container container, List<Map<String, Object>> keys, Map<String, Object> extraScriptContext) throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
         {
             // TODO: Handle MultiValueFK junction entries in SimpleQueryUpdateService instead of here...
             // Delete all associated ParentExperiment rows before deleting experiment rows
             // so we don't get a constraint violation.
             // CONSIDER: Should we delete all ParentExperiments that refer to Containers being deleted?
+            deleteParentExperiments(user, container, keys, extraScriptContext);
+
+            return _wrapped.deleteRows(user, container, keys, extraScriptContext);
+        }
+
+        private void insertParentExperiments(User user, Container container, List<Map<String, Object>> rows, Map<String, Object> extraScriptContext) throws SQLException, QueryUpdateServiceException, BatchValidationException, DuplicateKeyException
+        {
+            TableInfo parentExperimentsTable = getUserSchema().getTable(OConnorExperimentsUserSchema.Table.ParentExperiments.name());
+            QueryUpdateService parentExperimentsQUS = parentExperimentsTable.getUpdateService();
+            if (parentExperimentsQUS != null)
+            {
+                List<Map<String, Object>> parentExperimentRows = new ArrayList<>();
+
+                for (Map<String, Object> row : rows)
+                {
+                    String c = (String)row.get("container");
+                    String[] parentExperiments = (String[])row.get("ParentExperiments");
+
+                    if (parentExperiments != null && parentExperiments.length > 0)
+                    {
+                        for (String parentExperiment : parentExperiments)
+                        {
+                            Map<String, Object> parentExperimentRow = new CaseInsensitiveHashMap<>();
+                            parentExperimentRow.put("Container", c);
+                            parentExperimentRow.put("ParentExperiment", parentExperiment);
+                            parentExperimentRows.add(parentExperimentRow);
+                        }
+                    }
+                }
+
+                BatchValidationException errors = new BatchValidationException();
+                parentExperimentsQUS.insertRows(user, container, parentExperimentRows, errors, extraScriptContext);
+                if (errors.hasErrors())
+                    throw errors;
+            }
+
+        }
+
+        private void deleteParentExperiments(User user, Container container, List<Map<String, Object>> keys, Map<String, Object> extraScriptContext) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
+        {
             TableInfo parentExperimentsTable = getUserSchema().getTable(OConnorExperimentsUserSchema.Table.ParentExperiments.name());
             QueryUpdateService parentExperimentsQUS = parentExperimentsTable.getUpdateService();
             if (parentExperimentsQUS != null)
@@ -222,8 +284,6 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
 
                 parentExperimentsQUS.deleteRows(user, container, rowIds, extraScriptContext);
             }
-
-            return _wrapped.deleteRows(user, container, keys, extraScriptContext);
         }
 
         @Override
