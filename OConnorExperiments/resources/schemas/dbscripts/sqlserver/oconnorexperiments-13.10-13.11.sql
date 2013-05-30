@@ -17,8 +17,11 @@
 -- Modified column was mistakenly created as TIMESTAMP
 ALTER TABLE oconnorexperiments.Experiments
     DROP COLUMN Modified;
+GO
 ALTER TABLE oconnorexperiments.Experiments
     ADD Modified DATETIME;
+GO
 
 UPDATE oconnorexperiments.Experiments SET Modified = CURRENT_TIMESTAMP;
+GO
 
