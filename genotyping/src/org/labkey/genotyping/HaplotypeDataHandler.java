@@ -15,7 +15,7 @@
  */
 package org.labkey.genotyping;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
