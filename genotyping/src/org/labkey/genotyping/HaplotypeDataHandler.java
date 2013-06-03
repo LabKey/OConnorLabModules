@@ -220,7 +220,10 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         Map<String, Integer> map = new CaseInsensitiveHashMap<Integer>();
         for (Map<String, Object> row : rows)
         {
-            map.put(row.get(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()).toString(), Integer.parseInt(row.get("RowId").toString()));
+            if (row.get(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()) != null && row.get("RowId") != null)
+            {
+                map.put(row.get(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()).toString(), Integer.parseInt(row.get("RowId").toString()));
+            }
         }
         return map;
     }
