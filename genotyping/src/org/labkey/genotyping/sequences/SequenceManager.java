@@ -70,7 +70,7 @@ public class SequenceManager
 
     public void loadSequences(Container c, User user) throws SQLException
     {
-        Map<String, Object> dictionary = new HashMap<String, Object>();
+        Map<String, Object> dictionary = new HashMap<>();
         dictionary.put("container", c);
         Table.insert(user, GenotypingSchema.get().getDictionariesTable(), dictionary);
         int dictionaryId = getCurrentDictionary(c, user).getRowId();
@@ -95,7 +95,7 @@ public class SequenceManager
             while (iter.hasNext())
             {
                 Map<String, Object> map = iter.next();
-                Map<String, Object> inMap = new HashMap<String, Object>(map.size() * 2);
+                Map<String, Object> inMap = new HashMap<>(map.size() * 2);
 
                 // TODO: ResultSetIterator should have a way to map column names
                 for (Map.Entry<String, Object> entry : map.entrySet())
@@ -129,7 +129,7 @@ public class SequenceManager
         {
             rs = selectSequences(c, user, getCurrentDictionary(c, user), sequencesViewName, "AlleleName,Sequence");
 
-            FastaWriter<FastaEntry> fw = new FastaWriter<FastaEntry>(new ResultSetFastaGenerator(rs) {
+            FastaWriter<FastaEntry> fw = new FastaWriter<>(new ResultSetFastaGenerator(rs) {
                 @Override
                 public String getHeader(ResultSet rs) throws SQLException
                 {
@@ -186,7 +186,7 @@ public class SequenceManager
     public Map<String, Integer> getSequences(Container c, User user, SequenceDictionary dictionary, String sequencesViewName) throws SQLException
     {
         ResultSet rs = null;
-        HashMap<String, Integer> sequences = new HashMap<String, Integer>();
+        HashMap<String, Integer> sequences = new HashMap<>();
 
         try
         {
@@ -211,8 +211,8 @@ public class SequenceManager
     private ResultSet selectSequences(Container c, User user, SequenceDictionary dictionary, String sequencesViewName, String columnNames) throws SQLException
     {
         // First, make sure that dictionary exists in this container
-        SimpleFilter filter = new SimpleFilter("RowId", dictionary.getRowId());
-        filter.addCondition("Container", c);
+        SimpleFilter filter = SimpleFilter.createContainerFilter(c);
+        filter.addCondition("RowId", dictionary.getRowId());
         TableInfo dictionaries = GenotypingSchema.get().getDictionariesTable();
         ResultSet rs = null;
 
@@ -265,7 +265,7 @@ public class SequenceManager
 
     public int getDictionaryCount(Container c)
     {
-        SimpleFilter filter = new SimpleFilter("Container", c);
+        SimpleFilter filter = SimpleFilter.createContainerFilter(c);
 
         return (int)new TableSelector(GenotypingSchema.get().getDictionariesTable(), filter, null).getRowCount();
     }

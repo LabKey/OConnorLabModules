@@ -194,7 +194,7 @@ public class GenotypingManager
 
     public Collection<GenotypingRun> getRuns(Container c)
     {
-        SimpleFilter filter = new SimpleFilter("Container", c);
+        SimpleFilter filter = SimpleFilter.createContainerFilter(c);
         TableSelector selector = new TableSelector(GenotypingSchema.get().getRunsTable(), filter, null);
 
         return selector.getCollection(GenotypingRun.class);
@@ -335,7 +335,7 @@ public class GenotypingManager
     // Return number of runs in the specified container
     public int getRunCount(Container c)
     {
-        SimpleFilter filter = new SimpleFilter("Container", c);
+        SimpleFilter filter = SimpleFilter.createContainerFilter(c);
         return (int)new TableSelector(GenotypingSchema.get().getRunsTable(), filter, null).getRowCount();
     }
 
@@ -438,7 +438,7 @@ public class GenotypingManager
             filter.addInClause("RowId", matchIdList);
             TableInfo tinfo = GenotypingQuerySchema.TableType.Matches.createTable(new GenotypingQuerySchema(user, c), analysis.getRowId());
             results = QueryService.get().select(tinfo, tinfo.getColumns("SampleId"), filter, null);
-            Set<Integer> sampleIds = new HashSet<Integer>();
+            Set<Integer> sampleIds = new HashSet<>();
             int matchCount = 0;
 
             // Stash the sampled ids and count the matches
@@ -471,7 +471,7 @@ public class GenotypingManager
         filter.addInClause("MatchId", matchIdList);
         TableInfo tinfo = gs.getAllelesJunctionTable();
         Integer[] mAlleles = new TableSelector(tinfo.getColumn("SequenceId"), filter, null).getArray(Integer.class);
-        Set<Integer> matchAlleles = new HashSet<Integer>(Arrays.asList(mAlleles));
+        Set<Integer> matchAlleles = new HashSet<>(Arrays.asList(mAlleles));
 
         if (!matchAlleles.containsAll(alleleIdList))
             throw new IllegalStateException("Selected alleles aren't owned by the selected matches");
@@ -542,7 +542,7 @@ public class GenotypingManager
     {
         GenotypingSchema gs = GenotypingSchema.get();
 
-        Map<String, Object> row = new HashMap<String, Object>();
+        Map<String, Object> row = new HashMap<>();
         row.put("Analysis", analysis.getRowId());
         row.put("SampleId", sampleId);
         row.put("Reads", rs.getInt("reads"));
@@ -560,7 +560,7 @@ public class GenotypingManager
         // Insert all the alleles in this group into AllelesJunction table
         if (alleleIds.length > 0)
         {
-            Map<String, Object> alleleJunctionMap = new HashMap<String, Object>();  // Reuse for each allele
+            Map<String, Object> alleleJunctionMap = new HashMap<>();  // Reuse for each allele
             alleleJunctionMap.put("Analysis", analysis.getRowId());
             alleleJunctionMap.put("MatchId", matchId);
 
@@ -574,7 +574,7 @@ public class GenotypingManager
         // Insert RowIds for all the reads underlying this match into ReadsJunction table
         if (readIds.length > 0)
         {
-            Map<String, Object> readJunctionMap = new HashMap<String, Object>();   // Reuse for each read
+            Map<String, Object> readJunctionMap = new HashMap<>();   // Reuse for each read
             readJunctionMap.put("MatchId", matchId);
 
             for (int readId : readIds)
@@ -609,7 +609,7 @@ public class GenotypingManager
         // Mark all the posted matches with ParentId = 0; this will filter them out from all displays and queries,
         // effectively "deleting" them. In the future, we could add a mode to show these matches again, to audit changes.
         GenotypingSchema gs = GenotypingSchema.get();
-        Map<String, Integer> map = new HashMap<String, Integer>();
+        Map<String, Integer> map = new HashMap<>();
         map.put("ParentId", 0);
 
         for (Integer matchId : matchIds)

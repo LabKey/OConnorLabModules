@@ -294,7 +294,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
                 Filter filter = new SimpleFilter("Container", containers, CompareType.IN);
                 TableSelector selector = new TableSelector(
                         parentExperimentsTable, Arrays.asList(parentExperimentsTable.getColumn("RowId")), filter, null);
-                Map<String, Object>[] rows = selector.getArray(Map.class);
+                Map<String, Object>[] rows = selector.getMapArray();
                 List<Map<String, Object>> rowIds = Arrays.asList(rows);
 
                 parentExperimentsQUS.deleteRows(user, container, rowIds, extraScriptContext);
