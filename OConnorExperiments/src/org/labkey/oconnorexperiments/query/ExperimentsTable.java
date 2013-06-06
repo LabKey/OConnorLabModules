@@ -17,6 +17,7 @@ package org.labkey.oconnorexperiments.query;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.json.JSONArray;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.RowMapFactory;
 import org.labkey.api.data.ColumnInfo;
@@ -57,6 +58,7 @@ import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserIdQueryForeignKey;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.util.ContainerContext;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.ActionURL;
 import org.labkey.oconnorexperiments.OConnorExperimentsController;
@@ -67,6 +69,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -172,6 +175,10 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         // BUGBUG: Clear PropertyURI -- it will be regenerated when .getPropertyURI() is called
         // BUGBUG: When wrapping columns with auto-generated PropertyURIs where the name differs, we should regenerate the PropertyURI.
         parentExperimentsCol.setPropertyURI(null);
+
+        DetailsURL parentExperimentsURL = QueryService.get().urlDefault(getContainer(), QueryAction.detailsQueryRow, OConnorExperimentsUserSchema.NAME, OConnorExperimentsUserSchema.Table.Experiments.name(), Collections.<String, Object>emptyMap());
+        parentExperimentsURL.setContainerContext(new ContainerContext.FieldKeyContext(FieldKey.fromParts("ParentExperiments", "Container")));
+        parentExperimentsCol.setURL(parentExperimentsURL);
         addColumn(parentExperimentsCol);
 
         setTitleColumn("ExperimentNumber");
@@ -256,7 +263,17 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
                 for (Map<String, Object> row : rows)
                 {
                     String c = (String)row.get("container");
-                    String[] parentExperiments = (String[])row.get("ParentExperiments");
+                    Object v = row.get("ParentExperiments");
+                    String[] parentExperiments = null;
+                    if (v instanceof String[])
+                        parentExperiments = (String[])v;
+                    else if (v instanceof JSONArray)
+                    {
+                        ArrayList<String> s = new ArrayList<>();
+                        for (Object o : ((JSONArray)v).toArray())
+                            s.add(o.toString());
+                        parentExperiments = s.toArray(new String[s.size()]);
+                    }
 
                     if (parentExperiments != null && parentExperiments.length > 0)
                     {
@@ -402,8 +419,11 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
                 return true;
             }
 
-            // Validate each ParentExperiment is a workbook and create list of maps for insertion
             Collection<String> parentExperiments = (Collection<String>)o;
+            if (parentExperiments.size() == 0)
+                return true;
+
+            // Validate each ParentExperiment is a workbook and create list of maps for insertion
             List<String> colNames = Arrays.asList("Container", "ParentExperiment");
             List<Map<String, Object>> rows = new ArrayList<>();
             RowMapFactory<Object> factory = new RowMapFactory<>(colNames);
@@ -430,7 +450,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
             ListofMapsDataIterator source = new ListofMapsDataIterator(new HashSet(colNames), rows);
             source.setDebugName("ExperimentsTable.ParentExperiments");
 
-            // Perform the insert
+            // Perform the insert to ParentExperiments table
             try
             {
                 int rowCount = DataIteratorUtil.copy(_context, source, _parentExperimentsTable, c, null);
