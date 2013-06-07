@@ -16,13 +16,38 @@
 
 package org.labkey.oconnorexperiments;
 
+import org.labkey.api.data.Container;
 import org.labkey.api.module.Module;
+import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.module.SimpleModuleContainerListener;
+import org.labkey.api.query.QueryService;
+import org.labkey.api.query.SchemaKey;
+import org.labkey.api.query.UserSchema;
+import org.labkey.api.security.User;
+import org.labkey.oconnorexperiments.model.OConnorExperimentsManager;
+import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
 
 public class OConnorExperimentsContainerListener extends SimpleModuleContainerListener
 {
     public OConnorExperimentsContainerListener(Module owner)
     {
         super(owner);
+    }
+
+    @Override
+    public void containerCreated(Container c, User user)
+    {
+        super.containerCreated(c, user);
+
+        if (c.isWorkbook())
+        {
+            if (c.getParent().getActiveModules().contains(ModuleLoader.getInstance().getModule(OConnorExperimentsModule.class)))
+            {
+                //OConnorExperimentsService.get().insertExperiment(c, user);
+                OConnorExperimentsManager.get().ensureExperiment(c, user);
+                //UserSchema schema = QueryService.get().getUserSchema(user, c, SchemaKey.fromParts(OConnorExperimentsUserSchema.NAME));
+                //schema.getTable(OConnorExperimentsUserSchema.Table.Experiments);
+            }
+        }
     }
 }

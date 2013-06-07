@@ -176,7 +176,9 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         // BUGBUG: When wrapping columns with auto-generated PropertyURIs where the name differs, we should regenerate the PropertyURI.
         parentExperimentsCol.setPropertyURI(null);
 
-        DetailsURL parentExperimentsURL = QueryService.get().urlDefault(getContainer(), QueryAction.detailsQueryRow, OConnorExperimentsUserSchema.NAME, OConnorExperimentsUserSchema.Table.Experiments.name(), Collections.<String, Object>emptyMap());
+        //DetailsURL parentExperimentsURL = QueryService.get().urlDefault(getContainer(), QueryAction.detailsQueryRow, OConnorExperimentsUserSchema.NAME, OConnorExperimentsUserSchema.Table.Experiments.name(), Collections.<String, Object>emptyMap());
+        ActionURL projectBeginURL = PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
+        DetailsURL parentExperimentsURL = new DetailsURL(projectBeginURL);
         parentExperimentsURL.setContainerContext(new ContainerContext.FieldKeyContext(FieldKey.fromParts("ParentExperiments", "Container")));
         parentExperimentsCol.setURL(parentExperimentsURL);
         addColumn(parentExperimentsCol);
@@ -184,9 +186,8 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         setTitleColumn("ExperimentNumber");
 
         // UNDONE: experiment specific details page
-        //DetailsURL detailsURL = new DetailsURL(PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer()));
-        DetailsURL detailsURL = QueryService.get().urlDefault(getContainer(), QueryAction.detailsQueryRow, this);
-        //DetailsURL detailsURL = new DetailsURL(new ActionURL(OConnorExperimentsController.ExperimentDetailsAction.class, getContainer()));
+        //DetailsURL detailsURL = QueryService.get().urlDefault(getContainer(), QueryAction.detailsQueryRow, this);
+        DetailsURL detailsURL = new DetailsURL(projectBeginURL);
         setDetailsURL(detailsURL);
 
         // UNDONE: experiment specific insert page

@@ -15,9 +15,9 @@
  */
 package org.labkey.oconnorexperiments.model;
 
-import org.labkey.api.data.Container;
 import org.labkey.api.data.Entity;
-import org.labkey.api.util.GUID;
+
+import java.util.Collection;
 
 /**
  * User: kevink
@@ -26,7 +26,7 @@ import org.labkey.api.util.GUID;
 public class Experiment extends Entity
 {
     private String _experimentType;
-    private GUID[] _parentExperiments;
+    private Collection<Experiment> _parentExperiments;
 
     public String getExperimentType()
     {
@@ -38,23 +38,13 @@ public class Experiment extends Entity
         _experimentType = experimentType;
     }
 
-    public GUID[] getParentExperiments()
+    public Collection<Experiment> lookupParentExperiments()
     {
+        if (_parentExperiments == null)
+        {
+            _parentExperiments = OConnorExperimentsManager.get().getParentExperiments(lookupContainer());
+        }
         return _parentExperiments;
     }
 
-    public void setParentExperiments(Container[] parentExperiments)
-    {
-//        GUID[] guids = new GUID[parentExperiments.length];
-//        for (Container c : parentExperiments)
-//        {
-//            if (c.isWorkbook())
-//        }
-//        _parentExperiments = parentExperiments;
-    }
-
-    public void setParentExperiments(GUID[] parentExperiments)
-    {
-        _parentExperiments = parentExperiments;
-    }
 }
