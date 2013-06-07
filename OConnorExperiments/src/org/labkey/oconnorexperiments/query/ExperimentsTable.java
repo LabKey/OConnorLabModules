@@ -169,6 +169,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
                 "ParentExperiment");
         parentExperimentsCol.setFk(parentExperimentsFk);
         parentExperimentsCol.setLabel("Parent Experiments");
+        parentExperimentsCol.setCalculated(true);
         parentExperimentsCol.setUserEditable(true);
         parentExperimentsCol.setNullable(true);
         // BUGBUG: ETL doesn't like using the same PropertyURI for two columns (ParentExperiments and Container).
