@@ -43,7 +43,7 @@ public class GenotypingQueryHelper extends QueryHelper
     {
         if (table == null)
         {
-            throw new IllegalArgumentException("No samples query found. It may not be configured, or it may be pointing a query that doesn't exist.");
+            throw new NotFoundException("No samples query found. It may not be configured, or it may be pointing a query that doesn't exist.");
         }
 
         if (null == table.getColumn(LIBRARY_NUMBER))
@@ -54,17 +54,17 @@ public class GenotypingQueryHelper extends QueryHelper
     {
         if (table == null)
         {
-            throw new IllegalArgumentException("No runs query found. It may not be configured, or it may be pointing a query that doesn't exist.");
+            throw new NotFoundException("No runs query found. It may not be configured, or it may be pointing to a query that doesn't exist.");
         }
 
         ColumnInfo runNumColumn = table.getColumn(RUN_NUM);
         if (runNumColumn == null)
         {
-            throw new IllegalArgumentException("Runs query is expected to have a '" + GenotypingQueryHelper.RUN_NUM + "' column that is an Integer, but no column was found");
+            throw new NotFoundException("Runs query is expected to have a '" + GenotypingQueryHelper.RUN_NUM + "' column that is an Integer, but no column was found");
         }
         if (runNumColumn.getJdbcType() != JdbcType.INTEGER)
         {
-            throw new IllegalArgumentException("Runs query is expected to have a '" + GenotypingQueryHelper.RUN_NUM + "' column that is an Integer, but is was of type " + runNumColumn.getJdbcType());
+            throw new NotFoundException("Runs query is expected to have a '" + GenotypingQueryHelper.RUN_NUM + "' column that is an Integer, but is was of type " + runNumColumn.getJdbcType());
         }
     }
 }
