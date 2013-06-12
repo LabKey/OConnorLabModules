@@ -22,6 +22,7 @@ import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TSVWriter;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.settings.AppProps;
@@ -143,7 +144,7 @@ public class SubmitAnalysisJob extends PipelineJob
 
     private void writeAnalysisSamples() throws SQLException
     {
-        Map<String, Object> sampleMap = new HashMap<String, Object>();   // Map to reuse for each insertion to AnalysisSamples
+        Map<String, Object> sampleMap = new HashMap<>();   // Map to reuse for each insertion to AnalysisSamples
         sampleMap.put("analysis", _analysis.getRowId());
 
         for (Integer sampleId : _sampleIds)
@@ -162,7 +163,7 @@ public class SubmitAnalysisJob extends PipelineJob
         SimpleFilter filter = new SimpleFilter("run", _analysis.getRun());
         filter.addInClause("SampleId", _sampleIds);
 
-        final ResultSet rs = Table.select(ti, ti.getColumns("name,sampleid,sequence,quality"), filter, null);
+        final ResultSet rs = new TableSelector(ti, ti.getColumns("name,sampleid,sequence,quality"), filter, null).getResultSet();
 
         // Need a custom writer since TSVGridWriter does not work in background threads
         TSVWriter writer = new TSVWriter() {

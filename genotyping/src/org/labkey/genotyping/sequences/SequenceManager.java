@@ -19,8 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.ResultSetIterator;
 import org.labkey.api.data.SQLFragment;
+import org.labkey.api.data.Selector;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.SqlSelector;
@@ -68,36 +68,31 @@ public class SequenceManager
     }
 
 
-    public void loadSequences(Container c, User user) throws SQLException
+    public void loadSequences(Container c, final User user) throws SQLException
     {
         Map<String, Object> dictionary = new HashMap<>();
         dictionary.put("container", c);
         Table.insert(user, GenotypingSchema.get().getDictionariesTable(), dictionary);
-        int dictionaryId = getCurrentDictionary(c, user).getRowId();
+        final int dictionaryId = getCurrentDictionary(c, user).getRowId();
 
         ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, "loading sequences");
         QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getSequencesQuery());
 
         SimpleFilter viewFilter = qHelper.getViewFilter();
-        TableInfo destination = GenotypingSchema.get().getSequencesTable();
+        final TableInfo destination = GenotypingSchema.get().getSequencesTable();
         // If "file_active" column exists then filter on it, #14008
         if (null != destination.getColumn("file_active"))
             viewFilter.addCondition("file_active", 1);
         TableInfo source = qHelper.getTableInfo();
 
-        ResultSet rs = null;
-
-        try
+        new TableSelector(source, viewFilter, null).forEachMap(new Selector.ForEachBlock<Map<String, Object>>()
         {
-            rs = Table.select(source, Table.ALL_COLUMNS, viewFilter, null);
-            ResultSetIterator iter = ResultSetIterator.get(rs);
-
-            while (iter.hasNext())
+            @Override
+            public void exec(Map<String, Object> map) throws SQLException
             {
-                Map<String, Object> map = iter.next();
                 Map<String, Object> inMap = new HashMap<>(map.size() * 2);
 
-                // TODO: ResultSetIterator should have a way to map column names
+                // General way to map column names would be nice...
                 for (Map.Entry<String, Object> entry : map.entrySet())
                 {
                     String key = entry.getKey().replaceAll("_", "");
@@ -106,16 +101,12 @@ public class SequenceManager
 
                 // Skip empty sequences.  TODO: remove this check once wisconsin eliminates empty sequences
                 if (StringUtils.isBlank((String)inMap.get("sequence")))
-                    continue;
+                    return;
 
                 inMap.put("dictionary", dictionaryId);
                 Table.insert(user, destination, inMap);
             }
-        }
-        finally
-        {
-            ResultSetUtil.close(rs);
-        }
+        });
 
         destination.getSqlDialect().updateStatistics(destination);
     }
@@ -214,22 +205,10 @@ public class SequenceManager
         SimpleFilter filter = SimpleFilter.createContainerFilter(c);
         filter.addCondition("RowId", dictionary.getRowId());
         TableInfo dictionaries = GenotypingSchema.get().getDictionariesTable();
-        ResultSet rs = null;
+        Integer dictionaryId = new TableSelector(dictionaries, dictionaries.getColumns("RowId"), filter, null).getObject(Integer.class);
 
-        try
-        {
-            rs = Table.select(dictionaries, dictionaries.getColumns("RowId"), filter, null);
-
-            if (!rs.next())
-                throw new IllegalStateException("Sequences dictionary does not exist in this folder");
-
-            if (rs.next())
-                throw new IllegalStateException("Multiple sequence dictionaries found");
-        }
-        finally
-        {
-            ResultSetUtil.close(rs);
-        }
+        if (null == dictionaryId)
+            throw new IllegalStateException("Sequences dictionary does not exist in this folder");
 
         // Now select all sequences in this dictionary, applying the specified filter
         GenotypingSchema gs = GenotypingSchema.get();
@@ -237,7 +216,8 @@ public class SequenceManager
         SimpleFilter viewFilter = qHelper.getViewFilter();
         viewFilter.addCondition("Dictionary", dictionary.getRowId());
         TableInfo ti = GenotypingSchema.get().getSequencesTable();
-        return Table.select(ti, ti.getColumns(columnNames), viewFilter, new Sort("RowId"));
+
+        return new TableSelector(ti, ti.getColumns(columnNames), viewFilter, new Sort("RowId")).getResultSet();
     }
 
 
