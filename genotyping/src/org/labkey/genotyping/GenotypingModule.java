@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.UpgradeCode;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.files.FileContentService;
@@ -81,8 +82,13 @@ public class GenotypingModule extends DefaultModule
         AssayService.get().registerAssayProvider(new HaplotypeAssayProvider());
         ExperimentService.get().registerExperimentDataHandler(new HaplotypeDataHandler());
 
+        SQLFragment containerFrag = new SQLFragment();
+        containerFrag.append("SELECT r.Container FROM ");
+        containerFrag.append(GenotypingSchema.get().getRunsTable(), "r");
+        containerFrag.append(" WHERE r.RowId = ").append(TableUpdaterFileListener.TABLE_ALIAS).append(".Run");
+
         ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getRunsTable(), "Path", TableUpdaterFileListener.Type.filePath, "RowId"));
-        ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getAnalysesTable(), "Path", TableUpdaterFileListener.Type.filePath, "RowId"));
+        ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getAnalysesTable(), "Path", TableUpdaterFileListener.Type.filePath, "RowId", containerFrag));
     }
 
     @Override
