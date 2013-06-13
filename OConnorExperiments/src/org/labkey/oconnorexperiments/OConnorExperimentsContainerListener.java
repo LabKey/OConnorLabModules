@@ -43,10 +43,10 @@ public class OConnorExperimentsContainerListener extends SimpleModuleContainerLi
         {
             if (c.getParent().getActiveModules().contains(ModuleLoader.getInstance().getModule(OConnorExperimentsModule.class)))
             {
-                //OConnorExperimentsService.get().insertExperiment(c, user);
-                OConnorExperimentsManager.get().ensureExperiment(c, user);
-                //UserSchema schema = QueryService.get().getUserSchema(user, c, SchemaKey.fromParts(OConnorExperimentsUserSchema.NAME));
-                //schema.getTable(OConnorExperimentsUserSchema.Table.Experiments);
+                // TODO: Inserting to Experiments table will insert to Workbooks table first, causing this listener to fire
+                // TODO: and insert a new Experiment record and ultimately will make the Experiment table's DataIterator
+                // TODO: fail to insert the Experimenet for the same container.
+                //OConnorExperimentsManager.get().ensureExperiment(c, user);
             }
         }
     }

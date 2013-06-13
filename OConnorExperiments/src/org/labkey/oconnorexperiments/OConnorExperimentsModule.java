@@ -21,6 +21,7 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
+import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
 
@@ -30,10 +31,12 @@ import java.util.Set;
 
 public class OConnorExperimentsModule extends DefaultModule
 {
+    public static final String NAME = "OConnorExperiments";
+
     @Override
     public String getName()
     {
-        return "OConnorExperiments";
+        return NAME;
     }
 
     @Override
@@ -66,6 +69,8 @@ public class OConnorExperimentsModule extends DefaultModule
     {
         // add a container listener so we'll know when our container is deleted:
         ContainerManager.addContainerListener(new OConnorExperimentsContainerListener(this));
+
+        ModuleLoader.getInstance().registerFolderType(this, new OConnorExperimentFolderType());
     }
 
     @Override

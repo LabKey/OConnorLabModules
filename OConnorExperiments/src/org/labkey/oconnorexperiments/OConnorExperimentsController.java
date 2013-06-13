@@ -20,13 +20,21 @@ import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.data.Container;
+import org.labkey.api.query.QueryForm;
+import org.labkey.api.query.QueryUpdateForm;
+import org.labkey.api.query.UserSchemaAction;
+import org.labkey.api.security.CSRF;
+import org.labkey.api.security.RequiresLogin;
 import org.labkey.api.security.RequiresPermissionClass;
 import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
+import org.labkey.api.view.InsertView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.NotFoundException;
+import org.labkey.api.view.ViewContext;
+import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -80,13 +88,42 @@ public class OConnorExperimentsController extends SpringActionController
 //    {
 //
 //    }
-//
-//    @RequiresPermissionClass(InsertPermission.class)
-//    public class InsertExperimentAction extends FormViewAction
-//    {
-//
-//    }
-//
+
+    /**
+     * I couldn't figure out how to add a hidden input form field for the 'folderType' column
+     * using the generic query insert view so this action is a workaround that
+     * will add the hidden form field to the DataRegion.
+     */
+    @RequiresLogin @CSRF
+    @RequiresPermissionClass(InsertPermission.class)
+    public class InsertExperimentAction extends UserSchemaAction
+    {
+        @Override
+        protected QueryForm createQueryForm(ViewContext context)
+        {
+            QueryForm form = super.createQueryForm(context);
+            form.setSchemaName(OConnorExperimentsUserSchema.NAME);
+            form.setQueryName(OConnorExperimentsUserSchema.Table.Experiments.name());
+            return form;
+        }
+
+        @Override
+        public ModelAndView getView(QueryUpdateForm form, boolean reshow, BindException errors) throws Exception
+        {
+            InsertView view = new InsertView(form, errors);
+            view.getDataRegion().setButtonBar(createSubmitCancelButtonBar(form));
+            view.getDataRegion().addHiddenFormField(QueryUpdateForm.PREFIX + "folderType", OConnorExperimentFolderType.NAME);
+            return view;
+        }
+
+        @Override
+        public boolean handlePost(QueryUpdateForm form, BindException errors) throws Exception
+        {
+            doInsertUpdate(form, errors, true);
+            return 0 == errors.getErrorCount();
+        }
+    }
+
 //    @RequiresPermissionClass(DeletePermission.class)
 //    public class DeleteAction extends ConfirmAction
 //    {

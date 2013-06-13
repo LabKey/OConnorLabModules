@@ -9,6 +9,7 @@ OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-0.00
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-13.10-13.11.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-13.11-13.12.sql -text
 OConnorExperiments/resources/schemas/oconnorexperiments.xml -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentFolderType.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsContainerListener.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsController.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsModule.java -text
