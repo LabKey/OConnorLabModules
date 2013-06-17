@@ -23,8 +23,9 @@ public class OConnorExperimentFolderType extends DefaultFolderType
                 "An experiment containing files and notes",
                 null,
                 Arrays.asList(
-                        Portal.getPortalPart("Workbook Description").createWebPart(),
-                        createFileWebPart()
+                        Portal.getPortalPart("Experiment Field").createWebPart(),
+                        createFileWebPart(),
+                        createWikiWebPart()
                 ),
                 getDefaultModuleSet(ModuleLoader.getInstance().getCoreModule(), getModule("Experiment"), getModule(OConnorExperimentsModule.NAME)),
                 ModuleLoader.getInstance().getCoreModule());
@@ -42,6 +43,11 @@ public class OConnorExperimentFolderType extends DefaultFolderType
         Portal.WebPart result = Portal.getPortalPart("Files").createWebPart(HttpView.BODY);
         result.setProperty("fileSet", FileContentService.PIPELINE_LINK);
         result.setProperty("webpart.title", "Files");
+        return result;
+    }
+    private static Portal.WebPart createWikiWebPart()
+    {
+        Portal.WebPart result = Portal.getPortalPart("Wiki").createWebPart(HttpView.BODY);
         return result;
     }
 }

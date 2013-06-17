@@ -22,9 +22,16 @@ import org.labkey.api.data.ContainerManager;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleLoader;
+import org.labkey.api.view.BaseWebPartFactory;
+import org.labkey.api.view.JspView;
+import org.labkey.api.view.Portal;
+import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartFactory;
+import org.labkey.api.view.WebPartView;
 import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -54,7 +61,24 @@ public class OConnorExperimentsModule extends DefaultModule
     @Override
     protected Collection<WebPartFactory> createWebPartFactories()
     {
-        return Collections.emptyList();
+        return new ArrayList<WebPartFactory>(Arrays.asList(
+                new BaseWebPartFactory("Experiment Field")
+                {
+                    public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart) throws Exception
+                    {
+                        JspView view = new JspView("/org/labkey/oconnorexperiments/view/experimentWorkbookField.jsp");
+                        view.setTitle("Workbook Description");
+                        view.setFrame(WebPartView.FrameType.NONE);
+                        return view;
+                    }
+
+                    @Override
+                    public boolean isAvailable(Container c, String location)
+                    {
+                        return false;
+                    }
+                }
+        ));
     }
 
     @Override
