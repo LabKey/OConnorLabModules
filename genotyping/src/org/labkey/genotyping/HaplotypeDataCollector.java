@@ -49,14 +49,14 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
     {
         // if reshowing on error, get the data param out of the context for the JSP to use
         HttpServletRequest request = context.getRequest();
-        _reshowMap = new HashMap<String, String>();
+        _reshowMap = new HashMap<>();
         _reshowMap.put(HaplotypeAssayProvider.DATA_PROPERTY_NAME, request.getParameter(HaplotypeAssayProvider.DATA_PROPERTY_NAME));
         for (String propName : HaplotypeAssayProvider.getColumnMappingProperties(context.getProtocol()).keySet())
         {
             _reshowMap.put(propName, request.getParameter(propName));
         }
 
-        return new JspView<HaplotypeProtocolBean>("/org/labkey/genotyping/view/importHaplotypeAssignments.jsp", new HaplotypeProtocolBean(this, context.getProtocol()));
+        return new JspView<>("/org/labkey/genotyping/view/importHaplotypeAssignments.jsp", new HaplotypeProtocolBean(this, context.getProtocol()));
     }
 
     @Override
@@ -87,7 +87,7 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
         }
 
         // verify that all of the column header mapping values are present
-        List<String> errorColHeaders = new ArrayList<String>();
+        List<String> errorColHeaders = new ArrayList<>();
         HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
 
         for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties(protocol).entrySet())

@@ -81,7 +81,7 @@ public class GalaxyServer
     private List<DataLibrary> getDataLibraries(String body)
     {
         JSONArray array = new JSONArray(body);
-        List<DataLibrary> list = new LinkedList<DataLibrary>();
+        List<DataLibrary> list = new LinkedList<>();
 
         for (int i = 0; i < array.length(); i++)
             list.add(new DataLibrary((JSONObject)array.get(i)));
@@ -237,7 +237,7 @@ public class GalaxyServer
             String body = get(getId() + "/contents");
 
             JSONArray array = new JSONArray(body);
-            List<LibraryItem> list = new LinkedList<LibraryItem>();
+            List<LibraryItem> list = new LinkedList<>();
 
             for (int i = 0; i < array.length(); i++)
                 list.add(getLibraryItem(this, (JSONObject)array.get(i)));
@@ -314,7 +314,7 @@ public class GalaxyServer
 
             // Parse one or more folders from a JSON array
             JSONArray array = new JSONArray(json);
-            List<File> list = new LinkedList<File>();
+            List<File> list = new LinkedList<>();
 
             for (int i = 0; i < array.length(); i++)
                 list.add(new File(this, (JSONObject)array.get(i)));

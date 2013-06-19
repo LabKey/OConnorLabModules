@@ -96,9 +96,9 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             Map<String, String> runPropertyValues = getRunPropertyValues(expRun, runDomain);
 
             // parse the haplotype assignment data to get a list of data rows, animals, and haplotypes
-            Map<String, String> animalIds = new CaseInsensitiveTreeMap<String>();
-            List<Pair<String, String>> haplotypes = new ArrayList<Pair<String, String>>();
-            List<HaplotypeAssignmentDataRow> dataRows = new ArrayList<HaplotypeAssignmentDataRow>();
+            Map<String, String> animalIds = new CaseInsensitiveTreeMap<>();
+            List<Pair<String, String>> haplotypes = new ArrayList<>();
+            List<HaplotypeAssignmentDataRow> dataRows = new ArrayList<>();
             TabLoader tabLoader = new TabLoader(dataFile, true);
             List<Map<String, Object>> rowsMap = tabLoader.load();
             parseHaplotypeData(protocol, rowsMap, runPropertyValues, animalIds, haplotypes, dataRows);
@@ -129,7 +129,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
 
     private Map<String, String> getRunPropertyValues(ExpRun run, Domain domain)
     {
-        Map<String, String> runPropValues = new HashMap<String, String>();
+        Map<String, String> runPropValues = new HashMap<>();
         for (DomainProperty runProp : domain.getProperties())
         {
             Object value = run.getProperty(runProp);
@@ -181,10 +181,10 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
 
         // put the animal Ids map into the proper list format for the updateService
-        List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> rows = new ArrayList<>();
         for (Map.Entry<String, String> entry : ids.entrySet())
         {
-            Map<String, Object> keys = new CaseInsensitiveHashMap<Object>();
+            Map<String, Object> keys = new CaseInsensitiveHashMap<>();
             keys.putAll(runPropertyValues); // if there are run fields that match up with fields on the Animal table, we should propagate the values over for all new animals
             keys.put(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName(), entry.getKey());
             keys.put(HaplotypeAssayProvider.CLIENT_ANIMAL_COLUMN.getName(), entry.getValue());
@@ -217,7 +217,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
 
         // return a mapping from the animal Id to the RowId
-        Map<String, Integer> map = new CaseInsensitiveHashMap<Integer>();
+        Map<String, Integer> map = new CaseInsensitiveHashMap<>();
         for (Map<String, Object> row : rows)
         {
             if (row.get(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()) != null && row.get("RowId") != null)
@@ -239,10 +239,10 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
 
         // put the haplotype names into the proper list format for the updateService
-        List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> rows = new ArrayList<>();
         for (Pair<String, String> entry : haplotypes)
         {
-            Map<String, Object> keys = new CaseInsensitiveHashMap<Object>();
+            Map<String, Object> keys = new CaseInsensitiveHashMap<>();
             keys.put("name", entry.first);
             keys.put("type", entry.second);
             rows.add(keys);
@@ -274,7 +274,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
 
         // return a mapping from the Haplotype name to the RowId
-        Map<String, Integer> map = new CaseInsensitiveHashMap<Integer>();
+        Map<String, Integer> map = new CaseInsensitiveHashMap<>();
         for (Map<String, Object> row : rows)
         {
             map.put(row.get("name").toString(), Integer.parseInt(row.get("RowId").toString()));
@@ -294,12 +294,12 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
 
         // insert the animal/run values (totalReads, identifiedreads, etc.)
-        List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> rows = new ArrayList<>();
         for (int i = 0; i < dataRows.size(); i++)
         {
             HaplotypeAssignmentDataRow dataRow = dataRows.get(i);
 
-            Map<String, Object> values = new CaseInsensitiveHashMap<Object>();
+            Map<String, Object> values = new CaseInsensitiveHashMap<>();
             values.put("animalid", animalRowIdMap.get(dataRow.getMapValue(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName())));
             values.put("runid", run.getRowId());
             values.put(HaplotypeAssayProvider.TOTAL_READS_COLUMN.getName(), dataRow.getIntegerValue(HaplotypeAssayProvider.TOTAL_READS_COLUMN.getName(), i));
@@ -313,7 +313,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         throwFirstError(errors);
 
          // return a mapping from the AnimalId to the AnimalAnalysis RowId
-         Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+         Map<Integer, Integer> map = new HashMap<>();
          for (Map<String, Object> insertedRow : insertedRows)
          {
              map.put(Integer.parseInt(insertedRow.get("animalid").toString()), Integer.parseInt(insertedRow.get("RowId").toString()));
@@ -333,12 +333,12 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
 
         // insert the animalAnalysis/haplotype assignment values (one row for each haplotype, 4 will be input via this process for each animal)
-        List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> rows = new ArrayList<>();
         for (HaplotypeAssignmentDataRow dataRow : dataRows)
         {
             for (Pair<String, String> haplotype : dataRow.getHaplotypeList(protocol))
             {
-                Map<String, Object> values = new CaseInsensitiveHashMap<Object>();
+                Map<String, Object> values = new CaseInsensitiveHashMap<>();
                 values.put("animalanalysisid", animalAnalysisRowIdMap.get(animalRowIdMap.get(dataRow.getMapValue(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()))));
                 values.put("haplotypeid", haplotypeRowIdMap.get(haplotype.first));
                 rows.add(values);
@@ -417,7 +417,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
 
     public class HaplotypeAssignmentDataRow
     {
-        private Map<String, String> _dataMap = new HashMap<String, String>();
+        private Map<String, String> _dataMap = new HashMap<>();
 
         public void addToDataMap(String key, String value)
         {
@@ -452,7 +452,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
 
         public List<Pair<String, String>> getHaplotypeList(ExpProtocol protocol)
         {
-            List<Pair<String, String>> rowHaplotypes = new ArrayList<Pair<String, String>>();
+            List<Pair<String, String>> rowHaplotypes = new ArrayList<>();
             String name;
 
             DomainProperty[] props = HaplotypeAssayProvider.getDomainProps(protocol);
@@ -467,7 +467,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
                     String type = name.substring(0, name.length()-1).replaceAll("Haplotype", "");
 
                     if(!column.isShownInInsertView() && !defaults.contains(name))
-                        rowHaplotypes.add(new Pair<String, String>(_dataMap.get(name), type));
+                        rowHaplotypes.add(new Pair<>(_dataMap.get(name), type));
                 }
             }
             return rowHaplotypes;
@@ -535,7 +535,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
 
         private Map<String, Object> getRowMap(String[] valuesArr)
         {
-            Map<String, Object> row = new HashMap<String, Object>();
+            Map<String, Object> row = new HashMap<>();
             int index = 0;
             for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties().entrySet())
             {

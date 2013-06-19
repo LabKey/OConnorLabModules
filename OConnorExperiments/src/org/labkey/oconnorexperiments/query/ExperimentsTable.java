@@ -310,7 +310,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
             QueryUpdateService parentExperimentsQUS = parentExperimentsTable.getUpdateService();
             if (parentExperimentsQUS != null)
             {
-                List<String> containers = new ArrayList<String>();
+                List<String> containers = new ArrayList<>();
 
                 for (Map<String, Object> key : keys)
                 {

@@ -27,7 +27,7 @@ public enum Status
 {
     NotSubmitted(0), Submitted(1), Importing(2), Complete(3);
 
-    private static final Map<Integer, Status> _map = new HashMap<Integer, Status>();
+    private static final Map<Integer, Status> _map = new HashMap<>();
 
     static
     {

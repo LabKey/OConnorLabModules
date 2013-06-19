@@ -95,7 +95,7 @@ public class GenotypingModule extends DefaultModule
     public Collection<String> getSummary(Container c)
     {
         GenotypingManager gm = GenotypingManager.get();
-        Collection<String> list = new LinkedList<String>();
+        Collection<String> list = new LinkedList<>();
 
         int runCount = gm.getRunCount(c);
 

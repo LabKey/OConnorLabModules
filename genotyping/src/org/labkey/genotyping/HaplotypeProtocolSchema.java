@@ -63,7 +63,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
     {
         FilteredTable table = (FilteredTable)new GenotypingQuerySchema(getUser(), getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name());
         List<FieldKey> toCopy = table.getDefaultVisibleColumns();
-        List<FieldKey> keys = new ArrayList<FieldKey>(toCopy);
+        List<FieldKey> keys = new ArrayList<>(toCopy);
         HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
         DomainProperty[] props = HaplotypeAssayProvider.getDomainProps(getProtocol());
 

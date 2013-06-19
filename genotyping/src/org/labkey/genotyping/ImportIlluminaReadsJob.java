@@ -151,7 +151,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 rs.close();
         }
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put("Status", status.getStatusId());
         Table.update(getUser(), GenotypingSchema.get().getRunsTable(), map, _run.getRowId());
     }
@@ -180,7 +180,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
 
                 //parse the samples file
                 String [] nextLine;
-                Map<Integer, Object> sampleMap = new HashMap<Integer, Object>();
+                Map<Integer, Object> sampleMap = new HashMap<>();
                 sampleMap.put(0, 0); //placeholder for control and unmapped reads
 
                 Boolean inSamples = false;
@@ -242,7 +242,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 Map<String, Object> row;
                 for(Pair<Object, Integer> sampleKey : fileMap.keySet())
                 {
-                    row = new CaseInsensitiveHashMap<Object>();
+                    row = new CaseInsensitiveHashMap<>();
                     row.put("Run", _run.getRowId());
                     Integer sampleId = (Integer)sampleKey.getKey();
                     if(sampleId > 0)

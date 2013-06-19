@@ -156,7 +156,7 @@ public class Import454ReadsJob extends PipelineJob
                 rs.close();
         }
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put("Status", status.getStatusId());
         Table.update(getUser(), GenotypingSchema.get().getRunsTable(), map, _run.getRowId());
     }
@@ -182,7 +182,7 @@ public class Import454ReadsJob extends PipelineJob
         {
             loader = new TabLoader(_reads, true);
 
-            List<ColumnDescriptor> columns = new ArrayList<ColumnDescriptor>();
+            List<ColumnDescriptor> columns = new ArrayList<>();
             columns.addAll(Arrays.asList(loader.getColumns()));
 
             for (ColumnDescriptor col : columns)
@@ -199,7 +199,7 @@ public class Import454ReadsJob extends PipelineJob
                     col.name = SampleManager.MID3_COLUMN_NAME;
             }
 
-            Set<String> sampleKeyColumns = new HashSet<String>();
+            Set<String> sampleKeyColumns = new HashSet<>();
 
             for (ColumnDescriptor col : columns)
                 if (SampleManager.POSSIBLE_SAMPLE_KEYS.contains(col.name))

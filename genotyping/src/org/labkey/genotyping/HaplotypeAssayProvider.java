@@ -174,7 +174,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         Set<String> runProperties = domainMap.get(ExpProtocol.ASSAY_DOMAIN_RUN);
         if (runProperties == null)
         {
-            runProperties = new HashSet<String>();
+            runProperties = new HashSet<>();
             domainMap.put(ExpProtocol.ASSAY_DOMAIN_RUN, runProperties);
         }
         runProperties.add(ENABLED_PROPERTY_NAME);
@@ -205,7 +205,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
 
     public static Map<String, HaplotypeColumnMappingProperty> getColumnMappingProperties()
     {
-        Map<String, HaplotypeColumnMappingProperty> properties = new LinkedHashMap<String, HaplotypeColumnMappingProperty>();
+        Map<String, HaplotypeColumnMappingProperty> properties = new LinkedHashMap<>();
         properties.put(LAB_ANIMAL_COLUMN.getName(), LAB_ANIMAL_COLUMN);
         properties.put(CLIENT_ANIMAL_COLUMN.getName(), CLIENT_ANIMAL_COLUMN);
         properties.put(TOTAL_READS_COLUMN.getName(), TOTAL_READS_COLUMN);
@@ -219,7 +219,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
 
     public static Map<String, HaplotypeColumnMappingProperty> getColumnMappingProperties(ExpProtocol protocol)
     {
-        Map<String, HaplotypeColumnMappingProperty> properties = new LinkedHashMap<String, HaplotypeColumnMappingProperty>();
+        Map<String, HaplotypeColumnMappingProperty> properties = new LinkedHashMap<>();
         AssayProvider provider = AssayService.get().getProvider(protocol);
         Domain domain = provider.getRunDomain(protocol);
         DomainProperty[] props = domain.getProperties();
@@ -245,7 +245,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     }
 
     public static HashSet<String> getDefaultColumns(){
-        HashSet<String> defaults = new HashSet<String>();
+        HashSet<String> defaults = new HashSet<>();
         defaults.add(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName());
         defaults.add(HaplotypeAssayProvider.CLIENT_ANIMAL_COLUMN.getName());
         defaults.add(HaplotypeAssayProvider.TOTAL_READS_COLUMN.getName());

@@ -90,7 +90,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getRunsTable(), schema);
+                FilteredTable table = new FilteredTable<>(GS.getRunsTable(), schema);
                 table.wrapAllColumns(true);
                 table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer()));
                 setDefaultVisibleColumns(table, "RowId, MetaDataId, Created, CreatedBy");
@@ -133,7 +133,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
             {
-                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getSequencesTable(), schema);
+                FilteredTable table = new FilteredTable<>(GS.getSequencesTable(), schema);
                 table.wrapAllColumns(true);
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getDictionariesTable().getFromSQL("d") + " WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
                 containerCondition.add(schema.getContainer().getId());
@@ -611,7 +611,7 @@ public class GenotypingQuerySchema extends UserSchema
         // Set an explicit list of default columns by name
         private static void setDefaultVisibleColumns(TableInfo table, String columnNames)
         {
-            List<FieldKey> fieldKeys = new LinkedList<FieldKey>();
+            List<FieldKey> fieldKeys = new LinkedList<>();
 
             for (String name : columnNames.split(",\\s*"))
                 fieldKeys.add(FieldKey.fromString(name));
@@ -626,7 +626,7 @@ public class GenotypingQuerySchema extends UserSchema
             Set<String> removeColumns = Sets.newCaseInsensitiveHashSet(columnsToRemove.split(",\\s*"));
 
             List<FieldKey> keys = table.getDefaultVisibleColumns();
-            List<FieldKey> visibleColumns = new ArrayList<FieldKey>(keys.size());
+            List<FieldKey> visibleColumns = new ArrayList<>(keys.size());
 
             for (FieldKey key : keys)
                 if (!removeColumns.contains(key.getName()))
@@ -640,7 +640,7 @@ public class GenotypingQuerySchema extends UserSchema
 
     static
     {
-        Set<String> names = new LinkedHashSet<String>();
+        Set<String> names = new LinkedHashSet<>();
 
         for (TableType type : TableType.values())
         {
@@ -721,7 +721,7 @@ public class GenotypingQuerySchema extends UserSchema
     @Override
     public Set<String> getTableNames()
     {
-        Set<String> names = new LinkedHashSet<String>();
+        Set<String> names = new LinkedHashSet<>();
 
         for (TableType type : TableType.values())
         {

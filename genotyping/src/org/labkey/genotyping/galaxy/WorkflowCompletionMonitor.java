@@ -51,7 +51,7 @@ public class WorkflowCompletionMonitor implements ShutdownListener
             return new Thread(r, "Genotyping Workflow Completion Monitor");
         }
     });
-    private final List<File> _pendingCompletionFiles = new CopyOnWriteArrayList<File>();
+    private final List<File> _pendingCompletionFiles = new CopyOnWriteArrayList<>();
 
 
     static
