@@ -20,6 +20,7 @@ import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.data.Container;
+import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.QueryForm;
 import org.labkey.api.query.QueryUpdateForm;
 import org.labkey.api.query.UserSchemaAction;
@@ -29,6 +30,8 @@ import org.labkey.api.security.RequiresPermissionClass;
 import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
+import org.labkey.api.util.PageFlowUtil;
+import org.labkey.api.view.HttpView;
 import org.labkey.api.view.InsertView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
@@ -52,7 +55,7 @@ public class OConnorExperimentsController extends SpringActionController
     {
         public ModelAndView getView(Object o, BindException errors) throws Exception
         {
-            return new JspView("/org/labkey/oconnorexperiments/view/hello.jsp");
+            return HttpView.redirect(PageFlowUtil.urlProvider(ProjectUrls.class).getHomeURL());
         }
 
         public NavTree appendNavTrail(NavTree root)

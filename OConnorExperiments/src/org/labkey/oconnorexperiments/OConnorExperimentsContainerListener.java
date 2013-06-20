@@ -24,6 +24,9 @@ import org.labkey.api.query.QueryService;
 import org.labkey.api.query.SchemaKey;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.wiki.WikiRendererType;
+import org.labkey.api.wiki.WikiService;
 import org.labkey.oconnorexperiments.model.OConnorExperimentsManager;
 import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
 
@@ -43,6 +46,9 @@ public class OConnorExperimentsContainerListener extends SimpleModuleContainerLi
         {
             if (c.getParent().getActiveModules().contains(ModuleLoader.getInstance().getModule(OConnorExperimentsModule.class)))
             {
+                // Create an empty default wiki with title "Notes"
+                ServiceRegistry.get(WikiService.class).insertWiki(user, c, "default", null, WikiRendererType.HTML, "Notes");
+
                 // TODO: Inserting to Experiments table will insert to Workbooks table first, causing this listener to fire
                 // TODO: and insert a new Experiment record and ultimately will make the Experiment table's DataIterator
                 // TODO: fail to insert the Experimenet for the same container.

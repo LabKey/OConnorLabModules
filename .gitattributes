@@ -21,7 +21,6 @@ OConnorExperiments/src/org/labkey/oconnorexperiments/query/ExperimentsTable.java
 OConnorExperiments/src/org/labkey/oconnorexperiments/query/OConnorExperimentsUserSchema.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/details.jsp -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/experimentWorkbookField.jsp -text
-OConnorExperiments/src/org/labkey/oconnorexperiments/view/hello.jsp -text
 genotyping/Genotyping.iml -text
 genotyping/build.xml -text
 genotyping/module.properties -text
