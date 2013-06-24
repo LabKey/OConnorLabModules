@@ -277,7 +277,17 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         Map<String, Integer> map = new CaseInsensitiveHashMap<>();
         for (Map<String, Object> row : rows)
         {
-            map.put(row.get("name").toString(), Integer.parseInt(row.get("RowId").toString()));
+            Object name = row.get("name");
+            if (name == null)
+            {
+                throw new NullPointerException("No value from 'name' in the Haplotypes table");
+            }
+            Object rowId = row.get("RowId");
+            if (rowId == null)
+            {
+                throw new NullPointerException("No value from 'RowId' in the Haplotypes table");
+            }
+            map.put(name.toString(), Integer.parseInt(rowId.toString()));
         }
         return map;
     }
