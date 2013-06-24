@@ -46,6 +46,7 @@
     }
 </style>
 <span>Created <%=container.getCreated()%></span>
+<div id='error'></div>
 <div id='dropbox'></div>
 
 <script type="text/javascript">
@@ -59,32 +60,111 @@
         LABKEY.Query.selectRows({
             schemaName : 'OConnorExperiments',
             queryName : 'Experiments',
+            columns : ['Description', 'ExperimentType', 'ParentExperiments/Container', 'ParentExperiments/ExperimentNumber'],
             filterArray : [
                 LABKEY.Filter.create('ExperimentNumber', <%=h(container.getTitle())%>, LABKEY.Filter.Types.EQUALS)
             ],
+
             success : function(data){
                 experimentData = data.rows[0];
+                console.log(experimentData);
+                generateParentExperimentField();
                 generateEditableElement('Description', 'Description');
                 generateEditableElement('Experiment Type', 'ExperimentType');
             },
             scope : this
         });
 
-
-
-        new LABKEY.ext.EditInPlaceElement({
-            applyTo: _wb_titleId,
-            updateConfig: {
-                url: LABKEY.ActionURL.buildURL("core", "updateTitle"),
-                jsonDataPropName: 'title'
+        LABKEY.Query.selectRows({
+            schemaName : 'OConnorExperiments',
+            queryName : 'Experiments',
+            columns : ['ExperimentNumber', 'Container'],
+            success : function(data){
+                console.log(data);
             },
-            listeners: {
-                beforecomplete: function(newText){
-                    return (newText.length > 0);
-                }
-            }
+            scope : this
         });
 
+
+
+        function generateParentExperimentField()
+        {
+            var header = document.createElement("h3");
+            header.innerHTML = 'Parent Experiments:';
+            var editable = document.createElement("div");
+            editable.id = 'ParentExperiments' ;
+            editable.class = 'labkey-edit-in-place';
+            editable.innerHTML = '';
+            for(var i = 0; i < experimentData['ParentExperiments/ExperimentNumber'].length; i++)
+            {
+                if(i != experimentData['ParentExperiments/ExperimentNumber'].length-1)
+                    editable.innerHTML += experimentData['ParentExperiments/ExperimentNumber'][i] +', ';
+                else
+                    editable.innerHTML += experimentData['ParentExperiments/ExperimentNumber'][i];
+            }
+
+            var errorMessage = Ext4.create('Ext.form.Label', {
+                renderTo : 'error',
+                style : 'color:red'
+            });
+
+            document.getElementById('dropbox').appendChild(header);
+            document.getElementById('dropbox').appendChild(editable);
+
+            new LABKEY.ext.EditInPlaceElement({
+                applyTo: 'ParentExperiments',
+                multiLine: true,
+                listeners : {
+                    complete : function(){
+                        var row = {
+                            Container : experimentData.Container
+                        };
+
+                        LABKEY.Query.selectRows({
+                            schemaName : 'OConnorExperiments',
+                            queryName : 'Experiments',
+                            containerPath : LABKEY.container.parentId,
+                            columns : ['ExperimentNumber', 'Container'],
+                            success : function(data){
+                                errorMessage.setText('');
+                                var expNums = document.getElementById('ParentExperiments').innerHTML.split(',');
+                                row.ParentExperiments = [];
+                                var found;
+                                for(var i = 0; i < expNums.length; i++)
+                                {
+                                    found = false;
+                                    for(var r = 0; r < data.rows.length; r++)
+                                    {
+                                        if(expNums[i] == data.rows[r].ExperimentNumber)
+                                        {
+                                            row.ParentExperiments.push(data.rows[r].Container);
+                                            found = true;
+                                        }
+                                    }
+
+                                    if (found == false)
+                                    {
+                                        errorMessage.setText(expNums[i] + " is not a valid Experiment Number");
+                                    }
+                                }
+
+                                if(errorMessage.text === '')
+                                {
+                                    LABKEY.Query.updateRows({
+                                        schemaName : 'OConnorExperiments',
+                                        queryName : 'Experiments',
+                                        rows : [row]
+                                    });
+                                }
+                            },
+                            scope : this
+                        });
+
+
+                    }
+                }
+            });
+        }
         function generateEditableElement(title, name){
             var header = document.createElement("h3");
             header.innerHTML = title+':';
