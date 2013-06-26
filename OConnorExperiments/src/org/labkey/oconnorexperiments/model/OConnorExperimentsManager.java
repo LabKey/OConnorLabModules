@@ -25,12 +25,16 @@ import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableSelector;
+import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.security.User;
+import org.labkey.oconnorexperiments.OConnorExperimentsModule;
 import org.labkey.oconnorexperiments.OConnorExperimentsSchema;
 
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OConnorExperimentsManager
 {
@@ -76,6 +80,27 @@ public class OConnorExperimentsManager
         try
         {
             return Table.insert(user, table, experiment);
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeSQLException(e);
+        }
+    }
+
+    public void updateModified(Container c, User user)
+    {
+        if (c == null || user == null || !c.isWorkbook() || !c.getParent().getActiveModules().contains(ModuleLoader.getInstance().getModule(OConnorExperimentsModule.class)))
+            return;
+
+        try
+        {
+            Map<String, Object> row = new HashMap<>();
+            row.put("Container", c.getEntityId());
+            TableSelector selector = new TableSelector(OConnorExperimentsSchema.getInstance().createTableInfoExperiments(), SimpleFilter.createContainerFilter(c), null);
+            if (selector.exists())
+            {
+                Table.update(user, OConnorExperimentsSchema.getInstance().createTableInfoExperiments(), row, c.getEntityId());
+            }
         }
         catch (SQLException e)
         {
