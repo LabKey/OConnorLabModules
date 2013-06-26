@@ -27,6 +27,7 @@ import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.ExtendedTable;
 import org.labkey.api.data.Filter;
 import org.labkey.api.data.ForeignKey;
+import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.MultiValuedForeignKey;
 import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.SimpleFilter;
@@ -62,6 +63,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.util.ContainerContext;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.ActionURL;
+import org.labkey.oconnorexperiments.OConnorExperimentFolderType;
 import org.labkey.oconnorexperiments.OConnorExperimentsController;
 import org.labkey.oconnorexperiments.OConnorExperimentsSchema;
 
@@ -337,6 +339,25 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
     @Override
     public DataIteratorBuilder persistRows(DataIteratorBuilder data, DataIteratorContext context)
     {
+        // Issue 18069: OConnorExperiments: folderType not defaulting to OConnorExperiments when created via LK.Query.insertRows
+        // Inject the default folderType of "OConnorExperiments" before handing the input
+        DataIterator in = data.getDataIterator(context);
+        SimpleTranslator x = new SimpleTranslator(in, context);
+        boolean hasFolderType = false;
+        for (int i=1 ; i<= in.getColumnCount() ; i++)
+        {
+            ColumnInfo col = in.getColumnInfo(i);
+            if (col.getName().equalsIgnoreCase("folderType"))
+                hasFolderType = true;
+            x.addColumn(i);
+        }
+
+        if (!hasFolderType)
+            x.addConstantColumn("folderType", JdbcType.VARCHAR, OConnorExperimentFolderType.NAME);
+
+        data = new DataIteratorBuilder.Wrapper(x);
+
+        // Feed the modified data iterator to the parent ETL
         DataIteratorBuilder insertETL = super.persistRows(data, context);
         if (insertETL != null)
             insertETL = new _DataIteratorBuilder(insertETL);

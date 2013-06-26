@@ -46,7 +46,6 @@
     }
 </style>
 <span>Created <%=container.getCreated()%></span>
-<div id='error'></div>
 <div id='dropbox'></div>
 
 <script type="text/javascript">
@@ -69,8 +68,8 @@
                 experimentData = data.rows[0];
                 console.log(experimentData);
                 generateParentExperimentField();
-                generateEditableElement('Description', 'Description');
-                generateEditableElement('Experiment Type', 'ExperimentType');
+                generateEditableElement('Description', 'Description', 4000);
+                generateEditableElement('Experiment Type', 'ExperimentType', 255);
             },
             scope : this
         });
@@ -103,13 +102,17 @@
                     editable.innerHTML += experimentData['ParentExperiments/ExperimentNumber'][i];
             }
 
-            var errorMessage = Ext4.create('Ext.form.Label', {
-                renderTo : 'error',
-                style : 'color:red'
-            });
+            var error = document.createElement("div");
+            error.id = editable.id + "-error";
 
             document.getElementById('dropbox').appendChild(header);
             document.getElementById('dropbox').appendChild(editable);
+            document.getElementById('dropbox').appendChild(error);
+
+            var errorMessage = Ext4.create('Ext.form.Label', {
+                renderTo : editable.id + '-error',
+                style : 'color:red'
+            });
 
             new LABKEY.ext.EditInPlaceElement({
                 applyTo: 'ParentExperiments',
@@ -165,7 +168,7 @@
                 }
             });
         }
-        function generateEditableElement(title, name){
+        function generateEditableElement(title, name, maxLength){
             var header = document.createElement("h3");
             header.innerHTML = title+':';
             var editable = document.createElement("div");
@@ -173,14 +176,35 @@
             editable.class = 'labkey-edit-in-place';
             editable.innerHTML = experimentData[name] != null ? experimentData[name] : '[Field currently blank]';
 
+            var error = document.createElement("div");
+            error.id = editable.id + "-error";
+
             document.getElementById('dropbox').appendChild(header);
             document.getElementById('dropbox').appendChild(editable);
+            document.getElementById('dropbox').appendChild(error);
+
+            var errorMessage = Ext4.create('Ext.form.Label', {
+                renderTo : editable.id + '-error',
+                style : 'color:red'
+            });
 
             new LABKEY.ext.EditInPlaceElement({
                 applyTo: name,
                 multiLine: true,
                 emptyText: 'No description provided. Click to add one.',
+                maxLength: maxLength,
                 listeners : {
+                    validitychange : function (field, isValid) {
+                        if (isValid) {
+                            errorMessage.setText('');
+                        } else {
+                            var errors = this.getErrors();
+                            var msg = "Invalid value";
+                            if (errors && errors.length > 0)
+                                msg = errors[0];
+                            errorMessage.setText(msg);
+                        }
+                    },
                     complete : function(){
                         var row = {
                             Container : experimentData.Container
