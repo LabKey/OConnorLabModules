@@ -183,6 +183,7 @@
                 }
             });
         }
+
         function generateEditableElement(title, name, maxLength){
             var header = document.createElement("h3");
             header.innerHTML = title+':';
@@ -231,12 +232,12 @@
                         row[name] = editable.innerHTML;
                         if(row[name] === this.emptyText)
                             row[name] = '';
-                            LABKEY.Query.updateRows({
-                                schemaName : 'OConnorExperiments',
-                                queryName : 'Experiments',
-                                rows : [row]
-                            });
 
+                        LABKEY.Query.updateRows({
+                            schemaName : 'OConnorExperiments',
+                            queryName : 'Experiments',
+                            rows : [row]
+                        });
                     }
                 }
             });
