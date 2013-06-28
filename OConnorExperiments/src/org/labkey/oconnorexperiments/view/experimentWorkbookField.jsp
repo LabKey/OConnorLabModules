@@ -51,9 +51,6 @@
 <script type="text/javascript">
     Ext.onReady(function(){
 
-        if (!LABKEY.Security.currentUser.canUpdate)
-            return;
-
         var experimentData;
 
         LABKEY.Query.selectRows({
@@ -105,24 +102,37 @@
             var error = document.createElement("div");
             error.id = editable.id + "-error";
 
+            document.getElementById('dropbox').appendChild(error);
             document.getElementById('dropbox').appendChild(header);
             document.getElementById('dropbox').appendChild(editable);
-            document.getElementById('dropbox').appendChild(error);
 
             var errorMessage = Ext4.create('Ext.form.Label', {
                 renderTo : editable.id + '-error',
                 style : 'color:red'
             });
 
-            new LABKEY.ext.EditInPlaceElement({
+
+            if (!LABKEY.Security.currentUser.canUpdate)
+                return;
+
+            var parentEditInPlace = new LABKEY.ext.EditInPlaceElement({
                 applyTo: 'ParentExperiments',
+                emptyText : 'No Parent Experiments provided. Click to enter a comma separated list of experiment IDs (ex. 1, 2, 3).',
                 multiLine: true,
                 listeners : {
                     complete : function(){
                         var row = {
                             Container : experimentData.Container
                         };
-
+                        var expNums;
+                        if(document.getElementById('ParentExperiments').innerHTML != this.emptyText)
+                        {
+                            expNums = document.getElementById('ParentExperiments').innerHTML.split(',');
+                        }
+                        else
+                        {
+                            expNums = [''];
+                        }
                         LABKEY.Query.selectRows({
                             schemaName : 'OConnorExperiments',
                             queryName : 'Experiments',
@@ -130,11 +140,14 @@
                             columns : ['ExperimentNumber', 'Container'],
                             success : function(data){
                                 errorMessage.setText('');
-                                var expNums = document.getElementById('ParentExperiments').innerHTML.split(',');
+
                                 row.ParentExperiments = [];
                                 var found;
                                 for(var i = 0; i < expNums.length; i++)
                                 {
+                                    if(expNums[0] === '')
+                                        continue;
+
                                     found = false;
                                     for(var r = 0; r < data.rows.length; r++)
                                     {
@@ -148,6 +161,7 @@
                                     if (found == false)
                                     {
                                         errorMessage.setText(expNums[i] + " is not a valid Experiment Number");
+                                        document.getElementById('ParentExperiments').innerHTML = parentEditInPlace.oldText;
                                     }
                                 }
 
@@ -164,6 +178,7 @@
                         });
 
 
+
                     }
                 }
             });
@@ -174,7 +189,7 @@
             var editable = document.createElement("div");
             editable.id = name ;
             editable.class = 'labkey-edit-in-place';
-            editable.innerHTML = experimentData[name] != null ? experimentData[name] : '[Field currently blank]';
+            editable.innerHTML = experimentData[name] != null ? experimentData[name] : '';
 
             var error = document.createElement("div");
             error.id = editable.id + "-error";
@@ -182,6 +197,9 @@
             document.getElementById('dropbox').appendChild(header);
             document.getElementById('dropbox').appendChild(editable);
             document.getElementById('dropbox').appendChild(error);
+
+            if (!LABKEY.Security.currentUser.canUpdate)
+                return;
 
             var errorMessage = Ext4.create('Ext.form.Label', {
                 renderTo : editable.id + '-error',
@@ -191,7 +209,8 @@
             new LABKEY.ext.EditInPlaceElement({
                 applyTo: name,
                 multiLine: true,
-                emptyText: 'No description provided. Click to add one.',
+                enterCompletesEdit : false,
+                emptyText: 'No '+title+' provided. Click to add one.',
                 maxLength: maxLength,
                 listeners : {
                     validitychange : function (field, isValid) {
@@ -210,12 +229,14 @@
                             Container : experimentData.Container
                         };
                         row[name] = editable.innerHTML;
+                        if(row[name] === this.emptyText)
+                            row[name] = '';
+                            LABKEY.Query.updateRows({
+                                schemaName : 'OConnorExperiments',
+                                queryName : 'Experiments',
+                                rows : [row]
+                            });
 
-                        LABKEY.Query.updateRows({
-                            schemaName : 'OConnorExperiments',
-                            queryName : 'Experiments',
-                            rows : [row]
-                        });
                     }
                 }
             });
