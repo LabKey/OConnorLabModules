@@ -31,6 +31,7 @@ import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.MultiValuedForeignKey;
 import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.Sort;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.data.UpdateableTableInfo;
@@ -133,6 +134,8 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         containerCol.setFk(getExtendedForeignKey());
         //containerCol.setFk(new QueryForeignKey("core", getUserSchema().getContainer(), getUserSchema().getUser(), "Workbooks", "EntityId", null));
         containerCol.setHidden(true);
+        containerCol.setSortFieldKey(FieldKey.fromParts("ExperimentNumber"));
+        containerCol.setSortDirection(Sort.SortDirection.DESC);
 
         ColumnInfo idCol = addBaseTableColumn("ID", "ID");
         idCol.setLabel("ID");
@@ -203,8 +206,8 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
 
         setInsertURL(new DetailsURL(new ActionURL(OConnorExperimentsController.InsertExperimentAction.class, getContainer())));
 
-        // UNDONE: experiment specific update page
-        //setUpdateURL(DetailsURL.fromString("core/updateWorkbook.view"));
+        // Disable the update URL -- the project begin view is used to edit the experiment
+        setUpdateURL(LINK_DISABLER);
 
         setDefaultVisibleColumns(Arrays.asList(
                 FieldKey.fromParts("ExperimentNumber"),

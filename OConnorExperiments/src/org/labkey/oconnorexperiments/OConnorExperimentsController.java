@@ -16,30 +16,35 @@
 
 package org.labkey.oconnorexperiments;
 
-import org.labkey.api.action.FormViewAction;
+import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
+import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerManager;
+import org.labkey.api.data.TableInfo;
 import org.labkey.api.portal.ProjectUrls;
-import org.labkey.api.query.QueryForm;
-import org.labkey.api.query.QueryUpdateForm;
-import org.labkey.api.query.UserSchemaAction;
+import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.QueryService;
+import org.labkey.api.query.QueryUpdateService;
+import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.CSRF;
 import org.labkey.api.security.RequiresLogin;
 import org.labkey.api.security.RequiresPermissionClass;
 import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.security.permissions.ReadPermission;
-import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.util.PageFlowUtil;
+import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.HttpView;
-import org.labkey.api.view.InsertView;
-import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
-import org.labkey.api.view.NotFoundException;
-import org.labkey.api.view.ViewContext;
 import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
 import org.springframework.validation.BindException;
+import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class OConnorExperimentsController extends SpringActionController
 {
@@ -64,73 +69,52 @@ public class OConnorExperimentsController extends SpringActionController
         }
     }
 
-    /*
-    @RequiresPermissionClass(ReadPermission.class)
-    public class ExperimentDetailsAction extends SimpleViewAction
-    {
-        @Override
-        public ModelAndView getView(Object o, BindException errors) throws Exception
-        {
-            Container c = getContainer();
-            if (!c.isWorkbook())
-                throw new NotFoundException("Current container is not a workbook");
-
-            return new JspView<Object>("/org/labkey/oconnorexperiments/view/details.jsp", errors);
-        }
-
-        @Override
-        public NavTree appendNavTrail(NavTree root)
-        {
-            return root.addChild("Experiments");
-        }
-    }
-    */
-
-//    @RequiresPermissionClass(UpdatePermission.class)
-//    public class UpdateExperimentAction extends FormViewAction
-//    {
-//
-//    }
-
     /**
-     * I couldn't figure out how to add a hidden input form field for the 'folderType' column
-     * using the generic query insert view so this action is a workaround that
-     * will add the hidden form field to the DataRegion.
+     * Use the QueryUpdateService to create a new experiment so the Experiment and Workbook deafults are used
+     * then redirect to the newly created experiment begin page.
      */
     @RequiresLogin @CSRF
     @RequiresPermissionClass(InsertPermission.class)
-    public class InsertExperimentAction extends UserSchemaAction
+    public class InsertExperimentAction extends RedirectAction
     {
+        private Container newExperiment;
+
         @Override
-        protected QueryForm createQueryForm(ViewContext context)
+        public URLHelper getSuccessURL(Object o)
         {
-            QueryForm form = super.createQueryForm(context);
-            form.setSchemaName(OConnorExperimentsUserSchema.NAME);
-            form.setQueryName(OConnorExperimentsUserSchema.Table.Experiments.name());
-            return form;
+            return PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(newExperiment);
         }
 
         @Override
-        public ModelAndView getView(QueryUpdateForm form, boolean reshow, BindException errors) throws Exception
+        public boolean doAction(Object o, BindException errors) throws Exception
         {
-            InsertView view = new InsertView(form, errors);
-            view.getDataRegion().setButtonBar(createSubmitCancelButtonBar(form));
-            view.getDataRegion().addHiddenFormField(QueryUpdateForm.PREFIX + "folderType", OConnorExperimentFolderType.NAME);
-            return view;
+
+            UserSchema schema = QueryService.get().getUserSchema(getUser(), getContainer(), OConnorExperimentsUserSchema.NAME);
+            TableInfo table = schema.getTable(OConnorExperimentsUserSchema.Table.Experiments.name());
+            QueryUpdateService qus = table.getUpdateService();
+
+            Map<String, Object> row = new CaseInsensitiveHashMap<>();
+            row.put("Container", getContainer().getEntityId());
+
+            BatchValidationException batchErrors = new BatchValidationException();
+            List<Map<String, Object>> result = qus.insertRows(getUser(), getContainer(), Collections.singletonList(row), batchErrors, null);
+            if (batchErrors.hasErrors())
+                throw batchErrors;
+
+            if (result != null && !result.isEmpty())
+            {
+                String entityId = (String)result.get(0).get("Container");
+                newExperiment = ContainerManager.getForId(entityId);
+                return true;
+            }
+
+            return false;
         }
 
         @Override
-        public boolean handlePost(QueryUpdateForm form, BindException errors) throws Exception
+        public void validateCommand(Object target, Errors errors)
         {
-            doInsertUpdate(form, errors, true);
-            return 0 == errors.getErrorCount();
         }
     }
-
-//    @RequiresPermissionClass(DeletePermission.class)
-//    public class DeleteAction extends ConfirmAction
-//    {
-//
-//    }
 
 }
