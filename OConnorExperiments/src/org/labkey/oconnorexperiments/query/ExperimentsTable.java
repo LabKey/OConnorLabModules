@@ -42,6 +42,7 @@ import org.labkey.api.etl.DataIteratorUtil;
 import org.labkey.api.etl.ListofMapsDataIterator;
 import org.labkey.api.etl.LoggingDataIterator;
 import org.labkey.api.etl.SimpleTranslator;
+import org.labkey.api.etl.ValidatorIterator;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.AbstractQueryUpdateService;
 import org.labkey.api.query.BatchValidationException;
@@ -346,6 +347,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         // Inject the default folderType of "OConnorExperiments" before handing the input
         DataIterator in = data.getDataIterator(context);
         SimpleTranslator x = new SimpleTranslator(in, context);
+        x.setDebugName("ExperimentsTable folderType constant");
         boolean hasFolderType = false;
         for (int i=1 ; i<= in.getColumnCount() ; i++)
         {
@@ -358,7 +360,24 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         if (!hasFolderType)
             x.addConstantColumn("folderType", JdbcType.VARCHAR, OConnorExperimentFolderType.NAME);
 
-        data = new DataIteratorBuilder.Wrapper(x);
+        in = LoggingDataIterator.wrap(x);
+
+        // Issue 18119: Add length validation for "Experiment Type".
+        // Remove this block when StandatdETL adds scale/length validation by default.
+        for (int i = 1; i < x.getColumnCount(); i++)
+        {
+            ColumnInfo col = x.getColumnInfo(i);
+            if ("experimentType".equalsIgnoreCase(col.getColumnName()))
+            {
+                ValidatorIterator validate = new ValidatorIterator(x, context, getContainer(), getUserSchema().getUser());
+                validate.setDebugName("ExperimentsTable validate");
+                validate.addLengthValidator(i, col);
+                in = LoggingDataIterator.wrap(validate);
+                break;
+            }
+        }
+
+        data = new DataIteratorBuilder.Wrapper(in);
 
         // Feed the modified data iterator to the parent ETL
         DataIteratorBuilder insertETL = super.persistRows(data, context);
@@ -410,11 +429,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
             _parentExperimentsCol = inputColMap.get("parentExperiments");
 
             // Just pass all columns through
-            for (int i=1; i <= data.getColumnCount(); i++)
-            {
-                ColumnInfo col = data.getColumnInfo(i);
-                addColumn(i);
-            }
+            selectAll();
         }
 
         @Override
