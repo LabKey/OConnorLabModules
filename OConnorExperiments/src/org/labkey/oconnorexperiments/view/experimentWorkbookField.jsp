@@ -190,7 +190,7 @@
             var editable = document.createElement("div");
             editable.id = name ;
             editable.class = 'labkey-edit-in-place';
-            editable.innerHTML = experimentData[name] != null ? experimentData[name] : '';
+            editable.innerHTML = experimentData[name] != null ? experimentData[name].replace(/\n/g, '<br>') : '';
 
             var error = document.createElement("div");
             error.id = editable.id + "-error";
@@ -225,6 +225,9 @@
                             errorMessage.setText(msg);
                         }
                     },
+                    editstarted : function(){
+                        editable.innerHTML = editable.innerHTML.replace(/<br>/g, '\n');
+                    },
                     complete : function(){
                         var row = {
                             Container : experimentData.Container
@@ -238,6 +241,11 @@
                             queryName : 'Experiments',
                             rows : [row]
                         });
+
+                        editable.innerHTML = editable.innerHTML.replace(/\n/g, '<br>');
+                    },
+                    canceledit : function(){
+                        editable.innerHTML = editable.innerHTML.replace(/\n/g, '<br>');
                     }
                 }
             });
