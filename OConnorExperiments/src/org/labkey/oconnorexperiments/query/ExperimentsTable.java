@@ -24,6 +24,7 @@ import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
+import org.labkey.api.data.CoreSchema;
 import org.labkey.api.data.ExtendedTable;
 import org.labkey.api.data.Filter;
 import org.labkey.api.data.ForeignKey;
@@ -32,9 +33,9 @@ import org.labkey.api.data.MultiValuedForeignKey;
 import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
+import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
-import org.labkey.api.data.UpdateableTableInfo;
 import org.labkey.api.etl.DataIterator;
 import org.labkey.api.etl.DataIteratorBuilder;
 import org.labkey.api.etl.DataIteratorContext;
@@ -50,8 +51,6 @@ import org.labkey.api.query.DetailsURL;
 import org.labkey.api.query.DuplicateKeyException;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.InvalidKeyException;
-import org.labkey.api.query.LookupForeignKey;
-import org.labkey.api.query.QueryAction;
 import org.labkey.api.query.QueryForeignKey;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
@@ -74,7 +73,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -416,6 +414,8 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         private DataIteratorContext _context;
         private final Integer _containerCol;
         private final Integer _parentExperimentsCol;
+        private final Integer _experimentNumberCol;
+        private final Integer _createdByCol;
 
         private SchemaTableInfo _parentExperimentsTable;
 
@@ -427,6 +427,8 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
             Map<String,Integer> inputColMap = DataIteratorUtil.createColumnAndPropertyMap(data);
             _containerCol = inputColMap.get("container");
             _parentExperimentsCol = inputColMap.get("parentExperiments");
+            _experimentNumberCol = inputColMap.get("experimentNumber");
+            _createdByCol = inputColMap.get("createdBy");
 
             // Just pass all columns through
             selectAll();
@@ -445,13 +447,25 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
             if (!hasNext)
                 return false;
 
+            String containerEntityId = _containerCol == null ? null : (String)get(_containerCol);
+            // Get the newly created workbook container entityid
+            Container c = containerEntityId == null ? null : ContainerManager.getForId(containerEntityId);
+
+            if (_experimentNumberCol != null && c != null)
+            {
+                Object experimentNumber = get(_experimentNumberCol);
+                if (experimentNumber != null)
+                {
+                    c.setSortOrder(((Number)experimentNumber).intValue());
+                    new SqlExecutor(CoreSchema.getInstance().getSchema()).execute("UPDATE core.containers SET SortOrder = ? WHERE EntityId = ?", c.getSortOrder(), c.getId());
+                }
+
+            }
+
             // No current Container or ParentExperiments
-            if (_containerCol == null || _parentExperimentsCol == null || get(_parentExperimentsCol) == null)
+            if (c == null || _parentExperimentsCol == null || get(_parentExperimentsCol) == null)
                 return true;
 
-            // Get the newly created workbook container entityid
-            String containerEntityId = (String)get(_containerCol);
-            Container c = ContainerManager.getForId(containerEntityId);
             if (c == null || !c.isWorkbook())
             {
                 addFieldError("ParentExperiment", "Current container must be a workbook");
@@ -477,14 +491,14 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
             RowMapFactory<Object> factory = new RowMapFactory<>(colNames);
             for (String parentExperiment : parentExperiments)
             {
-                Container p = ContainerManager.getForId(parentExperiment);
+                Container p = getContainer().getChild(parentExperiment);
                 if (p == null || !p.isWorkbook())
                 {
                     addFieldError("ParentExperiment", "ParentExperiment must refer to workbooks");
                     return true;
                 }
 
-                Map<String, Object> row = factory.getRowMap(Arrays.<Object>asList(containerEntityId, parentExperiment));
+                Map<String, Object> row = factory.getRowMap(Arrays.<Object>asList(containerEntityId, p.getEntityId()));
                 rows.add(row);
             }
 
