@@ -1,6 +1,5 @@
 * text=auto !eol
 OConnorExperiments/OConnorExperiments.iml -text
-OConnorExperiments/build.xml -text
 OConnorExperiments/module.properties -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/obsolete/oconnorexperiments-13.10-13.11.sql -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-0.00-13.10.sql -text
@@ -25,7 +24,6 @@ OConnorExperiments/src/org/labkey/oconnorexperiments/view/details.jsp -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/experimentWorkbookField.jsp -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/migrateData.jsp -text
 genotyping/Genotyping.iml -text
-genotyping/build.xml -text
 genotyping/module.properties -text
 genotyping/resources/assay/Haplotype/queries/DuplicateAssignment.query.xml -text
 genotyping/resources/assay/Haplotype/queries/DuplicateAssignment.sql -text
