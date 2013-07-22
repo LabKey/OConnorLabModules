@@ -491,7 +491,10 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
             RowMapFactory<Object> factory = new RowMapFactory<>(colNames);
             for (String parentExperiment : parentExperiments)
             {
-                Container p = getContainer().getChild(parentExperiment);
+                Container p = ContainerManager.getForId(parentExperiment);
+                if (p == null)
+                    p = getContainer().getChild(parentExperiment);
+
                 if (p == null || !p.isWorkbook())
                 {
                     addFieldError("ParentExperiment", "ParentExperiment must refer to workbooks");

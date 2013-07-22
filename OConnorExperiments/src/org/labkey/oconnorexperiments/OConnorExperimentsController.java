@@ -176,10 +176,13 @@ public class OConnorExperimentsController extends SpringActionController
                     Container targetContainer = ContainerManager.getForPath(form.getSourceProject());
                     FileContentService fileContentService = ServiceRegistry.get(FileContentService.class);
                     File sourceFile = new File(fileContentService.getFileRoot(sourceContainer).getPath() + "\\@Files", databaseMap.get("expnumber").toString());
-                    File targetDir = new File(fileContentService.getFileRoot(targetContainer).getPath() + "\\@Files");
-                    File targetFile = new File(targetDir, databaseMap.get("expnumber").toString());
-                    FileUtils.moveToDirectory(sourceFile, targetDir, true);
-                    fileContentService.fireFileMoveEvent(sourceFile, targetFile, user, getContainer());
+                    if (sourceFile.exists())
+                    {
+                        File targetDir = new File(fileContentService.getFileRoot(targetContainer).getPath() + "\\@Files");
+                        File targetFile = new File(targetDir, databaseMap.get("expnumber").toString());
+                        FileUtils.moveToDirectory(sourceFile, targetDir, true);
+                        fileContentService.fireFileMoveEvent(sourceFile, targetFile, user, getContainer());
+                    }
                 }
 
                 return true;
