@@ -271,10 +271,9 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
             QueryUpdateService parentExperimentsQUS = parentExperimentsTable.getUpdateService();
             if (parentExperimentsQUS != null)
             {
-                List<Map<String, Object>> parentExperimentRows = new ArrayList<>();
-
                 for (Map<String, Object> row : rows)
                 {
+                    List<Map<String, Object>> parentExperimentRows = new ArrayList<>();
                     String c = (String)row.get("container");
                     Object v = row.get("ParentExperiments");
                     String[] parentExperiments = null;
@@ -298,12 +297,14 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
                             parentExperimentRows.add(parentExperimentRow);
                         }
                     }
+
+                    BatchValidationException errors = new BatchValidationException();
+                    parentExperimentsQUS.insertRows(user, ContainerManager.getForId(c), parentExperimentRows, errors, extraScriptContext);
+                    if (errors.hasErrors())
+                        throw errors;
                 }
 
-                BatchValidationException errors = new BatchValidationException();
-                parentExperimentsQUS.insertRows(user, container, parentExperimentRows, errors, extraScriptContext);
-                if (errors.hasErrors())
-                    throw errors;
+
             }
 
         }

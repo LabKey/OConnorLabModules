@@ -25,7 +25,7 @@
 <h3>OConnor Experiments to Workbooks data migration</h3>
 <table><%=formatMissedErrorsInTable("form", 2)%>
     <tr>
-        <td>Target Project Name:</td>
+        <td>Source Project Name:</td>
         <td><input type="text" name="sourceProject" id="sourceProject" size="50" value=""></td>
     </tr>
     <tr>

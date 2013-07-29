@@ -17,6 +17,7 @@
 package org.labkey.oconnorexperiments;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.ReturnUrlForm;
@@ -62,6 +63,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -120,25 +122,43 @@ public class OConnorExperimentsController extends SpringActionController
                 QueryUpdateService queryUpdateService = targetTable.getUpdateService();
                 BatchValidationException batchErrors = new BatchValidationException();
 
+                // global containers
+                Container sourceContainer = ContainerManager.getForPath(form.getSourceProject());
+                Container targetContainer = getContainer();
+                FileContentService fileContentService = ServiceRegistry.get(FileContentService.class);
+
                 // parse the sourceCollection into the target collection
                 for (Map<String, Object> databaseMap : sourceCollection)
                 {
-                    // get the user name
-                    User user = UserManager.getUserByDisplayName((String) databaseMap.get("initials"));
-
                     Map<String, Object> map = new CaseInsensitiveHashMap<>();
                     map.put("ExperimentNumber", databaseMap.get("expnumber"));
                     map.put("Name", databaseMap.get("expnumber"));
                     map.put("Description", databaseMap.get("expDescription"));
                     map.put("ExperimentType", databaseMap.get("expType"));
-                    String[] parents = new String[0];
-                    if (databaseMap.get("expParent") != null)
+                    //map.put("Modified", databaseMap.get("created"));
+
+                    // get the user name
+                    User effectiveUser;
+                    if (databaseMap.get("initials") == null)
                     {
-                        String parentString = databaseMap.get("expParent").toString();
-                        parents = parentString.split("[\\s,;]+");
+                        effectiveUser = getUser();
                     }
-                    map.put("ParentExperiments", parents);
-                    User effectiveUser = user == null ? getUser() : user;
+                    else
+                    {
+                        User user = UserManager.getUserByDisplayName((String) databaseMap.get("initials"));
+                        if (user == null)
+                        {
+                            Logger.getLogger(OConnorExperimentsController.class).warn("User '" + databaseMap.get("initials") + "' not found for experiment " + databaseMap.get("expnumber"));
+                            effectiveUser = getUser();
+                        }
+                        else
+                        {
+                            effectiveUser = user;
+                        }
+                    }
+
+                    databaseMap.put("EffectiveUser", effectiveUser);
+                    Logger.getLogger(OConnorExperimentsController.class).info("Insert on experiment " + databaseMap.get("expnumber"));
                     List<Map<String, Object>> updateResult = queryUpdateService.insertRows(getUser(), getContainer(), Collections.singletonList(map), batchErrors, null);
                     if (batchErrors.hasErrors())
                     {
@@ -146,42 +166,99 @@ public class OConnorExperimentsController extends SpringActionController
                     }
 
                     Container workbookContainer = ContainerManager.getForId((String)updateResult.get(0).get("EntityId"));
+                    databaseMap.put("ContainerObj", workbookContainer);
+                    databaseMap.put("ContainerStr", updateResult.get(0).get("EntityId"));
 
                     // We don't want these fields to be spoofable through the QueryUpdateService (and hence the Client API),
                     // so preserve the value from the source data manually
                     Date created = (Date)databaseMap.get("created");
                     new SqlExecutor(CoreSchema.getInstance().getSchema()).execute("UPDATE core.containers SET CreatedBy = ?, Created = ? WHERE RowId = ?", effectiveUser.getUserId(), created, workbookContainer.getRowId());
 
+                    // Move files
+                    File sourceFile = new File(fileContentService.getFileRoot(sourceContainer).getPath() + "\\@files", databaseMap.get("expnumber").toString());
+                    File targetDir = new File(fileContentService.getFileRoot(targetContainer).getPath() + "\\" + databaseMap.get("expnumber").toString());
+                    if (sourceFile.exists())
+                    {
+                        FileUtils.copyDirectory(sourceFile, targetDir);
+                        fileContentService.fireFileMoveEvent(sourceFile, targetDir, effectiveUser, getContainer());
+                    }
+
+                }
+
+                //
+                // 2nd pass - update all ParentExperiment fields
+                //
+                for (Map<String, Object> databaseMap : sourceCollection)
+                {
+                    Map<String, Object> map = new CaseInsensitiveHashMap<>();
+                    map.put("container", databaseMap.get("ContainerStr"));
+
+                    String[] parents = new String[0];
+                    ArrayList<String> parentsEntityId = new ArrayList<>();
+                    if (databaseMap.get("expParent") != null)
+                    {
+                        String parentString = databaseMap.get("expParent").toString();
+                        parents = parentString.split("[\\s,;&]+");
+                        // get Container for SortOrder
+                        for ( int i =0; i< parents.length; i++)
+                        {
+                            if ( ! parents[i].equalsIgnoreCase("and"))
+                            {
+                                Container child = targetContainer.getChild(parents[i]);
+                                if (child != null)
+                                {
+                                    parentsEntityId.add( child.getEntityId().toString() );
+                                }
+                                else
+                                {
+                                    Logger.getLogger(OConnorExperimentsController.class).warn("child container not found: " + parents[i] + " for experiment " + databaseMap.get("expnumber"));
+                                }
+                            }
+                        }
+                        if (parentsEntityId.size() > 0)
+                        {
+                            map.put("ParentExperiments", parentsEntityId.toArray(new String[parentsEntityId.size()]));
+
+                            // workaround, pass user, container - databaseMap.get("Container"), singleton list
+                            Logger.getLogger(OConnorExperimentsController.class).info("Update rows on experiment " + databaseMap.get("expnumber"));
+                            queryUpdateService.updateRows(getUser(), targetContainer, Collections.singletonList(map), null, null);
+                        }
+                    }
+                }
+
+                //
+                // 3rd pass update the wiki, done seperately so that the cache is not modified
+                //
+                for (Map<String, Object> databaseMap : sourceCollection)
+                {
                     // Update the existing Wiki content with the value from the old table, if present
                     String wikiText = (String)databaseMap.get("expcomments");
                     if (wikiText != null)
                     {
-                        Path path = new Path("_webdav").append(workbookContainer.getParsedPath()).append("@wiki", "default", "default.html");
-                        WebdavResolver resolver = ServiceRegistry.get(WebdavResolver.class);
-                        WebdavResource resource = resolver.lookup(path);
-
-                        FileStream.StringFileStream in = new FileStream.StringFileStream(wikiText);
-                        try
+                        User user = UserManager.getUserByDisplayName((String) databaseMap.get("initials"));
+                        User effectiveUser = user == null ? getUser() : user;
+                        Container workbookContainer = targetContainer.getChild(databaseMap.get("expnumber").toString());
+                        if (workbookContainer == null)
                         {
-                            resource.copyFrom(effectiveUser, in);
+                            Logger.getLogger(OConnorExperimentsController.class).warn("Updating wiki, container not found: " + databaseMap.get("expnumber"));
                         }
-                        finally
+                        else
                         {
-                            in.closeInputStream();
-                        }
-                    }
+                            Path path = new Path("_webdav").append(workbookContainer.getParsedPath()).append("@wiki", "default", "default.html");
+                            WebdavResolver resolver = ServiceRegistry.get(WebdavResolver.class);
+                            WebdavResource resource = resolver.lookup(path);
 
-                    // Move files
-                    Container sourceContainer = getContainer();
-                    Container targetContainer = ContainerManager.getForPath(form.getSourceProject());
-                    FileContentService fileContentService = ServiceRegistry.get(FileContentService.class);
-                    File sourceFile = new File(fileContentService.getFileRoot(sourceContainer).getPath() + "\\@Files", databaseMap.get("expnumber").toString());
-                    if (sourceFile.exists())
-                    {
-                        File targetDir = new File(fileContentService.getFileRoot(targetContainer).getPath() + "\\@Files");
-                        File targetFile = new File(targetDir, databaseMap.get("expnumber").toString());
-                        FileUtils.moveToDirectory(sourceFile, targetDir, true);
-                        fileContentService.fireFileMoveEvent(sourceFile, targetFile, user, getContainer());
+                            FileStream.StringFileStream in = new FileStream.StringFileStream(wikiText);
+                            try
+                            {
+                                resource.copyFrom(effectiveUser, in);
+                            }
+                            finally
+                            {
+                                in.closeInputStream();
+                            }
+                            Logger.getLogger(OConnorExperimentsController.class).info("Inserting wiki for experiment " + databaseMap.get("expnumber"));
+                        }
                     }
                 }
 
