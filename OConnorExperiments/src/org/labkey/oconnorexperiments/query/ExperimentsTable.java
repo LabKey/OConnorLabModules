@@ -73,6 +73,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -133,7 +134,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         containerCol.setFk(getExtendedForeignKey());
         //containerCol.setFk(new QueryForeignKey("core", getUserSchema().getContainer(), getUserSchema().getUser(), "Workbooks", "EntityId", null));
         containerCol.setHidden(true);
-        containerCol.setSortFieldKey(FieldKey.fromParts("ExperimentNumber"));
+        containerCol.setSortFieldKeys(Collections.singletonList(FieldKey.fromParts("ExperimentNumber")));
         containerCol.setSortDirection(Sort.SortDirection.DESC);
 
         ColumnInfo idCol = addBaseTableColumn("ID", "ID");
