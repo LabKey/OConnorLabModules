@@ -169,6 +169,10 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         experimentTypeCol.setLabel("Experiment Type");
         experimentTypeCol.setUserEditable(true);
 
+        ColumnInfo grantIdCol = addWrapColumn(getRealTable().getColumn("GrantId"));
+        grantIdCol.setLabel("Grant");
+        grantIdCol.setUserEditable(true);
+
         ColumnInfo parentExperimentsCol = wrapColumn("ParentExperiments", getRealTable().getColumn("Container"));
         MultiValuedForeignKey parentExperimentsFk = new MultiValuedForeignKey(
                 new QueryForeignKey(getUserSchema(), OConnorExperimentsUserSchema.Table.ParentExperiments.name(), "Container", null),
@@ -215,6 +219,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
                 FieldKey.fromParts("Modified"),
                 FieldKey.fromParts("Description"),
                 FieldKey.fromParts("ExperimentType"),
+                FieldKey.fromParts("GrantId"),
                 FieldKey.fromParts("ParentExperiments")
         ));
 

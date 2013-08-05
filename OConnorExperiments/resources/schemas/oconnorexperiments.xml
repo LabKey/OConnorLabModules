@@ -21,6 +21,7 @@
     <table tableName="experiments" tableDbType="TABLE">
         <description>Contains a single experiment row in a workbook container</description>
         <pkColumnName>Container</pkColumnName>
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="Container">
                 <isUserEditable>false</isUserEditable>
@@ -47,6 +48,17 @@
                 <nullable>true</nullable>
                 <datatype>varchar</datatype>
                 <scale>255</scale>
+            </column>
+            <column columnName="GrantId">
+                <columnTitle>Grant</columnTitle>
+                <nullable>true</nullable>
+                <datatype>integer</datatype>
+                <fk>
+                    <fkColumnName>Key</fkColumnName>
+                    <fkTable>grants</fkTable>
+                    <fkDbSchema>oconnor</fkDbSchema>
+                    <fkFolderPath>/dho</fkFolderPath>
+                </fk>
             </column>
             <column columnName="ParentExperiments" wrappedColumnName="Container">
                 <columnTitle>Parent Experiments</columnTitle>
