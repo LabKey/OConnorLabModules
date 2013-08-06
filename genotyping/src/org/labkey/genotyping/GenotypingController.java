@@ -42,7 +42,6 @@ import org.labkey.api.data.Results;
 import org.labkey.api.data.ShowRows;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
-import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.data.dialect.SqlDialect;
@@ -123,8 +122,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -1381,36 +1378,6 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @SuppressWarnings({"UnusedDeclaration"})
-    @RequiresPermissionClass(AdminPermission.class)
-    public class TestPerformance extends SimpleRedirectAction
-    {
-        @Override
-        public URLHelper getRedirectURL(Object o) throws Exception
-        {
-            ImportReadsAction action = new ImportReadsAction();
-            action.setViewContext(getViewContext());
-            TableInfo runsTable = GenotypingSchema.get().getRunsTable();
-            Integer maxRun = Table.executeSingleton(runsTable.getSchema(), "SELECT CAST(MAX(RowId) AS INTEGER) FROM " + runsTable, null, Integer.class);
-
-            int start = maxRun + 1;
-            int end = start + 10;
-
-            for (int i = start; i < end; i++)
-            {
-                ImportReadsForm form = new ImportReadsForm();
-                form.setRun(i);
-                form.setMetaDataRun(113);
-                form.setReadsPath("c:\\Users\\adam\\Desktop\\genotyping\\runs\\2010-10-20\\reads.txt");
-
-                action.handlePost(form, null);
-            }
-
-            return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
-        }
-    }
-
-
     public static ActionURL getWorkflowCompleteURL(Container c, GenotypingAnalysis analysis)
     {
         ActionURL url = new ActionURL(WorkflowCompleteAction.class, c);
@@ -1850,7 +1817,6 @@ public class GenotypingController extends SpringActionController
         public ModelAndView getView(FORM form, BindException errors) throws Exception
         {
             GenotypingRun _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
-            String platform = null==_run ? "" : _run.getPlatform();
 
             if (FASTQ_FORMAT.equals(form.getExportType()))
             {
@@ -1870,7 +1836,8 @@ public class GenotypingController extends SpringActionController
                 {
                     rs = rgn.getResultSet(rc);
 
-                    FastqGenerator fg = new FastqGenerator(rs) {
+                    FastqGenerator fg = new FastqGenerator(rs)
+                    {
                         @Override
                         public String getHeader(ResultSet rs) throws SQLException
                         {
