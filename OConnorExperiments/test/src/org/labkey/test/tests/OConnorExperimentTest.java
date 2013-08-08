@@ -29,7 +29,7 @@ import org.labkey.remoteapi.query.SelectRowsResponse;
 import org.labkey.remoteapi.query.UpdateRowsCommand;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
-import org.labkey.test.categories.DailyB;
+import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
@@ -46,7 +46,7 @@ import java.util.Map;
 import static org.apache.commons.lang3.StringUtils.join;
 
 
-@Category({DailyB.class})
+@Category({CustomModules.class})
 public class OConnorExperimentTest extends BaseWebDriverTest
 {
     private static final String PROJECT_NAME = "OConnor Experiment Project";
