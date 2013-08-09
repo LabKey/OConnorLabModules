@@ -142,6 +142,8 @@ genotyping/src/org/labkey/genotyping/view/matchCombiner.jsp -text
 genotyping/src/org/labkey/genotyping/view/mhcQuery.jsp -text
 genotyping/src/org/labkey/genotyping/view/mySettings.jsp -text
 genotyping/src/org/labkey/genotyping/view/overview.jsp -text
+genotyping/test/src/org/labkey/test/tests/GenotypingTest.java -text
+genotyping/test/src/org/labkey/test/tests/HaplotypeAssayTest.java -text
 genotyping/tools/Illumina.pl -text
 genotyping/webapp/genotyping/IlluminaExportPanel.js -text
 genotyping/webapp/genotyping/RunExportWindow.js -text
