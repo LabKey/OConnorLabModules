@@ -586,8 +586,8 @@ public class GenotypingTest extends BaseSeleniumWebTest
         Ext4FieldRef combo = Ext4FieldRef.getForLabel(this, "Template");
         combo.setValue(TEMPLATE_NAME);
 
-        Integer count = Integer.parseInt(combo.eval("this.store.getCount()"));
-        Assert.assertTrue("Combo store does not have correct record number", 3 == count);
+        int count = Integer.parseInt(combo.eval("this.store.getCount()"));
+        Assert.assertEquals("Combo store does not have correct record number", 3, count);
         sleep(50);
         Assert.assertEquals("Field value not set correctly", TEMPLATE_NAME, Ext4FieldRef.getForLabel(this, "Template").getValue());
         _ext4Helper.clickTabContainingText("Preview Header");
