@@ -42,7 +42,7 @@
     <tr><td>&nbsp;</td></tr>
     <tr>
         <td>
-            <table class="labkey-export-tab-layout"><tr><td><input id="<%=id%>" type="checkbox" checked="true"/> Filter out low-quality bases</td></tr></table>
+            <table class="labkey-export-tab-layout"><tr><td><input id="<%=id%>" type="checkbox" checked> Filter out low-quality bases</td></tr></table>
         </td>
     </tr>
 </table>
