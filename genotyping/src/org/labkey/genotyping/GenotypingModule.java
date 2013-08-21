@@ -19,9 +19,7 @@ package org.labkey.genotyping;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
-import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.SQLFragment;
-import org.labkey.api.data.UpgradeCode;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.files.FileContentService;
 import org.labkey.api.files.TableUpdaterFileListener;
@@ -59,6 +57,7 @@ public class GenotypingModule extends DefaultModule
         return true;
     }
 
+    @NotNull
     protected Collection<WebPartFactory> createWebPartFactories()
     {
         return Arrays.asList(GenotypingWebPart.FACTORY, GenotypingRunsView.FACTORY, GenotypingAnalysesView.FACTORY);
@@ -91,6 +90,7 @@ public class GenotypingModule extends DefaultModule
         ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getAnalysesTable(), "Path", TableUpdaterFileListener.Type.filePath, "RowId", containerFrag));
     }
 
+    @NotNull
     @Override
     public Collection<String> getSummary(Container c)
     {
