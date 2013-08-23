@@ -16,7 +16,6 @@
  */
 %>
 
-<%@ page import="org.labkey.api.util.Pair" %>
 <%@ page import="org.labkey.api.view.HttpView" %>
 <%@ page import="org.labkey.genotyping.HaplotypeDataCollector" %>
 <%@ page import="org.labkey.api.view.JspView" %>
@@ -24,9 +23,6 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="org.labkey.genotyping.HaplotypeColumnMappingProperty" %>
 <%@ page import="org.labkey.genotyping.HaplotypeProtocolBean" %>
-<%@ page import="org.labkey.api.study.assay.AssayProvider" %>
-<%@ page import="org.labkey.api.study.assay.AssayService" %>
-<%@ page import="org.labkey.api.exp.property.Domain" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     JspView<HaplotypeProtocolBean> me = (JspView<HaplotypeProtocolBean>) HttpView.currentView();
@@ -73,7 +69,8 @@
             width:580,
             height:300,
             listeners: {
-                'change': function(cmp) {
+                buffer: 500,
+                change: function(cmp) {
                     copyPasteForm.loadColHeaderComboData(cmp.getValue());
                 }
             }
@@ -81,7 +78,7 @@
             xtype: 'displayfield',
             value: 'Match the column headers from the tab-delimited data with the key fields:'
         }];
-        Ext4.each(expectedHeaders, function(header){
+        Ext4.each(expectedHeaders, function(header) {
             var combo = Ext4.create('Ext.form.ComboBox', {
                 xtype: 'combo',
                 labelWidth: 180,
@@ -97,30 +94,31 @@
                 store: Ext4.create('Ext.data.Store', {
                     fields: ['header'],
                     data: []
-                })
-            });
-            combo.store.on('datachanged', function(store){
-                // select the combo item, if there is a match
-                var index1 = store.find('header', getReshowValue(header.name), 0, false, false, true);
-                var index2 = store.find('header', header.label, 0, false, false, true);
-                if (index1 != null && index1 > -1)
-                    combo.select(store.getAt(index1));
-                else if (index2 != null && index2 > -1)
-                    combo.select(store.getAt(index2));
-                else
-                    combo.reset();
+                }),
+                updateSelection: function() {
+                    // select the combo item, if there is a match
+                    var store = this.getStore();
+                    var index1 = store.find('header', getReshowValue(header.name), 0, false, false, true);
+                    var index2 = store.find('header', header.label, 0, false, false, true);
+                    if (index1 != null && index1 > -1)
+                        combo.select(store.getAt(index1));
+                    else if (index2 != null && index2 > -1)
+                        combo.select(store.getAt(index2));
+                    else
+                        combo.reset();
 
-                combo.enable();
-            }, this, {buffer: 500});
+                    combo.enable();
+                }
+            });
 
             items.push(combo);
         });
 
         var copyPasteForm = Ext4.create('Ext.form.FormPanel', {
+            renderTo: '<%=h(copyPasteDivId)%>',
             border: false,
             itemId: 'copyPasteForm',
             items: items,
-
             loadColHeaderComboData: function(data)
             {
                 // parse the textarea data to get the column headers
@@ -137,10 +135,10 @@
                 var combos = Ext4.ComponentQuery.query('#copyPasteForm > combo');
                 Ext4.each(combos, function(combo){
                     combo.getStore().loadData(colHeaders);
+                    combo.updateSelection();
                 });
             }
         });
-        copyPasteForm.render('<%=h(copyPasteDivId)%>');
 
         <%
         if (reshowData.length > 0)

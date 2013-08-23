@@ -167,7 +167,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         sleep(1000);
         clickButton("Save and Finish");
         waitForText("Column header mapping missing for: Lab Animal ID");
-        waitForElementToDisappear(Locator.xpath("//table[contains(@class,'item-disabled')]//label[text() = 'Mamu-B Haplotype 2 *:']"), WAIT_FOR_JAVASCRIPT);
+        sleep(1000); // give the form a second to reshow on error
         _ext4Helper.selectComboBoxItem("Lab Animal ID *:", "OC ID");
         clickButton("Save and Finish");
         waitForText("Column header mapping missing for: Total # Reads Evaluated");
@@ -448,12 +448,11 @@ public class HaplotypeAssayTest extends GenotypingTest
         log("Importing Haplotype Run: " + assayId);
         goToAssayImport(assayName);
         setFormElement(Locator.name("name"), assayId);
-        checkCheckbox("enabled");
+        checkCheckbox(Locator.name("enabled"));
         setDataAndColumnHeaderProperties(dataFile);
-        sleep(3500); //TODO
         clickButton("Save and Finish");
         waitForText(assayName + " Runs");
-        assertLinkPresentWithText(assayId);
+        assertElementPresent(Locator.linkWithText(assayId));
     }
 
     @LogMethod
