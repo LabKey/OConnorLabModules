@@ -45,18 +45,18 @@
         color: #999999;
     }
 </style>
-<span>Created <%=container.getCreated()%></span>
+<span id='createdSpan'></span>
+<div id='errorBox'></div>
 <div id='dropbox'></div>
 
 <script type="text/javascript">
     Ext.onReady(function(){
-
         var experimentData;
 
         LABKEY.Query.selectRows({
             schemaName : 'OConnorExperiments',
             queryName : 'Experiments',
-            columns : ['Description', 'ExperimentType', 'ParentExperiments/Container', 'ParentExperiments/ExperimentNumber'],
+            columns : ['Description', 'ExperimentType', 'ParentExperiments/Container', 'ParentExperiments/ExperimentNumber', 'Created', 'CreatedBy/DisplayName', 'GrantId'],
             filterArray : [
                 LABKEY.Filter.create('ExperimentNumber', <%=h(container.getTitle())%>, LABKEY.Filter.Types.EQUALS)
             ],
@@ -64,33 +64,26 @@
             success : function(data){
                 experimentData = data.rows[0];
                 console.log(experimentData);
-                generateParentExperimentField();
-                generateEditableElement('Description', 'Description', 4000);
-                generateEditableElement('Experiment Type', 'ExperimentType', 255);
+                var created = document.getElementById('createdSpan');
+                created.innerHTML = 'Created ' + experimentData['Created'] + ' by ' + experimentData['CreatedBy/DisplayName'];
+
+                generateEditableElement(false, 'Description', 4000, true, false, true);
+                generateParentExperimentField(true);
+                generateEditableElement('Experiment Type', 'ExperimentType', 255, false, true, false);
+                generateComboElement('Grant', 'GrantId', 255, false, true);
             },
             scope : this
         });
 
-        LABKEY.Query.selectRows({
-            schemaName : 'OConnorExperiments',
-            queryName : 'Experiments',
-            columns : ['ExperimentNumber', 'Container'],
-            success : function(data){
-                console.log(data);
-            },
-            scope : this
-        });
-
-
-
-        function generateParentExperimentField()
+        function generateParentExperimentField(boxed)
         {
-            var header = document.createElement("h3");
-            header.innerHTML = 'Parent Experiments:';
-            var editable = document.createElement("div");
+            var header = document.createElement("strong");
+            header.innerHTML = 'Parent Experiments:  ';
+            var editable = document.createElement("span");
             editable.id = 'ParentExperiments' ;
             editable.class = 'labkey-edit-in-place';
             editable.innerHTML = '';
+            editable.style.width = (Ext.getBody().getWidth()/3)-header.width + 'px';
             for(var i = 0; i < experimentData['ParentExperiments/ExperimentNumber'].length; i++)
             {
                 if(i != experimentData['ParentExperiments/ExperimentNumber'].length-1)
@@ -102,11 +95,27 @@
             var error = document.createElement("div");
             error.id = editable.id + "-error";
 
-            document.getElementById('dropbox').appendChild(error);
-            document.getElementById('dropbox').appendChild(header);
-            document.getElementById('dropbox').appendChild(editable);
+            if(boxed)
+            {
+                var box = document.createElement('div');
+                box.id = 'ParentExperiment-box';
+                box.style.float = 'left';
+                box.style.width = (Ext.getBody().getWidth()/3) - 15+'px';
 
-            var errorMessage = Ext4.create('Ext.form.Label', {
+
+                box.appendChild(header);
+                box.appendChild(editable);
+                document.getElementById('dropbox').appendChild(box);
+            }
+            else
+            {
+                document.getElementById('dropbox').appendChild(header);
+                document.getElementById('dropbox').appendChild(editable);
+            }
+
+            document.getElementById('errorBox').appendChild(error);
+
+            var errorMessage = new Ext.form.Label ({
                 renderTo : editable.id + '-error',
                 style : 'color:red'
             });
@@ -116,101 +125,147 @@
                 return;
 
             var parentEditInPlace = new LABKEY.ext.EditInPlaceElement({
+                id : 'parentEditInPlace',
                 applyTo: 'ParentExperiments',
+                editWidth : boxed? box.clientWidth - header.offsetWidth - 15 : null,
                 emptyText : 'No Parent Experiments provided. Click to enter a comma separated list of experiment IDs (ex. 1, 2, 3).',
                 multiLine: true,
                 listeners : {
-                    complete : function(){
-                        var row = {
-                            Container : experimentData.Container
-                        };
-                        var expNums;
-                        if(document.getElementById('ParentExperiments').innerHTML != this.emptyText)
-                        {
-                            expNums = document.getElementById('ParentExperiments').innerHTML.split(',');
-                        }
-                        else
-                        {
-                            expNums = [''];
-                        }
-                        LABKEY.Query.selectRows({
-                            schemaName : 'OConnorExperiments',
-                            queryName : 'Experiments',
-                            containerPath : LABKEY.container.parentId,
-                            columns : ['ExperimentNumber', 'Container'],
-                            success : function(data){
-                                errorMessage.setText('');
-
-                                row.ParentExperiments = [];
-                                var found;
-                                for(var i = 0; i < expNums.length; i++)
-                                {
-                                    if(expNums[0] === '')
-                                        continue;
-
-                                    found = false;
-                                    for(var r = 0; r < data.rows.length; r++)
-                                    {
-                                        if(expNums[i] == data.rows[r].ExperimentNumber)
-                                        {
-                                            row.ParentExperiments.push(data.rows[r].Container);
-                                            found = true;
-                                        }
-                                    }
-
-                                    if (found == false)
-                                    {
-                                        errorMessage.setText(expNums[i] + " is not a valid Experiment Number");
-                                        document.getElementById('ParentExperiments').innerHTML = parentEditInPlace.oldText;
-                                    }
-                                }
-
-                                if(errorMessage.text === '')
-                                {
-                                    LABKEY.Query.updateRows({
-                                        schemaName : 'OConnorExperiments',
-                                        queryName : 'Experiments',
-                                        rows : [row]
-                                    });
-                                }
-                            },
-                            scope : this
-                        });
-
-
-
-                    }
+                    complete : function(){submitParentElements(errorMessage, parentEditInPlace)}
                 }
             });
         }
 
-        function generateEditableElement(title, name, maxLength){
-            var header = document.createElement("h3");
-            header.innerHTML = title+':';
-            var editable = document.createElement("div");
+        function submitParentElements(errorMessage, parentEditInPlace){
+
+            var row = {
+                Container : experimentData.Container
+            };
+            var expNums;
+            if(document.getElementById('ParentExperiments').innerHTML != this.emptyText)
+            {
+                expNums = document.getElementById('ParentExperiments').innerHTML.split(',');
+            }
+            else
+            {
+                expNums = [''];
+            }
+            LABKEY.Query.selectRows({
+                schemaName : 'OConnorExperiments',
+                queryName : 'Experiments',
+                containerPath : LABKEY.container.parentId,
+                columns : ['ExperimentNumber', 'Container'],
+                success : function(data){
+                    if(errorMessage)
+                        errorMessage.setText('');
+
+                    row.ParentExperiments = [];
+                    var found;
+                    for(var i = 0; i < expNums.length; i++)
+                    {
+                        if(expNums[0] === '')
+                            continue;
+
+                        found = false;
+                        for(var r = 0; r < data.rows.length; r++)
+                        {
+                            if(expNums[i] == data.rows[r].ExperimentNumber)
+                            {
+                                row.ParentExperiments.push(data.rows[r].Container);
+                                found = true;
+                            }
+                        }
+
+                        if (found == false && errorMessage)
+                        {
+                            errorMessage.setText(expNums[i] + " is not a valid Experiment Number");
+                            document.getElementById('ParentExperiments').innerHTML = parentEditInPlace.oldText;
+                        }
+                    }
+
+                    if(!errorMessage || errorMessage.text === '')
+                    {
+                        LABKEY.Query.updateRows({
+                            schemaName : 'OConnorExperiments',
+                            queryName : 'Experiments',
+                            rows : [row]
+                        });
+                    }
+                },
+                scope : this
+            });
+        }
+
+
+        function generateEditableElement(title, name, maxLength, lineBreak, boxed, multiline){
+
+            var header = document.createElement("strong");
+            header.innerHTML = title+': ';
+            if(boxed)
+                var editable = document.createElement("span");
+            else
+                var editable = document.createElement("div");
             editable.id = name ;
             editable.class = 'labkey-edit-in-place';
-            editable.innerHTML = experimentData[name] != null ? experimentData[name].replace(/\n/g, '<br>') : '';
+
+
+            if(typeof experimentData[name] == 'string')
+                editable.innerHTML = experimentData[name] != null ? experimentData[name].replace(/\n/g, '<br>') : '';
+            else
+                editable.innerHTML = experimentData[name];
 
             var error = document.createElement("div");
             error.id = editable.id + "-error";
 
-            document.getElementById('dropbox').appendChild(header);
-            document.getElementById('dropbox').appendChild(editable);
-            document.getElementById('dropbox').appendChild(error);
+            if(boxed)
+            {
+                var box = document.createElement('div');
+                box.id = name+'-box';
+                box.style.float = 'left';
+                box.style.display = 'inline-block';
+                box.style.width = (Ext.getBody().getWidth()/3) - 25+'px';
+
+
+                if(title)
+                    box.appendChild(header);
+
+                box.appendChild(editable);
+//                box.innerHTML = editable.innerHTML;
+
+                document.getElementById('dropbox').appendChild(box);
+            }
+            else
+            {
+                if(title)
+                    document.getElementById('dropbox').appendChild(header);
+
+                document.getElementById('dropbox').appendChild(editable);
+            }
+            if(lineBreak)
+            {
+                document.getElementById('dropbox').appendChild(document.createElement('br'));
+                document.getElementById('dropbox').appendChild(document.createElement('br'));
+            }
+            document.getElementById('errorBox').appendChild(error);
 
             if (!LABKEY.Security.currentUser.canUpdate)
                 return;
 
-            var errorMessage = Ext4.create('Ext.form.Label', {
+            var errorMessage = new Ext.form.Label({
                 renderTo : editable.id + '-error',
                 style : 'color:red'
             });
 
+            if(boxed)
+            {
+                console.log(header.offsetWidth);
+            }
+
             new LABKEY.ext.EditInPlaceElement({
                 applyTo: name,
+                editWidth : boxed? box.clientWidth - header.offsetWidth - 15 : null,
                 multiLine: true,
-                enterCompletesEdit : false,
+                enterCompletesEdit : !multiline,
                 emptyText: 'No '+title+' provided. Click to add one.',
                 maxLength: maxLength,
                 listeners : {
@@ -229,6 +284,7 @@
                         editable.innerHTML = editable.innerHTML.replace(/<br>/g, '\n');
                     },
                     complete : function(){
+                        submitParentElements();
                         var row = {
                             Container : experimentData.Container
                         };
@@ -250,5 +306,85 @@
                 }
             });
         }
+
+        function generateComboElement(title, name, maxLength, lineBreak, boxed)
+        {
+
+            var comboDrop = document.createElement("span");
+            var error = document.createElement("div");
+            error.id = comboDrop.id + "-error";
+
+            if(boxed)
+            {
+                var box = document.createElement('div');
+                box.id = name+'-box';
+                box.style.float = 'left';
+                box.style.display = 'inline-block';
+                box.style.width = (Ext.getBody().getWidth()/3) - 25+'px';
+
+                box.appendChild(comboDrop);
+
+                document.getElementById('dropbox').appendChild(box);
+            }
+            else
+            {
+                if(title)
+                    document.getElementById('dropbox').appendChild(header);
+
+                document.getElementById('dropbox').appendChild(comboDrop);
+            }
+            if(lineBreak)
+            {
+                document.getElementById('dropbox').appendChild(document.createElement('br'));
+                document.getElementById('dropbox').appendChild(document.createElement('br'));
+            }
+            document.getElementById('errorBox').appendChild(error);
+
+            var combo = new Ext.form.ComboBox({
+                store : new LABKEY.ext.Store({
+                    columns : ['Key', 'title'],
+                    schemaName : 'lists',
+                    queryName : 'Grants',
+                    containerPath : LABKEY.container.parentPath,
+                    autoLoad : true,
+                    listeners : {
+                        load : function(store){
+                            if(experimentData[name]);
+                                combo.setValue(experimentData[name]);
+                        }
+                    }
+                }),
+                fieldLabel : '<strong>'+title+'</strong>',
+                displayField : 'title',
+                editable : false,
+                valueField : 'Key',
+                disabled : !LABKEY.Security.currentUser.canUpdate,
+                listeners : {
+                    select : function(cb){
+                        var row = {
+                            Container : experimentData.Container
+                        };
+                        row[name] = cb.getValue();
+
+                        LABKEY.Query.updateRows({
+                            schemaName : 'OConnorExperiments',
+                            queryName : 'Experiments',
+                            rows : [row]
+                        });
+                    }
+                }
+            });
+
+
+            new Ext.form.FormPanel({
+               renderTo : box.id,
+                items : [combo],
+                border : false,
+                bodyStyle : 'background: none'
+
+            });
+        }
     });
+
+
 </script>
