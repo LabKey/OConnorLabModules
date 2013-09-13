@@ -76,7 +76,7 @@ import org.labkey.api.study.actions.AssayHeaderView;
 import org.labkey.api.study.actions.AssayRunsAction;
 import org.labkey.api.study.actions.BaseAssayAction;
 import org.labkey.api.study.actions.ProtocolIdForm;
-import org.labkey.api.study.assay.AbstractAssayView;
+import org.labkey.api.study.assay.AssayView;
 import org.labkey.api.study.assay.AssaySchema;
 import org.labkey.api.study.assay.AssayUrls;
 import org.labkey.api.util.DateUtil;
@@ -2266,7 +2266,7 @@ public class GenotypingController extends SpringActionController
         {
             _protocol = form.getProtocol();
 
-            AbstractAssayView result = new AbstractAssayView();
+            AssayView result = new AssayView();
             AssaySchema schema = form.getProvider().createProtocolSchema(getUser(), getContainer(), form.getProtocol(), null);
             QuerySettings settings = new QuerySettings(getViewContext(), "query", HaplotypeProtocolSchema.DUPLICATE_ASSIGNMENT_QUERY_NAME);
             QueryView view = new QueryView(schema, settings, errors);
