@@ -33,6 +33,7 @@ import org.labkey.remoteapi.query.SaveRowsResponse;
 import org.labkey.remoteapi.query.SelectRowsResponse;
 import org.labkey.test.BaseSeleniumWebTest;
 import org.labkey.test.Locator;
+import org.labkey.test.TestProperties;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
@@ -182,7 +183,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
 
     private void importSecondRunTest()
     {
-        if(!isGroupConcatSupported())
+        if(!TestProperties.groupConcatSupported())
             return;
         goToProjectHome();
         startImportRun("secondRead/reads.txt", "Import 454 Reads", second454importNum);
@@ -206,7 +207,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
     private void runAnalysisTest()
     {
 
-        if(!isGroupConcatSupported())
+        if(!TestProperties.groupConcatSupported())
             return;
 //        getToRunScreen();
         sendDataToGalaxyServer();
@@ -230,7 +231,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
 
     private void verifyAnalysis()
     {
-        if(!isGroupConcatSupported())
+        if(!TestProperties.groupConcatSupported())
             return;
         goToProjectHome();
 
