@@ -183,7 +183,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
 
     private void importSecondRunTest()
     {
-        if(!TestProperties.groupConcatSupported())
+        if(!TestProperties.isGroupConcatSupported())
             return;
         goToProjectHome();
         startImportRun("secondRead/reads.txt", "Import 454 Reads", second454importNum);
@@ -207,7 +207,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
     private void runAnalysisTest()
     {
 
-        if(!TestProperties.groupConcatSupported())
+        if(!TestProperties.isGroupConcatSupported())
             return;
 //        getToRunScreen();
         sendDataToGalaxyServer();
@@ -231,7 +231,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
 
     private void verifyAnalysis()
     {
-        if(!TestProperties.groupConcatSupported())
+        if(!TestProperties.isGroupConcatSupported())
             return;
         goToProjectHome();
 
