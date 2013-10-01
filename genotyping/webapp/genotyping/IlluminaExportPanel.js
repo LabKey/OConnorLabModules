@@ -841,6 +841,7 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
         }
         else {
             if(rec.phantom || !rec.get('Editable')){
+                var isPhantom = rec.phantom;
                 var msg = 'Choose a name for this template';
                 if(!rec.get('Editable'))
                     msg = 'This template cannot be edited.  Please choose a different name:';
@@ -860,6 +861,7 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                             return;
                         }
                         rec.set('Name', msg);
+                        rec.phantom = isPhantom;
                         this.down('#defaultTab').down('#template').setValue(msg);
                         this.saveTemplate(rec);
                     }
