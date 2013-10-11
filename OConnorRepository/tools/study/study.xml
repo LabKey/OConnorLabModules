@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<study xmlns="http://labkey.org/study/xml"
+  label="Repository"
+  timepointType="CONTINUOUS"
+  startDate="1990-01-01-08:00"
+  securityType="ADVANCED_WRITE"
+  subjectNounSingular="Animal"
+  subjectNounPlural="Animals"
+  subjectColumnName="Id">
+  <missingValueIndicators>
+      <missingValueIndicator indicator="E" label="Value is estimated."/>
+      <missingValueIndicator indicator="Q" label="Data currently under quality control review."/>
+      <missingValueIndicator indicator="A" label="Data value is abnormal."/>
+      <missingValueIndicator indicator="N" label="Required field marked by site as 'data not available'."/>
+  </missingValueIndicators>
+</study>
