@@ -24,6 +24,7 @@ OConnorExperiments/src/org/labkey/oconnorexperiments/query/ExperimentsTable.java
 OConnorExperiments/src/org/labkey/oconnorexperiments/query/OConnorExperimentsUserSchema.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/details.jsp -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/experimentWorkbookField.jsp -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/view/history.jsp -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/migrateData.jsp -text
 OConnorExperiments/test/src/org/labkey/test/tests/OConnorExperimentTest.java -text
 OConnorRepository/module.properties -text

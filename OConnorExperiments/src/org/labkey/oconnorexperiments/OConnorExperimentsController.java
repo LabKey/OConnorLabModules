@@ -47,6 +47,7 @@ import org.labkey.api.security.UserManager;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.security.permissions.ReadPermission;
+import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.util.FileStream;
 import org.labkey.api.util.PageFlowUtil;
@@ -344,6 +345,24 @@ public class OConnorExperimentsController extends SpringActionController
         @Override
         public void validateCommand(Object target, Errors errors)
         {
+        }
+    }
+
+    @RequiresPermissionClass(UpdatePermission.class)
+    public class HistoryAction extends SimpleViewAction
+    {
+        @Override
+        public ModelAndView getView(Object o, BindException errors) throws Exception
+        {
+            getPageConfig().setNoIndex();
+            getPageConfig().setNoFollow();
+            return new JspView("/org/labkey/oconnorexperiments/view/history.jsp", null, errors);
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return root.addChild("Experiment History");
         }
     }
 
