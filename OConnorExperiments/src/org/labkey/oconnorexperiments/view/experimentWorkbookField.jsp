@@ -260,6 +260,8 @@
             {
                 console.log(header.offsetWidth);
             }
+            if(!title)
+                title = name;
 
             new LABKEY.ext.EditInPlaceElement({
                 applyTo: name,
