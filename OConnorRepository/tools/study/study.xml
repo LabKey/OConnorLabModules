@@ -7,10 +7,16 @@
   subjectNounSingular="Animal"
   subjectNounPlural="Animals"
   subjectColumnName="Id">
+
+  <datasets dir="datasets" file="datasets_manifest.xml">
+    <definition file="RepositoryStudy.dataset"/>
+  </datasets>
+
   <missingValueIndicators>
       <missingValueIndicator indicator="E" label="Value is estimated."/>
       <missingValueIndicator indicator="Q" label="Data currently under quality control review."/>
       <missingValueIndicator indicator="A" label="Data value is abnormal."/>
       <missingValueIndicator indicator="N" label="Required field marked by site as 'data not available'."/>
   </missingValueIndicators>
+
 </study>

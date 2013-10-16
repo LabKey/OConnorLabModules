@@ -98,7 +98,7 @@ public class OConnorExperimentsModule extends DefaultModule
     protected void init()
     {
         addController("ocexp", OConnorExperimentsController.class);
-        OConnorExperimentsUserSchema.register();
+        OConnorExperimentsUserSchema.register(this);
     }
 
     @Override

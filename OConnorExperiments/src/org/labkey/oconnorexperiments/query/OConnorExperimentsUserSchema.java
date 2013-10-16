@@ -19,19 +19,17 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.Sets;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.module.Module;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.DetailsURL;
-import org.labkey.api.query.QueryAction;
 import org.labkey.api.query.QuerySchema;
-import org.labkey.api.query.QueryService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.oconnorexperiments.OConnorExperimentsSchema;
 
-import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -48,12 +46,12 @@ public class OConnorExperimentsUserSchema extends UserSchema
         ParentExperiments
     }
 
-    public static void register()
+    public static void register(Module module)
     {
-        DefaultSchema.registerProvider(NAME, new DefaultSchema.SchemaProvider() {
+        DefaultSchema.registerProvider(NAME, new DefaultSchema.SchemaProvider(module) {
             @Nullable
             @Override
-            public QuerySchema getSchema(DefaultSchema schema)
+            public QuerySchema createSchema(DefaultSchema schema, Module module)
             {
                 return new OConnorExperimentsUserSchema(schema.getUser(), schema.getContainer());
             }

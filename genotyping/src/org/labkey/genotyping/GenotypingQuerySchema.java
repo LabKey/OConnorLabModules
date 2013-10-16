@@ -38,6 +38,7 @@ import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.query.ExpSchema;
+import org.labkey.api.module.Module;
 import org.labkey.api.query.DefaultQueryUpdateService;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.DetailsURL;
@@ -652,14 +653,11 @@ public class GenotypingQuerySchema extends UserSchema
 
     public static void register(final GenotypingModule module)
     {
-        DefaultSchema.registerProvider(NAME, new DefaultSchema.SchemaProvider()
+        DefaultSchema.registerProvider(NAME, new DefaultSchema.SchemaProvider(module)
         {
-            public QuerySchema getSchema(DefaultSchema schema)
+            public QuerySchema createSchema(DefaultSchema schema, Module module)
             {
-                if (schema.getContainer().getActiveModules().contains(module))
-                    return new GenotypingQuerySchema(schema.getUser(), schema.getContainer());
-                else
-                    return null;
+                return new GenotypingQuerySchema(schema.getUser(), schema.getContainer());
             }
         });
     }
