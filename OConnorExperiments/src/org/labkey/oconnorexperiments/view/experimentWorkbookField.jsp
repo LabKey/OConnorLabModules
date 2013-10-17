@@ -21,6 +21,8 @@
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.oconnorexperiments.model.Experiment" %>
 <%@ page import="org.labkey.oconnorexperiments.model.OConnorExperimentsManager" %>
+<%@ page import="org.labkey.api.view.ActionURL" %>
+<%@ page import="org.labkey.oconnorexperiments.OConnorExperimentsController" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     JspView me = (JspView) HttpView.currentView();
@@ -46,6 +48,8 @@
     }
 </style>
 <span id='createdSpan'></span>
+&nbsp; <%=PageFlowUtil.textLink("History", new ActionURL(OConnorExperimentsController.HistoryAction.class, container))%>
+
 <div id='errorBox'></div>
 <div id='dropbox'></div>
 
