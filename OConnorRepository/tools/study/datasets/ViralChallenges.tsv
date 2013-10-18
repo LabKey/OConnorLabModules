@@ -1,0 +1,5 @@
+# ViralChallenges from "sampledata/study/EHR Study Anon.zip" using WNPRC EHR ViralChallenges query
+id	date	project	weeksSinceChallenge	code	meaning	remark	challenge_type
+test2312318	1999-11-18 09:29		725.9	simian immunodeficiency virus (siv) nos	simian immunodeficiency virus (siv) nos		SIV
+test2312318	2006-09-11 08:58		370.3	simian immunodeficiency virus (siv) nos	simian immunodeficiency virus (siv) nos		SIV
+test3224553	2011-06-15 08:13			recombinant adeno-associated virus type 2 (raav2)	recombinant adeno-associated virus type 2 (raav2)	erat egestas mus	SIV Vaccine

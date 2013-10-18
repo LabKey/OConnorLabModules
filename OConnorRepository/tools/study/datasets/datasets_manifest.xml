@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datasets metaDataFile="datasets_metadata.xml" xmlns="http://labkey.org/study/xml">
+  <categories>
+    <category>Demographics</category>
+  </categories>
+  <datasets>
+    <dataset name="Demographics" id="1012" category="Demographics" demographicData="true"/>
+    <dataset name="ViralChallenges" id="1013" />
+  </datasets>
+</datasets>
+
