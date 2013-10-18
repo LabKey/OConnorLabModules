@@ -1,0 +1,23 @@
+<div id="participant-view"></div>
+
+<script type="text/javascript">
+    LABKEY.requiresCss("/OConnorRepository/Animal.css");
+    LABKEY.requiresScript("/OConnorRepository/Animal.js");
+</script>
+
+<script type="text/javascript">
+
+Ext4.onReady(function() {
+
+    // Style custom navigation
+    Ext4.get(Ext4.DomQuery.select('td#bodypanel table:nth(1)')[0]).addCls('blockwrapper');
+
+    Ext4.QuickTips.init();
+
+    var animalView = Ext4.create('LABKEY.oconnor.Animal', {
+        renderTo : 'participant-view',
+        animalId : LABKEY.ActionURL.getParameter('participantId')
+    });
+});
+
+</script>

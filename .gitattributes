@@ -29,13 +29,15 @@ OConnorExperiments/src/org/labkey/oconnorexperiments/view/migrateData.jsp -text
 OConnorExperiments/test/src/org/labkey/test/tests/OConnorExperimentTest.java -text
 OConnorRepository/module.properties -text
 OConnorRepository/resources/views/begin.html -text
-OConnorRepository/skipBuild.txt -text
+OConnorRepository/resources/views/participant.html -text
 OConnorRepository/tools/study/datasets/Demographics.tsv -text
 OConnorRepository/tools/study/datasets/RepositoryStudy.dataset -text
 OConnorRepository/tools/study/datasets/ViralChallenges.tsv -text
 OConnorRepository/tools/study/datasets/datasets_manifest.xml -text
 OConnorRepository/tools/study/datasets/datasets_metadata.xml -text
 OConnorRepository/tools/study/study.xml -text
+OConnorRepository/webapp/OConnorRepository/Animal.css -text
+OConnorRepository/webapp/OConnorRepository/Animal.js -text
 genotyping/Genotyping.iml -text
 genotyping/module.properties -text
 genotyping/resources/assay/Haplotype/queries/DuplicateAssignment.query.xml -text

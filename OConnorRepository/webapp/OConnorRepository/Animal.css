@@ -1,0 +1,80 @@
+
+.labkey-nav-trail {
+    margin-left: auto;
+    margin-right: auto;
+    width : 974px;
+}
+
+div.wrapper {
+    margin-left: auto;
+    margin-right: auto;
+    width : 974px;
+}
+
+div.wrapper .x4-panel-body {
+    background-color: transparent;
+}
+
+.blockwrapper {
+    margin-left: auto;
+    margin-right: auto;
+    width : 974px;
+    display: block;
+}
+
+.columninfo {
+    float : left;
+    margin-right: 10px;
+}
+
+div.main {
+    padding: 10px 20px 5px 20px;
+    margin-top: 10px;
+    box-shadow: 1px 1px 1px rgba(0,0,0,0.15);
+}
+
+div.main span {
+    font-size: 16px;
+    font-weight: normal;
+    margin-bottom: 5px;
+    display: block;
+}
+
+td.line {
+    border-top: 1px solid rgba(0,0,0,0.15);
+}
+
+td.italic {
+    font-style: italic;
+}
+
+table.detail {
+    margin-bottom: 20px;
+}
+
+.detail td {
+    font-size: 13px;
+    padding: 3px 0px;
+    vertical-align: text-top;
+}
+
+td.brown {
+    background-color: rgba(166, 124, 82, 0.6);
+    width: 20px;
+    height: 20px;
+}
+td.rose {
+    background-color: rgba(194, 106, 93, 0.6);
+    width: 20px;
+    height: 20px;
+}
+td.blue {
+    background-color: rgba(189, 204, 212, 0.5);
+    width: 20px;
+    height: 20px;
+}
+td.gold {
+    background-color: rgba(251, 176, 59, 0.5);
+    width: 20px;
+    height: 20px;
+}
