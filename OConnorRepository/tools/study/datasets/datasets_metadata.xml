@@ -64,11 +64,11 @@
         <datatype>varchar</datatype>
         <columnTitle>Origin</columnTitle>
       </column>
-      <column columnName="geographic_origin">
+      <column columnName="geoOrigin">
         <datatype>varchar</datatype>
         <columnTitle>Geographic Origin</columnTitle>
         <importAliases>
-          <importAlias>geoOrigin</importAlias>
+          <importAlias>geographic_origin</importAlias>
         </importAliases>
       </column>
       <column columnName="cond">
