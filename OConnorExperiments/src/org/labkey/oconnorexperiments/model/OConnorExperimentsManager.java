@@ -50,6 +50,13 @@ public class OConnorExperimentsManager
         return _instance;
     }
 
+    /**
+     * Get an Experiment Entity row that only includes values from the OConnorExperiments hard-table.
+     * For example, the Created and CreatedBy values of the Experiment entity won't be available, but
+     * can be retrieved from the workbook Container object instead.
+     *
+     * @return Columns from the hard-table and not the rolled up Experiment/Container merged object.
+     */
     public Experiment getExperiment(Container workbook)
     {
         if (!workbook.isWorkbook())

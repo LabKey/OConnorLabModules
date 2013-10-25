@@ -1,0 +1,43 @@
+<script type="text/javascript">
+    Ext.onReady(function () {
+        var webpart = <%=webpartContext%>;
+
+        var experiment;
+
+        LABKEY.ocexp.internal.Experiment.getExperiment({
+            success: function (response) {
+                if (!response.rows.length) {
+                    alert("Experiment information not found");
+                    return;
+                }
+
+                experiment = response.rows[0];
+                renderExperimentOverview(experiment);
+            }
+        });
+
+        /**
+         * @param {LABKEY.Query.Row} experiment
+         */
+        function renderExperimentOverview(experiment)
+        {
+            if (experiment)
+            {
+                LABKEY.ocexp.internal.Experiment.createPanel({
+                    renderTo: webpart.wrapperDivId,
+                    experiment: experiment
+                });
+
+                // Update the NavTrail header to 'ExperimentNumber'
+                var expNumber = experiment.getValue("ExperimentNumber");
+                if (expNumber)
+                {
+                    var expNumberHtml = Ext.util.Format.htmlEncode(expNumber);
+                    LABKEY.NavTrail.setTrail(
+                            "<span>Experiment &nbsp;" + expNumber + "</span>",
+                            undefined, expNumberHtml);
+                }
+            }
+        }
+    });
+</script>

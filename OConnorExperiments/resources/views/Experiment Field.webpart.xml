@@ -1,0 +1,7 @@
+<webpart xmlns="http://labkey.org/data/xml/webpart"
+    title="Experiment Field">
+    <view name="experimentField"/>
+    <locations>
+        <location name="body"/>
+    </locations>
+</webpart>

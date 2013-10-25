@@ -1,0 +1,13 @@
+<view xmlns="http://labkey.org/data/xml/view"
+        title="Experiment Overview"
+        frame="none">
+    <permissions>
+        <permission name="read"/>
+    </permissions>
+    <dependencies>
+        <dependency path="Ext3"/>
+        <dependency path="/ocexp/internal/Experiment.js"/>
+        <dependency path="/editInPlaceElement.js"/>
+        <dependency path="/editInPlaceElement.css"/>
+    </dependencies>
+</view>

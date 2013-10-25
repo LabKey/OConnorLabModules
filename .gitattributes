@@ -12,6 +12,13 @@ OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-13.1
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-13.11-13.12.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-13.20-13.21.sql -text
 OConnorExperiments/resources/schemas/oconnorexperiments.xml -text
+OConnorExperiments/resources/views/Experiment[!!-~]Field.webpart.xml -text
+OConnorExperiments/resources/views/OConnorExperimentOverview.webpart.xml -text
+OConnorExperiments/resources/views/experimentField.html -text
+OConnorExperiments/resources/views/experimentField.view.xml -text
+OConnorExperiments/resources/views/overview.html -text
+OConnorExperiments/resources/views/overview.view.xml -text
+OConnorExperiments/resources/web/ocexp/internal/Experiment.js -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentFolderType.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsContainerListener.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsController.java -text
@@ -23,7 +30,7 @@ OConnorExperiments/src/org/labkey/oconnorexperiments/model/OConnorExperimentsMan
 OConnorExperiments/src/org/labkey/oconnorexperiments/query/ExperimentsTable.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/query/OConnorExperimentsUserSchema.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/details.jsp -text
-OConnorExperiments/src/org/labkey/oconnorexperiments/view/experimentWorkbookField.jsp -text
+OConnorExperiments/src/org/labkey/oconnorexperiments/view/experimentOverview.jsp -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/history.jsp -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/migrateData.jsp -text
 OConnorExperiments/test/src/org/labkey/test/tests/OConnorExperimentTest.java -text

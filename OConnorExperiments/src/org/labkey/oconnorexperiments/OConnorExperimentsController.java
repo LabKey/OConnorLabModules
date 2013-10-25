@@ -18,6 +18,9 @@ package org.labkey.oconnorexperiments;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.labkey.api.action.ApiAction;
+import org.labkey.api.action.ApiResponse;
+import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.ReturnUrlForm;
@@ -319,7 +322,6 @@ public class OConnorExperimentsController extends SpringActionController
         @Override
         public boolean doAction(Object o, BindException errors) throws Exception
         {
-
             UserSchema schema = QueryService.get().getUserSchema(getUser(), getContainer(), OConnorExperimentsUserSchema.NAME);
             TableInfo table = schema.getTable(OConnorExperimentsUserSchema.Table.Experiments.name());
             QueryUpdateService qus = table.getUpdateService();
@@ -345,6 +347,37 @@ public class OConnorExperimentsController extends SpringActionController
         @Override
         public void validateCommand(Object target, Errors errors)
         {
+        }
+    }
+
+    @RequiresLogin @CSRF
+    @RequiresPermissionClass(ReadPermission.class)
+    public class GetExperimentAction extends ApiAction
+    {
+        @Override
+        public ApiResponse execute(Object o, BindException errors) throws Exception
+        {
+            UserSchema schema = QueryService.get().getUserSchema(getUser(), getContainer(), OConnorExperimentsUserSchema.NAME);
+            TableInfo table = schema.getTable(OConnorExperimentsUserSchema.Table.Experiments.name());
+            QueryUpdateService qus = table.getUpdateService();
+
+            List<Map<String, Object>> pks = Collections.singletonList(Collections.singletonMap("Container", (Object)getContainer().getId()));
+            List<Map<String, Object>> result = qus.getRows(getUser(), getContainer(), pks);
+
+            ApiSimpleResponse resp = new ApiSimpleResponse();
+            if (result != null && !result.isEmpty())
+            {
+                Map<String, Object> exp = result.get(0);
+
+                resp.put("success", true);
+                resp.put("experiment", exp);
+            }
+            else
+            {
+                resp.put("success", false);
+            }
+
+            return resp;
         }
     }
 

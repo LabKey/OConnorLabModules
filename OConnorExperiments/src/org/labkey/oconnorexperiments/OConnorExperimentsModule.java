@@ -74,24 +74,7 @@ public class OConnorExperimentsModule extends DefaultModule
     @Override
     protected Collection<WebPartFactory> createWebPartFactories()
     {
-        return new ArrayList<WebPartFactory>(Arrays.asList(
-                new BaseWebPartFactory("Experiment Field")
-                {
-                    public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart) throws Exception
-                    {
-                        JspView view = new JspView("/org/labkey/oconnorexperiments/view/experimentWorkbookField.jsp");
-                        view.setTitle("Workbook Description");
-                        view.setFrame(WebPartView.FrameType.NONE);
-                        return view;
-                    }
-
-                    @Override
-                    public boolean isAvailable(Container c, String location)
-                    {
-                        return false;
-                    }
-                }
-        ));
+        return Collections.emptyList();
     }
 
     @Override
@@ -99,6 +82,7 @@ public class OConnorExperimentsModule extends DefaultModule
     {
         addController("ocexp", OConnorExperimentsController.class);
         OConnorExperimentsUserSchema.register(this);
+        ServiceRegistry.get().registerService(OConnorExperimentsService.class, new OConnorExperimentsService());
     }
 
     @Override
