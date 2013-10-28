@@ -39,7 +39,6 @@ import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
-import org.labkey.test.util.FileBrowserHelper;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.ext4cmp.Ext4FieldRef;
@@ -698,7 +697,9 @@ public class GenotypingTest extends BaseSeleniumWebTest
     private void startImportRun(String file, String importAction, String associatedRun)
     {
         clickAndWait(Locator.linkContainingText("Import Run"));
-        _fileBrowserHelper.importFile(file, importAction);
+        _extHelper.selectFileBrowserItem(file);
+
+        selectImportDataAction(importAction);
         setFormElement(Locator.name("run"), associatedRun);
         clickButton("Import Reads");
 
@@ -707,8 +708,10 @@ public class GenotypingTest extends BaseSeleniumWebTest
     private void startImportIlluminaRun(String file, String importAction)
     {
         clickAndWait(Locator.linkContainingText("Import Run"));
-        _fileBrowserHelper.expandFileBrowserRootNode();
-        _fileBrowserHelper.importFile(file, importAction);
+        _extHelper.selectFileBrowserItem(file);
+
+        selectImportDataAction(importAction);
+
         setFormElement(Locator.name("run"), illuminaImportNum);
         setFormElement(Locator.name("prefix"), "Illumina-");
         clickButton("Import Reads");
