@@ -21,16 +21,20 @@ LABKEY.ocexp.internal.Experiment = new function () {
         var exps = config.parentExperiments;
 
         // Convert string into array of strings
-        if (exps && Ext.isString(exps))
+        if (exps != undefined && exps != null && Ext.isString(exps))
         {
-            var parts = exps.split(',');
-            for (var i = 0; i < parts.length; i++)
-            {
-                var part = parts[i];
-                if (part)
-                    part = part.trim();
+            if (exps == "") { // Empty string is ok, it just means we don't have any parents.
+                exps = [];
+            } else {
+                var parts = exps.split(',');
+                for (var i = 0; i < parts.length; i++)
+                {
+                    var part = parts[i];
+                    if (part)
+                        part = part.trim();
+                }
+                exps = parts;
             }
-            exps = parts;
         }
 
         if (!exps || !Ext.isArray(exps))
@@ -90,14 +94,16 @@ LABKEY.ocexp.internal.Experiment = new function () {
                 throw new Error("Expected experiment");
 
             validateParentExperiments({
-                parentExperiments: experiment.parentExperiments,
+                parentExperiments: experiment['ParentExperiments/ExperimentNumber'],
                 success: function (valid, json, exps) {
-
                     if (valid)
                     {
+                        experiment.ParentExperiments = [];
+                        for(var i = 0; i < json.rows.length; i++) {
+                            experiment.ParentExperiments.push(json.rows[i].Container);
+                        }
                         // Save the results
                         // NOTE: ParentExperiments must be an array of container entity ids
-                        experiment.ParentExperiments = exps;
                         LABKEY.Query.updateRows({
                             requiredVersion: 13.2,
                             schemaName: 'OConnorExperiments',
@@ -109,7 +115,7 @@ LABKEY.ocexp.internal.Experiment = new function () {
                     }
                     else
                     {
-                        // TODO: display an error
+                        config.failure();
                     }
                 }
             });
