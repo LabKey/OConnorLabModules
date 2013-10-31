@@ -37,6 +37,7 @@ OConnorExperiments/test/src/org/labkey/test/tests/OConnorExperimentTest.java -te
 OConnorRepository/module.properties -text
 OConnorRepository/resources/views/begin.html -text
 OConnorRepository/resources/views/participant.html -text
+OConnorRepository/tools/study/datasets/AnimalHaplotypes.tsv -text
 OConnorRepository/tools/study/datasets/Demographics.tsv -text
 OConnorRepository/tools/study/datasets/RepositoryStudy.dataset -text
 OConnorRepository/tools/study/datasets/ViralChallenges.tsv -text

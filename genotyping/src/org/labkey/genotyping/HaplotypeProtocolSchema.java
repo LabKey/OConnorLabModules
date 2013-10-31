@@ -17,6 +17,7 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ActionButton;
+import org.labkey.api.data.ButtonBar;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
@@ -127,9 +128,15 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
             public DataView createDataView()
             {
                 DataView result = super.createDataView();
-                ActionURL url = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(getContainer(), getProtocol(), GenotypingController.HaplotypeAssignmentReportAction.class);
-                ActionButton reportButton = new ActionButton(url, "Produce Report");
-                result.getDataRegion().getButtonBar(DataRegion.MODE_GRID).add(reportButton);
+
+                ButtonBar bar = result.getDataRegion().getButtonBar(DataRegion.MODE_GRID);
+                if (!bar.isLocked())
+                {
+                    ActionURL url = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(getContainer(), getProtocol(), GenotypingController.HaplotypeAssignmentReportAction.class);
+                    ActionButton reportButton = new ActionButton(url, "Produce Report");
+                    bar.add(reportButton);
+                }
+
                 return result;
             }
         };
@@ -148,8 +155,13 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
                 DataRegion rgn = result.getDataRegion();
                 rgn.setRecordSelectorValueColumns("AnimalId");
 
-                ActionButton reportButton = new ActionButton(GenotypingController.HaplotypeAssignmentReportAction.class, "Produce Report");
-                result.getDataRegion().getButtonBar(DataRegion.MODE_GRID).add(reportButton);
+                ButtonBar bar = result.getDataRegion().getButtonBar(DataRegion.MODE_GRID);
+                if (!bar.isLocked())
+                {
+                    ActionButton reportButton = new ActionButton(GenotypingController.HaplotypeAssignmentReportAction.class, "Produce Report");
+                    bar.add(reportButton);
+                }
+
                 return result;
             }
         };

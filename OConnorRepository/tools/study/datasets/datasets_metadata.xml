@@ -210,4 +210,58 @@
       </column>
     </columns>
   </table>
+    <table tableName="AnimalHaplotypes" tableDbType="TABLE">
+        <tableTitle>Animal Haplotypes</tableTitle>
+        <columns>
+            <column columnName="Id">
+                <datatype>varchar</datatype>
+                <columnTitle>Id</columnTitle>
+                <description>Subject identifier</description>
+                <propertyURI>http://cpas.labkey.com/Study#ParticipantId</propertyURI>
+                <nullable>false</nullable>
+                <fk>
+                    <fkDbSchema>study</fkDbSchema>
+                    <fkTable>Animal</fkTable>
+                    <fkColumnName>Id</fkColumnName>
+                </fk>
+            </column>
+            <column columnName="date">
+                <datatype>timestamp</datatype>
+                <columnTitle>Begin Date</columnTitle>
+                <nullable>false</nullable>
+            </column>
+            <column columnName="TotalReads">
+                <datatype>integer</datatype>
+                <columnTitle>Total Reads</columnTitle>
+            </column>
+            <column columnName="IdentifiedReads">
+                <datatype>integer</datatype>
+                <columnTitle>Identified Reads</columnTitle>
+            </column>
+            <column columnName="PercentUnknown">
+                <datatype>double</datatype>
+                <columnTitle>% Unknown</columnTitle>
+            </column>
+            <column columnName="ConcatenatedHaplotypes">
+                <datatype>varchar</datatype>
+                <columnTitle>Concatenated Haplotypes</columnTitle>
+            </column>
+            <column columnName="mamuAHaplotype1">
+                <datatype>varchar</datatype>
+                <columnTitle>Mamu-A Haplotype 1</columnTitle>
+            </column>
+            <column columnName="mamuAHaplotype2">
+                <datatype>varchar</datatype>
+                <columnTitle>Mamu-A Haplotype 2</columnTitle>
+            </column>
+            <column columnName="mamuBHaplotype1">
+                <datatype>varchar</datatype>
+                <columnTitle>Mamu-B Haplotype 1</columnTitle>
+            </column>
+            <column columnName="mamuBHaplotype2">
+                <datatype>varchar</datatype>
+                <columnTitle>Mamu-B Haplotype 2</columnTitle>
+            </column>
+        </columns>
+    </table>
 </tables>

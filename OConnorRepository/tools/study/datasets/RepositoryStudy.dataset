@@ -26,4 +26,4 @@ default.property.VisitDate=date
 
 Demographics.file=Demographics.tsv
 ViralChallenges.file=ViralChallenges.tsv
-
+AnimalHaplotypes.file=AnimalHaplotypes.tsv

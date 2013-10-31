@@ -30,6 +30,7 @@ Ext4.define('LABKEY.oconnor.Animal', {
                 cls : 'columninfo',
                 width : 650,
                 items : [
+                    this.getHaplotypesCfg(),
                     this.getViralChallengesCfg(),
                     this.getGroupingCfg()
                 ]
@@ -43,7 +44,7 @@ Ext4.define('LABKEY.oconnor.Animal', {
 
         var tpl = new Ext4.XTemplate(
                 '<div id="demographics-content">',
-                '<span>Demographics</span>',
+                '<span class="header">Demographics</span>',
                 '<table class="detail">',
                 '<tr><td>',
                 '<table cellspacing="7">',
@@ -125,11 +126,67 @@ Ext4.define('LABKEY.oconnor.Animal', {
         };
     },
 
+    getHaplotypesCfg : function() {
+
+        var tpl = new Ext4.XTemplate(
+                '<div id="haplotype-content">',
+                '<span class="header">Haplotypes</span>',
+                '<table class="detail">',
+                '<tr>',
+                '<tpl for=".">',
+                '<td width="100px">{value}</td>',
+                '<tpl if="index % 2 == 1"></tr><tr></tpl>', // two haplotypes per row
+                '</tpl>',
+                '</tr>',
+                '<tr><td>' + LABKEY.Utils.textLink({text: 'Full Details', href: LABKEY.ActionURL.buildURL('study', 'dataset', null, {datasetId: 1014, 'Dataset.Id~eq': this.animalId})}) + '</td></tr>',
+                '</table>',
+                '</div>'
+        );
+
+        var getHaplotypesData = function(cmp) {
+            // TODO: this is a placeholder until we see what the copied-to-study Haplotype dataset name/definition looks like
+            LABKEY.Query.selectRows({
+                requiredVersion : '13.2',
+                schemaName : 'study',
+                queryName : 'Animal Haplotypes',
+                filterArray : this.queryFilterArray,
+                success : function(data) {
+                    if (data.rows.length == 1)
+                    {
+                        var haplotypes = data.rows[0].ConcatenatedHaplotypes.value.split(',');
+                        var haplotypeArr = [];
+                        for (var i = 0; i < haplotypes.length; i++)
+                            haplotypeArr.push({index: i, value: haplotypes[i]});
+
+                        cmp.update(haplotypeArr);
+                    }
+                },
+                failure : function() {
+                    // do nothing
+                },
+                scope: this
+            });
+        };
+
+        return {
+            xtype : 'component',
+            tpl : tpl,
+            cls : 'main',
+            border : false,
+            frame : false,
+            data : {},
+            listeners : {
+                scope : this,
+                afterrender : getHaplotypesData
+            }
+        };
+    },
+
     getViralChallengesCfg : function() {
 
         var tpl = new Ext4.XTemplate(
                 '<div id="viralchallenge-content">',
-                '<span>Viral Challenges</span>',
+                '<span class="header">Viral Challenges</span>',
                 '<table class="detail">',
                 '<tpl for=".">',
                 '<tr><td width="175px">{date.value:this.renderDate}</td><td>{challenge_type.value} - {meaning.value}</td></tr>',
@@ -179,11 +236,11 @@ Ext4.define('LABKEY.oconnor.Animal', {
 
         var tpl = new Ext4.XTemplate(
                 '<div id="grouping-content">',
-                '<span>Groups</span>',
+                '<span class="header">Groups</span>',
                 '<table class="detail">',
                 '<tr><td>{Groups}</td></tr>',
                 '</table>',
-                '<span>Cohorts</span>',
+                '<span class="header">Cohorts</span>',
                 '<table class="detail">',
                 '<tr><td>{Cohorts}</td></tr>',
                 '</table>',

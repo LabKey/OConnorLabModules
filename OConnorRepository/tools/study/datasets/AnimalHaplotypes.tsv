@@ -1,0 +1,3 @@
+# Animal Haplotypes
+id	date	totalreads	identifiedreads	percentunknown	concatenatedhaplotypes	mamuahaplotype1	mamuahaplotype2	mamubhaplotype1	mamubhaplotype2
+test2312318	2011-06-15	1000	300	70.0	A001,A023,B015c,B025a	A001	A023	B015c	B025a

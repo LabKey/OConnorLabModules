@@ -33,7 +33,7 @@ div.main {
     box-shadow: 1px 1px 1px rgba(0,0,0,0.15);
 }
 
-div.main span {
+div.main span.header {
     font-size: 16px;
     font-weight: normal;
     margin-bottom: 5px;

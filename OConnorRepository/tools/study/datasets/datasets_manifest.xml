@@ -6,6 +6,7 @@
   <datasets>
     <dataset name="Demographics" id="1012" category="Demographics" demographicData="true"/>
     <dataset name="ViralChallenges" id="1013" />
+    <dataset name="AnimalHaplotypes" id="1014" />
   </datasets>
 </datasets>
 
