@@ -88,7 +88,14 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     @Override @NotNull
     public AssayTableMetadata getTableMetadata(@NotNull ExpProtocol protocol)
     {
-        return new AssayTableMetadata(this, protocol, null, FieldKey.fromParts("RunId"), FieldKey.fromParts("RowId"));
+        return new AssayTableMetadata(this, protocol, null, FieldKey.fromParts("RunId"), FieldKey.fromParts("RowId"))
+        {
+            @Override
+            public FieldKey getParticipantIDFieldKey()
+            {
+                return FieldKey.fromParts("AnimalId", "LabAnimalId");
+            }
+        };
     }
 
     @Override
