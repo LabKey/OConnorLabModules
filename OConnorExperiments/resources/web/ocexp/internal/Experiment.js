@@ -100,7 +100,7 @@ LABKEY.ocexp.internal.Experiment = new function () {
 
             validateParentExperiments({
                 parentExperiments: experiment['ParentExperiments/ExperimentNumber'],
-                success: function (valid, json, exps) {
+                success: function (valid, json) {
                     if (valid)
                     {
                         experiment.ParentExperiments = [];
@@ -124,110 +124,150 @@ LABKEY.ocexp.internal.Experiment = new function () {
                     }
                 }
             });
-        },
-
-        createPanel: function (config) {
-            var renderTo = config.renderTo;
-            if (!renderTo)
-                throw new Error("Expected renderTo");
-
-            var experiment = config.experiment;
-            if (!experiment)
-                throw new Error("Expected experiment");
-
-            var canEdit = LABKEY.Security.currentUser.canUpdate;
-
-            /*
-            var panel = new Ext.Panel({
-                renderTo: renderTo,
-                layout: 'table',
-                border: false,
-                //bodyStyle: 'background-color:transparent;',
-                defaults: {
-                    bodyStyle: 'padding:20px; background-color:transparent;'
-                },
-                layoutConfig: {
-                    columns: 3,
-                    tableAttrs: {
-                        style: {
-                            width: '100%'
-                        }
-                    }
-                },
-                items: [{
-                    html: 'created'
-                },{
-                    rowspan: 3,
-                    colspan: 2,
-                    border: false,
-                    background: false,
-                    itemId: 'descriptionItem',
-                    height: '100px',
-                    html: '<div id="' + renderTo + '_description" style="minHeight:60px;">' +
-                            Ext.util.Format.htmlEncode(experiment.getValue("Description") || '') +
-                            '</div>'
-
-                },{
-                    html: 'type'
-                },{
-                    html: 'parents'
-                },{
-                    html: 'grants'
-                }]
-            });
-            */
-
-            /*
-            var template = new Ext.XTemplate(
-                '<table width="100%" style="cell-padding:20px">',
-                '  <tr>',
-                '    <td style="vertical-align:top;">',
-                '      Created by {createdBy:htmlEncode} on {[values.created ? values.created.format("Y-m-d") : "NA"]}',
-                '    </td>',
-                '    <td style="vertical-align:top; rowspan:3">',
-                '      <div id="{id}_description">{description:htmlEncode}</div>',
-                '    </td>',
-                '  </tr>',
-                '  <tr>',
-                '    <td style="vertical-align:top;">',
-                '      <div id="{id}_type">{type:htmlEncode}</div>',
-                '    </td>',
-                '  </tr>',
-                '  <tr>',
-                '    <td style="vertical-align:top;">',
-                '      parents',
-                '    </td>',
-                '  </tr>',
-                '  <tr>',
-                '    <td style="vertical-align:top;">',
-                '      grants',
-                '    </td>',
-                '  </tr>',
-                '  <tr>',
-                '</table>'
-            );
-
-            var values = {
-                id: renderTo,
-                created: (experiment.getValue("Created") && new Date(experiment.getValue("Created"))) || null,
-                createdBy: (experiment.get("CreatedBy") && experiment.get("CreatedBy").displayValue) || '[unknown]',
-                description: experiment.getValue("Description") || ''
-            };
-
-            var overviewEl = template.insertFirst(renderTo, values, true);
-            */
-
-            var descriptionEditor;
-            if (canEdit)
-            {
-                descriptionEditor = new LABKEY.ext.EditInPlaceElement({
-                    applyTo: config.renderTo + '_description',
-                    emptyText: 'Enter description'
-                });
-            }
-
-        },
-
+        }
     };
 };
 
+Ext4.onReady(function(){
+    Ext4.define('LABKEY.ocexp.internal.InPlaceText', {
+        extend : 'Ext.container.Container',
+        alias: 'ocexp-text',
+
+        constructor : function(config){
+            config.layout = 'card';
+            this.callParent([config]);
+        },
+
+        initComponent: function(){
+            this.displayField = Ext4.create('Ext.form.field.Display', {
+                fieldLabel: this.fieldLabel,
+                labelWidth: this.labelWidth,
+                value: !this.value || this.value == '' ? this.emptyText : this.value,
+                listeners: {
+                    scope: this,
+                    render: function(cmp){
+                        cmp.getEl().on('click', this.showInput, this);
+                    }
+                }
+            });
+
+            this.textInput = Ext4.create('Ext.form.field.Text', {
+                fieldLabel: this.fieldLabel,
+                labelWidth: this.labelWidth,
+                value: this.value,
+                listeners: {
+                    scope: this,
+                    blur: function(){
+                        this.showDisplayField();
+                        if(this.oldValue != this.textInput.getValue()) {
+                            this.fireEvent('change', this, this.textInput.getValue(), this.oldValue);
+                        }
+                    }
+                }
+            });
+
+            this.items = [this.displayField, this.textInput];
+
+            this.callParent();
+        },
+
+        showInput: function(){
+            this.oldValue = this.textInput.getValue();
+            this.oldDisplayValue = this.displayField.getValue();
+            this.getLayout().setActiveItem(this.textInput.getId());
+            this.textInput.focus(true);
+        },
+
+        showDisplayField: function(){
+            var inputValue = this.textInput.getValue();
+            if(this.oldValue == inputValue) {
+                this.displayField.setValue(this.oldDisplayValue);
+            } else {
+                this.displayField.setValue(inputValue == '' || inputValue == null ? this.emptyText : inputValue);
+            }
+            this.getLayout().setActiveItem(this.displayField.getId());
+        },
+
+        setDisplayValue: function(value){
+            this.displayField.setValue(value);
+        },
+
+        setValue: function(value){
+            this.displayField.setValue(value == '' || value == null ? this.emptyText : value);
+            this.textInput.setValue(value);
+        },
+
+        getValue: function(){
+            return this.textInput.getValue();
+        }
+    });
+
+    Ext4.define('LABKEY.ocexp.internal.InPlaceTextArea', {
+        extend : 'Ext.container.Container',
+        alias: 'ocexp-textarea',
+
+        constructor: function(config){
+            config.layout = 'card';
+            this.callParent([config]);
+        },
+
+        initComponent: function(){
+            this.displayField = Ext4.create('Ext.form.field.Display', {
+                fieldLabel: this.fieldLabel,
+                labelWidth: this.labelWidth,
+                value: !this.value || this.value == '' ? this.emptyText : Ext4.String.htmlEncode(this.value).replace(/\n/g, '<br />'),
+                listeners: {
+                    scope: this,
+                    render: function(cmp){
+                        cmp.getEl().on('click', this.showInput, this);
+                    }
+                }
+            });
+
+            this.textArea = Ext4.create('Ext.form.field.TextArea', {
+                fieldLabel: this.fieldLabel,
+                labelWidth: this.labelWidth,
+                value: this.value,
+                listeners: {
+                    scope: this,
+                    blur: function(){
+                        this.showDisplayField();
+                        if(this.oldValue != this.textArea.getValue()) {
+                            this.fireEvent('change', this, this.textArea.getValue(), this.oldValue);
+                        }
+                    }
+                }
+            });
+
+            this.items = [this.displayField, this.textArea];
+
+            this.callParent();
+        },
+
+        showInput: function(){
+            this.oldValue = this.textArea.getValue();
+            this.getLayout().setActiveItem(this.textArea.getId());
+            this.textArea.focus(true);
+        },
+
+        showDisplayField: function(){
+            var inputValue = this.textArea.getValue();
+            inputValue = Ext4.String.htmlEncode(inputValue).replace(/\n/g, '<br />');
+            this.displayField.setValue(inputValue == '' || inputValue == null ? this.emptyText : inputValue);
+            this.getLayout().setActiveItem(this.displayField.getId());
+        },
+
+        setValue: function(value){
+            this.displayField.setValue(value == '' || value == null ? this.emptyText : value);
+            this.textArea.setValue(value);
+        },
+
+        setDisplayValue: function(value){
+            this.displayField.setValue(value);
+        },
+
+        getValue: function(){
+            return this.textArea.getValue();
+        }
+    });
+});
