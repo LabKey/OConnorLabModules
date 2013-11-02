@@ -28,20 +28,13 @@ import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.security.User;
 import org.labkey.api.services.ServiceRegistry;
-import org.labkey.api.view.BaseWebPartFactory;
-import org.labkey.api.view.JspView;
-import org.labkey.api.view.Portal;
-import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartFactory;
-import org.labkey.api.view.WebPartView;
 import org.labkey.api.wiki.WikiChangeListener;
 import org.labkey.api.wiki.WikiService;
 import org.labkey.oconnorexperiments.model.OConnorExperimentsManager;
 import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -62,7 +55,7 @@ public class OConnorExperimentsModule extends DefaultModule
     @Override
     public double getVersion()
     {
-        return 13.21;
+        return 13.30;
     }
 
     @Override
@@ -71,6 +64,7 @@ public class OConnorExperimentsModule extends DefaultModule
         return true;
     }
 
+    @NotNull
     @Override
     protected Collection<WebPartFactory> createWebPartFactories()
     {
@@ -100,6 +94,7 @@ public class OConnorExperimentsModule extends DefaultModule
         ModuleLoader.getInstance().registerFolderType(this, new OConnorExperimentFolderType());
     }
 
+    @NotNull
     @Override
     public Collection<String> getSummary(Container c)
     {
