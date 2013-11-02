@@ -12,6 +12,26 @@ if (!LABKEY.ocexp.internal)
 
 LABKEY.ocexp.internal.Experiment = new function () {
 
+    /** Remove duplicate items in an Array. */
+    function uniq(a) {
+        var o = {};
+        for (var i = 0; i < a.length; i++)
+        {
+            var item = a[i];
+            if (item.length > 0)
+                o[item] = true;
+        }
+
+        var ret = [];
+        for (var key in o)
+        {
+            if (o.hasOwnProperty(key))
+                ret.push(key);
+        }
+
+        return ret;
+    }
+
     /**
      * Checks the given experiment numbers actually exist in the parent container.
      * @param config
@@ -45,6 +65,7 @@ LABKEY.ocexp.internal.Experiment = new function () {
         if (!exps || !Ext.isArray(exps))
             throw new Error("Expected array of strings");
 
+        exps = uniq(exps);
 
         // Check if there are experiments that match the given ExperimentNumbers
         var filterValue = exps.join(";");
@@ -100,15 +121,17 @@ LABKEY.ocexp.internal.Experiment = new function () {
 
             validateParentExperiments({
                 parentExperiments: experiment['ParentExperiments/ExperimentNumber'],
-                success: function (valid, json) {
+                success: function (valid, json, exps) {
                     if (valid)
                     {
-                        experiment.ParentExperiments = [];
+                        // Create ParentExperiments array of container entity ids
+                        var parentExpContainers = [];
                         for(var i = 0; i < json.rows.length; i++) {
-                            experiment.ParentExperiments.push(json.rows[i].Container);
+                            parentExpContainers.push(json.rows[i].Container);
                         }
+                        experiment.ParentExperiments = uniq(parentExpContainers);
+
                         // Save the results
-                        // NOTE: ParentExperiments must be an array of container entity ids
                         LABKEY.Query.updateRows({
                             requiredVersion: 13.2,
                             schemaName: 'OConnorExperiments',
@@ -120,7 +143,20 @@ LABKEY.ocexp.internal.Experiment = new function () {
                     }
                     else
                     {
-                        config.failure();
+                        // Create array of values that weren't found on the server
+                        var invalidValues = Ext4.Array.clone(exps);
+                        for (var i = 0; i < json.rows.length; i++) {
+                            invalidValues.remove("" + json.rows[i].ExperimentNumber);
+                        }
+
+                        var msg = "Experiment " + (invalidValues.length > 1 ? "numbers" : "number") + " not found";
+                        if (invalidValues.length > 0)
+                            msg += ": " + invalidValues.join(", ");
+
+                        if (config.invalid)
+                            config.invalid(msg);
+                        else
+                            config.faliure();
                     }
                 }
             });
@@ -133,9 +169,13 @@ Ext4.onReady(function(){
         extend : 'Ext.container.Container',
         alias: 'ocexp-text',
 
+        emptyText: 'Click to edit',
+        emptyCls: Ext4.baseCSSPrefix + 'form-empty-field',
+
         constructor : function(config){
             config.layout = 'card';
             this.callParent([config]);
+            this.addCls("ocexp-edit-in-place-text");
         },
 
         initComponent: function(){
@@ -146,6 +186,7 @@ Ext4.onReady(function(){
                 listeners: {
                     scope: this,
                     render: function(cmp){
+                        this.applyEmptyStyle();
                         cmp.getEl().on('click', this.showInput, this);
                     }
                 }
@@ -160,7 +201,9 @@ Ext4.onReady(function(){
                     blur: function(){
                         this.showDisplayField();
                         if(this.oldValue != this.textInput.getValue()) {
-                            this.fireEvent('change', this, this.textInput.getValue(), this.oldValue);
+                            var oldValue = this.oldValue;
+                            this.oldValue = this.textInput.getValue();
+                            this.fireEvent('change', this, this.textInput.getValue(), oldValue);
                         }
                     }
                 }
@@ -169,6 +212,17 @@ Ext4.onReady(function(){
             this.items = [this.displayField, this.textInput];
 
             this.callParent();
+        },
+
+        applyEmptyStyle: function(){
+            if (this.emptyText && this.displayField.getValue() == this.emptyText) {
+                // Unfortunately, the 'x4-form-display-field' rule is taking precedence over the 'x4-form-empty-field' rule.
+                //this.displayField.getActionEl().addCls(this.emptyCls);
+                this.displayField.getActionEl().setStyle("color", "gray");
+            } else {
+                //this.displayField.getActionEl().removeCls(this.emptyCls);
+                this.displayField.getActionEl().setStyle("color", "");
+            }
         },
 
         showInput: function(){
@@ -184,6 +238,7 @@ Ext4.onReady(function(){
                 this.displayField.setValue(this.oldDisplayValue);
             } else {
                 this.displayField.setValue(inputValue == '' || inputValue == null ? this.emptyText : inputValue);
+                this.applyEmptyStyle();
             }
             this.getLayout().setActiveItem(this.displayField.getId());
         },
@@ -195,6 +250,7 @@ Ext4.onReady(function(){
         setValue: function(value){
             this.displayField.setValue(value == '' || value == null ? this.emptyText : value);
             this.textInput.setValue(value);
+            this.applyEmptyStyle();
         },
 
         getValue: function(){
@@ -206,19 +262,25 @@ Ext4.onReady(function(){
         extend : 'Ext.container.Container',
         alias: 'ocexp-textarea',
 
+        emptyText: 'Click to edit',
+        emptyCls: Ext4.baseCSSPrefix + 'form-empty-field',
+
         constructor: function(config){
             config.layout = 'card';
             this.callParent([config]);
+            this.addCls("ocexp-edit-in-place-text");
         },
 
         initComponent: function(){
             this.displayField = Ext4.create('Ext.form.field.Display', {
+                emptyText: this.emptyText,
                 fieldLabel: this.fieldLabel,
                 labelWidth: this.labelWidth,
                 value: !this.value || this.value == '' ? this.emptyText : Ext4.String.htmlEncode(this.value).replace(/\n/g, '<br />'),
                 listeners: {
                     scope: this,
                     render: function(cmp){
+                        this.applyEmptyStyle();
                         cmp.getEl().on('click', this.showInput, this);
                     }
                 }
@@ -233,7 +295,9 @@ Ext4.onReady(function(){
                     blur: function(){
                         this.showDisplayField();
                         if(this.oldValue != this.textArea.getValue()) {
-                            this.fireEvent('change', this, this.textArea.getValue(), this.oldValue);
+                            var oldValue = this.oldValue;
+                            this.oldValue = this.textArea.getValue();
+                            this.fireEvent('change', this, this.textArea.getValue(), oldValue);
                         }
                     }
                 }
@@ -242,6 +306,17 @@ Ext4.onReady(function(){
             this.items = [this.displayField, this.textArea];
 
             this.callParent();
+        },
+
+        applyEmptyStyle: function(){
+            if (this.emptyText && this.displayField.getValue() == this.emptyText) {
+                // Unfortunately, the 'x4-form-display-field' rule is taking precedence over the 'x4-form-empty-field' rule.
+                //this.displayField.getActionEl().addCls(this.emptyCls);
+                this.displayField.getActionEl().setStyle("color", "gray");
+            } else {
+                //this.displayField.getActionEl().removeCls(this.emptyCls);
+                this.displayField.getActionEl().setStyle("color", "");
+            }
         },
 
         showInput: function(){
@@ -254,12 +329,14 @@ Ext4.onReady(function(){
             var inputValue = this.textArea.getValue();
             inputValue = Ext4.String.htmlEncode(inputValue).replace(/\n/g, '<br />');
             this.displayField.setValue(inputValue == '' || inputValue == null ? this.emptyText : inputValue);
+            this.applyEmptyStyle();
             this.getLayout().setActiveItem(this.displayField.getId());
         },
 
         setValue: function(value){
             this.displayField.setValue(value == '' || value == null ? this.emptyText : value);
             this.textArea.setValue(value);
+            this.applyEmptyStyle();
         },
 
         setDisplayValue: function(value){

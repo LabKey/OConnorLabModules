@@ -17,7 +17,6 @@ package org.labkey.oconnorexperiments;
 
 import org.labkey.api.files.FileContentService;
 import org.labkey.api.module.DefaultFolderType;
-import org.labkey.api.module.FolderType;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.Portal;
@@ -39,8 +38,8 @@ public class OConnorExperimentFolderType extends DefaultFolderType
                 null,
                 Arrays.asList(
                         Portal.getPortalPart("Experiment Field").createWebPart(),
-                        createFileWebPart(),
-                        createWikiWebPart()
+                        createWikiWebPart(),
+                        createFileWebPart()
                 ),
                 getDefaultModuleSet(ModuleLoader.getInstance().getCoreModule(), getModule("Experiment"), getModule(OConnorExperimentsModule.NAME)),
                 ModuleLoader.getInstance().getCoreModule());
@@ -60,6 +59,7 @@ public class OConnorExperimentFolderType extends DefaultFolderType
         result.setProperty("webpart.title", "Files");
         return result;
     }
+
     private static Portal.WebPart createWikiWebPart()
     {
         Portal.WebPart result = Portal.getPortalPart("Wiki").createWebPart(HttpView.BODY);

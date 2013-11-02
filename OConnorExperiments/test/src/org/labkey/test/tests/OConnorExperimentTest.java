@@ -29,6 +29,7 @@ import org.labkey.remoteapi.query.SelectRowsResponse;
 import org.labkey.remoteapi.query.UpdateRowsCommand;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
+import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LogMethod;
@@ -63,6 +64,12 @@ public class OConnorExperimentTest extends BaseWebDriverTest
     protected String getProjectName()
     {
         return PROJECT_NAME;
+    }
+
+    @Override
+    protected void doCleanup(boolean afterTest) throws TestTimeoutException
+    {
+        super.doCleanup(afterTest);
     }
 
     @LogMethod(category = LogMethod.MethodType.SETUP)
@@ -121,7 +128,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
     protected String insertViaGenericQueryForm()
     {
-        log("starting insertViaQueryWebPart test");
+        log("starting insertViaGenericQueryForm test");
 
         beginAt("/query/" + getProjectName() + "/insertQueryRow.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + QUERY_NAME);
         waitForElement(Locator.name("quf_Description"));
@@ -154,7 +161,8 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         Assert.assertEquals("type3", q_table.getDataAsText(row3, "ExperimentType"));
         Assert.assertEquals("OConnorExperiment", q_table.getDataAsText(row3, "FolderType"));
         String parentExperiments = q_table.getDataAsText(row3, "ParentExperiments");
-        Assert.assertEquals("Expected Parent Experiments to be '1, 2'; got '" + parentExperiments + "'", "1, 2", parentExperiments);
+        Assert.assertTrue("Expected Parent Experiments to be '1, 2'; got '" + parentExperiments + "'",
+                "1, 2".equals(parentExperiments) || "2, 1".equals(parentExperiments));
 
         String entityId = q_table.getDataAsText(row3, "EntityId");
 
@@ -215,23 +223,59 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         goToProjectHome();
 
         clickButtonByIndex("Insert New", 0);
-        setEditInPlaceContent(Locator.id("Description"), "description4");
-        Assert.assertEquals("description4", getText(Locator.id("Description")));
-        setEditInPlaceContent(Locator.id("ExperimentType"), "type4");
-        Assert.assertEquals("type4", getText(Locator.id("ExperimentType")));
+        waitForElement(getEditInPlaceDisplayField("Description:"));
+        Assert.assertEquals("Click to edit", getText(getEditInPlaceDisplayField("Description:")));
 
-        setEditInPlaceContent(Locator.id("ParentExperiments"), "1,100");
+        setEditInPlaceContent("Description:", "description4");
+        Assert.assertEquals("description4", getText(getEditInPlaceDisplayField("Description:")));
+
+        setEditInPlaceContent("Experiment Type:", "type4");
+        Assert.assertEquals("type4", getText(getEditInPlaceDisplayField("Experiment Type:")));
+
+        setEditInPlaceContent("Parent Experiments:", "1,100,101");
         sleep(500);
-        waitForText("100 is not a valid Experiment Number");
-        setEditInPlaceContent(Locator.id("ParentExperiments"), "1,3");
-        Assert.assertEquals("1,3", getText(Locator.id("ParentExperiments")));
+        waitForText("Experiment numbers not found: 100, 101");
+
+        setEditInPlaceContent("Parent Experiments:", "1, 3");
+        Assert.assertEquals("1, 3", getText(getEditInPlaceDisplayField("Parent Experiments:")));
 
         goToProjectHome();
 
         DataRegionTable q_table = new DataRegionTable("qwp1", this);
         int row = q_table.getRow("Description", "description4");
         Assert.assertEquals("type4", q_table.getDataAsText(row, "ExperimentType"));
-        Assert.assertEquals("1, 3", q_table.getDataAsText(row, "ParentExperiments"));
+        String parentExps = q_table.getDataAsText(row, "ParentExperiments");
+        Assert.assertTrue(parentExps.equals("1, 3") || parentExps.equals("3, 1"));
+    }
+
+    protected Locator.XPathLocator getEditInPlaceLocator(String label)
+    {
+        Locator.XPathLocator l = Locator.tagContainingText("label", label);
+        Locator.XPathLocator cmp = Locator.tagWithClass("div", "ocexp-edit-in-place-text").withDescendant(l);
+        return cmp;
+    }
+
+    protected Locator getEditInPlaceDisplayField(String label)
+    {
+        Locator.XPathLocator cmp = getEditInPlaceLocator(label);
+        Locator.XPathLocator displayField = cmp.append(Locator.tagWithClass("div", "x4-form-display-field"));
+        return displayField;
+    }
+
+    protected void setEditInPlaceContent(String label, String text)
+    {
+        Locator.XPathLocator cmp = getEditInPlaceLocator(label);
+        waitForElement(cmp);
+        click(cmp);
+
+        Locator input = cmp.append(Locator.xpath("//textarea"));
+        if (!isElementPresent(input))
+            input = cmp.append(Locator.xpath("//input"));
+
+        WebElement el = input.findElement(getDriver());
+        el.sendKeys(text);
+        fireEvent(el, SeleniumEvent.blur);
+        waitForElement(cmp);
     }
 
     protected void setEditInPlaceContent(Locator.XPathLocator l, String text)
@@ -282,7 +326,12 @@ public class OConnorExperimentTest extends BaseWebDriverTest
     protected void updateViaWorkbook()
     {
         goToProjectHome();
-        click(Locator.xpath("//table[@id='dataregion_query']/tbody/tr/td/a[contains(text(), \"edit\")]"));
+        waitForExtOnReady();
+
+        Locator editLink = Locator.xpath("//table[@id='dataregion_query']/tbody/tr/td/a[contains(text(), \"edit\")]");
+        waitForElement(editLink);
+        clickAndWait(editLink);
+
         waitForElement(Locator.name("quf_Description"));
         setFormElement(Locator.name("quf_Description"), "description1 edited again");
         clickButton("Submit");

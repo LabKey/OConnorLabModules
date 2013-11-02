@@ -1,14 +1,8 @@
 
-<!--
-<script type="text/javascript">
-    var _wb_titleId = Ext.id();
-    LABKEY.NavTrail.setTrail("<span>Experiment&nbsp;</span><span class='labkey-edit-in-place' id='" + _wb_titleId + "'><%=h(container.getTitle())%></span>",
-            undefined, <%=PageFlowUtil.jsString(container.getTitle())%>);
-</script>
--->
-
-<!--PageFlowUtil.textLink("History", new ActionURL(OConnorExperimentsController.HistoryAction.class, container))-->
-<div id="createdDiv"></div>
+<div>
+    <span id="createdSpan"></span>
+    [<a href="<%=contextPath%>/ocexp<%=containerPath%>/history.view">history</a>]
+</div>
 
 <div id="errorBox">
     <p id="errorText" class="labkey-error"></p>
@@ -16,6 +10,9 @@
 
 <div id="dashPanel"></div>
 <script type="text/javascript">
+    // Set the navtrail and page title
+    LABKEY.NavTrail.setTrail("<span>Experiment " + LABKEY.container.title + "</span>", undefined, "Experiment " + LABKEY.container.title);
+
     var initPanel = function(data){
         if (data.rows.length > 0) {
             var experimentData = data.rows[0];
@@ -24,12 +21,15 @@
             var parentExperiments = experimentData['ParentExperiments/ExperimentNumber'];
             var experimentType = experimentData.ExperimentType;
             var changeCallback = function(name, newValue, oldValue, failureCb, scope){
-                console.log(name, newValue, oldValue);
+                //console.log(name, newValue, oldValue);
                 experimentData[name] = newValue;
                 LABKEY.ocexp.internal.Experiment.saveExperiment({
                     experiment: experimentData,
                     success: function(){
                         document.getElementById('errorText').innerHTML = "";
+                    },
+                    invalid: function(msg) {
+                        document.getElementById('errorText').innerHTML = Ext4.util.Format.htmlEncode(msg);
                     },
                     failure: function(){
                         if(failureCb) {
@@ -44,14 +44,13 @@
                 });
             };
 
-            document.getElementById('createdDiv').textContent = createdString;
+            document.getElementById('createdSpan').textContent = createdString;
 
             var experimentType = Ext4.create('LABKEY.ocexp.internal.InPlaceText', {
                 flex: 1,
                 labelWidth: 110,
                 fieldLabel: 'Experiment Type',
                 value: experimentType,
-                emptyText: 'Click to edit',
                 listeners: {
                     scope: this,
                     change: function(cmp, newValue, oldValue){
@@ -62,10 +61,9 @@
             var parentExperiments = Ext4.create('LABKEY.ocexp.internal.InPlaceText', {
                 flex: 1,
                 labelWidth: 130,
-                margin: '0 0 0 5',
+                margin: '0 10 0 5',
                 fieldLabel: 'Parent Experiments',
                 value: parentExperiments,
-                emptyText: 'Click to edit',
                 listeners: {
                     scope: this,
                     change: function(cmp, newValue, oldValue){
@@ -117,7 +115,6 @@
                 height: 75,
                 labelWidth: 110,
                 flex: 1,
-                emptyText: 'Click to edit',
                 value: description,
                 listeners: {
                     scope: this,

@@ -15,11 +15,8 @@ OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-13.2
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-13.20-13.30.sql -text
 OConnorExperiments/resources/schemas/oconnorexperiments.xml -text
 OConnorExperiments/resources/views/Experiment[!!-~]Field.webpart.xml -text
-OConnorExperiments/resources/views/OConnorExperimentOverview.webpart.xml -text
 OConnorExperiments/resources/views/experimentField.html -text
 OConnorExperiments/resources/views/experimentField.view.xml -text
-OConnorExperiments/resources/views/overview.html -text
-OConnorExperiments/resources/views/overview.view.xml -text
 OConnorExperiments/resources/web/ocexp/internal/Experiment.js -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentFolderType.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsContainerListener.java -text

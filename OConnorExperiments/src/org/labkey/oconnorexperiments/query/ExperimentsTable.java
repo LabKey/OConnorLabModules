@@ -75,6 +75,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -293,9 +294,14 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
                         parentExperiments = s.toArray(new String[s.size()]);
                     }
 
+                    Container innerContainer = ContainerManager.getForId(c);
+                    if (innerContainer == null)
+                        continue;
+
                     if (parentExperiments != null && parentExperiments.length > 0)
                     {
-                        for (String parentExperiment : parentExperiments)
+                        // Create set of parentExperiments so an experiment won't be added more than once.
+                        for (String parentExperiment : new LinkedHashSet<>(Arrays.asList(parentExperiments)))
                         {
                             Map<String, Object> parentExperimentRow = new CaseInsensitiveHashMap<>();
                             parentExperimentRow.put("Container", c);
@@ -305,14 +311,11 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
                     }
 
                     BatchValidationException errors = new BatchValidationException();
-                    parentExperimentsQUS.insertRows(user, ContainerManager.getForId(c), parentExperimentRows, errors, extraScriptContext);
+                    parentExperimentsQUS.insertRows(user, innerContainer, parentExperimentRows, errors, extraScriptContext);
                     if (errors.hasErrors())
                         throw errors;
                 }
-
-
             }
-
         }
 
         private void deleteParentExperiments(User user, Container container, List<Map<String, Object>> keys, Map<String, Object> extraScriptContext) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
