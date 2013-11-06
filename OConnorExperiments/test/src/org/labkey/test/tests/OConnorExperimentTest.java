@@ -255,7 +255,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         return cmp;
     }
 
-    protected Locator getEditInPlaceDisplayField(String label)
+    protected Locator.XPathLocator getEditInPlaceDisplayField(String label)
     {
         Locator.XPathLocator cmp = getEditInPlaceLocator(label);
         Locator.XPathLocator displayField = cmp.append(Locator.tagWithClass("div", "x4-form-display-field"));
@@ -264,13 +264,18 @@ public class OConnorExperimentTest extends BaseWebDriverTest
 
     protected void setEditInPlaceContent(String label, String text)
     {
-        Locator.XPathLocator cmp = getEditInPlaceLocator(label);
-        waitForElement(cmp);
-        click(cmp);
+        // Click display field to start editing
+        Locator.XPathLocator displayField = getEditInPlaceDisplayField(label);
+        waitForElement(displayField);
+        click(displayField);
 
+        // Edit field may be either a textarea or an input text element
+        Locator.XPathLocator cmp = getEditInPlaceLocator(label);
         Locator input = cmp.append(Locator.xpath("//textarea"));
         if (!isElementPresent(input))
             input = cmp.append(Locator.xpath("//input"));
+
+        waitForElement(input);
 
         WebElement el = input.findElement(getDriver());
         el.sendKeys(text);
