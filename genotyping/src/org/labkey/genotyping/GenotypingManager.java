@@ -498,17 +498,16 @@ public class GenotypingManager
         sql.append(" GROUP BY Analysis, SampleId");
 
         DbScope scope = gs.getSchema().getScope();
-        ResultSet rs = null;
 
-        try
+        try (DbScope.Transaction transaction = scope.ensureTransaction())
         {
-            scope.ensureTransaction();
-
-            rs = Table.executeQuery(gs.getSchema(), sql);
-            rs.next();
-            SimpleFilter readsFilter = new SimpleFilter(new SimpleFilter.InClause("MatchId", matchIdList));
-            Integer[] readIds = new TableSelector(gs.getReadsJunctionTable(), PageFlowUtil.set("ReadId"), readsFilter, null).getArray(Integer.class);
-            newMatchId = insertMatch(user, analysis, rs.getInt("SampleId"), rs, ArrayUtils.toPrimitive(readIds), alleleIds);
+            try (ResultSet rs = new SqlSelector(gs.getSchema(), sql).getResultSet())
+            {
+                rs.next();
+                SimpleFilter readsFilter = new SimpleFilter(new SimpleFilter.InClause("MatchId", matchIdList));
+                Integer[] readIds = new TableSelector(gs.getReadsJunctionTable(), PageFlowUtil.set("ReadId"), readsFilter, null).getArray(Integer.class);
+                newMatchId = insertMatch(user, analysis, rs.getInt("SampleId"), rs, ArrayUtils.toPrimitive(readIds), alleleIds);
+            }
 
             // Update ParentId column for all combined matches
             SQLFragment updateSql = new SQLFragment("UPDATE ");
@@ -522,16 +521,11 @@ public class GenotypingManager
             if (rows != matchIds.length)
                 throw new IllegalStateException("Incorrect number of ParentIds were updated");
 
-            scope.commitTransaction();
+            transaction.commit();
         }
         catch (SQLException e)
         {
             throw new RuntimeSQLException(e);
-        }
-        finally
-        {
-            ResultSetUtil.close(rs);
-            scope.closeConnection();
         }
 
         return newMatchId;
