@@ -16,7 +16,6 @@
 package org.labkey.test.tests;
 
 import org.jetbrains.annotations.Nullable;
-import org.junit.Assert;
 import org.junit.experimental.categories.Category;
 import org.labkey.remoteapi.CommandException;
 import org.labkey.remoteapi.Connection;
@@ -45,7 +44,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.join;
+import static org.junit.Assert.*;
 
+import static org.junit.Assert.*;
 
 @Category({CustomModules.class})
 public class OConnorExperimentTest extends BaseWebDriverTest
@@ -156,12 +157,12 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         // Verify the Experiment is inserted
         DataRegionTable q_table = new DataRegionTable("qwp1", this);
         int row3 = q_table.getRow("Description", "description3");
-        Assert.assertTrue("Expected to find row for 'description3'", row3 != -1);
-        Assert.assertEquals("3", q_table.getDataAsText(row3, "ExperimentNumber"));
-        Assert.assertEquals("type3", q_table.getDataAsText(row3, "ExperimentType"));
-        Assert.assertEquals("OConnorExperiment", q_table.getDataAsText(row3, "FolderType"));
+        assertTrue("Expected to find row for 'description3'", row3 != -1);
+        assertEquals("3", q_table.getDataAsText(row3, "ExperimentNumber"));
+        assertEquals("type3", q_table.getDataAsText(row3, "ExperimentType"));
+        assertEquals("OConnorExperiment", q_table.getDataAsText(row3, "FolderType"));
         String parentExperiments = q_table.getDataAsText(row3, "ParentExperiments");
-        Assert.assertTrue("Expected Parent Experiments to be '1, 2'; got '" + parentExperiments + "'",
+        assertTrue("Expected Parent Experiments to be '1, 2'; got '" + parentExperiments + "'",
                 "1, 2".equals(parentExperiments) || "2, 1".equals(parentExperiments));
 
         String entityId = q_table.getDataAsText(row3, "EntityId");
@@ -173,7 +174,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
             Locator.XPathLocator link = l.child("a[" + i + "]");
             String parentExpText = getText(link);
             String parentExpHref = getAttribute(link, "href");
-            Assert.assertTrue("Expected link to go to project begin for " + parentExpText + ", got: " + parentExpHref,
+            assertTrue("Expected link to go to project begin for " + parentExpText + ", got: " + parentExpHref,
                     parentExpHref.contains("/" + parentExpText + "/begin.view"));
         }
 
@@ -197,7 +198,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         // UNDONE: verify ParentExperiments are selected correctly
         // Issue 17985: MultiValueFK update form doesn't select/highlight junction key values
         //List<String> selectedValues = getSelectedOptionValues(Locator.name("quf_ParentExperiments"));
-        //Assert.assertEquals(2, selectedValues.size());
+        //assertEquals(2, selectedValues.size());
 
         selectOptionByText(Locator.name("quf_ParentExperiments"), "1");
         selectOptionByText(Locator.name("quf_ParentExperiments"), "3");
@@ -207,9 +208,9 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         // Verify the Experiment is updated
         DataRegionTable q_table = new DataRegionTable("query", this);
         int row = q_table.getRow("Description", description + " edited");
-        Assert.assertTrue("Expected to find row for '" + description + " edited'", row != -1);
+        assertTrue("Expected to find row for '" + description + " edited'", row != -1);
         String parentExperiments = q_table.getDataAsText(row, "ParentExperiments");
-        Assert.assertEquals("Expected Parent Experiments to be '1, 3'; got '" + parentExperiments + "'", "1, 3", parentExperiments);
+        assertEquals("Expected Parent Experiments to be '1, 3'; got '" + parentExperiments + "'", "1, 3", parentExperiments);
 
         goToProjectHome();
         checkQueryAndWorkbook();
@@ -224,28 +225,28 @@ public class OConnorExperimentTest extends BaseWebDriverTest
 
         clickButtonByIndex("Insert New", 0);
         waitForElement(getEditInPlaceDisplayField("Description:"));
-        Assert.assertEquals("Click to edit", getText(getEditInPlaceDisplayField("Description:")));
+        assertEquals("Click to edit", getText(getEditInPlaceDisplayField("Description:")));
 
         setEditInPlaceContent("Description:", "description4");
-        Assert.assertEquals("description4", getText(getEditInPlaceDisplayField("Description:")));
+        assertEquals("description4", getText(getEditInPlaceDisplayField("Description:")));
 
         setEditInPlaceContent("Experiment Type:", "type4");
-        Assert.assertEquals("type4", getText(getEditInPlaceDisplayField("Experiment Type:")));
+        assertEquals("type4", getText(getEditInPlaceDisplayField("Experiment Type:")));
 
         setEditInPlaceContent("Parent Experiments:", "1,100,101");
         sleep(500);
         waitForText("Experiment numbers not found: 100, 101");
 
         setEditInPlaceContent("Parent Experiments:", "1, 3");
-        Assert.assertEquals("1, 3", getText(getEditInPlaceDisplayField("Parent Experiments:")));
+        assertEquals("1, 3", getText(getEditInPlaceDisplayField("Parent Experiments:")));
 
         goToProjectHome();
 
         DataRegionTable q_table = new DataRegionTable("qwp1", this);
         int row = q_table.getRow("Description", "description4");
-        Assert.assertEquals("type4", q_table.getDataAsText(row, "ExperimentType"));
+        assertEquals("type4", q_table.getDataAsText(row, "ExperimentType"));
         String parentExps = q_table.getDataAsText(row, "ParentExperiments");
-        Assert.assertTrue(parentExps.equals("1, 3") || parentExps.equals("3, 1"));
+        assertTrue(parentExps.equals("1, 3") || parentExps.equals("3, 1"));
     }
 
     protected Locator.XPathLocator getEditInPlaceLocator(String label)
@@ -375,7 +376,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
             for (int i = 0; i < insertCmd.getRows().size(); i++)
             {
                 Map<String, Object> row = resp.getRows().get(i);
-                Assert.assertTrue(row.containsKey("container"));
+                assertTrue(row.containsKey("container"));
                 pks[i] = ((String)row.get("container")).toString();
             }
             for (int i = 0; i < pks.length; i++)
@@ -410,7 +411,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
             rowMap.put("ExperimentType", "API Type Edited");
             Connection cn = new Connection(getBaseURL(), PasswordUtil.getUsername(), PasswordUtil.getPassword());
             SaveRowsResponse resp = cmd.execute(cn, getProjectName());
-            Assert.assertEquals("Expected to update " + rowMap.size() + " rows", rowMap.size(), resp.getRowsAffected().intValue());
+            assertEquals("Expected to update " + rowMap.size() + " rows", rowMap.size(), resp.getRowsAffected().intValue());
             goToProjectHome();
             checkQueryAndWorkbook();
         }
@@ -440,12 +441,12 @@ public class OConnorExperimentTest extends BaseWebDriverTest
                 cmd.addRow(Collections.singletonMap("container", (Object) pk));
 
             SaveRowsResponse resp = cmd.execute(cn, getProjectName());
-            Assert.assertEquals("Expected to delete " + pkeys.size() + " rows", pkeys.size(), resp.getRowsAffected().intValue());
+            assertEquals("Expected to delete " + pkeys.size() + " rows", pkeys.size(), resp.getRowsAffected().intValue());
 
             SelectRowsCommand selectCmd = new SelectRowsCommand(SCHEMA_NAME, TABLE_NAME);
             selectCmd.addFilter("RowId", join(";", pkeys), Filter.Operator.IN);
             SelectRowsResponse selectResp = selectCmd.execute(cn, getProjectName());
-            Assert.assertEquals("Expected to select 0 rows", 0, selectResp.getRowCount().intValue());
+            assertEquals("Expected to select 0 rows", 0, selectResp.getRowCount().intValue());
         }
         catch (CommandException e)
         {

@@ -15,7 +15,6 @@
  */
 package org.labkey.test.tests;
 
-import org.junit.Assert;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.Locator;
 import org.labkey.test.TestTimeoutException;
@@ -26,6 +25,8 @@ import org.labkey.test.util.LogMethod;
 
 import java.io.File;
 import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * User: cnathe
@@ -209,7 +210,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         // verify that the animal and haplotype rows were properly inserted
         goToQuery("Animal");
         drt = new DataRegionTable("query", this);
-        Assert.assertEquals("Unexpected number of Animal records", 5, drt.getDataRowCount());
+        assertEquals("Unexpected number of Animal records", 5, drt.getDataRowCount());
         verifyColumnDataValues(drt, "Lab Animal Id", "ID-1,ID-2,ID-3,ID-4,ID-5");
         verifyColumnDataValues(drt, "Client Animal Id", "x123,x234,x345,x456,x567");
 
@@ -244,7 +245,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         // verify that the animal and haplotype rows were properly inserted
         goToQuery("Animal");
         drt = new DataRegionTable("query", this);
-        Assert.assertEquals("Unexpected number of Animal records", 9, drt.getDataRowCount());
+        assertEquals("Unexpected number of Animal records", 9, drt.getDataRowCount());
         verifyColumnDataValues(drt, "LabAnimalId", "ID-1,ID-2,ID-3,ID-4,ID-5,ID-6,ID-7,ID-8,ID-9");
         verifyColumnDataValues(drt, "ClientAnimalId", "x123,x234,x345,x456,x567,x678,x789,x888,x999");
 
@@ -416,18 +417,18 @@ public class HaplotypeAssayTest extends GenotypingTest
     {
         goToQuery("Haplotype");
         drt = new DataRegionTable("query", this);
-        Assert.assertEquals("Unexpected number of Haplotype records", total, drt.getDataRowCount());
+        assertEquals("Unexpected number of Haplotype records", total, drt.getDataRowCount());
         drt.setFilter("Type", "Equals", "mamuA");
-        Assert.assertEquals("Unexpected number of filtered Haplotype records", typeACount, drt.getDataRowCount());
+        assertEquals("Unexpected number of filtered Haplotype records", typeACount, drt.getDataRowCount());
         drt.clearFilter("Type");
         drt.setFilter("Type", "Equals", "mamuB");
-        Assert.assertEquals("Unexpected number of filtered Haplotype records", typeBCount, drt.getDataRowCount());
+        assertEquals("Unexpected number of filtered Haplotype records", typeBCount, drt.getDataRowCount());
         drt.clearFilter("Type");
     }
 
     private void verifyColumnDataValues(DataRegionTable drt, String colName, String valueStr)
     {
-        Assert.assertEquals("Unexpected values in " + colName + " column", valueStr, listToConcatString(drt.getColumnDataAsText(colName)));
+        assertEquals("Unexpected values in " + colName + " column", valueStr, listToConcatString(drt.getColumnDataAsText(colName)));
     }
 
     private String listToConcatString(List<String> list)
@@ -461,7 +462,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         // adding text to the data text area triggers the events to enable the comboboxes and load their stores
         Locator cb = Locator.xpath("//table[contains(@class,'disabled')]//label[text() = 'Mamu-B Haplotype 2:']");
         if (!isElementPresent(cb))
-            Assert.fail("The Haplotype column header mapping comboboxes should be disbabled until the data is pasted in.");
+            fail("The Haplotype column header mapping comboboxes should be disbabled until the data is pasted in.");
 
         setFormElement(Locator.name("data"), getFileContents(dataFile));
         waitForElementToDisappear(cb, WAIT_FOR_JAVASCRIPT);

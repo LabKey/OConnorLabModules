@@ -24,7 +24,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import org.junit.Assert;
 import org.junit.experimental.categories.Category;
 import org.labkey.remoteapi.Connection;
 import org.labkey.remoteapi.query.DeleteRowsCommand;
@@ -54,6 +53,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
+
+import static org.junit.Assert.*;
 
 /**
  * User: elvan
@@ -296,7 +297,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
         {
             Locator.XPathLocator l =  Locator.tagWithText("div", allele);
             isElementPresent(l);
-            Assert.assertEquals(1, getXpathCount(l));
+            assertEquals(1, getXpathCount(l));
         }
 
         //click some checkboxes
@@ -309,15 +310,15 @@ public class GenotypingTest extends BaseSeleniumWebTest
         refresh();
 
         int newIdIndex = getCombinedSampleRowIndex();
-        Assert.assertEquals("19", drt.getDataAsText(newIdIndex, "Reads") );
-        Assert.assertEquals("7.3%", drt.getDataAsText(newIdIndex, "Percent") );
-        Assert.assertEquals("300.0", drt.getDataAsText(newIdIndex,"Average Length") );
-        Assert.assertEquals("14", drt.getDataAsText(newIdIndex, "Pos Reads") );
-        Assert.assertEquals("5", drt.getDataAsText(newIdIndex, "Neg Reads") );
-        Assert.assertEquals("0", drt.getDataAsText(newIdIndex, "Pos Ext Reads") );
-        Assert.assertEquals("0", drt.getDataAsText(newIdIndex, "Neg Ext Reads") );
+        assertEquals("19", drt.getDataAsText(newIdIndex, "Reads") );
+        assertEquals("7.3%", drt.getDataAsText(newIdIndex, "Percent") );
+        assertEquals("300.0", drt.getDataAsText(newIdIndex,"Average Length") );
+        assertEquals("14", drt.getDataAsText(newIdIndex, "Pos Reads") );
+        assertEquals("5", drt.getDataAsText(newIdIndex, "Neg Reads") );
+        assertEquals("0", drt.getDataAsText(newIdIndex, "Pos Ext Reads") );
+        assertEquals("0", drt.getDataAsText(newIdIndex, "Neg Ext Reads") );
 //        String[] allelesAfterMerge = drt.getDataAsText(newIdIndex, "Allele Name").replace(" ", "").split(",") ;
-//        Assert.assertEquals(1,allelesAfterMerge.length);
+//        assertEquals(1,allelesAfterMerge.length);
         assertTextPresent(alleles[0]);
     }
 
@@ -425,7 +426,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
             Connection cn = new Connection(getBaseURL(), PasswordUtil.getUsername(), PasswordUtil.getPassword());
 
             SelectRowsResponse resp = cmd.execute(cn, getProjectName());
-            Assert.assertTrue("Wrong number of files found.  Expected 30, found " + resp.getRows().size(), resp.getRows().size() == 30);
+            assertTrue("Wrong number of files found.  Expected 30, found " + resp.getRows().size(), resp.getRows().size() == 30);
 
             //first try FASTQ merge
             method = new HttpPost(url);
@@ -440,9 +441,9 @@ public class GenotypingTest extends BaseSeleniumWebTest
             method.setEntity(new UrlEncodedFormEntity(args));
             response = httpClient.execute(method, context);
             int status = response.getStatusLine().getStatusCode();
-            Assert.assertTrue("FASTQ was not Downloaded", status == HttpStatus.SC_OK);
-            Assert.assertTrue("Response header incorrect", response.getHeaders("Content-Disposition")[0].getValue().startsWith("attachment;"));
-            Assert.assertTrue("Response header incorrect", response.getHeaders("Content-Type")[0].getValue().startsWith("application/x-gzip"));
+            assertTrue("FASTQ was not Downloaded", status == HttpStatus.SC_OK);
+            assertTrue("Response header incorrect", response.getHeaders("Content-Disposition")[0].getValue().startsWith("attachment;"));
+            assertTrue("Response header incorrect", response.getHeaders("Content-Type")[0].getValue().startsWith("application/x-gzip"));
 
 
             try (
@@ -458,7 +459,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
                 }
 
                 int expectedLength = 1088;
-                Assert.assertTrue("Length of file doesnt match expected value of "+expectedLength+", was: " + count, count == expectedLength);
+                assertTrue("Length of file doesnt match expected value of "+expectedLength+", was: " + count, count == expectedLength);
 
                 EntityUtils.consume(response.getEntity());
             }
@@ -478,9 +479,9 @@ public class GenotypingTest extends BaseSeleniumWebTest
             method.setEntity(new UrlEncodedFormEntity(args));
             response = httpClient.execute(method, context);
             status = response.getStatusLine().getStatusCode();
-            Assert.assertEquals("Status code was incorrect", HttpStatus.SC_OK, status);
-            Assert.assertEquals("Response header incorrect", "attachment; filename=\"genotypingZipExport\"", response.getHeaders("Content-Disposition")[0].getValue());
-            Assert.assertEquals("Response header incorrect", "application/zip;charset=UTF-8", response.getHeaders("Content-Type")[0].getValue());
+            assertEquals("Status code was incorrect", HttpStatus.SC_OK, status);
+            assertEquals("Response header incorrect", "attachment; filename=\"genotypingZipExport\"", response.getHeaders("Content-Disposition")[0].getValue());
+            assertEquals("Response header incorrect", "application/zip;charset=UTF-8", response.getHeaders("Content-Type")[0].getValue());
         }
         finally
         {
@@ -521,7 +522,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
         waitForText("Edit Sheet");
         for (String[] a : fieldPairs)
         {
-            Assert.assertEquals(a[1], Ext4FieldRef.getForLabel(this, a[0]).getValue());
+            assertEquals(a[1], Ext4FieldRef.getForLabel(this, a[0]).getValue());
         }
 
         clickButton("Edit Sheet", 0);
@@ -543,7 +544,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
 
         //verify template has changed
         _ext4Helper.clickTabContainingText("General Info");
-        Assert.assertEquals("Custom", Ext4FieldRef.getForLabel(this, "Template").getValue());
+        assertEquals("Custom", Ext4FieldRef.getForLabel(this, "Template").getValue());
 
         //set custom view
         _ext4Helper.selectComboBoxItem("Custom View:", viewName);
@@ -551,7 +552,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
         //verify values persisted
         _ext4Helper.clickTabContainingText("Preview Header");
         waitForText("Edit Sheet");
-        Assert.assertEquals(prop_value, Ext4FieldRef.getForLabel(this, prop_name).getValue());
+        assertEquals(prop_value, Ext4FieldRef.getForLabel(this, prop_name).getValue());
 
         //save template
         clickButton("Save As Template", 0);
@@ -560,7 +561,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
         textfield.setValue(TEMPLATE_NAME);
         clickButton("OK", 0);
         _ext4Helper.clickTabContainingText("General Info");
-        Assert.assertEquals(TEMPLATE_NAME, Ext4FieldRef.getForLabel(this, "Template").getValue());
+        assertEquals(TEMPLATE_NAME, Ext4FieldRef.getForLabel(this, "Template").getValue());
 
         //if we navigate too quickly, before the insertRows has returned, the test can get a JS error
         //therefore we sleep
@@ -571,7 +572,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
         waitForText("Sample Name");
 
         int expectRows =  966; //(16 * (49 +  1)) + 16;  //11 cols, 45 rows, plus header and validation row (which is only 8 cols)
-        Assert.assertEquals(expectRows, selenium.getXpathCount("//td[contains(@class, 'x4-table-layout-cell')]"));
+        assertEquals(expectRows, selenium.getXpathCount("//td[contains(@class, 'x4-table-layout-cell')]"));
 
         //make sure values persisted
         refresh();
@@ -588,12 +589,12 @@ public class GenotypingTest extends BaseSeleniumWebTest
         combo.setValue(TEMPLATE_NAME);
 
         int count = Integer.parseInt(combo.eval("this.store.getCount()"));
-        Assert.assertEquals("Combo store does not have correct record number", 3, count);
+        assertEquals("Combo store does not have correct record number", 3, count);
         sleep(50);
-        Assert.assertEquals("Field value not set correctly", TEMPLATE_NAME, Ext4FieldRef.getForLabel(this, "Template").getValue());
+        assertEquals("Field value not set correctly", TEMPLATE_NAME, Ext4FieldRef.getForLabel(this, "Template").getValue());
         _ext4Helper.clickTabContainingText("Preview Header");
         waitForText("Edit Sheet");
-        Assert.assertEquals(prop_value, Ext4FieldRef.getForLabel(this, prop_name).getValue());
+        assertEquals(prop_value, Ext4FieldRef.getForLabel(this, prop_name).getValue());
 
         clickButton("Download");
 
@@ -671,11 +672,11 @@ public class GenotypingTest extends BaseSeleniumWebTest
         FilenameFilter filter = new OutputFilter();
         File[] files = dir.listFiles(filter);
 
-        Assert.assertEquals(30, files.length);
+        assertEquals(30, files.length);
         DataRegionTable d = new DataRegionTable("Reads", this);
-        Assert.assertEquals(d.getDataRowCount(), 30);
+        assertEquals(d.getDataRowCount(), 30);
         assertTextPresent("Read Count");
-        Assert.assertEquals("9", d.getDataAsText(d.getIndexWhereDataAppears("IlluminaSamples-R1-4947.fastq.gz", "Filename") + 1, "Read Count"));
+        assertEquals("9", d.getDataAsText(d.getIndexWhereDataAppears("IlluminaSamples-R1-4947.fastq.gz", "Filename") + 1, "Read Count"));
     }
 
     private void verifySamples()
@@ -688,8 +689,8 @@ public class GenotypingTest extends BaseSeleniumWebTest
 //        for(int i=0; i<indexSampleSequence.length; i++)
 //        {
 //            int index = Integer.parseInt(indexSampleSequence[i][0]);
-//            Assert.assertEquals(indexSampleSequence[i][1], drt.getDataAsText(index, "Sample Id"));
-//            Assert.assertEquals(indexSampleSequence[i][2], drt.getDataAsText(index, "Sequence"));
+//            assertEquals(indexSampleSequence[i][1], drt.getDataAsText(index, "Sample Id"));
+//            assertEquals(indexSampleSequence[i][2], drt.getDataAsText(index, "Sequence"));
 //        }
 
     }
