@@ -20,6 +20,7 @@
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.api.gwt.client.util.StringUtils" %>
 <%@ page import="java.util.Arrays" %>
+<%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     JspView<GenotypingController.AssignmentReportBean> me = (JspView<GenotypingController.AssignmentReportBean>) HttpView.currentView();
@@ -27,6 +28,7 @@
     final String idEntryFormDivId = "idEntryForm" + getRequestScopedUID();
     final String queryWebPartDivId = "queryWebPart" + getRequestScopedUID();
     final String duplicatesDivId = "duplicates" + getRequestScopedUID();
+    final String assayName = bean.getAssayName();
     String initialIds = StringUtils.join(Arrays.asList(bean.getId()), ";");
 %>
 <div id='<%=h(idEntryFormDivId)%>'></div>
@@ -43,14 +45,14 @@
         if (ids.length > 0)
         {
             LABKEY.Query.selectRows({
-                schemaName: 'genotyping',
-                queryName: 'Animal',
+                schemaName: 'assay.Haplotype.' + <%= PageFlowUtil.jsString(assayName)%>,
+                queryName: 'Data',
                 filterArray: [LABKEY.Filter.create('RowId', ids, LABKEY.Filter.Types.IN)],
-                columns: 'LabAnimalId',
+                columns: 'AnimalId/LabAnimalId',
                 success: function(data){
                     var animalIds = [];
                     Ext4.each(data.rows, function(row){
-                        animalIds.push(row.LabAnimalId);
+                        animalIds.push(row["AnimalId/LabAnimalId"]);
                     });
 
                     init(animalIds.join(", "));

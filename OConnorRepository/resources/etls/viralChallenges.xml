@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<etl xmlns="http://labkey.org/etl/xml">
+    <name>EHR Viral Challenges Dataset</name>
+    <description>Import remote EHR study Viral Challenges</description>
+    <transforms>
+        <transform id="ViralChallenges" type="RemoteQueryTransformStep">
+            <source schemaName="study" queryName="OConnorETL_ViralChallenges" remoteSource="EHR"/>
+            <destination schemaName="study" queryName="ViralChallenges" targetOption="merge"/>
+        </transform>
+    </transforms>
+    <incrementalFilter className="SelectAllFilterStrategy"/>
+</etl>

@@ -32,7 +32,10 @@ Ext4.define('LABKEY.oconnor.Animal', {
                 items : [
                     this.getHaplotypesCfg(),
                     this.getViralChallengesCfg(),
-                    this.getGroupingCfg()
+                    this.getViralLoadsCfg(),
+                    this.getPCRSSPTypingCfg(),
+                    this.getGroupingCfg(),
+                    this.getAliasCfg()
                 ]
             }]
         }));
@@ -138,7 +141,7 @@ Ext4.define('LABKEY.oconnor.Animal', {
                 '<tpl if="index % 2 == 1"></tr><tr></tpl>', // two haplotypes per row
                 '</tpl>',
                 '</tr>',
-                '<tr><td>' + LABKEY.Utils.textLink({text: 'Full Details', href: LABKEY.ActionURL.buildURL('study', 'dataset', null, {datasetId: 1014, 'Dataset.Id~eq': this.animalId})}) + '</td></tr>',
+                '<tr><td>' + LABKEY.Utils.textLink({text: 'Full Details', href: LABKEY.ActionURL.buildURL('study', 'dataset', null, {datasetId: 5007, 'Dataset.Id~eq': this.animalId})}) + '</td></tr>',
                 '</table>',
                 '</div>'
         );
@@ -191,7 +194,7 @@ Ext4.define('LABKEY.oconnor.Animal', {
                 '<tpl for=".">',
                 '<tr><td width="175px">{date.value:this.renderDate}</td><td>{challenge_type.value} - {meaning.value}</td></tr>',
                 '</tpl>',
-                '<tr><td>' + LABKEY.Utils.textLink({text: 'Full Details', href: LABKEY.ActionURL.buildURL('study', 'dataset', null, {datasetId: 1013, 'Dataset.Id~eq': this.animalId})}) + '</td></tr>',
+                '<tr><td>' + LABKEY.Utils.textLink({text: 'Full Details', href: LABKEY.ActionURL.buildURL('study', 'dataset', null, {datasetId: 5003, 'Dataset.Id~eq': this.animalId})}) + '</td></tr>',
                 '</table>',
                 '</div>',
                 {
@@ -228,6 +231,106 @@ Ext4.define('LABKEY.oconnor.Animal', {
             listeners : {
                 scope : this,
                 afterrender : getViralChallengesData
+            }
+        };
+    },
+
+    getViralLoadsCfg : function() {
+
+        var tpl = new Ext4.XTemplate(
+                '<div id="viralloads-content">',
+                '<span class="header">Viral Loads</span>',
+                '<table class="detail">',
+                '<tpl for=".">',
+                '<tr><td width="175px">{date.value:this.renderDate}</td><td>{ViralLoad.value} - {LogVL.value}</td></tr>',
+                '</tpl>',
+                '<tr><td>' + LABKEY.Utils.textLink({text: 'Full Details', href: LABKEY.ActionURL.buildURL('study', 'dataset', null, {datasetId: 5002, 'Dataset.Id~eq': this.animalId})}) + '</td></tr>',
+                '</table>',
+                '</div>',
+                {
+                    renderDate : function(date) {
+                        var d = new Date(date);
+                        return Ext4.Date.format(d, 'Y-m-d h:i A');
+                    }
+                }
+        );
+
+        var getViralLoadsData = function(cmp) {
+            LABKEY.Query.selectRows({
+                requiredVersion : '13.2',
+                schemaName : 'study',
+                queryName : 'ViralLoads',
+                filterArray : this.queryFilterArray,
+                success : function(data) {
+                    cmp.update(data.rows);
+                },
+                failure : function() {
+                    // do nothing
+                },
+                scope: this
+            });
+        };
+
+        return {
+            xtype : 'component',
+            tpl : tpl,
+            cls : 'main',
+            border : false,
+            frame : false,
+            data : {},
+            listeners : {
+                scope : this,
+                afterrender : getViralLoadsData
+            }
+        };
+    },
+
+    getPCRSSPTypingCfg : function() {
+
+        var tpl = new Ext4.XTemplate(
+                '<div id="pcrssptyping-content">',
+                '<span class="header">PCR SSP Typing</span>',
+                '<table class="detail">',
+                '<tpl for=".">',
+                '<tr><td width="175px">{date.value:this.renderDate}</td><td>{Allele.value} - {ShortName.value} - {Status.value}</td></tr>',
+                '</tpl>',
+                '<tr><td>' + LABKEY.Utils.textLink({text: 'Full Details', href: LABKEY.ActionURL.buildURL('study', 'dataset', null, {datasetId: 5004, 'Dataset.Id~eq': this.animalId})}) + '</td></tr>',
+                '</table>',
+                '</div>',
+                {
+                    renderDate : function(date) {
+                        var d = new Date(date);
+                        return Ext4.Date.format(d, 'Y-m-d h:i A');
+                    }
+                }
+        );
+
+        var getPCRSSPTypingData = function(cmp) {
+            LABKEY.Query.selectRows({
+                requiredVersion : '13.2',
+                schemaName : 'study',
+                queryName : 'PCR SSP Typing',
+                filterArray : this.queryFilterArray,
+                success : function(data) {
+                    cmp.update(data.rows);
+                },
+                failure : function() {
+                    // do nothing
+                },
+                scope: this
+            });
+        };
+
+        return {
+            xtype : 'component',
+            tpl : tpl,
+            cls : 'main',
+            border : false,
+            frame : false,
+            data : {},
+            listeners : {
+                scope : this,
+                afterrender : getPCRSSPTypingData
             }
         };
     },
@@ -282,5 +385,56 @@ Ext4.define('LABKEY.oconnor.Animal', {
                 afterrender : getGroupingData
             }
         };
+    },
+
+    getAliasCfg : function() {
+
+        var tpl = new Ext4.XTemplate(
+                '<div id="alias-content">',
+                '<span class="header">Aliases</span>',
+                '<table class="detail">',
+                '<tpl for=".">',
+                '<tr><td>{SourceID.value}</td></tr>',
+                '</tpl>',
+                '</table>',
+                '</div>',
+                {
+                    renderDate : function(date) {
+                        var d = new Date(date);
+                        return Ext4.Date.format(d, 'Y-m-d h:i A');
+                    }
+                }
+        );
+
+        var getAliasesData = function(cmp) {
+            LABKEY.Query.selectRows({
+                requiredVersion : '13.2',
+                schemaName : 'study',
+                queryName : 'Aliases',
+                filterArray : this.queryFilterArray,
+                success : function(data) {
+                    cmp.update(data.rows);
+                },
+                failure : function() {
+                    // do nothing
+                },
+                scope: this
+            });
+        };
+
+        return {
+            xtype : 'component',
+            tpl : tpl,
+            cls : 'main',
+            border : false,
+            frame : false,
+            data : {},
+            listeners : {
+                scope : this,
+                afterrender : getAliasesData
+            }
+        };
     }
+
+
 });

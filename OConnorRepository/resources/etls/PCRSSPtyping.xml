@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<etl xmlns="http://labkey.org/etl/xml">
+    <name>EHR PCR SSP Typing Dataset</name>
+    <description>Import remote EHR study  PCR SSP Typing</description>
+    <transforms>
+        <transform id="MHC_SSP_Summary" type="RemoteQueryTransformStep">
+            <source schemaName="study" queryName="OConnorETL_MHC_SSP_Summary" remoteSource="EHR"/>
+            <destination schemaName="study" queryName="PCR SSP Typing" targetOption="merge"/>
+        </transform>
+    </transforms>
+    <incrementalFilter className="SelectAllFilterStrategy"/>
+</etl>

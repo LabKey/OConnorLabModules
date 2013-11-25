@@ -29,6 +29,7 @@ import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.pipeline.PipelineProvider;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.security.User;
+import org.labkey.api.study.TimepointType;
 import org.labkey.api.study.actions.AssayRunUploadForm;
 import org.labkey.api.study.assay.AbstractAssayProvider;
 import org.labkey.api.study.assay.AssayDataCollector;
@@ -94,6 +95,12 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
             public FieldKey getParticipantIDFieldKey()
             {
                 return FieldKey.fromParts("AnimalId", "LabAnimalId");
+            }
+
+            @Override
+            public FieldKey getVisitIDFieldKey(TimepointType timepointType)
+            {
+                return FieldKey.fromParts("RunId", "Created");
             }
         };
     }
@@ -206,6 +213,9 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
 
         ActionURL url = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(viewContext.getContainer(), protocol, GenotypingController.DuplicateAssignmentReportAction.class);
         result.add(new NavTree("view duplicates", url));
+
+        ActionURL reportUrl = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(viewContext.getContainer(), protocol, GenotypingController.HaplotypeAssignmentReportAction.class);
+        result.add(new NavTree("view haplotype assignment report", reportUrl));
 
         return result;
     }

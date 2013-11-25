@@ -120,30 +120,6 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
 
     @Nullable
     @Override
-    protected RunListQueryView createRunsQueryView(ViewContext context, QuerySettings settings, BindException errors)
-    {
-        return new RunListQueryView(this, settings)
-        {
-            @Override
-            public DataView createDataView()
-            {
-                DataView result = super.createDataView();
-
-                ButtonBar bar = result.getDataRegion().getButtonBar(DataRegion.MODE_GRID);
-                if (!bar.isLocked())
-                {
-                    ActionURL url = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(getContainer(), getProtocol(), GenotypingController.HaplotypeAssignmentReportAction.class);
-                    ActionButton reportButton = new ActionButton(url, "Produce Report");
-                    bar.add(reportButton);
-                }
-
-                return result;
-            }
-        };
-    }
-
-    @Nullable
-    @Override
     protected ResultsQueryView createDataQueryView(ViewContext context, QuerySettings settings, BindException errors)
     {
         return new ResultsQueryView(getProtocol(), context, settings)
@@ -153,7 +129,6 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
             {
                 DataView result = super.createDataView();
                 DataRegion rgn = result.getDataRegion();
-                rgn.setRecordSelectorValueColumns("AnimalId");
 
                 ButtonBar bar = result.getDataRegion().getButtonBar(DataRegion.MODE_GRID);
                 if (!bar.isLocked())

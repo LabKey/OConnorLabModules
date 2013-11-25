@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<etl xmlns="http://labkey.org/etl/xml">
+    <name>Demographics Import</name>
+    <description>Import demographics from staging dataset</description>
+    <transforms>
+        <transform id="Demographics">
+            <source schemaName="study" queryName="Demographics Import"/>
+            <destination schemaName="study" queryName="Demographics" targetOption="merge"/>
+        </transform>
+    </transforms>
+    <incrementalFilter className="SelectAllFilterStrategy"/>
+</etl>

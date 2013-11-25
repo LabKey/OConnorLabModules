@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<etl xmlns="http://labkey.org/etl/xml">
+    <name>EHR Demographics Dataset</name>
+    <description>Import remote EHR study demographics</description>
+    <transforms>
+        <transform id="Demographics" type="RemoteQueryTransformStep">
+            <source schemaName="study" queryName="OConnorETL_Demographics" remoteSource="EHR"/>
+            <destination schemaName="study" queryName="Demographics_template" targetOption="merge"/>
+        </transform>
+    </transforms>
+    <incrementalFilter className="SelectAllFilterStrategy"/>
+</etl>
