@@ -272,7 +272,7 @@ public class GenotypingController extends SpringActionController
             QuerySettings settings = new QuerySettings(getViewContext(), "Analysis", TableType.Matches.toString());
             settings.setAllowChooseView(true);
             settings.setBaseSort(new Sort("SampleId/library_sample_name,Alleles/AlleleName"));
-            settings.getBaseFilter().addCondition("Analysis", form.getAnalysis());
+            settings.getBaseFilter().addCondition(FieldKey.fromParts("Analysis"), form.getAnalysis());
 
             UserSchema gqs = new GenotypingQuerySchema(getUser(), getContainer(), form.getAnalysis());
             QueryView qv;
@@ -1617,7 +1617,7 @@ public class GenotypingController extends SpringActionController
             settings.setAllowChooseView(true);
             settings.getBaseSort().insertSortColumn("RowId");
             Integer dictionary = form.getDictionary();
-            settings.getBaseFilter().addCondition("Dictionary", null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer(), getUser()).getRowId());
+            settings.getBaseFilter().addCondition(FieldKey.fromParts("Dictionary"), null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer(), getUser()).getRowId());
 
             QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
             qv.setShadeAlternatingRows(true);
@@ -1679,7 +1679,7 @@ public class GenotypingController extends SpringActionController
 
             // Adding the dictionary ensures we're grabbing a sequence from this container
             Integer dictionary = form.getDictionary();
-            settings.getBaseFilter().addCondition("Dictionary", null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer(), getUser()).getRowId());
+            settings.getBaseFilter().addCondition(FieldKey.fromParts("Dictionary"), null != dictionary ? dictionary : SequenceManager.get().getCurrentDictionary(getContainer(), getUser()).getRowId());
             QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors);
 
             DataRegion rgn = new DataRegion();
@@ -1982,7 +1982,7 @@ public class GenotypingController extends SpringActionController
 
             if (GenotypingManager.get().hasAnalyses(_run))
             {
-                GenotypingAnalysesView analyses = new GenotypingAnalysesView(getViewContext(), null, "Analyses", new SimpleFilter("Run", _run.getRowId()), false) {
+                GenotypingAnalysesView analyses = new GenotypingAnalysesView(getViewContext(), null, "Analyses", new SimpleFilter(FieldKey.fromParts("Run"), _run.getRowId()), false) {
                     @Override
                     protected void populateButtonBar(DataView view, ButtonBar bar)
                     {
@@ -2030,7 +2030,7 @@ public class GenotypingController extends SpringActionController
         @Override
         protected void handleSettings(QuerySettings settings)
         {
-            settings.getBaseFilter().addCondition("Run", _run.getRowId());
+            settings.getBaseFilter().addCondition(FieldKey.fromParts("Run"), _run.getRowId());
         }
     }
 
@@ -2159,8 +2159,8 @@ public class GenotypingController extends SpringActionController
         protected void handleSettings(QuerySettings settings)
         {
             SimpleFilter baseFilter = settings.getBaseFilter();
-            baseFilter.addCondition("Run", _analysis.getRun());
-            baseFilter.addCondition("RowId/MatchId", _matchId);
+            baseFilter.addCondition(FieldKey.fromParts("Run"), _analysis.getRun());
+            baseFilter.addCondition(FieldKey.fromParts("RowId", "MatchId"), _matchId);
         }
     }
 

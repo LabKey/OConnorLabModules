@@ -331,7 +331,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
                     String c = (String)key.get("container");
                     containers.add(c);
                 }
-                Filter filter = new SimpleFilter("Container", containers, CompareType.IN);
+                Filter filter = new SimpleFilter(FieldKey.fromParts("Container"), containers, CompareType.IN);
                 TableSelector selector = new TableSelector(
                         parentExperimentsTable, Arrays.asList(parentExperimentsTable.getColumn("RowId")), filter, null);
                 Map<String, Object>[] rows = selector.getMapArray();

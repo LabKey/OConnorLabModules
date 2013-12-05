@@ -25,6 +25,7 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.MinorConfigurationException;
@@ -160,8 +161,8 @@ public class SubmitAnalysisJob extends PipelineJob
         info("Writing reads file");
         setStatus("WRITING READS");
         TableInfo ti = GenotypingSchema.get().getReadsTable();
-        SimpleFilter filter = new SimpleFilter("run", _analysis.getRun());
-        filter.addInClause("SampleId", _sampleIds);
+        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("run"), _analysis.getRun());
+        filter.addInClause(FieldKey.fromParts("SampleId"), _sampleIds);
 
         final ResultSet rs = new TableSelector(ti, ti.getColumns("name,sampleid,sequence,quality"), filter, null).getResultSet();
 

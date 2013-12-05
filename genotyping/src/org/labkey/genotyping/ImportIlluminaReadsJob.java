@@ -29,6 +29,7 @@ import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.sequence.IlluminaFastqParser;
 import org.labkey.api.util.Compress;
 import org.labkey.api.util.FileUtil;
@@ -124,7 +125,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
     {
         // Issue 14880: if a job has run and failed, we will have deleted the run.  trying to update the status of this non-existant row
         // causes an OptimisticConflictException.  therefore we first test whether the runs exists
-        SimpleFilter f = new SimpleFilter("rowid", _run.getRowId());
+        SimpleFilter f = new SimpleFilter(FieldKey.fromParts("rowid"), _run.getRowId());
 
         if (!new TableSelector(GenotypingSchema.get().getRunsTable(), Collections.singleton("RowId"), f, null).exists())
         {

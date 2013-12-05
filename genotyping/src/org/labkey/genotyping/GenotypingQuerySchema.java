@@ -291,7 +291,7 @@ public class GenotypingQuerySchema extends UserSchema
                         {
                             FilteredTable analysisFilteredJunction = new FilteredTable(super.getLookupTableInfo(), schema);
                             analysisFilteredJunction.wrapAllColumns(true);
-                            analysisFilteredJunction.addCondition(new SimpleFilter("Analysis", analysisId));
+                            analysisFilteredJunction.addCondition(new SimpleFilter(FieldKey.fromParts("Analysis"), analysisId));
 
                             return analysisFilteredJunction;
                         }
@@ -322,7 +322,7 @@ public class GenotypingQuerySchema extends UserSchema
                 table.addCondition(containerCondition);
 
                 // Normal matches view never shows children of combined / altered / deleted matches
-                table.addCondition(new SimpleFilter().addCondition("ParentId", null, CompareType.ISBLANK));
+                table.addCondition(new SimpleFilter().addCondition(FieldKey.fromParts("ParentId"), null, CompareType.ISBLANK));
                 setDefaultVisibleColumns(table, "SampleId, Reads, Percent, AverageLength, PosReads, NegReads, PosExtReads, NegExtReads, Alleles/AlleleName");
 
                 // Ignore samples meta data if not configured

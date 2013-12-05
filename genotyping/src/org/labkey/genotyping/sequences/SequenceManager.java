@@ -27,6 +27,7 @@ import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryHelper;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AdminPermission;
@@ -82,7 +83,7 @@ public class SequenceManager
         final TableInfo destination = GenotypingSchema.get().getSequencesTable();
         // If "file_active" column exists then filter on it, #14008
         if (null != destination.getColumn("file_active"))
-            viewFilter.addCondition("file_active", 1);
+            viewFilter.addCondition(FieldKey.fromParts("file_active"), 1);
         TableInfo source = qHelper.getTableInfo();
 
         new TableSelector(source, viewFilter, null).forEachMap(new Selector.ForEachBlock<Map<String, Object>>()
@@ -203,7 +204,7 @@ public class SequenceManager
     {
         // First, make sure that dictionary exists in this container
         SimpleFilter filter = SimpleFilter.createContainerFilter(c);
-        filter.addCondition("RowId", dictionary.getRowId());
+        filter.addCondition(FieldKey.fromParts("RowId"), dictionary.getRowId());
         TableInfo dictionaries = GenotypingSchema.get().getDictionariesTable();
         Integer dictionaryId = new TableSelector(dictionaries, dictionaries.getColumns("RowId"), filter, null).getObject(Integer.class);
 
@@ -214,7 +215,7 @@ public class SequenceManager
         GenotypingSchema gs = GenotypingSchema.get();
         QueryHelper qHelper = new QueryHelper(c, user, gs.getSchemaName(), gs.getSequencesTable().getName(), sequencesViewName);
         SimpleFilter viewFilter = qHelper.getViewFilter();
-        viewFilter.addCondition("Dictionary", dictionary.getRowId());
+        viewFilter.addCondition(FieldKey.fromParts("Dictionary"), dictionary.getRowId());
         TableInfo ti = GenotypingSchema.get().getSequencesTable();
 
         return new TableSelector(ti, ti.getColumns(columnNames), viewFilter, new Sort("RowId")).getResultSet();
@@ -237,7 +238,7 @@ public class SequenceManager
         if (null == dictionary)
             return 0;
 
-        SimpleFilter filter = new SimpleFilter("Dictionary", dictionary.getRowId());
+        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("Dictionary"), dictionary.getRowId());
 
         return new TableSelector(sequences, filter, null).getRowCount();
     }

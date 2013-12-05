@@ -32,6 +32,7 @@ import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryHelper;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.security.User;
@@ -434,8 +435,8 @@ public class GenotypingManager
         try
         {
             // Count the corresponding matches in the database, making sure they belong to this analysis
-            SimpleFilter filter = new SimpleFilter("Analysis", analysis.getRowId());
-            filter.addInClause("RowId", matchIdList);
+            SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("Analysis"), analysis.getRowId());
+            filter.addInClause(FieldKey.fromParts("RowId"), matchIdList);
             TableInfo tinfo = GenotypingQuerySchema.TableType.Matches.createTable(new GenotypingQuerySchema(user, c), analysis.getRowId());
             results = QueryService.get().select(tinfo, tinfo.getColumns("SampleId"), filter, null);
             Set<Integer> sampleIds = new HashSet<>();
@@ -468,7 +469,7 @@ public class GenotypingManager
         // Validate the alleles
         // Select all the alleles associated with these matches
         SimpleFilter filter = new SimpleFilter();
-        filter.addInClause("MatchId", matchIdList);
+        filter.addInClause(FieldKey.fromParts("MatchId"), matchIdList);
         TableInfo tinfo = gs.getAllelesJunctionTable();
         Integer[] mAlleles = new TableSelector(tinfo.getColumn("SequenceId"), filter, null).getArray(Integer.class);
         Set<Integer> matchAlleles = new HashSet<>(Arrays.asList(mAlleles));
@@ -483,8 +484,8 @@ public class GenotypingManager
         // Now update the tables: create the new match, insert new rows in the alleles & reads junction tables, and mark the old matches
 
         // Group all the matches based on analysis and rowIds
-        SimpleFilter matchFilter = new SimpleFilter("Analysis", analysis.getRowId());
-        matchFilter.addInClause("RowId", matchIdList);
+        SimpleFilter matchFilter = new SimpleFilter(FieldKey.fromParts("Analysis"), analysis.getRowId());
+        matchFilter.addInClause(FieldKey.fromParts("RowId"), matchIdList);
 
         // Keyword on some databases
         String percent = gs.getMatchesTable().getColumn("Percent").getSelectName();
@@ -591,8 +592,8 @@ public class GenotypingManager
             throw new IllegalStateException("No matches were selected");
 
         // Count the corresponding matches in the database, making sure they belong to this analysis
-        SimpleFilter filter = new SimpleFilter("Analysis", analysis.getRowId());
-        filter.addInClause("RowId", matchIds);
+        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("Analysis"), analysis.getRowId());
+        filter.addInClause(FieldKey.fromParts("RowId"), matchIds);
         TableInfo tinfo = GenotypingQuerySchema.TableType.Matches.createTable(new GenotypingQuerySchema(user, c), analysis.getRowId());
         TableSelector selector = new TableSelector(tinfo, tinfo.getColumns("RowId"), filter, null);
 
