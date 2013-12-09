@@ -29,6 +29,14 @@
         <td><input type="text" name="sourceProject" id="sourceProject" size="50" value=""></td>
     </tr>
     <tr>
+        <td>Experiment Number Range:</td>
+        <td><input type="text" name="beginRange" id="beginRange" size="10" value=""> - <input type="text" name="endRange" id="endRange" size="10" value=""></td>
+    </tr>
+    <tr>
+        <td>Final Migration:</td>
+        <td><input type="checkbox" name="finalMigration" id="finalMigration"></td>
+    </tr>
+    <tr>
         <td colspan=2><%=generateSubmitButton("Submit")%></td>
     </tr>
 </table>

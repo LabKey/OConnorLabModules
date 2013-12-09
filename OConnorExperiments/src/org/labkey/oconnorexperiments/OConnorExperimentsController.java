@@ -112,6 +112,11 @@ public class OConnorExperimentsController extends SpringActionController
 
         public boolean handlePost(UserForm form, BindException errors) throws Exception
         {
+            if (form.isFinalMigration())
+            {
+                Logger.getLogger(OConnorExperimentsController.class).info("Final migration to be performed - file move events will be performed (irreversible).");
+            }
+
             // global containers
             Container sourceContainer = ContainerManager.getForPath(form.getSourceProject());
             Container targetContainer = getContainer();
@@ -137,59 +142,76 @@ public class OConnorExperimentsController extends SpringActionController
                 Map<String, Object> map = new CaseInsensitiveHashMap<>();
                 map.put("ExperimentNumber", databaseMap.get("expnumber"));
                 int expNumber = (int) databaseMap.get("expnumber");
-                if (expNumber > maxExpNumber)
-                    maxExpNumber = expNumber;
-                map.put("Name", databaseMap.get("expnumber"));
-                map.put("Description", databaseMap.get("expDescription"));
-                map.put("ExperimentType", databaseMap.get("expType"));
-                //map.put("Modified", databaseMap.get("created"));
+                if (expNumber > form.getBeginRange() && expNumber < form.getEndRange())
+                {
+                    if (expNumber > maxExpNumber)
+                        maxExpNumber = expNumber;
+                    map.put("Name", databaseMap.get("expnumber"));
+                    map.put("Description", databaseMap.get("expDescription"));
+                    map.put("ExperimentType", databaseMap.get("expType"));
+                    //map.put("Modified", databaseMap.get("created"));
 
-                // get the user name
-                User effectiveUser;
-                if (databaseMap.get("initials") == null)
-                {
-                    effectiveUser = getUser();
-                }
-                else
-                {
-                    User user = UserManager.getUserByDisplayName((String) databaseMap.get("initials"));
-                    if (user == null)
+                    // get the user name
+                    User effectiveUser;
+                    if (databaseMap.get("initials") == null)
                     {
-                        Logger.getLogger(OConnorExperimentsController.class).warn("User '" + databaseMap.get("initials") + "' not found for experiment " + databaseMap.get("expnumber"));
                         effectiveUser = getUser();
                     }
                     else
                     {
-                        effectiveUser = user;
+                        User user = UserManager.getUserByDisplayName((String) databaseMap.get("initials"));
+                        if (user == null)
+                        {
+                            Logger.getLogger(OConnorExperimentsController.class).warn("User '" + databaseMap.get("initials") + "' not found for experiment " + databaseMap.get("expnumber"));
+                            effectiveUser = getUser();
+                        }
+                        else
+                        {
+                            effectiveUser = user;
+                        }
+                    }
+
+                    databaseMap.put("EffectiveUser", effectiveUser);
+                    Logger.getLogger(OConnorExperimentsController.class).info("Insert on experiment " + databaseMap.get("expnumber"));
+                    List<Map<String, Object>> updateResult;
+                    try
+                    {
+                        updateResult = queryUpdateService.insertRows(getUser(), getContainer(), Collections.singletonList(map), batchErrors, null);
+                    }
+                    catch (Exception e)
+                    {
+                        // log the error to the logfile and continue
+                        Logger.getLogger(OConnorExperimentsController.class).warn("Error inserting expNumber " + expNumber + " with exception " + e.getMessage());
+                        continue;
+                    }
+                    if (batchErrors.hasErrors())
+                    {
+                        // throw batchErrors.getLastRowError();
+                        Logger.getLogger(OConnorExperimentsController.class).warn("Error inserting expNumber " + expNumber);
+                    }
+
+                    Container workbookContainer = ContainerManager.getForId((String)updateResult.get(0).get("EntityId"));
+                    databaseMap.put("ContainerObj", workbookContainer);
+                    databaseMap.put("ContainerStr", updateResult.get(0).get("EntityId"));
+
+                    // We don't want these fields to be spoofable through the QueryUpdateService (and hence the Client API),
+                    // so preserve the value from the source data manually
+                    Date created = (Date)databaseMap.get("created");
+                    new SqlExecutor(CoreSchema.getInstance().getSchema()).execute("UPDATE core.containers SET CreatedBy = ?, Created = ? WHERE RowId = ?", effectiveUser.getUserId(), created, workbookContainer.getRowId());
+
+                    // Move files
+                    File sourceFile = new File(fileContentService.getFileRoot(sourceContainer).getPath() + "\\@files", databaseMap.get("expnumber").toString());
+                    File targetDir = new File(fileContentService.getFileRoot(targetContainer).getPath() + "\\" + databaseMap.get("expnumber").toString() + "\\@files");
+                    if (sourceFile.exists())
+                    {
+                        FileUtils.copyDirectory(sourceFile, targetDir);
+                        // only fire the File Move Event if this is a final migration - it is difficult to reverse
+                        if (form.isFinalMigration())
+                        {
+                            fileContentService.fireFileMoveEvent(sourceFile, targetDir, effectiveUser, getContainer());
+                        }
                     }
                 }
-
-                databaseMap.put("EffectiveUser", effectiveUser);
-                Logger.getLogger(OConnorExperimentsController.class).info("Insert on experiment " + databaseMap.get("expnumber"));
-                List<Map<String, Object>> updateResult = queryUpdateService.insertRows(getUser(), getContainer(), Collections.singletonList(map), batchErrors, null);
-                if (batchErrors.hasErrors())
-                {
-                    throw batchErrors.getLastRowError();
-                }
-
-                Container workbookContainer = ContainerManager.getForId((String)updateResult.get(0).get("EntityId"));
-                databaseMap.put("ContainerObj", workbookContainer);
-                databaseMap.put("ContainerStr", updateResult.get(0).get("EntityId"));
-
-                // We don't want these fields to be spoofable through the QueryUpdateService (and hence the Client API),
-                // so preserve the value from the source data manually
-                Date created = (Date)databaseMap.get("created");
-                new SqlExecutor(CoreSchema.getInstance().getSchema()).execute("UPDATE core.containers SET CreatedBy = ?, Created = ? WHERE RowId = ?", effectiveUser.getUserId(), created, workbookContainer.getRowId());
-
-                // Move files
-                File sourceFile = new File(fileContentService.getFileRoot(sourceContainer).getPath() + "\\@files", databaseMap.get("expnumber").toString());
-                File targetDir = new File(fileContentService.getFileRoot(targetContainer).getPath() + "\\" + databaseMap.get("expnumber").toString() + "\\@files");
-                if (sourceFile.exists())
-                {
-                    FileUtils.copyDirectory(sourceFile, targetDir);
-                    fileContentService.fireFileMoveEvent(sourceFile, targetDir, effectiveUser, getContainer());
-                }
-
             }
 
             //
@@ -197,38 +219,52 @@ public class OConnorExperimentsController extends SpringActionController
             //
             for (Map<String, Object> databaseMap : sourceCollection)
             {
-                Map<String, Object> map = new CaseInsensitiveHashMap<>();
-                map.put("container", databaseMap.get("ContainerStr"));
-
-                String[] parents = new String[0];
-                ArrayList<String> parentsEntityId = new ArrayList<>();
-                if (databaseMap.get("expParent") != null)
+                int expNumber = (int) databaseMap.get("expnumber");
+                if (expNumber > form.getBeginRange() && expNumber < form.getEndRange())
                 {
-                    String parentString = databaseMap.get("expParent").toString();
-                    parents = parentString.split("[\\s,;&]+");
-                    // get Container for SortOrder
-                    for ( int i =0; i< parents.length; i++)
+                    Map<String, Object> map = new CaseInsensitiveHashMap<>();
+                    map.put("container", databaseMap.get("ContainerStr"));
+
+                    String[] parents = new String[0];
+                    ArrayList<String> parentsEntityId = new ArrayList<>();
+                    if (databaseMap.get("expParent") != null)
                     {
-                        if ( ! parents[i].equalsIgnoreCase("and"))
+                        String parentString = databaseMap.get("expParent").toString();
+                        parents = parentString.split("[\\s,;&]+");
+                        // get Container for SortOrder
+                        for ( int i =0; i< parents.length; i++)
                         {
-                            Container child = targetContainer.getChild(parents[i]);
-                            if (child != null)
+                            if ( ! parents[i].equalsIgnoreCase("and"))
                             {
-                                parentsEntityId.add( child.getEntityId().toString() );
-                            }
-                            else
-                            {
-                                Logger.getLogger(OConnorExperimentsController.class).warn("child container not found: " + parents[i] + " for experiment " + databaseMap.get("expnumber") + " with username " + databaseMap.get("initials"));
+                                Container child = targetContainer.getChild(parents[i]);
+                                if (child != null)
+                                {
+                                    parentsEntityId.add( child.getEntityId().toString() );
+                                }
+                                else
+                                {
+                                    Logger.getLogger(OConnorExperimentsController.class).warn("child container not found: " + parents[i] + " for experiment " + databaseMap.get("expnumber") + " with username " + databaseMap.get("initials"));
+                                }
                             }
                         }
-                    }
-                    if (parentsEntityId.size() > 0)
-                    {
-                        map.put("ParentExperiments", parentsEntityId.toArray(new String[parentsEntityId.size()]));
+                        if (parentsEntityId.size() > 0)
+                        {
+                            map.put("ParentExperiments", parentsEntityId.toArray(new String[parentsEntityId.size()]));
 
-                        // workaround, pass user, container - databaseMap.get("Container"), singleton list
-                        Logger.getLogger(OConnorExperimentsController.class).info("Update rows on experiment " + databaseMap.get("expnumber"));
-                        queryUpdateService.updateRows(getUser(), targetContainer, Collections.singletonList(map), null, null);
+                            // workaround, pass user, container - databaseMap.get("Container"), singleton list
+                            Logger.getLogger(OConnorExperimentsController.class).info("Update rows on experiment " + databaseMap.get("expnumber"));
+                            try
+                            {
+                                queryUpdateService.updateRows(getUser(), targetContainer, Collections.singletonList(map), null, null);
+                            }
+                            catch (Exception e)
+                            {
+                                // log the error to the logfile and continue
+                                Logger.getLogger(OConnorExperimentsController.class).warn("Error updating parent experiments for experiment number " + expNumber + " with exception " + e.getMessage());
+                                continue;
+                            }
+
+                        }
                     }
                 }
             }
@@ -238,33 +274,44 @@ public class OConnorExperimentsController extends SpringActionController
             //
             for (Map<String, Object> databaseMap : sourceCollection)
             {
-                // Update the existing Wiki content with the value from the old table, if present
-                String wikiText = (String)databaseMap.get("expcomments");
-                if (wikiText != null)
+                int expNumber = (int) databaseMap.get("expnumber");
+                if (expNumber > form.getBeginRange() && expNumber < form.getEndRange())
                 {
-                    User user = UserManager.getUserByDisplayName((String) databaseMap.get("initials"));
-                    User effectiveUser = user == null ? getUser() : user;
-                    Container workbookContainer = targetContainer.getChild(databaseMap.get("expnumber").toString());
-                    if (workbookContainer == null)
-                    {
-                        Logger.getLogger(OConnorExperimentsController.class).warn("Updating wiki, container not found: " + databaseMap.get("expnumber"));
-                    }
-                    else
-                    {
-                        Path path = new Path("_webdav").append(workbookContainer.getParsedPath()).append("@wiki", "default", "default.html");
-                        WebdavResolver resolver = ServiceRegistry.get(WebdavResolver.class);
-                        WebdavResource resource = resolver.lookup(path);
 
-                        FileStream.StringFileStream in = new FileStream.StringFileStream(wikiText);
-                        try
+                    // Update the existing Wiki content with the value from the old table, if present
+                    String wikiText = (String)databaseMap.get("expcomments");
+                    if (wikiText != null)
+                    {
+                        User user = UserManager.getUserByDisplayName((String) databaseMap.get("initials"));
+                        User effectiveUser = user == null ? getUser() : user;
+                        Container workbookContainer = targetContainer.getChild(databaseMap.get("expnumber").toString());
+                        if (workbookContainer == null)
                         {
-                            resource.copyFrom(effectiveUser, in);
+                            Logger.getLogger(OConnorExperimentsController.class).warn("Updating wiki, container not found: " + databaseMap.get("expnumber"));
                         }
-                        finally
+                        else
                         {
-                            in.closeInputStream();
+                            Path path = new Path("_webdav").append(workbookContainer.getParsedPath()).append("@wiki", "default", "default.html");
+                            WebdavResolver resolver = ServiceRegistry.get(WebdavResolver.class);
+                            WebdavResource resource = resolver.lookup(path);
+
+                            FileStream.StringFileStream in = new FileStream.StringFileStream(wikiText);
+                            try
+                            {
+                                resource.copyFrom(effectiveUser, in);
+                            }
+                            catch (Exception e)
+                            {
+                                // log the error to the logfile and continue
+                                Logger.getLogger(OConnorExperimentsController.class).warn("Error wiki for experiment number " + expNumber + " with exception " + e.getMessage());
+                                continue;
+                            }
+                            finally
+                            {
+                                in.closeInputStream();
+                            }
+                            Logger.getLogger(OConnorExperimentsController.class).info("Inserting wiki for experiment " + databaseMap.get("expnumber"));
                         }
-                        Logger.getLogger(OConnorExperimentsController.class).info("Inserting wiki for experiment " + databaseMap.get("expnumber"));
                     }
                 }
             }
@@ -290,6 +337,9 @@ public class OConnorExperimentsController extends SpringActionController
     public static class UserForm extends ReturnUrlForm
     {
         private String _sourceProject;
+        private int _beginRange;
+        private int _endRange;
+        private boolean _finalMigration;
 
         public String getSourceProject()
         {
@@ -299,6 +349,36 @@ public class OConnorExperimentsController extends SpringActionController
         public void setSourceProject(String sourceProject)
         {
             _sourceProject = sourceProject;
+        }
+
+        public int getBeginRange()
+        {
+            return _beginRange;
+        }
+
+        public void setBeginRange(int beginRange)
+        {
+            _beginRange = beginRange;
+        }
+
+        public int getEndRange()
+        {
+            return _endRange;
+        }
+
+        public void setEndRange(int endRange)
+        {
+            _endRange = endRange;
+        }
+
+        public boolean isFinalMigration()
+        {
+            return _finalMigration;
+        }
+
+        public void setFinalMigration(boolean finalMigration)
+        {
+            _finalMigration = finalMigration;
         }
     }
 
