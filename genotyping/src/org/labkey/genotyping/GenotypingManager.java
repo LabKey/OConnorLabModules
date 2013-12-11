@@ -260,9 +260,10 @@ public class GenotypingManager
         GenotypingSchema gs = GenotypingSchema.get();
         deleteAnalyses(" WHERE Run = ? AND Run IN (SELECT RowId FROM " + gs.getRunsTable() + " WHERE Container = ?)", run.getRowId(), run.getContainer());
 
-        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsTable() + " WHERE Run = ?", run.getRowId());
-        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getSequenceFilesTable() + " WHERE Run = ?", run.getRowId());
-        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getRunsTable() + " WHERE RowId = ?", run.getRowId());
+        SqlExecutor executor = new SqlExecutor(gs.getSchema());
+        executor.execute("DELETE FROM " + gs.getReadsTable() + " WHERE Run = ?", run.getRowId());
+        executor.execute("DELETE FROM " + gs.getSequenceFilesTable() + " WHERE Run = ?", run.getRowId());
+        executor.execute("DELETE FROM " + gs.getRunsTable() + " WHERE RowId = ?", run.getRowId());
     }
 
 
@@ -280,11 +281,12 @@ public class GenotypingManager
         String analysisWhere = " WHERE Analysis IN (SELECT RowId" + analysisFrom + ")";
         String matchesWhere = " WHERE MatchId IN (SELECT RowId FROM " + gs.getMatchesTable() + analysisWhere + ")";
 
-        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getAllelesJunctionTable() + matchesWhere, params);
-        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getReadsJunctionTable() + matchesWhere, params);
-        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getMatchesTable() + analysisWhere, params);
-        Table.execute(gs.getSchema(), "DELETE FROM " + gs.getAnalysisSamplesTable() + analysisWhere, params);
-        Table.execute(gs.getSchema(), "DELETE " + analysisFrom, params);
+        SqlExecutor executor = new SqlExecutor(gs.getSchema());
+        executor.execute("DELETE FROM " + gs.getAllelesJunctionTable() + matchesWhere, params);
+        executor.execute("DELETE FROM " + gs.getReadsJunctionTable() + matchesWhere, params);
+        executor.execute("DELETE FROM " + gs.getMatchesTable() + analysisWhere, params);
+        executor.execute("DELETE FROM " + gs.getAnalysisSamplesTable() + analysisWhere, params);
+        executor.execute("DELETE " + analysisFrom, params);
     }
 
 
