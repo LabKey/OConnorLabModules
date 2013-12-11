@@ -505,7 +505,7 @@ public class GenotypingManager
             try (ResultSet rs = new SqlSelector(gs.getSchema(), sql).getResultSet())
             {
                 rs.next();
-                SimpleFilter readsFilter = new SimpleFilter(new SimpleFilter.InClause("MatchId", matchIdList));
+                SimpleFilter readsFilter = new SimpleFilter(new SimpleFilter.InClause(FieldKey.fromParts("MatchId"), matchIdList));
                 Integer[] readIds = new TableSelector(gs.getReadsJunctionTable(), PageFlowUtil.set("ReadId"), readsFilter, null).getArray(Integer.class);
                 newMatchId = insertMatch(user, analysis, rs.getInt("SampleId"), rs, ArrayUtils.toPrimitive(readIds), alleleIds);
             }
