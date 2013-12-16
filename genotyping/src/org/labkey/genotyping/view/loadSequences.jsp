@@ -48,7 +48,7 @@
             {
         %>
             Reference sequences in this folder are currently set to version <%=dictionary.getRowId()%>, loaded
-            <%=h(DateUtil.formatDateTime(dictionary.getCreated()))%> by <%=h(dictionary.getCreatedBy().getDisplayName(user))%>.
+            <%=formatDateTime(dictionary.getCreated())%> by <%=h(dictionary.getCreatedBy().getDisplayName(user))%>.
         <%
             }
         %>
