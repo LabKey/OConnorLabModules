@@ -200,8 +200,9 @@ public class OConnorExperimentsController extends SpringActionController
                     new SqlExecutor(CoreSchema.getInstance().getSchema()).execute("UPDATE core.containers SET CreatedBy = ?, Created = ? WHERE RowId = ?", effectiveUser.getUserId(), created, workbookContainer.getRowId());
 
                     // Move files
-                    File sourceFile = new File(fileContentService.getFileRoot(sourceContainer).getPath() + "\\@files", databaseMap.get("expnumber").toString());
-                    File targetDir = new File(fileContentService.getFileRoot(targetContainer).getPath() + "\\" + databaseMap.get("expnumber").toString() + "\\@files");
+                    File sourceFile = new File(fileContentService.getFileRoot(sourceContainer).getPath() + File.separator + "@files", databaseMap.get("expnumber").toString());
+                    File targetDir = new File(fileContentService.getFileRoot(targetContainer).getPath() + File.separator + databaseMap.get("expnumber").toString() + File.separator + "@files");
+                    Logger.getLogger(OConnorExperimentsController.class).info("Copy from file '" + sourceFile.toString() + "' to directory '" + targetDir.toString() +"'" );
                     if (sourceFile.exists())
                     {
                         FileUtils.copyDirectory(sourceFile, targetDir);
