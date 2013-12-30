@@ -15,21 +15,10 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.api.view.HttpView"%>
-<%@ page import="org.labkey.api.view.ViewContext"%>
-<%@ page import="org.labkey.oconnorexperiments.model.OConnorExperimentsManager" %>
-<%@ page import="org.labkey.api.data.Container" %>
-<%@ page import="org.labkey.api.query.QueryService" %>
-<%@ page import="org.labkey.api.view.template.ClientDependency" %>
-<%@ page import="java.util.LinkedHashSet" %>
+<%@ page import="org.labkey.api.view.template.ClientDependency"%>
+<%@ page import="java.util.LinkedHashSet"%>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
-<%
-    ViewContext context = HttpView.currentContext();
-    //Container c = context.getContainer();
-    //OConnorExperimentsManager.get().getExperiment(c);
-
-%>
 <%!
     public LinkedHashSet<ClientDependency> getClientDependencies()
     {

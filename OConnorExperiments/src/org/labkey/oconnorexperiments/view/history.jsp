@@ -15,29 +15,28 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.api.view.HttpView"%>
-<%@ page import="org.labkey.api.view.ViewContext"%>
-<%@ page import="org.labkey.api.data.Container" %>
-<%@ page import="org.labkey.api.view.template.ClientDependency" %>
-<%@ page import="java.util.LinkedHashSet" %>
-<%@ page import="org.labkey.api.audit.AuditLogService" %>
-<%@ page import="org.labkey.api.security.User" %>
-<%@ page import="org.labkey.api.query.UserSchema" %>
-<%@ page import="org.labkey.api.query.QuerySettings" %>
+<%@ page import="org.labkey.api.audit.AuditLogService"%>
+<%@ page import="org.labkey.api.data.Container"%>
+<%@ page import="org.labkey.api.data.ContainerFilter" %>
 <%@ page import="org.labkey.api.data.SimpleFilter" %>
 <%@ page import="org.labkey.api.query.FieldKey" %>
-<%@ page import="org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema" %>
+<%@ page import="org.labkey.api.query.QuerySettings" %>
 <%@ page import="org.labkey.api.query.QueryView" %>
-<%@ page import="org.labkey.api.view.WebPartView" %>
-<%@ page import="org.labkey.api.data.ContainerFilter" %>
-<%@ page import="org.labkey.api.wiki.WikiService" %>
+<%@ page import="org.labkey.api.query.UserSchema" %>
+<%@ page import="org.labkey.api.security.User" %>
 <%@ page import="org.labkey.api.services.ServiceRegistry" %>
+<%@ page import="org.labkey.api.view.ViewContext" %>
+<%@ page import="org.labkey.api.view.WebPartView" %>
+<%@ page import="org.labkey.api.view.template.ClientDependency" %>
+<%@ page import="org.labkey.api.wiki.WikiService" %>
+<%@ page import="org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema" %>
+<%@ page import="java.util.LinkedHashSet" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%
-    ViewContext context = HttpView.currentContext();
-    User user = context.getUser();
-    Container c = context.getContainer();
+    ViewContext context = getViewContext();
+    User user = getUser();
+    Container c = getContainer();
 %>
 <%!
     public LinkedHashSet<ClientDependency> getClientDependencies()

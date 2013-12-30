@@ -22,7 +22,7 @@
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     GenotypingController.MySettingsForm form = (GenotypingController.MySettingsForm)getModelBean();
-    GalaxyFolderSettings settings = GalaxyManager.get().getSettings(getViewContext().getContainer());
+    GalaxyFolderSettings settings = GalaxyManager.get().getSettings(getContainer());
     String serverURL = settings.getGalaxyURL();
     String preferencesHTML = "the API Keys page";
 

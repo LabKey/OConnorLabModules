@@ -15,23 +15,21 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.api.view.JspView" %>
-<%@ page import="org.labkey.api.view.HttpView" %>
-<%@ page import="org.labkey.genotyping.GenotypingController" %>
-<%@ page import="org.labkey.api.view.ActionURL" %>
-<%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.api.portal.ProjectUrls" %>
-<%@ page import="org.labkey.api.view.ViewContext" %>
+<%@ page import="org.labkey.api.util.PageFlowUtil" %>
+<%@ page import="org.labkey.api.view.ActionURL" %>
+<%@ page import="org.labkey.api.view.HttpView" %>
+<%@ page import="org.labkey.api.view.JspView" %>
+<%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     JspView<GenotypingController.AssignmentForm> me = (JspView<GenotypingController.AssignmentForm>) HttpView.currentView();
     GenotypingController.AssignmentForm bean = me.getModelBean();
     final String formDivId = "form" + getRequestScopedUID();
 
-    ViewContext ctx = getViewContext();
     ActionURL returnURL = bean.getReturnActionURL();
     if (returnURL == null)
-        returnURL = PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(ctx.getContainer());
+        returnURL = PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
 %>
 
 <%

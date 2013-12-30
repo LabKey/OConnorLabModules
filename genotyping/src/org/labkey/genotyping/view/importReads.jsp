@@ -24,7 +24,6 @@
 <%
     GenotypingController.ImportReadsBean bean = (GenotypingController.ImportReadsBean)getModelBean();
     String extensions = StringUtils.join(SequenceManager.FASTQ_EXTENSIONS, "\", \"");
-    //String platform = getViewContext().getActionURL().getParameter("platform");
 %>
 <form <%=formAction(GenotypingController.ImportReadsAction.class, Method.Post)%> name="importReads">
 

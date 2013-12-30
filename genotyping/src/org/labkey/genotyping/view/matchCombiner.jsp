@@ -17,12 +17,10 @@
 %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
-<%@ page import="org.labkey.api.view.ViewContext" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
-    ViewContext ctx = getViewContext();
-    ActionURL currentURL = ctx.getActionURL();
+    ActionURL currentURL = getActionURL();
     boolean showNewMatchMessage = (null != currentURL.getParameter("highlightId"));
     String deleted = currentURL.getParameter("delete");
     Integer deletedCount = null;
@@ -161,7 +159,7 @@
                 handler: submit
             });
 
-        var returnUrlText = new Ext.form.TextField({name:'<%=ActionURL.Param.returnUrl%>', hidden:true, value:<%=PageFlowUtil.jsString(ctx.getActionURL().toString())%>});
+        var returnUrlText = new Ext.form.TextField({name:'<%=ActionURL.Param.returnUrl%>', hidden:true, value:<%=PageFlowUtil.jsString(getActionURL().toString())%>});
         var analysisText = new Ext.form.TextField({name:'analysis', hidden:true, value:analysisId});
         var matchIdsText = new Ext.form.TextField({name:'matchIds', hidden:true, value:matchIds.join(",")});
         alleleIdsText = new Ext.form.TextField({name:'alleleIds', hidden:true});

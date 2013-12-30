@@ -17,25 +17,22 @@
 %>
 <%@ page import="org.labkey.api.data.Container" %>
 <%@ page import="org.labkey.api.pipeline.PipelineUrls" %>
+<%@ page import="org.labkey.api.query.QueryAction" %>
 <%@ page import="org.labkey.api.security.User" %>
 <%@ page import="org.labkey.api.security.permissions.AdminPermission" %>
 <%@ page import="org.labkey.api.security.permissions.InsertPermission" %>
 <%@ page import="org.labkey.api.util.Formats" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
-<%@ page import="org.labkey.api.view.ViewContext" %>
+<%@ page import="org.labkey.api.view.NotFoundException" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.genotyping.GenotypingManager" %>
-<%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
-<%@ page import="org.labkey.api.query.QueryService" %>
-<%@ page import="org.labkey.api.query.QueryAction" %>
 <%@ page import="org.labkey.genotyping.GenotypingQuerySchema" %>
 <%@ page import="org.labkey.genotyping.ValidatingGenotypingFolderSettings" %>
-<%@ page import="org.labkey.api.view.NotFoundException" %>
+<%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
-    ViewContext ctx = getViewContext();
-    Container c = ctx.getContainer();
-    User user = ctx.getUser();
+    Container c = getContainer();
+    User user = getUser();
     ActionURL submitURL = urlProvider(PipelineUrls.class).urlBrowse(c, null);
     ActionURL statusURL = urlProvider(PipelineUrls.class).urlBegin(c);
 
@@ -47,7 +44,6 @@
     ActionURL runMetadataURL = new ActionURL("query", QueryAction.executeQuery.toString(), c);
     runMetadataURL.addParameter("schemaName", "genotyping");
     runMetadataURL.addParameter("query.queryName", GenotypingQuerySchema.TableType.RunMetadata.toString());
-
 
     String containerType = c.isProject() ? "Project" : "Folder";
     int runCount = GenotypingManager.get().getRunCount(c);
@@ -104,11 +100,11 @@
 
     <tr><td colspan="3" class="labkey-announcement-title"><span>Settings</span></td></tr>
     <tr><td colspan="3" class="labkey-title-area-line"></td></tr>
-    <tr><td></td><td><%=textLink("My Settings", GenotypingController.getMySettingsURL(c, ctx.getActionURL()))%></td></tr><%
+    <tr><td></td><td><%=textLink("My Settings", GenotypingController.getMySettingsURL(c, getActionURL()))%></td></tr><%
     if (c.hasPermission(user, AdminPermission.class))
     {
     %>
-    <tr><td></td><td><%=textLink("Admin", GenotypingController.getAdminURL(c, ctx.getActionURL()), "adminSettings")%></td></tr><%
+    <tr><td></td><td><%=textLink("Admin", GenotypingController.getAdminURL(c, getActionURL()), "adminSettings")%></td></tr><%
     }
     %>
 </table>

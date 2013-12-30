@@ -15,30 +15,25 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.genotyping.GenotypingController"%>
-<%@ page import="org.labkey.genotyping.GenotypingFolderSettings" %>
-<%@ page import="org.labkey.api.util.PageFlowUtil" %>
-<%@ page import="org.labkey.api.exp.api.ExperimentUrls" %>
-<%@ page import="org.labkey.genotyping.GenotypingQuerySchema" %>
-<%@ page import="org.labkey.api.view.ViewContext" %>
-<%@ page import="org.labkey.api.exp.property.PropertyService" %>
-<%@ page import="org.labkey.api.view.ActionURL" %>
-<%@ page import="org.labkey.api.action.ReturnUrlForm" %>
-<%@ page import="org.labkey.api.query.QueryService" %>
+<%@ page import="org.labkey.api.exp.property.PropertyService"%>
 <%@ page import="org.labkey.api.query.QueryAction" %>
+<%@ page import="org.labkey.api.query.QueryService" %>
+<%@ page import="org.labkey.api.view.ActionURL" %>
+<%@ page import="org.labkey.genotyping.GenotypingController" %>
+<%@ page import="org.labkey.genotyping.GenotypingFolderSettings" %>
+<%@ page import="org.labkey.genotyping.GenotypingQuerySchema" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     GenotypingController.AdminForm form = (GenotypingController.AdminForm)getModelBean();
-    ViewContext ctx = getViewContext();
-    GenotypingQuerySchema schema = new GenotypingQuerySchema(ctx.getUser(), ctx.getContainer());
+    GenotypingQuerySchema schema = new GenotypingQuerySchema(getUser(), getContainer());
 
-    ActionURL animalQueryURL = QueryService.get().urlFor(ctx.getUser(), ctx.getContainer(), QueryAction.executeQuery, "genotyping", "Animal");
-    ActionURL animalEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Animal.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Animal.name(), ctx.getContainer(), ctx.getUser());
-    animalEditDomainURL.addParameter(ActionURL.Param.returnUrl, ctx.getActionURL().toString());
+    ActionURL animalQueryURL = QueryService.get().urlFor(getUser(), getContainer(), QueryAction.executeQuery, "genotyping", "Animal");
+    ActionURL animalEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Animal.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Animal.name(), getContainer(), getUser());
+    animalEditDomainURL.addParameter(ActionURL.Param.returnUrl, getActionURL().toString());
 
-    ActionURL haplotypeQueryURL = QueryService.get().urlFor(ctx.getUser(), ctx.getContainer(), QueryAction.executeQuery, "genotyping", "Haplotype");
-    ActionURL haplotypeEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Haplotype.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Haplotype.name(), ctx.getContainer(), ctx.getUser());
-    haplotypeEditDomainURL.addParameter(ActionURL.Param.returnUrl, ctx.getActionURL().toString());
+    ActionURL haplotypeQueryURL = QueryService.get().urlFor(getUser(), getContainer(), QueryAction.executeQuery, "genotyping", "Haplotype");
+    ActionURL haplotypeEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Haplotype.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Haplotype.name(), getContainer(), getUser());
+    haplotypeEditDomainURL.addParameter(ActionURL.Param.returnUrl, getActionURL().toString());
 %>
 <script type="text/javascript">
 //    Ext.QuickTips.init();
