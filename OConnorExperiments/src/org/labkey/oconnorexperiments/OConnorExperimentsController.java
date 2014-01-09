@@ -123,13 +123,13 @@ public class OConnorExperimentsController extends SpringActionController
             FileContentService fileContentService = ServiceRegistry.get(FileContentService.class);
 
             // get table info for the source table
-            UserSchema sourceSchema = QueryService.get().getUserSchema(getViewContext().getUser(), sourceContainer, "oconnor");
+            UserSchema sourceSchema = QueryService.get().getUserSchema(getUser(), sourceContainer, "oconnor");
             TableInfo sourceTable = sourceSchema.getTable("simple_experiment");
             TableSelector tableSelector = new TableSelector(sourceTable, null, new Sort("ExpNumber"));
             Collection<Map<String, Object>> sourceCollection = tableSelector.getMapCollection();
 
             // get table info for target table
-            UserSchema targetSchema = QueryService.get().getUserSchema(getViewContext().getUser(), getContainer(), "OConnorExperiments");
+            UserSchema targetSchema = QueryService.get().getUserSchema(getUser(), getContainer(), "OConnorExperiments");
             TableInfo targetTable = targetSchema.getTable("Experiments");
             QueryUpdateService queryUpdateService = targetTable.getUpdateService();
             BatchValidationException batchErrors = new BatchValidationException();
@@ -330,7 +330,7 @@ public class OConnorExperimentsController extends SpringActionController
 
         public ActionURL getSuccessURL(UserForm form)
         {
-            UserSchema targetSchema = QueryService.get().getUserSchema(getViewContext().getUser(), getContainer(), "OConnorExperiments");
+            UserSchema targetSchema = QueryService.get().getUserSchema(getUser(), getContainer(), "OConnorExperiments");
             return targetSchema.getQueryDefForTable("Experiments").urlFor(QueryAction.executeQuery);
         }
     }

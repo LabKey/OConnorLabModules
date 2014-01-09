@@ -168,13 +168,8 @@ public class Import454ReadsJob extends PipelineJob
         info("Importing " + _reads.getName());
         setStatus("IMPORTING READS");
 
-        TabLoader loader = null;
-        DbScope scope = null;
-
-        try
+        try (TabLoader loader = new TabLoader(_reads, true))
         {
-            loader = new TabLoader(_reads, true);
-
             List<ColumnDescriptor> columns = new ArrayList<>();
             columns.addAll(Arrays.asList(loader.getColumns()));
 
@@ -204,75 +199,71 @@ public class Import454ReadsJob extends PipelineJob
 
             SampleManager.SampleIdFinder finder = new SampleManager.SampleIdFinder(_run, getUser(), sampleKeyColumns, "importing reads");
 
-            TableInfo readsTable = GenotypingSchema.get().getReadsTable();
-
-            scope = readsTable.getSchema().getScope();
-            scope.ensureTransaction();
-
             int rowCount = 0;
 
-            for (Map<String, Object> map : loader)
+            TableInfo readsTable = GenotypingSchema.get().getReadsTable();
+            DbScope scope = readsTable.getSchema().getScope();
+
+            try (DbScope.Transaction transaction = scope.ensureTransaction())
             {
-                Integer mid5 = (Integer)map.get(SampleManager.MID5_COLUMN_NAME);
-
-                if (null != mid5 && 0 == mid5)
+                for (Map<String, Object> map : loader)
                 {
-                    mid5 = null;
-                    map.put(SampleManager.MID5_COLUMN_NAME, mid5);
+                    Integer mid5 = (Integer) map.get(SampleManager.MID5_COLUMN_NAME);
+
+                    // mid5 == 0 means null
+                    if (null != mid5 && 0 == mid5)
+                    {
+                        mid5 = null;
+                        map.put(SampleManager.MID5_COLUMN_NAME, null);
+                    }
+
+                    Integer mid3 = (Integer) map.get(SampleManager.MID3_COLUMN_NAME);
+
+                    // mid3 == 0 means null
+                    if (null != mid3 && 0 == mid3)
+                    {
+                        mid3 = null;
+                        map.put(SampleManager.MID3_COLUMN_NAME, null);
+                    }
+
+                    map.put("sampleid", finder.getSampleId(mid5, mid3, (String) map.get(SampleManager.AMPLICON_COLUMN_NAME)));
+
+                    String sequence = (String) map.get("sequence");
+                    String quality = (String) map.get("quality");
+
+                    totalSequence.addAndGet(sequence.length());
+                    totalQuality.addAndGet(quality.length());
+
+                    if (sequence.length() != quality.length())
+                        throw new PipelineJobException("Sequence length differed from quality score length in read " + map.get("name"));
+
+                    if (TEST_COMRESSION)
+                        compress(sequence, quality);
+
+                    Table.insert(getUser(), readsTable, map);
+                    rowCount++;
+
+                    if (0 == rowCount % 10000)
+                        logReadsProgress("", rowCount);
                 }
 
-                Integer mid3 = (Integer)map.get(SampleManager.MID3_COLUMN_NAME);
-
-                if (null != mid3 && 0 == mid3)
-                {
-                    mid3 = null;
-                    map.put(SampleManager.MID3_COLUMN_NAME, mid3);
-                }
-
-                map.put("sampleid", finder.getSampleId(mid5, mid3, (String)map.get(SampleManager.AMPLICON_COLUMN_NAME)));
-
-                String sequence = (String)map.get("sequence");
-                String quality = (String)map.get("quality");
-
-                totalSequence.addAndGet(sequence.length());
-                totalQuality.addAndGet(quality.length());
-
-                if (sequence.length() != quality.length())
-                    throw new PipelineJobException("Sequence length differed from quality score length in read " + map.get("name"));
-
-                if (TEST_COMRESSION)
-                    compress(sequence, quality);
-
-                Table.insert(getUser(), readsTable, map);
-                rowCount++;
-
-                if (0 == rowCount % 10000)
-                    logReadsProgress("", rowCount);
+                transaction.commit();
             }
-
-            scope.commitTransaction();
             logReadsProgress("Importing " + _reads.getName() + " complete: ", rowCount);
             setStatus("UPDATING STATISTICS");
             info("Updating reads table statistics");
 
             if (TEST_COMRESSION)
             {
-                info("Sequence deflate ratio: " + Formats.percent1.format((double)deflateSequence.get() / totalSequence.get()));
-                info("Sequence simple RLE ratio: " + Formats.percent1.format((double)rleSequence.get() / totalSequence.get()));
-                info("Sequence ascii RLE ratio: " + Formats.percent1.format((double)rleAsciiSequence.get() / totalSequence.get()));
-                info("Quality score deflate ratio: " + Formats.percent1.format((double)deflateQuality.get() / totalQuality.get()));
-                info("Quality score simple RLE ratio: " + Formats.percent1.format((double)rleQuality.get() / totalQuality.get()));
-                info("Quality score ascii RLE ratio: " + Formats.percent1.format((double)rleAsciiQuality.get() / totalQuality.get()));
+                info("Sequence deflate ratio: " + Formats.percent1.format((double) deflateSequence.get() / totalSequence.get()));
+                info("Sequence simple RLE ratio: " + Formats.percent1.format((double) rleSequence.get() / totalSequence.get()));
+                info("Sequence ascii RLE ratio: " + Formats.percent1.format((double) rleAsciiSequence.get() / totalSequence.get()));
+                info("Quality score deflate ratio: " + Formats.percent1.format((double) deflateQuality.get() / totalQuality.get()));
+                info("Quality score simple RLE ratio: " + Formats.percent1.format((double) rleQuality.get() / totalQuality.get()));
+                info("Quality score ascii RLE ratio: " + Formats.percent1.format((double) rleAsciiQuality.get() / totalQuality.get()));
             }
 
             readsTable.getSchema().getSqlDialect().updateStatistics(readsTable);
-        }
-        finally
-        {
-            if (null != scope)
-                scope.closeConnection();
-            if (null != loader)
-                loader.close();
         }
     }
 

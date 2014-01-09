@@ -18,7 +18,6 @@ package org.labkey.genotyping;
 import au.com.bytecode.opencsv.CSVReader;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
-import org.labkey.api.data.DbScope;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableSelector;
@@ -156,43 +155,40 @@ public class ImportIlluminaReadsJob extends PipelineJob
             info("Importing Run From File: " + _sampleFile.getName());
             setStatus("IMPORTING READS");
 
-            CSVReader reader = null;
-            DbScope scope = null;
-
-            try
+            try (CSVReader reader = new CSVReader(new FileReader(_sampleFile)))
             {
-                reader = new CSVReader(new FileReader(_sampleFile));
-
-                Set<String> columns = new HashSet<String>() {{
-                    add(SampleManager.MID5_COLUMN_NAME);
-                    add(SampleManager.MID3_COLUMN_NAME);
-                    add(SampleManager.AMPLICON_COLUMN_NAME);
-                }};
+                Set<String> columns = new HashSet<String>()
+                {{
+                        add(SampleManager.MID5_COLUMN_NAME);
+                        add(SampleManager.MID3_COLUMN_NAME);
+                        add(SampleManager.AMPLICON_COLUMN_NAME);
+                    }};
 
                 SampleManager.SampleIdFinder finder = new SampleManager.SampleIdFinder(_run, getUser(), columns, "importing reads");
 
                 //parse the samples file
-                String [] nextLine;
+                String[] nextLine;
                 Map<Integer, Object> sampleMap = new HashMap<>();
                 sampleMap.put(0, 0); //placeholder for control and unmapped reads
-
                 Boolean inSamples = false;
                 int sampleIdx = 0;
-                while ((nextLine = reader.readNext()) != null) {
-                    if(nextLine.length > 0 && "[Data]".equals(nextLine[0]))
+
+                while ((nextLine = reader.readNext()) != null)
+                {
+                    if (nextLine.length > 0 && "[Data]".equals(nextLine[0]))
                     {
                         inSamples = true;
                         continue;
                     }
 
                     //NOTE: for now we only parse samples.  at a future point we might consider using more of this file
-                    if(!inSamples)
+                    if (!inSamples)
                         continue;
 
-                    if(nextLine.length == 0 || null == nextLine[0])
+                    if (nextLine.length == 0 || null == nextLine[0])
                         continue;
 
-                    if("Sample_ID".equalsIgnoreCase(nextLine[0]))
+                    if ("Sample_ID".equalsIgnoreCase(nextLine[0]))
                         continue;
 
                     int sampleId;
@@ -200,7 +196,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
                     {
                         sampleId = Integer.parseInt(nextLine[0]);
 
-                        if(!finder.isValidSampleKey(sampleId))
+                        if (!finder.isValidSampleKey(sampleId))
                             throw new PipelineJobException("Invalid sample Id for this run: " + nextLine[0]);
 
                         sampleIdx++;
@@ -213,14 +209,14 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 }
 
                 //find the files
-                if(null == _fastqFiles)
+                if (null == _fastqFiles)
                 {
                     _fastqFiles = IlluminaFastqParser.inferIlluminaInputsFromPath(_sampleFile.getParent(), _fastqPrefix);
                 }
 
-                if(_fastqFiles.size() == 0)
+                if (_fastqFiles.size() == 0)
                 {
-                    throw new PipelineJobException("No FASTQ files" + (_fastqPrefix==null ? "" : " matching the prefix '" + _fastqPrefix) + "' were found");
+                    throw new PipelineJobException("No FASTQ files" + (_fastqPrefix == null ? "" : " matching the prefix '" + _fastqPrefix) + "' were found");
                 }
 
                 //now bin the FASTQ files into 2 per sample
@@ -233,15 +229,16 @@ public class ImportIlluminaReadsJob extends PipelineJob
 
                 //GZIP and create record for each file
                 Map<String, Object> row;
-                for(Pair<Object, Integer> sampleKey : fileMap.keySet())
+
+                for (Pair<Object, Integer> sampleKey : fileMap.keySet())
                 {
                     row = new CaseInsensitiveHashMap<>();
                     row.put("Run", _run.getRowId());
-                    Integer sampleId = (Integer)sampleKey.getKey();
-                    if(sampleId > 0)
+                    Integer sampleId = (Integer) sampleKey.getKey();
+                    if (sampleId > 0)
                         row.put("SampleId", sampleKey.getKey());
 
-                    if(readcounts.containsKey(sampleKey))
+                    if (readcounts.containsKey(sampleKey))
                     {
                         row.put("ReadCount", readcounts.get(sampleKey));
                     }
@@ -250,7 +247,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
                     File output = Compress.compressGzip(input);
                     input.delete();
 
-                    if(input.exists())
+                    if (input.exists())
                         throw new PipelineJobException("Unable to delete file: " + input.getPath());
 
                     ExpData data = ExperimentService.get().createData(getContainer(), new DataType("Illumina FASTQ File " + sampleKey.getValue()));
@@ -265,13 +262,6 @@ public class ImportIlluminaReadsJob extends PipelineJob
             catch (SQLException e)
             {
                 throw new PipelineJobException(e);
-            }
-            finally
-            {
-                if (null != scope)
-                    scope.closeConnection();
-                if (null != reader)
-                    reader.close();
             }
         }
         catch (IOException e)
