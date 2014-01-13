@@ -37,8 +37,11 @@ OConnorRepository/module.properties -text
 OConnorRepository/resources/etls/PCRSSPtyping.xml -text
 OConnorRepository/resources/etls/demographics.xml -text
 OConnorRepository/resources/etls/import_demographics.xml -text
+OConnorRepository/resources/etls/updateAlphagenAliases.xml -text
 OConnorRepository/resources/etls/viralChallenges.xml -text
 OConnorRepository/resources/etls/viralLoads.xml -text
+OConnorRepository/resources/queries/study/AlphagenesisAliases.sql -text
+OConnorRepository/resources/queries/study/demographics.query.xml -text
 OConnorRepository/resources/views/begin.html -text
 OConnorRepository/resources/views/participant.html -text
 OConnorRepository/tools/study/datasets/AnimalHaplotypes.tsv -text

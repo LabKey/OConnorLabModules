@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<etl xmlns="http://labkey.org/etl/xml">
+    <name>Update Alphagenesis Aliases</name>
+    <description>Update or create new aliases after importing Alphagenesis data into study demographics</description>
+    <transforms>
+        <transform id="AlphagenesisAliases">
+            <source schemaName="study" queryName="AlphagenesisAliases"/>
+            <destination schemaName="study" queryName="Aliases" targetOption="merge"/>
+        </transform>
+    </transforms>
+    <incrementalFilter className="ModifiedSinceFilterStrategy" timestampColumnName="Modified"/>
+</etl>

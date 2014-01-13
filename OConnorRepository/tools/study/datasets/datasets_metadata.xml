@@ -22,6 +22,9 @@
           <fkTable>Animal</fkTable>
           <fkColumnName>Id</fkColumnName>
         </fk>
+        <importAliases>
+            <importAlias>Contract ID</importAlias>
+        </importAliases>
       </column>
       <!--
       TODO: Do we need to import date ?
@@ -82,6 +85,10 @@
       <column columnName="contract">
         <datatype>varchar</datatype>
         <columnTitle>Contract</columnTitle>
+      </column>
+      <column columnName="sourceId">
+        <datatype>varchar</datatype>
+        <columnTitle>Source ID</columnTitle>
       </column>
       <!--
       <column columnName="objectid">

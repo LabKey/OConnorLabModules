@@ -1,46 +1,46 @@
 # Demographics from "sampledata/study/EHR Study Anon.zip"
-id	species	gender	calculated_status	dam	sire	birth	death	origin	geoOrigin	cond	medical
-test1020148	Rhesus	male	Dead	7166552	57307	2009-08-10	2011-06-14			p	
-test1099252	Rhesus	male	Dead	9681212	6512707	2009-08-03	2011-06-06			p	
-test1112911	Rhesus	male	Alive	6914348	731544	2009-11-06				p	
-test1441142	Rhesus	male	Dead	1256797	731544	2009-08-02	2011-06-20			p	
-test1684145	Rhesus	male	Alive	8982969	4891303	2009-02-24				p	
-test1993532	Rhesus	male	Dead	3784452	5409336	1985-05-02	2011-06-24			s	
-test2008446	Rhesus	male	Alive	7405528	4884340	2007-09-26				s	
-test2227135	Rhesus	male	Alive	2847931	9516255	2008-09-28				p	
-test2312318	Rhesus	female	Alive	7672314	9794992	1995-07-27				s	siv+
-test2950014	Rhesus	female	Dead	3386291	4778953	2008-06-09	2011-07-18			s	
-test3137998	Rhesus	female	Alive	690232	4778953	2009-04-25				p	
-test3224553	Rhesus	male	Dead	7877112	4434585	2009-12-14	2011-07-27			p	
-test3621582	Rhesus	male	Alive	5968093	4434585	2010-01-02				p	
-test3771679	Rhesus	male	Alive	6100597	9503086	2009-06-25				p	
-test3804589	Marmoset	female	Alive	9749422	493957	2001-10-04				p	
-test3843301	Rhesus	female	Alive	9652404	731544	2008-10-19				p	
-test3844307	Rhesus	female	Alive	3694890	5748235	2010-10-29				g	
-test3935154	Rhesus	female	Alive	7579363	7785547	2008-06-27				p	
-test3997535	Rhesus	male	Alive	9681212	4778953	2007-09-08				p	
-test4013108	Rhesus	female	Alive	7524224	4891303	2008-06-30				p	
-test4037096	Rhesus	male	Alive	4597773		2009-07-22				p	
-test4551032	Cynomolgus	female	Alive	8416939	5030167	2000-03-28				p	
-test4564246	Rhesus	male	Alive	7877112	8296075	2004-12-29				s	
-test4710248	Rhesus	female	Alive	642333	9819418	2008-06-25				p	viral exempt: yellow fever vaccination
-test4935165	Rhesus	male	Alive	4343642	6974794	2008-09-29				p	
-test4945025	Rhesus	female	Alive	3066209	9819418	2009-02-28				p	partial right leg amputation
-test499022	Rhesus	male	Alive	532430	731451	2007-11-16				p	
-test5131891	Rhesus	female	Alive	2001039	2480492	2009-05-24				p	
-test5158984	Rhesus	female	Alive	4257883	2340390	2009-05-13				p	
-test5171727	Rhesus	female	Alive	116526	731544	2008-06-08				p	
-test5292692	Rhesus	female	Alive	4076261	5542511	2008-07-23				p	
-test5409620	Rhesus	female	Alive	6954679	9468964	2009-05-27				p	
-test5598475	Rhesus	female	Alive	2712656	2138172	2009-02-21				p	
-test5904521	Cynomolgus	female	Alive	8377984		2002-10-13				p	
-test6208376	Rhesus	male	Alive	5961588	2568235	2010-09-16				g	
-test6390238	Rhesus	male	Alive	5250080	3565069	2006-11-27				p	
-test6700530	Rhesus	female	Dead	7773678	9516255	2010-09-10	2011-09-20			p	
-test7151371	Rhesus	female	Alive	838626	2042908	2009-04-27				p	
-test727088	Rhesus	male	Alive	9719847	3686702	2009-11-09				p	
-test7407382	Rhesus	female	Alive	1712704	731451	2008-11-27				p	
-test8533200	Rhesus	female	Alive	1636539	9468964	2008-10-28				p	
-test8976544	Rhesus	male	Alive	8739374	9516255	2010-10-14				g	
-test9118022	Rhesus	male	Dead	7257197	2042908	2009-06-04	2011-05-23			p	
-test9195996	Rhesus	female	Alive	7014152	5542511	2010-10-12				g	
+id	species	gender	calculated_status	dam	sire	birth	death	origin	geoOrigin	cond	medical	sourceId
+test1020148	Rhesus	male	Dead	7166552	57307	8/10/2009	6/14/2011			p
+test1099252	Rhesus	male	Dead	9681212	6512707	8/3/2009	6/6/2011			p
+test1112911	Rhesus	male	Alive	6914348	731544	11/6/2009				p
+test1441142	Rhesus	male	Dead	1256797	731544	8/2/2009	6/20/2011			p
+test1684145	Rhesus	male	Alive	8982969	4891303	2/24/2009				p
+test1993532	Rhesus	male	Dead	3784452	5409336	5/2/1985	6/24/2011			s
+test2008446	Rhesus	male	Alive	7405528	4884340	9/26/2007				s
+test2227135	Rhesus	male	Alive	2847931	9516255	9/28/2008				p
+test2312318	Rhesus	female	Alive	7672314	9794992	7/27/1995				s	siv+
+test2950014	Rhesus	female	Dead	3386291	4778953	6/9/2008	7/18/2011			s
+test3137998	Rhesus	female	Alive	690232	4778953	4/25/2009				p
+test3224553	Rhesus	male	Dead	7877112	4434585	12/14/2009	7/27/2011			p
+test3621582	Rhesus	male	Alive	5968093	4434585	1/2/2010				p
+test3771679	Rhesus	male	Alive	6100597	9503086	6/25/2009				p
+test3804589	Marmoset	female	Alive	9749422	493957	10/4/2001				p
+test3843301	Rhesus	female	Alive	9652404	731544	10/19/2008				p
+test3844307	Rhesus	female	Alive	3694890	5748235	10/29/2010				g
+test3935154	Rhesus	female	Alive	7579363	7785547	6/27/2008				p
+test3997535	Rhesus	male	Alive	9681212	4778953	9/8/2007				p
+test4013108	Rhesus	female	Alive	7524224	4891303	6/30/2008				p
+test4037096	Rhesus	male	Alive	4597773		7/22/2009				p
+test4551032	Cynomolgus	female	Alive	8416939	5030167	3/28/2000				p
+test4564246	Rhesus	male	Alive	7877112	8296075	12/29/2004				s
+test4710248	Rhesus	female	Alive	642333	9819418	6/25/2008				p	viral exempt: yellow fever vaccination
+test4935165	Rhesus	male	Alive	4343642	6974794	9/29/2008				p
+test4945025	Rhesus	female	Alive	3066209	9819418	2/28/2009				p	partial right leg amputation
+test499022	Rhesus	male	Alive	532430	731451	11/16/2007				p
+test5131891	Rhesus	female	Alive	2001039	2480492	5/24/2009				p
+test5158984	Rhesus	female	Alive	4257883	2340390	5/13/2009				p
+test5171727	Rhesus	female	Alive	116526	731544	6/8/2008				p
+test5292692	Rhesus	female	Alive	4076261	5542511	7/23/2008				p
+test5409620	Rhesus	female	Alive	6954679	9468964	5/27/2009				p
+test5598475	Rhesus	female	Alive	2712656	2138172	2/21/2009				p
+test5904521	Cynomolgus	female	Alive	8377984		10/13/2002				p
+test6208376	Rhesus	male	Alive	5961588	2568235	9/16/2010				g
+test6390238	Rhesus	male	Alive	5250080	3565069	11/27/2006				p
+test6700530	Rhesus	female	Dead	7773678	9516255	9/10/2010	9/20/2011			p
+test7151371	Rhesus	female	Alive	838626	2042908	4/27/2009				p
+test727088	Rhesus	male	Alive	9719847	3686702	11/9/2009				p
+test7407382	Rhesus	female	Alive	1712704	731451	11/27/2008				p
+test8533200	Rhesus	female	Alive	1636539	9468964	10/28/2008				p
+test8976544	Rhesus	male	Alive	8739374	9516255	10/14/2010				g
+test9118022	Rhesus	male	Dead	7257197	2042908	6/4/2009	5/23/2011			p
+test9195996	Rhesus	female	Alive	7014152	5542511	10/12/2010				g
