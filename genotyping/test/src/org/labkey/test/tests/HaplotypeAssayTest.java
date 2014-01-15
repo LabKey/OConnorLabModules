@@ -20,7 +20,7 @@ import org.labkey.test.Locator;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
-import org.labkey.test.util.ListHelper;
+import org.labkey.test.util.ListHelperWD;
 import org.labkey.test.util.LogMethod;
 
 import java.io.File;
@@ -95,8 +95,8 @@ public class HaplotypeAssayTest extends GenotypingTest
         clickAndWait(Locator.id("adminSettings"));
         clickAndWait(Locator.id("configureAnimal"));
         waitForText("No fields have been defined.");
-        _listHelper.addField("Field Properties", 0, "animalStrTest", "Animal String Test", ListHelper.ListColumnType.String);
-        _listHelper.addField("Field Properties", 1, "animalIntTest", "Animal Integer Test", ListHelper.ListColumnType.Integer);
+        _listHelper.addField("Field Properties", 0, "animalStrTest", "Animal String Test", ListHelperWD.ListColumnType.String);
+        _listHelper.addField("Field Properties", 1, "animalIntTest", "Animal Integer Test", ListHelperWD.ListColumnType.Integer);
         clickButton("Save");
         clickAndWait(Locator.linkWithText("Animal"));
         _customizeViewsHelper.openCustomizeViewPanel();
@@ -108,8 +108,8 @@ public class HaplotypeAssayTest extends GenotypingTest
         clickAndWait(Locator.id("adminSettings"));
         clickAndWait(Locator.id("configureHaplotype"));
         waitForText("No fields have been defined.");
-        _listHelper.addField("Field Properties", 0, "haplotypeStrTest", "Haplotype String Test", ListHelper.ListColumnType.String);
-        _listHelper.addField("Field Properties", 1, "haplotypeIntTest", "Haplotype Integer Test", ListHelper.ListColumnType.Integer);
+        _listHelper.addField("Field Properties", 0, "haplotypeStrTest", "Haplotype String Test", ListHelperWD.ListColumnType.String);
+        _listHelper.addField("Field Properties", 1, "haplotypeIntTest", "Haplotype Integer Test", ListHelperWD.ListColumnType.Integer);
         clickButton("Save");
         clickAndWait(Locator.linkWithText("Haplotype"));
         _customizeViewsHelper.openCustomizeViewPanel(); //TODO:  should this be necessary?
@@ -138,11 +138,11 @@ public class HaplotypeAssayTest extends GenotypingTest
             int columnIndex = 9;
             for(String[] haplotype : extraHaplotypes)
             {
-                addRunField(haplotype[0] + "1", haplotype[1] + " 1", columnIndex++, ListHelper.ListColumnType.String);
+                _listHelper.addField("Run", columnIndex++, haplotype[0] + "1", haplotype[1] + " 1", ListHelperWD.ListColumnType.String);
                 click(Locator.xpath("(//span[@id='propertyShownInInsert']/input)[2]"));
                 click(Locator.xpath("(//span[@id='propertyShownInUpdate']/input)[2]"));
 
-                addRunField(haplotype[0] + "2", haplotype[1]  + " 2", columnIndex++, ListHelper.ListColumnType.String);
+                _listHelper.addField("Run", columnIndex++, haplotype[0] + "2", haplotype[1]  + " 2", ListHelperWD.ListColumnType.String);
                 click(Locator.xpath("(//span[@id='propertyShownInInsert']/input)[2]"));
                 click(Locator.xpath("(//span[@id='propertyShownInUpdate']/input)[2]"));
             }
@@ -227,13 +227,13 @@ public class HaplotypeAssayTest extends GenotypingTest
 
         DataRegionTable drt = new DataRegionTable("Data", this);
         verifyColumnDataValues(drt, "Animal", "ID-4,ID-5,ID-6,ID-7,ID-8,ID-9");
-        verifyColumnDataValues(drt, "TotalReads", "4000,5000,6000,7000,,0");
-        verifyColumnDataValues(drt, "IdentifiedReads", "2500,3250,3000,3500,,1");
-        verifyColumnDataValues(drt, "%Unknown", "37.5,35.0,50.0,50.0,,");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001,,A033,A004,A004,A004");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023,,A033,A004,A004,A004");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype1", "B015c,,B012b,B033,B033,B033");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype2", "B025a,,B012b,B033,B033,B033");
+        verifyColumnDataValues(drt, "TotalReads", "4000,5000,6000,7000, ,0");
+        verifyColumnDataValues(drt, "IdentifiedReads", "2500,3250,3000,3500, ,1");
+        verifyColumnDataValues(drt, "%Unknown", "37.5,35.0,50.0,50.0, , ");
+        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001, ,A033,A004,A004,A004");
+        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023, ,A033,A004,A004,A004");
+        verifyColumnDataValues(drt, "Mamu-BHaplotype1", "B015c, ,B012b,B033,B033,B033");
+        verifyColumnDataValues(drt, "Mamu-BHaplotype2", "B025a, ,B012b,B033,B033,B033");
         verifyColumnDataValues(drt, "Enabled", "true,true,true,true,true,true");
         verifyColumnDataValues(drt, "ClientAnimalId", "x456,x567,x678,x789,x888,x999");
 
@@ -265,7 +265,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         DataRegionTable drt = new DataRegionTable("Data", this);
         String animalAnalysisId = drt.getDataAsText(4, "RowId"); // row index 4 is ID-5
         goToQuery("AnimalHaplotypeAssignment");
-        waitForText("1 - 39 of 39");
+        waitForElement(Locator.paginationText(1, 39, 39));
         // ADD: animal ID-5, haplotype A001
         clickButton("Insert New");
         selectOptionByText(Locator.name("quf_HaplotypeId"), "A001");
@@ -322,7 +322,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Lab Animal ID");
         setFormElement(Locator.name("idsTextArea"), "x123,x234;x345 x678 x789");
         clickButton("Submit", 0);
-        waitForText("1 - 11 of 11");
+        waitForElement(Locator.paginationText(11));
         assertTextPresentInThisOrder("ID-1", "ID-2", "ID-3", "ID-6", "ID-7");
         drt = new DataRegionTable("report", this);
         drt.setFilter("ID-1::Counts", "Equals", "1", 0);
@@ -341,11 +341,11 @@ public class HaplotypeAssayTest extends GenotypingTest
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Lab Animal ID");
         setFormElement(Locator.name("idsTextArea"), "ID-4,ID-5");
         clickButton("Submit", 0);
-        waitForText("1 - 8 of 8");
+        waitForElement(Locator.paginationText(1, 8, 8));
         waitForText("Warning: multiple enabled assay results were found for the following IDs: ID-4 (2), ID-5 (2)");
         drt = new DataRegionTable("report", this);
-        verifyColumnDataValues(drt, "ID-4", "1,,1,2,,2,1,1");
-        verifyColumnDataValues(drt, "ID-5", "1,2,,,3,,,");
+        verifyColumnDataValues(drt, "ID-4", "1, ,1,2, ,2,1,1");
+        verifyColumnDataValues(drt, "ID-5", "1,2, , ,3, , , ");
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
@@ -369,7 +369,8 @@ public class HaplotypeAssayTest extends GenotypingTest
         drt = new DataRegionTable("Data", this);
         verifyColumnDataValues(drt, "Enabled", "false");
         setReportId("ID-4");
-        assertTextNotPresent("Warning: multiple enabled assay results were found for the following IDs");
+        String duplicates = getText(Locator.id("duplicates3"));
+        assertEquals("unexpected duplicate assay results were found for the following IDs", "", duplicates);
         assertTextPresentInThisOrder("A001","A023","B015c","B025a");
         assertTextNotPresent("A004", "B012b");
 
@@ -383,7 +384,8 @@ public class HaplotypeAssayTest extends GenotypingTest
         clickButton("Submit");
         goToAssayRun("second run");
         setReportId("ID-5");
-        assertTextNotPresent("Warning: multiple enabled assay results were found for the following IDs");
+        duplicates = getText(Locator.id("duplicates3"));
+        assertEquals("unexpected duplicate assay results were found for the following IDs", "", duplicates);
         assertTextPresentInThisOrder("A001","A002a","B002");
 
         // verify that the duplicates report is now clear

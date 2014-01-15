@@ -31,6 +31,7 @@ import org.labkey.remoteapi.query.ExecuteSqlCommand;
 import org.labkey.remoteapi.query.SaveRowsResponse;
 import org.labkey.remoteapi.query.SelectRowsResponse;
 import org.labkey.test.BaseSeleniumWebTest;
+import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestProperties;
 import org.labkey.test.TestTimeoutException;
@@ -38,10 +39,10 @@ import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
-import org.labkey.test.util.FileBrowserHelper;
+import org.labkey.test.util.Ext4HelperWD;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
-import org.labkey.test.util.ext4cmp.Ext4FieldRef;
+import org.labkey.test.util.ext4cmp.Ext4FieldRefWD;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -63,7 +64,7 @@ import static org.junit.Assert.*;
  * Time: 7:14 PM
  */
 @Category({CustomModules.class})
-public class GenotypingTest extends BaseSeleniumWebTest
+public class GenotypingTest extends BaseWebDriverTest
 {
     public static final String first454importNum = "207";
     public static final String second454importNum = "208";
@@ -83,12 +84,6 @@ public class GenotypingTest extends BaseSeleniumWebTest
     protected String getProjectName()
     {
         return "GenotypingVerifyProject";
-    }
-
-    protected int analysisCount = 1410;
-    protected String getExpectedAnalysisCount()
-    {
-        return new DecimalFormat().format(analysisCount);
     }
 
     public boolean isFileUploadTest()
@@ -180,7 +175,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
         d.checkAllOnPage();
         clickButton("Create Illumina Sample Sheet");
         waitForText("You have chosen to export 6 samples");
-        assertTextNotPresent("Warning");
+        assertElementNotPresent(Locator.tag("label").containing("Warning").notHidden());
     }
 
     private void importSecondRunTest()
@@ -189,9 +184,8 @@ public class GenotypingTest extends BaseSeleniumWebTest
             return;
         goToProjectHome();
         startImportRun("secondRead/reads.txt", "Import 454 Reads", second454importNum);
-        waitForPipelineJobsToComplete(++pipelineJobCount, "Import reads for 454 run", true);
-        clickAndWait(Locator.linkWithText("COMPLETE"));
-        clickButton("Data");
+        waitForPipelineJobsToComplete(++pipelineJobCount, "Import 454 reads for run", false);
+        clickAndWait(Locator.linkContainingText("Import 454 reads for run"));
         assertTextPresent("G3BTA6P01BEVU9", "G3BTA6P01BD5P9");
     }
 
@@ -244,7 +238,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
 
         assertTextPresent("TEST09");
 //        assertTextPresent("TEST14", 2);
-        assertTextPresent("1 - 100 of 1,410");
+        assertElementPresent(Locator.paginationText(1, 100, 1410));
         startAlterMatches();
         deleteMatchesTest();
         alterMatchesTest();
@@ -256,25 +250,21 @@ public class GenotypingTest extends BaseSeleniumWebTest
 
         String[] alleleContentsBeforeDeletion = drt.getColumnDataAsText("Allele Name").toArray(new String[] {"a"});
 
-
         //attempt to delete a row and cancel
-        click(Locator.name(checkboxId, 2));
-//        click(Locator.name(checkboxId, 15));
+        drt.checkCheckbox(2);
 
-        selenium.chooseCancelOnNextConfirmation();
         clickButton("Delete", 0);
-        selenium.getConfirmation();
-        assertTextPresent(getExpectedAnalysisCount());
-
+        cancelAlert();
+        assertElementPresent(Locator.paginationText(1, 100, 1410));
 
         //delete some rows
-        selenium.chooseOkOnNextConfirmation();
+        prepForPageLoad();
         clickButton("Delete", 0);
-        selenium.getConfirmation();
+        getAlert();
+        newWaitForPageToLoad();
 
-        waitForPageToLoad();
         waitForText("1 match was deleted.");
-
+        assertElementPresent(Locator.paginationText(1, 100, 1409));
     }
 
     private void alterMatchesTest()
@@ -375,7 +365,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
     {
         clickButton("Add Analysis");
         Locator menuLocator = Locator.xpath("//input[@name='sequencesView']/../input[2]");
-        _extHelper.clickExtDropDownMenu(menuLocator, "[default]");                       //TODO:  this should be cyno
+        _extHelper.selectComboBoxItem("Reference Sequences:", "[default]");                       //TODO:  this should be cyno
         clickButton("Submit");
         waitForPipelineJobsToComplete(++pipelineJobCount, "Submit genotyping analysis", false);
         findAndSetAnalysisNumber();
@@ -402,7 +392,6 @@ public class GenotypingTest extends BaseSeleniumWebTest
         log("import illumina run");
         startImportIlluminaRun("IlluminaSamples.csv", "Import Illumina Reads");
         waitForPipelineJobsToComplete(++pipelineJobCount, "Import Run", false);
-        assertTextNotPresent("ERROR");
 
         goToProjectHome();
         clickAndWait(Locator.linkWithText("View Runs"));
@@ -497,15 +486,13 @@ public class GenotypingTest extends BaseSeleniumWebTest
     {
         goToProjectHome();
         clickAndWait(Locator.linkWithText("Samples"));
-        waitForPageToLoad();
         DataRegionTable d = new DataRegionTable("query", this);
         String viewName = "Yellow Peas";
         createCusomizedView(viewName, new String[]{"Created"}, new String[] {"fivemid"});
         d.checkAllOnPage();
         clickButton("Create Illumina Sample Sheet");
-        waitForPageToLoad();
         waitForText("Reagent Cassette Id");
-        Ext4FieldRef.getForLabel(this, "Reagent Cassette Id").setValue("FlowCell");
+        Ext4FieldRefWD.getForLabel(this, "Reagent Cassette Id").setValue("FlowCell");
 
         String[][] fieldPairs = {
             {"Investigator Name", "Investigator"},
@@ -516,14 +503,14 @@ public class GenotypingTest extends BaseSeleniumWebTest
 
         for (String[] a : fieldPairs)
         {
-            Ext4FieldRef.getForLabel(this, a[0]).setValue(a[1]);
+            Ext4FieldRefWD.getForLabel(this, a[0]).setValue(a[1]);
         }
 
         _ext4Helper.clickTabContainingText("Preview Header");
         waitForText("Edit Sheet");
         for (String[] a : fieldPairs)
         {
-            assertEquals(a[1], Ext4FieldRef.getForLabel(this, a[0]).getValue());
+            assertEquals(a[1], Ext4FieldRefWD.getForLabel(this, a[0]).getValue());
         }
 
         clickButton("Edit Sheet", 0);
@@ -536,16 +523,17 @@ public class GenotypingTest extends BaseSeleniumWebTest
         //add new values
         String prop_name = "NewProperty";
         String prop_value = "NewValue";
-        Ext4FieldRef textarea = _ext4Helper.queryOne("textarea[itemId='sourceField']", Ext4FieldRef.class);
+        Ext4FieldRefWD textarea = _ext4Helper.queryOne("textarea[itemId='sourceField']", Ext4FieldRefWD.class);
         String newValue = prop_name + "," + prop_value;
-        textarea.eval("this.setValue(this.getValue() + \"\\\\n" + newValue + "\")");
+        String currentText = (String)textarea.getEval("getValue()");
+        textarea.eval("setValue(arguments[0] + \"\\n\" + arguments[1])", currentText, newValue);
         clickButton("Done Editing", 0);
 
-        assertTextPresent("Warning: Sample indexes do not support both color channels at each position. See Preview Samples tab for more information.");
+        waitForElement(Locator.tag("label").withText("Warning: Sample indexes do not support both color channels at each position. See Preview Samples tab for more information."));
 
         //verify template has changed
         _ext4Helper.clickTabContainingText("General Info");
-        assertEquals("Custom", Ext4FieldRef.getForLabel(this, "Template").getValue());
+        assertEquals("Custom", Ext4FieldRefWD.getForLabel(this, "Template").getValue());
 
         //set custom view
         _ext4Helper.selectComboBoxItem("Custom View:", viewName);
@@ -553,16 +541,16 @@ public class GenotypingTest extends BaseSeleniumWebTest
         //verify values persisted
         _ext4Helper.clickTabContainingText("Preview Header");
         waitForText("Edit Sheet");
-        assertEquals(prop_value, Ext4FieldRef.getForLabel(this, prop_name).getValue());
+        assertEquals(prop_value, Ext4FieldRefWD.getForLabel(this, prop_name).getValue());
 
         //save template
         clickButton("Save As Template", 0);
         waitForElement(Ext4Helper.ext4Window("Choose Name"));
-        Ext4FieldRef textfield = _ext4Helper.queryOne("textfield", Ext4FieldRef.class);
+        Ext4FieldRefWD textfield = _ext4Helper.queryOne("textfield", Ext4FieldRefWD.class);
         textfield.setValue(TEMPLATE_NAME);
         clickButton("OK", 0);
         _ext4Helper.clickTabContainingText("General Info");
-        assertEquals(TEMPLATE_NAME, Ext4FieldRef.getForLabel(this, "Template").getValue());
+        assertEquals(TEMPLATE_NAME, Ext4FieldRefWD.getForLabel(this, "Template").getValue());
 
         //if we navigate too quickly, before the insertRows has returned, the test can get a JS error
         //therefore we sleep
@@ -573,7 +561,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
         waitForText("Sample Name");
 
         int expectRows =  966; //(16 * (49 +  1)) + 16;  //11 cols, 45 rows, plus header and validation row (which is only 8 cols)
-        assertEquals(expectRows, selenium.getXpathCount("//td[contains(@class, 'x4-table-layout-cell')]"));
+        assertEquals(expectRows, getElementCount(Locator.xpath("//td[contains(@class, 'x4-table-layout-cell')]")));
 
         //make sure values persisted
         refresh();
@@ -581,21 +569,21 @@ public class GenotypingTest extends BaseSeleniumWebTest
         url += "&exportAsWebPage=1";
         beginAt(url);
 
-        waitForText("Template");
+        waitForElement(Ext4HelperWD.Locators.formItemWithLabel("Template:"));
         for (String[] a : fieldPairs)
         {
-            Ext4FieldRef.getForLabel(this, a[0]).setValue(a[1]);
+            Ext4FieldRefWD.getForLabel(this, a[0]).setValue(a[1]);
         }
-        Ext4FieldRef combo = Ext4FieldRef.getForLabel(this, "Template");
+        Ext4FieldRefWD combo = Ext4FieldRefWD.getForLabel(this, "Template");
         combo.setValue(TEMPLATE_NAME);
 
-        int count = Integer.parseInt(combo.eval("this.store.getCount()"));
+        int count = ((Long)combo.getEval("store.getCount()")).intValue();
         assertEquals("Combo store does not have correct record number", 3, count);
         sleep(50);
-        assertEquals("Field value not set correctly", TEMPLATE_NAME, Ext4FieldRef.getForLabel(this, "Template").getValue());
+        assertEquals("Field value not set correctly", TEMPLATE_NAME, Ext4FieldRefWD.getForLabel(this, "Template").getValue());
         _ext4Helper.clickTabContainingText("Preview Header");
         waitForText("Edit Sheet");
-        assertEquals(prop_value, Ext4FieldRef.getForLabel(this, prop_name).getValue());
+        assertEquals(prop_value, Ext4FieldRefWD.getForLabel(this, prop_name).getValue());
 
         clickButton("Download");
 
@@ -682,7 +670,7 @@ public class GenotypingTest extends BaseSeleniumWebTest
 
     private void verifySamples()
     {
-        waitForTextWithRefresh("1 - 100 of 9,411", defaultWaitForPage);
+        waitForElementWithRefresh(Locator.paginationText(1, 100, 9411), defaultWaitForPage);
         assertTextPresent("Name", "Sample Id", "Sequence", "G3BT");
 //        String indexSampleSequence[][] = {{"4", "TEST14", "tcagtgtcacacgaGTGGCTACGTGGACGACCGTATCGCCTCCTGCGGAGATCATCGTGTGACActgagcgggctggcaaggcgcatag"}};
 //        DataRegionTable drt = new DataRegionTable("Reads", this);
