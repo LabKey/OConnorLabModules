@@ -43,7 +43,7 @@ public class GenotypingRun
 
     public GenotypingRun()
     {
-        assert MemTracker.put(this);
+        MemTracker.getInstance().put(this);
     }
 
     public GenotypingRun(Container c, File readsFile, @Nullable MetaDataRun metaDataRun, String platform)

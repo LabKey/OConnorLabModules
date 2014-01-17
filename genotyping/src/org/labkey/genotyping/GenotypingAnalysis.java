@@ -44,7 +44,7 @@ public class GenotypingAnalysis
 
     public GenotypingAnalysis()
     {
-        assert MemTracker.put(this);
+        MemTracker.getInstance().put(this);
     }
 
     public GenotypingAnalysis(Container c, User user, GenotypingRun run, @Nullable String description, @Nullable String sequencesView)

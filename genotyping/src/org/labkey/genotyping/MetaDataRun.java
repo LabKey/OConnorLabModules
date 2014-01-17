@@ -31,7 +31,7 @@ public class MetaDataRun
 
     public MetaDataRun()
     {
-        assert MemTracker.put(this);
+        MemTracker.getInstance().put(this);
     }
 
     public int getRun()
