@@ -688,7 +688,7 @@ public class GenotypingTest extends BaseWebDriverTest
     {
         clickAndWait(Locator.linkContainingText("Import Run"));
         _fileBrowserHelper.importFile(file, importAction);
-        setFormElement(Locator.name("run"), associatedRun);
+        selectOptionByText(Locator.name("run"), associatedRun);
         clickButton("Import Reads");
 
     }
@@ -698,7 +698,7 @@ public class GenotypingTest extends BaseWebDriverTest
         clickAndWait(Locator.linkContainingText("Import Run"));
         _fileBrowserHelper.expandFileBrowserRootNode();
         _fileBrowserHelper.importFile(file, importAction);
-        setFormElement(Locator.name("run"), illuminaImportNum);
+        selectOptionByText(Locator.name("run"), illuminaImportNum);
         setFormElement(Locator.name("prefix"), "Illumina-");
         clickButton("Import Reads");
 
