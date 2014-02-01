@@ -1,4 +1,6 @@
 
+<div id="dashPanel"></div>
+
 <div>
     <span id="createdSpan"></span>
     [<a href="<%=contextPath%>/ocexp<%=containerPath%>/history.view">history</a>]
@@ -8,7 +10,6 @@
     <p id="errorText" class="labkey-error"></p>
 </div>
 
-<div id="dashPanel"></div>
 <script type="text/javascript">
     // Set the navtrail and page title
     LABKEY.NavTrail.setTrail("<span>Experiment " + LABKEY.container.title + "</span>", undefined, "Experiment " + LABKEY.container.title);
@@ -78,7 +79,7 @@
                 columns : ['Key', 'title'],
                 schemaName : 'oconnor',
                 queryName : 'Grants',
-                containerPath : LABKEY.container.parentPath,
+                containerPath : LABKEY.container.path.split('/')[1], // the project path
                 autoLoad : true,
                 supressErrorAlert: true,
                 listeners: {
@@ -135,7 +136,7 @@
                 frame: false,
                 renderTo: 'dashPanel',
                 bodyStyle:'background-color: transparent;',
-                items: [horizontalPanel, descriptionPanel]
+                items: [descriptionPanel, horizontalPanel]
             });
         }
     };
