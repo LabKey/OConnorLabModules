@@ -126,7 +126,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
 
     protected ForeignKey createExtendedForeignKey()
     {
-        return new QueryForeignKey(getBaseTable(), "EntityId", null);
+        return new QueryForeignKey(getBaseTable(), null, "EntityId", null);
     }
 
     public void addColumns()
@@ -176,7 +176,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
 
         ColumnInfo parentExperimentsCol = wrapColumn("ParentExperiments", getRealTable().getColumn("Container"));
         MultiValuedForeignKey parentExperimentsFk = new MultiValuedForeignKey(
-                new QueryForeignKey(getUserSchema(), OConnorExperimentsUserSchema.Table.ParentExperiments.name(), "Container", null),
+                new QueryForeignKey(getUserSchema(), null, OConnorExperimentsUserSchema.Table.ParentExperiments.name(), "Container", null),
                 "ParentExperiment");
         parentExperimentsCol.setFk(parentExperimentsFk);
         parentExperimentsCol.setLabel("Parent Experiments");
