@@ -44,9 +44,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.join;
-import static org.junit.Assert.*;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @Category({CustomModules.class})
 public class OConnorExperimentTest extends BaseWebDriverTest
@@ -154,18 +153,21 @@ public class OConnorExperimentTest extends BaseWebDriverTest
 
         goToProjectHome();
 
-        // Verify the Experiment is inserted
+        // Verify the Experiment is inserted, examine query webpart
         DataRegionTable q_table = new DataRegionTable("qwp1", this);
         int row3 = q_table.getRow("Description", "description3");
         assertTrue("Expected to find row for 'description3'", row3 != -1);
         assertEquals("3", q_table.getDataAsText(row3, "ExperimentNumber"));
         assertEquals("type3", q_table.getDataAsText(row3, "ExperimentType"));
-        assertEquals("OConnorExperiment", q_table.getDataAsText(row3, "FolderType"));
         String parentExperiments = q_table.getDataAsText(row3, "ParentExperiments");
         assertTrue("Expected Parent Experiments to be '1, 2'; got '" + parentExperiments + "'",
                 "1, 2".equals(parentExperiments) || "2, 1".equals(parentExperiments));
 
-        String entityId = q_table.getDataAsText(row3, "EntityId");
+        // Verify the Experiment is inserted, examine workbooks webpart
+        DataRegionTable w_table = new DataRegionTable("query", this);
+        int workbookrow3 = w_table.getRow("Description", "description3");
+        assertEquals("OConnorExperiment", w_table.getDataAsText(workbookrow3, "FolderType"));
+        String entityId = w_table.getDataAsText(workbookrow3, "EntityId");
 
         // Make sure each component of the ParentExperiments column is rendered with a link to the begin page for that experiment
         Locator.XPathLocator l = q_table.xpath(row3, q_table.getColumn("ParentExperiments"));
