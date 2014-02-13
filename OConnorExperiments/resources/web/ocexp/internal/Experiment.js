@@ -100,7 +100,8 @@ LABKEY.ocexp.internal.Experiment = new function () {
                 queryName: 'Experiments',
                 columns: ['ExperimentNumber', 'Description', 'ExperimentType', 'ParentExperiments/Container', 'ParentExperiments/ExperimentNumber', 'Created', 'CreatedBy', 'CreatedBy/DisplayName', 'GrantId'],
                 success: config.success,
-                failure: config.failure
+                failure: config.failure,
+                viewName:  'BlankExperiments'  // needed otherwise the default view is used which has an unwanted filter
             });
 
             LABKEY.Query.selectRows(config);

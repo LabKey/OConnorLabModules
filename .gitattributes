@@ -1,6 +1,9 @@
 * text=auto !eol
 OConnorExperiments/OConnorExperiments.iml -text
 OConnorExperiments/module.properties -text
+OConnorExperiments/resources/queries/OConnorExperiments/Experiments.query.xml -text
+OConnorExperiments/resources/queries/OConnorExperiments/Experiments/.qview.xml -text
+OConnorExperiments/resources/queries/OConnorExperiments/Experiments/BlankExperiments.qview.xml -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/obsolete/oconnorexperiments-13.10-13.11.sql -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/obsolete/oconnorexperiments-13.11-13.12.sql -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/obsolete/oconnorexperiments-13.20-13.21.sql -text
