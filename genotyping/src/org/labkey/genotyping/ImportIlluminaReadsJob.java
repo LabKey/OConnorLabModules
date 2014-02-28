@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -168,7 +169,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
 
                 //parse the samples file
                 String[] nextLine;
-                Map<Integer, Object> sampleMap = new HashMap<>();
+                Map<Integer, Integer> sampleMap = new HashMap<>();
                 sampleMap.put(0, 0); //placeholder for control and unmapped reads
                 Boolean inSamples = false;
                 int sampleIdx = 0;
@@ -220,9 +221,9 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 }
 
                 //now bin the FASTQ files into 2 per sample
-                IlluminaFastqParser parser = new IlluminaFastqParser(FileUtil.getBaseName(_run.getFileName()), sampleMap, getLogger(), _fastqFiles.toArray(new File[_fastqFiles.size()]));
-                Map<Pair<Object, Integer>, File> fileMap = parser.parseFastqFiles();
-                Map<Pair<Object, Integer>, Integer> readcounts = parser.getReadCounts();
+                IlluminaFastqParser parser = new IlluminaFastqParser(FileUtil.getBaseName(_run.getFileName()), sampleMap, getLogger(), new ArrayList<>(_fastqFiles));
+                Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles();
+                Map<Pair<Integer, Integer>, Integer> readcounts = parser.getReadCounts();
 
                 info("Created " + fileMap.keySet().size() + " FASTQ files");
                 info("Compressing FASTQ files");
@@ -230,7 +231,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 //GZIP and create record for each file
                 Map<String, Object> row;
 
-                for (Pair<Object, Integer> sampleKey : fileMap.keySet())
+                for (Pair<Integer, Integer> sampleKey : fileMap.keySet())
                 {
                     row = new CaseInsensitiveHashMap<>();
                     row.put("Run", _run.getRowId());
