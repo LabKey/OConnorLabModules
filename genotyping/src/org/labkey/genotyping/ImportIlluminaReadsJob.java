@@ -221,7 +221,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 }
 
                 //now bin the FASTQ files into 2 per sample
-                IlluminaFastqParser parser = new IlluminaFastqParser(FileUtil.getBaseName(_run.getFileName()), sampleMap, getLogger(), new ArrayList<>(_fastqFiles));
+                IlluminaFastqParser<Integer> parser = new IlluminaFastqParser<>(FileUtil.getBaseName(_run.getFileName()), sampleMap, getLogger(), new ArrayList<>(_fastqFiles));
                 Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles();
                 Map<Pair<Integer, Integer>, Integer> readcounts = parser.getReadCounts();
 
