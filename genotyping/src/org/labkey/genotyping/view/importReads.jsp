@@ -64,8 +64,8 @@
             <input type="hidden" name="readsPath" value="<%=h(bean.getReadsPath())%>">
             <input type="hidden" name="analyze" value="0">
         </td></tr>
-        <tr><td><%=generateSubmitButton("Import Reads")%>
-            <%=bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString()) ? PageFlowUtil.generateSubmitButton("Import Reads And Analyze", "document.importReads.analyze.value=1;") : ""%>
+        <tr><td><%= button("Import Reads").submit(true) %>
+            <%=bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString()) ? button("Import Reads And Analyze").submit(true).onClick("document.importReads.analyze.value=1;") : ""%>
         </td></tr>
     </table>
 </form>

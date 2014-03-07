@@ -57,6 +57,6 @@
             dictionary of reference sequences to use for future genotyping analyses. Existing analysis runs will continue to
             link to the sequences used at the time of their analysis.
         </p>
-        <%=generateSubmitButton("Load Sequences")%><%=generateReturnUrlFormField(form)%>
+        <%= button("Load Sequences").submit(true) %><%=generateReturnUrlFormField(form)%>
     </td></tr></table>
 </form>

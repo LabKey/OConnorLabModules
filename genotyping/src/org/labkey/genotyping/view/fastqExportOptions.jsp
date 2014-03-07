@@ -36,7 +36,7 @@
     </tr>
     <tr>
         <td>
-            <%=generateButton("Export to FASTQ", url, onClickScript) %>
+            <%= button("Export to FASTQ").href(url).onClick(onClickScript) %>
         </td>
     </tr>
     <tr><td>&nbsp;</td></tr>
