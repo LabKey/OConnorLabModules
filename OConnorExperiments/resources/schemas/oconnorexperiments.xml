@@ -55,6 +55,7 @@
                 <datatype>integer</datatype>
                 <fk>
                     <fkColumnName>Key</fkColumnName>
+                    <fkDisplayColumnName>Title</fkDisplayColumnName>
                     <fkTable>grants</fkTable>
                     <fkDbSchema>oconnor</fkDbSchema>
                     <fkFolderPath>/dho</fkFolderPath>

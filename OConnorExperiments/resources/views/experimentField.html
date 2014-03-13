@@ -1,4 +1,3 @@
-
 <div id="dashPanel"></div>
 
 <div>
@@ -76,10 +75,11 @@
                 }
             });
             var grantStore = Ext4.create('LABKEY.ext4.data.Store', {
-                columns : ['Key', 'title'],
+                columns : ['Key', 'Id', 'title'],
                 schemaName : 'oconnor',
                 queryName : 'Grants',
                 containerPath : LABKEY.container.path.split('/')[1], // the project path
+                filterArray: [ LABKEY.Filter.create('Enabled', 'true')],
                 autoLoad : true,
                 supressErrorAlert: true,
                 listeners: {
@@ -93,11 +93,22 @@
             });
             var grantCombo = Ext4.create('Ext.form.field.ComboBox', {
                 store: grantStore,
-                displayField: 'title',
                 valueField: 'key',
-                width: 350,
+                width: 450,
                 labelWidth: 45,
                 fieldLabel: 'Grant',
+                tpl: Ext4.create('Ext.XTemplate',
+                        '<tpl for=".">'+
+                                  '<div class="' + Ext4.baseCSSPrefix + 'boundlist-item">'+
+                                      '<div class="list-item">{id:htmlEncode()} - {title:htmlEncode()}&nbsp;</div>'+
+                                  '</div>'+
+                              '</tpl>'
+                    ),
+                displayTpl: Ext4.create('Ext.XTemplate',
+                        '<tpl for=".">',
+                            '{id:htmlEncode()} - {title:htmlEncode()}',
+                        '</tpl>'
+                        ),
                 listeners: {
                     scope: this,
                     change: function(combo, newValue, oldValue) {

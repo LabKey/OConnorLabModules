@@ -4,6 +4,7 @@
             <table tableName="Experiments" tableDbType="TABLE">
                 <tableTitle>Experiments</tableTitle>
                 <description>This query identifies experiment records.</description>
+                <!--
                 <buttonBarOptions position="both" includeStandardButtons="true">
                     <item text="My Experiments" insertPosition="end" requiresSelection="false">
                         <onClick>
@@ -18,6 +19,7 @@
                         </onClick>
                     </item>
                 </buttonBarOptions>
+                -->
             </table>
         </tables>
     </metadata>
