@@ -354,8 +354,8 @@ public class HaplotypeAssayTest extends GenotypingTest
         goToAssayRun("first run");
         clickAndWait(Locator.linkWithText("view duplicates"));
         waitForText("# Active Assignments");
-        assertLinkPresentWithText("ID-4");
-        assertLinkPresentWithText("ID-5");
+        assertElementPresent(Locator.linkWithText("ID-4"));
+        assertElementPresent(Locator.linkWithText("ID-5"));
 
         // test editing a run/animal record to clear a duplicate for ID-4
         goToAssayRun("first run");

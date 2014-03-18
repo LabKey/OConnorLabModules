@@ -30,7 +30,6 @@ import org.labkey.remoteapi.query.DeleteRowsCommand;
 import org.labkey.remoteapi.query.ExecuteSqlCommand;
 import org.labkey.remoteapi.query.SaveRowsResponse;
 import org.labkey.remoteapi.query.SelectRowsResponse;
-import org.labkey.test.BaseSeleniumWebTest;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestProperties;
@@ -38,7 +37,6 @@ import org.labkey.test.TestTimeoutException;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
-import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.Ext4HelperWD;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
@@ -49,7 +47,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -84,11 +81,6 @@ public class GenotypingTest extends BaseWebDriverTest
     protected String getProjectName()
     {
         return "GenotypingVerifyProject";
-    }
-
-    public boolean isFileUploadTest()
-    {
-        return true;
     }
 
     @LogMethod(category = LogMethod.MethodType.SETUP)
@@ -278,7 +270,7 @@ public class GenotypingTest extends BaseWebDriverTest
         click(Locator.name(checkboxId, 0));
         click(Locator.name(checkboxId, 1));
         clickButton("Combine", 0);
-        waitForExtMask();
+        _extHelper.waitForExt3Mask(WAIT_FOR_JAVASCRIPT);
 
         /*verify the list is what we expct.  Because the two samples had the following lists
         * WE expect them to combine to the following:
@@ -545,7 +537,7 @@ public class GenotypingTest extends BaseWebDriverTest
 
         //save template
         clickButton("Save As Template", 0);
-        waitForElement(Ext4Helper.ext4Window("Choose Name"));
+        waitForElement(Ext4HelperWD.Locators.window("Choose Name"));
         Ext4FieldRefWD textfield = _ext4Helper.queryOne("textfield", Ext4FieldRefWD.class);
         textfield.setValue(TEMPLATE_NAME);
         clickButton("OK", 0);
