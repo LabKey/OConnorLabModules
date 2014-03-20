@@ -37,10 +37,10 @@ import org.labkey.test.TestTimeoutException;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
-import org.labkey.test.util.Ext4HelperWD;
+import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
-import org.labkey.test.util.ext4cmp.Ext4FieldRefWD;
+import org.labkey.test.util.ext4cmp.Ext4FieldRef;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -484,7 +484,7 @@ public class GenotypingTest extends BaseWebDriverTest
         d.checkAllOnPage();
         clickButton("Create Illumina Sample Sheet");
         waitForText("Reagent Cassette Id");
-        Ext4FieldRefWD.getForLabel(this, "Reagent Cassette Id").setValue("FlowCell");
+        Ext4FieldRef.getForLabel(this, "Reagent Cassette Id").setValue("FlowCell");
 
         String[][] fieldPairs = {
             {"Investigator Name", "Investigator"},
@@ -495,14 +495,14 @@ public class GenotypingTest extends BaseWebDriverTest
 
         for (String[] a : fieldPairs)
         {
-            Ext4FieldRefWD.getForLabel(this, a[0]).setValue(a[1]);
+            Ext4FieldRef.getForLabel(this, a[0]).setValue(a[1]);
         }
 
         _ext4Helper.clickTabContainingText("Preview Header");
         waitForText("Edit Sheet");
         for (String[] a : fieldPairs)
         {
-            assertEquals(a[1], Ext4FieldRefWD.getForLabel(this, a[0]).getValue());
+            assertEquals(a[1], Ext4FieldRef.getForLabel(this, a[0]).getValue());
         }
 
         clickButton("Edit Sheet", 0);
@@ -515,7 +515,7 @@ public class GenotypingTest extends BaseWebDriverTest
         //add new values
         String prop_name = "NewProperty";
         String prop_value = "NewValue";
-        Ext4FieldRefWD textarea = _ext4Helper.queryOne("textarea[itemId='sourceField']", Ext4FieldRefWD.class);
+        Ext4FieldRef textarea = _ext4Helper.queryOne("textarea[itemId='sourceField']", Ext4FieldRef.class);
         String newValue = prop_name + "," + prop_value;
         String currentText = (String)textarea.getEval("getValue()");
         textarea.eval("setValue(arguments[0] + \"\\n\" + arguments[1])", currentText, newValue);
@@ -525,7 +525,7 @@ public class GenotypingTest extends BaseWebDriverTest
 
         //verify template has changed
         _ext4Helper.clickTabContainingText("General Info");
-        assertEquals("Custom", Ext4FieldRefWD.getForLabel(this, "Template").getValue());
+        assertEquals("Custom", Ext4FieldRef.getForLabel(this, "Template").getValue());
 
         //set custom view
         _ext4Helper.selectComboBoxItem("Custom View:", viewName);
@@ -533,16 +533,16 @@ public class GenotypingTest extends BaseWebDriverTest
         //verify values persisted
         _ext4Helper.clickTabContainingText("Preview Header");
         waitForText("Edit Sheet");
-        assertEquals(prop_value, Ext4FieldRefWD.getForLabel(this, prop_name).getValue());
+        assertEquals(prop_value, Ext4FieldRef.getForLabel(this, prop_name).getValue());
 
         //save template
         clickButton("Save As Template", 0);
-        waitForElement(Ext4HelperWD.Locators.window("Choose Name"));
-        Ext4FieldRefWD textfield = _ext4Helper.queryOne("textfield", Ext4FieldRefWD.class);
+        waitForElement(Ext4Helper.Locators.window("Choose Name"));
+        Ext4FieldRef textfield = _ext4Helper.queryOne("textfield", Ext4FieldRef.class);
         textfield.setValue(TEMPLATE_NAME);
         clickButton("OK", 0);
         _ext4Helper.clickTabContainingText("General Info");
-        assertEquals(TEMPLATE_NAME, Ext4FieldRefWD.getForLabel(this, "Template").getValue());
+        assertEquals(TEMPLATE_NAME, Ext4FieldRef.getForLabel(this, "Template").getValue());
 
         //if we navigate too quickly, before the insertRows has returned, the test can get a JS error
         //therefore we sleep
@@ -561,21 +561,21 @@ public class GenotypingTest extends BaseWebDriverTest
         url += "&exportAsWebPage=1";
         beginAt(url);
 
-        waitForElement(Ext4HelperWD.Locators.formItemWithLabel("Template:"));
+        waitForElement(Ext4Helper.Locators.formItemWithLabel("Template:"));
         for (String[] a : fieldPairs)
         {
-            Ext4FieldRefWD.getForLabel(this, a[0]).setValue(a[1]);
+            Ext4FieldRef.getForLabel(this, a[0]).setValue(a[1]);
         }
-        Ext4FieldRefWD combo = Ext4FieldRefWD.getForLabel(this, "Template");
+        Ext4FieldRef combo = Ext4FieldRef.getForLabel(this, "Template");
         combo.setValue(TEMPLATE_NAME);
 
         int count = ((Long)combo.getEval("store.getCount()")).intValue();
         assertEquals("Combo store does not have correct record number", 3, count);
         sleep(50);
-        assertEquals("Field value not set correctly", TEMPLATE_NAME, Ext4FieldRefWD.getForLabel(this, "Template").getValue());
+        assertEquals("Field value not set correctly", TEMPLATE_NAME, Ext4FieldRef.getForLabel(this, "Template").getValue());
         _ext4Helper.clickTabContainingText("Preview Header");
         waitForText("Edit Sheet");
-        assertEquals(prop_value, Ext4FieldRefWD.getForLabel(this, prop_name).getValue());
+        assertEquals(prop_value, Ext4FieldRef.getForLabel(this, prop_name).getValue());
 
         clickButton("Download");
 
