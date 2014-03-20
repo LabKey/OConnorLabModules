@@ -469,7 +469,7 @@ public class GenotypingQuerySchema extends UserSchema
                     }
 
                     @Override
-                    public boolean hasPermissionOverridable(UserPrincipal user, Class<? extends Permission> perm)
+                    public boolean hasPermission(UserPrincipal user, Class<? extends Permission> perm)
                     {
                         return schema.getContainer().hasPermission(user, perm);
                     }
