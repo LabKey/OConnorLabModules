@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 %>
-<%@ page import="org.labkey.api.view.JspView" %>
-<%@ page import="org.labkey.api.view.HttpView" %>
-<%@ page import="org.labkey.genotyping.GenotypingController" %>
-<%@ page import="org.labkey.api.gwt.client.util.StringUtils" %>
-<%@ page import="java.util.Arrays" %>
+<%@ page import="org.apache.commons.lang3.StringUtils" %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
+<%@ page import="org.labkey.api.view.HttpView" %>
+<%@ page import="org.labkey.api.view.JspView" %>
+<%@ page import="org.labkey.genotyping.GenotypingController" %>
+<%@ page import="java.util.Arrays" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     JspView<GenotypingController.AssignmentReportBean> me = (JspView<GenotypingController.AssignmentReportBean>) HttpView.currentView();

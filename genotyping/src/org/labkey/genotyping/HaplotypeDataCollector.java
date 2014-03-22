@@ -15,13 +15,12 @@
  */
 package org.labkey.genotyping;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.exp.ExperimentException;
 import org.labkey.api.exp.api.ExpProtocol;
-import org.labkey.api.gwt.client.util.StringUtils;
 import org.labkey.api.study.assay.AbstractTempDirDataCollector;
 import org.labkey.api.study.assay.AssayRunUploadContext;
-import org.labkey.api.util.Pair;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 
