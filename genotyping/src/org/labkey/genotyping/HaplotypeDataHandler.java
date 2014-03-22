@@ -465,7 +465,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             List<Pair<String, String>> rowHaplotypes = new ArrayList<>();
             String name;
 
-            DomainProperty[] props = HaplotypeAssayProvider.getDomainProps(protocol);
+            List<? extends DomainProperty> props = HaplotypeAssayProvider.getDomainProps(protocol);
 
             HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
 

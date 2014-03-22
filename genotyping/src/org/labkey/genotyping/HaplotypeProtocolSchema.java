@@ -33,11 +33,7 @@ import org.labkey.api.query.LookupForeignKey;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.security.User;
 import org.labkey.api.study.assay.AssayProtocolSchema;
-import org.labkey.api.study.assay.AssayUrls;
 import org.labkey.api.study.query.ResultsQueryView;
-import org.labkey.api.study.query.RunListQueryView;
-import org.labkey.api.util.PageFlowUtil;
-import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
 import org.labkey.api.view.ViewContext;
 import org.springframework.validation.BindException;
@@ -66,7 +62,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         List<FieldKey> toCopy = table.getDefaultVisibleColumns();
         List<FieldKey> keys = new ArrayList<>(toCopy);
         HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
-        DomainProperty[] props = HaplotypeAssayProvider.getDomainProps(getProtocol());
+        List<? extends DomainProperty> props = HaplotypeAssayProvider.getDomainProps(getProtocol());
 
         SQLFragment haplotypeSubselectSql = new SQLFragment("SELECT aha.AnimalAnalysisId, h.Name AS Haplotype, h.Type FROM ");
         haplotypeSubselectSql.append(GenotypingSchema.get().getAnimalHaplotypeAssignmentTable(), "aha");
