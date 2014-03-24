@@ -26,15 +26,27 @@ import org.labkey.api.files.FileListener;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.ModuleLoader;
+import org.labkey.api.query.QueryService;
+import org.labkey.api.query.SchemaKey;
+import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.view.BaseWebPartFactory;
+import org.labkey.api.view.HttpView;
+import org.labkey.api.view.JspView;
+import org.labkey.api.view.Portal;
+import org.labkey.api.view.VBox;
+import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartFactory;
+import org.labkey.api.view.WebPartView;
 import org.labkey.api.wiki.WikiChangeListener;
 import org.labkey.api.wiki.WikiService;
 import org.labkey.oconnorexperiments.model.OConnorExperimentsManager;
 import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -68,7 +80,26 @@ public class OConnorExperimentsModule extends DefaultModule
     @Override
     protected Collection<WebPartFactory> createWebPartFactories()
     {
-        return Collections.emptyList();
+        return new ArrayList<WebPartFactory>(Arrays.asList(
+                new BaseWebPartFactory("OConnorExperiments")
+                {
+                    public WebPartView getWebPartView(ViewContext portalCtx, Portal.WebPart webPart) throws Exception
+                    {
+                        UserSchema schema = QueryService.get().getUserSchema(portalCtx.getUser(), portalCtx.getContainer(), SchemaKey.fromParts("OConnorExperiments"));
+                        WorkbookQueryView wbqview = new WorkbookQueryView(portalCtx, schema);
+                        VBox box = new VBox(new JspView<>("/org/labkey/oconnorexperiments/view/workbookSearch.jsp", new WorkbookSearchBean(wbqview, null)), wbqview);
+                        box.setFrame(WebPartView.FrameType.PORTAL);
+                        box.setTitle(OConnorExperimentsSchema.EXPERIMENTS);
+                        return box;
+                    }
+
+                    @Override
+                    public boolean isAvailable(Container c, String location)
+                    {
+                        return !c.isWorkbook() && location.equalsIgnoreCase(HttpView.BODY);
+                    }
+                }
+        ));
     }
 
     @Override

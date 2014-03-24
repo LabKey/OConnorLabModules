@@ -18,11 +18,12 @@ package org.labkey.oconnorexperiments;
 
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.SchemaTableInfo;
-import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.dialect.SqlDialect;
 
 public class OConnorExperimentsSchema
 {
+    public static final String NAME = "oconnorexperiments";
+    public static final String EXPERIMENTS = "Experiments";
     private static final OConnorExperimentsSchema _instance = new OConnorExperimentsSchema();
 
     public static OConnorExperimentsSchema getInstance()
@@ -36,7 +37,7 @@ public class OConnorExperimentsSchema
 
     public DbSchema getSchema()
     {
-        return DbSchema.get("oconnorexperiments");
+        return DbSchema.get(NAME);
     }
 
     public SqlDialect getSqlDialect()
@@ -46,7 +47,7 @@ public class OConnorExperimentsSchema
 
     public SchemaTableInfo createTableInfoExperiments()
     {
-        return getSchema().getTable("Experiments");
+        return getSchema().getTable(EXPERIMENTS);
     }
 
     public SchemaTableInfo createTableInfoParentExperiments()

@@ -57,9 +57,13 @@ import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.Path;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
+import org.labkey.api.view.HtmlView;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
+import org.labkey.api.view.NotFoundException;
+import org.labkey.api.view.RedirectException;
+import org.labkey.api.view.VBox;
 import org.labkey.api.webdav.WebdavResolver;
 import org.labkey.api.webdav.WebdavResource;
 import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
@@ -77,6 +81,7 @@ import java.util.Map;
 
 public class OConnorExperimentsController extends SpringActionController
 {
+    public static final String EXPERIMENTS = "Experiments";
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(OConnorExperimentsController.class);
 
     public OConnorExperimentsController()
@@ -129,8 +134,8 @@ public class OConnorExperimentsController extends SpringActionController
             Collection<Map<String, Object>> sourceCollection = tableSelector.getMapCollection();
 
             // get table info for target table
-            UserSchema targetSchema = QueryService.get().getUserSchema(getUser(), getContainer(), "OConnorExperiments");
-            TableInfo targetTable = targetSchema.getTable("Experiments");
+            UserSchema targetSchema = QueryService.get().getUserSchema(getUser(), getContainer(), OConnorExperimentsSchema.NAME);
+            TableInfo targetTable = targetSchema.getTable(OConnorExperimentsSchema.EXPERIMENTS);
             QueryUpdateService queryUpdateService = targetTable.getUpdateService();
             BatchValidationException batchErrors = new BatchValidationException();
 
@@ -330,8 +335,8 @@ public class OConnorExperimentsController extends SpringActionController
 
         public ActionURL getSuccessURL(UserForm form)
         {
-            UserSchema targetSchema = QueryService.get().getUserSchema(getUser(), getContainer(), "OConnorExperiments");
-            return targetSchema.getQueryDefForTable("Experiments").urlFor(QueryAction.executeQuery);
+            UserSchema targetSchema = QueryService.get().getUserSchema(getUser(), getContainer(), OConnorExperimentsSchema.NAME);
+            return targetSchema.getQueryDefForTable(OConnorExperimentsSchema.EXPERIMENTS).urlFor(QueryAction.executeQuery);
         }
     }
 
@@ -480,4 +485,56 @@ public class OConnorExperimentsController extends SpringActionController
         }
     }
 
+    public static class LookupWorkbookForm
+    {
+        private String _id;
+
+        public String getId()
+        {
+            return _id;
+        }
+
+        public void setId(String id)
+        {
+            _id = id;
+        }
+    }
+
+    @RequiresPermissionClass(ReadPermission.class)
+    public class LookupWorkbookAction extends SimpleViewAction<LookupWorkbookForm>
+    {
+        public ModelAndView getView(LookupWorkbookForm form, BindException errors) throws Exception
+        {
+            if (null == form.getId())
+                throw new NotFoundException("You must supply the id of the workbook you wish to find.");
+
+            try
+            {
+                int id = Integer.parseInt(form.getId());
+                //try to lookup based on id
+                Container container = ContainerManager.getForRowId(id);
+                //if found, ensure it's a descendant of the current container, and redirect
+                if (null != container && container.isDescendant(getContainer()))
+                    throw new RedirectException(container.getStartURL(getUser()));
+            }
+            catch (NumberFormatException e) { /* continue on with other approaches */ }
+
+            //next try to lookup based on name
+            Container container = getContainer().findDescendant(form.getId());
+            if (null != container)
+                throw new RedirectException(container.getStartURL(getUser()));
+
+            //otherwise, return a workbooks list with the search view
+            HtmlView message = new HtmlView("<p class='labkey-error'>Could not find a workbook with id '" + form.getId() + "' in this folder or subfolders. Try searching or entering a different id.</p>");
+            UserSchema schema = QueryService.get().getUserSchema(getUser(), getContainer(), OConnorExperimentsSchema.NAME);
+            org.labkey.oconnorexperiments.WorkbookQueryView wbqview = new WorkbookQueryView(getViewContext(), schema);
+            return new VBox(message, new JspView<>("/org/labkey/oconnorexperiments/view/workbookSearch.jsp", new WorkbookSearchBean(wbqview, null)), wbqview);
+        }
+
+        public NavTree appendNavTrail(NavTree root)
+        {
+            //if a view ends up getting rendered, the workbook id was not found
+            return root.addChild(OConnorExperimentsSchema.EXPERIMENTS);
+        }
+    }
 }

@@ -4,22 +4,20 @@
             <table tableName="Experiments" tableDbType="TABLE">
                 <tableTitle>Experiments</tableTitle>
                 <description>This query identifies experiment records.</description>
-                <!--
                 <buttonBarOptions position="both" includeStandardButtons="true">
                     <item text="My Experiments" insertPosition="end" requiresSelection="false">
                         <onClick>
-                            var user = LABKEY.Security.currentUser.displayName;
+                            var userId = LABKEY.Security.currentUser.id;
                             var viewFilter = dataRegionName + '.viewName';
-                            var createdFilter = dataRegionName + '.CreatedBy/DisplayName~eq';
+                            var createdFilter = dataRegionName + '.CreatedBy/UserId~eq';
                             var myJsonObject = {};
-                            myJsonObject[createdFilter] = user;
+                            myJsonObject[createdFilter] = userId;
                             myJsonObject[viewFilter] = 'BlankExperiments';
                             window.location = LABKEY.ActionURL.buildURL("project", "begin",
                                 (LABKEY.ActionURL.getContainer()), myJsonObject);
                         </onClick>
                     </item>
                 </buttonBarOptions>
-                -->
             </table>
         </tables>
     </metadata>
