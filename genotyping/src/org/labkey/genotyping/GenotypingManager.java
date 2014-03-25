@@ -154,7 +154,7 @@ public class GenotypingManager
         return run;
     }
 
-    public GenotypingAnalysis createAnalysis(Container c, User user, GenotypingRun run, @Nullable String description, @Nullable String sequencesViewName) throws SQLException
+    public GenotypingAnalysis createAnalysis(Container c, User user, GenotypingRun run, @Nullable String description, @Nullable String sequencesViewName)
     {
         return Table.insert(user, GenotypingSchema.get().getAnalysesTable(), new GenotypingAnalysis(c, user, run, description, sequencesViewName));
     }
