@@ -39,6 +39,7 @@ import org.labkey.api.data.DataRegionSelection;
 import org.labkey.api.data.PanelButton;
 import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.Results;
+import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.ShowRows;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
@@ -1115,7 +1116,7 @@ public class GenotypingController extends SpringActionController
                 }
                 catch (SQLException e)
                 {
-                    if (SqlDialect.isConstraintException(e))
+                    if (RuntimeSQLException.isConstraintException(e))
                         return "Run " + form.getRun() + " has already been imported";
                     else
                         throw e;

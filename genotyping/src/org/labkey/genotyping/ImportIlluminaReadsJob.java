@@ -18,10 +18,10 @@ package org.labkey.genotyping;
 import au.com.bytecode.opencsv.CSVReader;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
+import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableSelector;
-import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.exp.api.DataType;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExperimentService;
@@ -137,7 +137,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
             }
             catch (SQLException e)
             {
-                if (SqlDialect.isConstraintException(e))
+                if (RuntimeSQLException.isConstraintException(e))
                     throw new PipelineJobException("Run " + _run.getMetaDataId() + " has already been imported");
                 else
                     throw e;

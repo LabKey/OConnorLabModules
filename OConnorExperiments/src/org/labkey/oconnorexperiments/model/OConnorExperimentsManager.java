@@ -18,7 +18,6 @@ package org.labkey.oconnorexperiments.model;
 
 import org.labkey.api.data.Container;
 import org.labkey.api.data.Filter;
-import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.SimpleFilter;
@@ -30,7 +29,6 @@ import org.labkey.api.security.User;
 import org.labkey.oconnorexperiments.OConnorExperimentsModule;
 import org.labkey.oconnorexperiments.OConnorExperimentsSchema;
 
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -84,14 +82,7 @@ public class OConnorExperimentsManager
         SchemaTableInfo table = OConnorExperimentsSchema.getInstance().createTableInfoExperiments();
         Experiment experiment = new Experiment();
         experiment.setContainer(workbook.getId());
-        try
-        {
-            return Table.insert(user, table, experiment);
-        }
-        catch (SQLException e)
-        {
-            throw new RuntimeSQLException(e);
-        }
+        return Table.insert(user, table, experiment);
     }
 
     public void updateModified(Container c, User user)
@@ -99,19 +90,12 @@ public class OConnorExperimentsManager
         if (c == null || user == null || !c.isWorkbook() || !c.getParent().getActiveModules().contains(ModuleLoader.getInstance().getModule(OConnorExperimentsModule.class)))
             return;
 
-        try
+        Map<String, Object> row = new HashMap<>();
+        row.put("Container", c.getEntityId());
+        TableSelector selector = new TableSelector(OConnorExperimentsSchema.getInstance().createTableInfoExperiments(), SimpleFilter.createContainerFilter(c), null);
+        if (selector.exists())
         {
-            Map<String, Object> row = new HashMap<>();
-            row.put("Container", c.getEntityId());
-            TableSelector selector = new TableSelector(OConnorExperimentsSchema.getInstance().createTableInfoExperiments(), SimpleFilter.createContainerFilter(c), null);
-            if (selector.exists())
-            {
-                Table.update(user, OConnorExperimentsSchema.getInstance().createTableInfoExperiments(), row, c.getEntityId());
-            }
-        }
-        catch (SQLException e)
-        {
-            throw new RuntimeSQLException(e);
+            Table.update(user, OConnorExperimentsSchema.getInstance().createTableInfoExperiments(), row, c.getEntityId());
         }
     }
 

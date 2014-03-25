@@ -17,11 +17,11 @@ package org.labkey.genotyping;
 
 import org.apache.commons.lang3.StringUtils;
 import org.labkey.api.data.DbScope;
+import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
-import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
@@ -98,7 +98,7 @@ public class Import454ReadsJob extends PipelineJob
             }
             catch (SQLException se)
             {
-                if (SqlDialect.isConstraintException(se) && StringUtils.containsIgnoreCase(se.getMessage(), "uq_reads_name"))
+                if (RuntimeSQLException.isConstraintException(se) && StringUtils.containsIgnoreCase(se.getMessage(), "uq_reads_name"))
                     throw new RuntimeException("A readname in this file already exists in the database; this run may have been imported previously", se);
                 else
                     throw se;
@@ -142,7 +142,7 @@ public class Import454ReadsJob extends PipelineJob
             }
             catch (SQLException e)
             {
-                if (SqlDialect.isConstraintException(e))
+                if (RuntimeSQLException.isConstraintException(e))
                     throw new PipelineJobException("Run " + _run.getMetaDataId() + " has already been imported");
                 else
                     throw e;
