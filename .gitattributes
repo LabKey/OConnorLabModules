@@ -39,6 +39,7 @@ OConnorExperiments/src/org/labkey/oconnorexperiments/view/history.jsp -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/migrateData.jsp -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/workbookSearch.jsp -text
 OConnorExperiments/test/src/org/labkey/test/tests/OConnorExperimentTest.java -text
+OConnorExperiments/test/test_oconnorexperiments.iml -text
 OConnorRepository/module.properties -text
 OConnorRepository/resources/etls/PCRSSPtyping.xml -text
 OConnorRepository/resources/etls/demographics.xml -text
@@ -179,6 +180,7 @@ genotyping/src/org/labkey/genotyping/view/mySettings.jsp -text
 genotyping/src/org/labkey/genotyping/view/overview.jsp -text
 genotyping/test/src/org/labkey/test/tests/GenotypingTest.java -text
 genotyping/test/src/org/labkey/test/tests/HaplotypeAssayTest.java -text
+genotyping/test/test_genotyping.iml -text
 genotyping/tools/Illumina.pl -text
 genotyping/webapp/genotyping/IlluminaExportPanel.js -text
 genotyping/webapp/genotyping/RunExportWindow.js -text
