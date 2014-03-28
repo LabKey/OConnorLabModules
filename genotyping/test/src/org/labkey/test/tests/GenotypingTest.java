@@ -172,7 +172,7 @@ public class GenotypingTest extends BaseWebDriverTest
 
     private void importSecondRunTest()
     {
-        if(!TestProperties.isGroupConcatSupported())
+        if(!WebTestHelper.isGroupConcatSupported())
             return;
         goToProjectHome();
         startImportRun("secondRead/reads.txt", "Import 454 Reads", second454importNum);
@@ -195,7 +195,7 @@ public class GenotypingTest extends BaseWebDriverTest
     private void runAnalysisTest()
     {
 
-        if(!TestProperties.isGroupConcatSupported())
+        if(!WebTestHelper.isGroupConcatSupported())
             return;
 //        getToRunScreen();
         sendDataToGalaxyServer();
@@ -219,7 +219,7 @@ public class GenotypingTest extends BaseWebDriverTest
 
     private void verifyAnalysis()
     {
-        if(!TestProperties.isGroupConcatSupported())
+        if(!WebTestHelper.isGroupConcatSupported())
             return;
         goToProjectHome();
 
