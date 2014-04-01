@@ -15,6 +15,7 @@
  */
 package org.labkey.test.tests;
 
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.Locator;
 import org.labkey.test.TestTimeoutException;
@@ -28,10 +29,6 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-/**
- * User: cnathe
- * Date: 10/23/12
- */
 @Category({CustomModules.class})
 public class HaplotypeAssayTest extends GenotypingTest
 {
@@ -50,8 +47,8 @@ public class HaplotypeAssayTest extends GenotypingTest
         return PROJECT_NAME;
     }
 
-    @Override
-    protected void doTestSteps() throws Exception
+    @Test
+    public void testSteps()
     {
         setUp2();  // from GenotypingTest
 

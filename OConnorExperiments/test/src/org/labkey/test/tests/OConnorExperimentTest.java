@@ -16,6 +16,7 @@
 package org.labkey.test.tests;
 
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.remoteapi.CommandException;
 import org.labkey.remoteapi.Connection;
@@ -104,8 +105,8 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         log("setup complete");
     }
 
-    @Override
-    protected void doTestSteps() throws Exception
+    @Test
+    public void testSteps()
     {
         doSetup();
 

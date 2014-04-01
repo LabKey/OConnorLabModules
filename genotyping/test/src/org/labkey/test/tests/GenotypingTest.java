@@ -24,6 +24,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.remoteapi.Connection;
 import org.labkey.remoteapi.query.DeleteRowsCommand;
@@ -32,7 +33,6 @@ import org.labkey.remoteapi.query.SaveRowsResponse;
 import org.labkey.remoteapi.query.SelectRowsResponse;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
-import org.labkey.test.TestProperties;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
@@ -55,11 +55,6 @@ import java.util.zip.GZIPInputStream;
 
 import static org.junit.Assert.*;
 
-/**
- * User: elvan
- * Date: 10/22/11
- * Time: 7:14 PM
- */
 @Category({CustomModules.class})
 public class GenotypingTest extends BaseWebDriverTest
 {
@@ -134,8 +129,8 @@ public class GenotypingTest extends BaseWebDriverTest
         clickButton("Submit");
     }
 
-    @Override
-    protected void doTestSteps() throws Exception
+    @Test
+    public void testSteps() throws Exception
     {
         setUp2();
         goToProjectHome();
