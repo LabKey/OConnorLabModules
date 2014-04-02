@@ -106,12 +106,12 @@ public class Import454ReadsJob extends PipelineJob
 
             updateRunStatus(Status.Complete);
             info("Import 454 reads complete");
-            setStatus(COMPLETE_STATUS);
+            setStatus(TaskStatus.complete);
         }
         catch (Exception e)
         {
             error("Import 454 reads failed", e);
-            setStatus(ERROR_STATUS);
+            setStatus(TaskStatus.error);
 
             try
             {

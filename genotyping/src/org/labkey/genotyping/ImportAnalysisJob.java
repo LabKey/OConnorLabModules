@@ -170,13 +170,13 @@ public class ImportAnalysisJob extends PipelineJob
 
             if (!GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.Importing, Status.Complete))
                 throw new IllegalStateException("Analysis status should be \"Importing\"");
-            setStatus(COMPLETE_STATUS);
+            setStatus(TaskStatus.complete);
             info("Successfully imported genotyping analysis in " + DateUtil.formatDuration(System.currentTimeMillis() - startTime));
         }
         catch (Exception e)
         {
             error("Analysis import failed", e);
-            setStatus(ERROR_STATUS);
+            setStatus(TaskStatus.error);
         }
     }
 

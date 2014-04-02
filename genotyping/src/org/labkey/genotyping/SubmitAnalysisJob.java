@@ -133,12 +133,12 @@ public class SubmitAnalysisJob extends PipelineJob
             if (!GenotypingManager.get().updateAnalysisStatus(_analysis, getUser(), Status.NotSubmitted, Status.Submitted))
                 throw new IllegalStateException("Analysis status should be \"NotSubmitted\"");
             info("Submitting genotyping analysis job complete");
-            setStatus(COMPLETE_STATUS);
+            setStatus(TaskStatus.complete);
         }
         catch (Exception e)
         {
             error("Submitting genotyping analysis failed", e);
-            setStatus(ERROR_STATUS);
+            setStatus(TaskStatus.error);
         }
     }
 

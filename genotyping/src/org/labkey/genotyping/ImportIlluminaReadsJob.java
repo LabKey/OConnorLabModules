@@ -101,12 +101,12 @@ public class ImportIlluminaReadsJob extends PipelineJob
 
             updateRunStatus(Status.Complete);
             info("Import Illumina reads complete");
-            setStatus(COMPLETE_STATUS);
+            setStatus(TaskStatus.complete);
         }
         catch (Exception e)
         {
             error("Import Illumina reads failed", e);
-            setStatus(ERROR_STATUS);
+            setStatus(TaskStatus.error);
 
             try
             {
