@@ -25,17 +25,17 @@ import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.CoreSchema;
-import org.labkey.api.data.ExtendedTable;
 import org.labkey.api.data.Filter;
-import org.labkey.api.data.ForeignKey;
 import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.MultiValuedForeignKey;
 import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.SqlExecutor;
+import org.labkey.api.data.TableExtension;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
+import org.labkey.api.data.UpdateableTableInfo;
 import org.labkey.api.etl.DataIterator;
 import org.labkey.api.etl.DataIteratorBuilder;
 import org.labkey.api.etl.DataIteratorContext;
@@ -47,6 +47,7 @@ import org.labkey.api.etl.ValidatorIterator;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.AbstractQueryUpdateService;
 import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.ExtendedTableUpdateService;
 import org.labkey.api.query.DetailsURL;
 import org.labkey.api.query.DuplicateKeyException;
 import org.labkey.api.query.FieldKey;
@@ -61,6 +62,8 @@ import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserIdQueryForeignKey;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.security.UserPrincipal;
+import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.util.ContainerContext;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.ActionURL;
@@ -85,16 +88,21 @@ import java.util.Map;
  *
  * Adds experiments columns to core.Workbooks table.
  */
-public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema>
+public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperimentsUserSchema>
 {
+    TableInfo _workbooksTable;
+    TableExtension _extension;
+
     public ExperimentsTable(String name, OConnorExperimentsUserSchema userSchema, SchemaTableInfo rootTable,
-                            @NotNull TableInfo baseTable)
+                            @NotNull TableInfo extensionTable)
     {
-        super(userSchema, rootTable, baseTable);
+        super(userSchema, rootTable);
         setName(name);
+
+        _workbooksTable = extensionTable;
     }
 
-    public static ExperimentsTable create(OConnorExperimentsUserSchema schema, String name)
+    public static TableInfo create(OConnorExperimentsUserSchema schema, String name)
     {
         UserSchema core = QueryService.get().getUserSchema(schema.getUser(), schema.getContainer(), SchemaKey.fromParts("core"));
         TableInfo workbooksTable = core.getTable("Workbooks");
@@ -110,53 +118,35 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         return (ExperimentsTable)super.init();
     }
 
-    @Override
-    protected ColumnInfo getExtendedForeignKeyColumn()
-    {
-        return getColumn("Container");
-        // XXX: I think we want the hard table column instead of the query column
-        //return getRealTable().getColumn("Container");
-    }
-
-    @Override
-    protected ColumnInfo getBaseLookupKeyColumn()
-    {
-        return getBaseTable().getColumn("EntityId");
-    }
-
-    protected ForeignKey createExtendedForeignKey()
-    {
-        return new QueryForeignKey(getBaseTable(), null, "EntityId", null);
-    }
-
     public void addColumns()
     {
         ColumnInfo containerCol = addWrapColumn(getRealTable().getColumn("Container"));
-        containerCol.setFk(getExtendedForeignKey());
-        //containerCol.setFk(new QueryForeignKey("core", getUserSchema().getContainer(), getUserSchema().getUser(), "Workbooks", "EntityId", null));
+        containerCol.setFk(new QueryForeignKey(_workbooksTable, null, "EntityId", null));
         containerCol.setHidden(true);
         containerCol.setSortFieldKeys(Collections.singletonList(FieldKey.fromParts("ExperimentNumber")));
         containerCol.setSortDirection(Sort.SortDirection.DESC);
 
-        ColumnInfo idCol = addBaseTableColumn("ID", "ID");
+        _extension = TableExtension.create(this, _workbooksTable, "Container", "EntityId");
+
+        ColumnInfo idCol = _extension.addExtensionColumn("ID", "ID");
         idCol.setLabel("ID");
         idCol.setHidden(true);
 
-        ColumnInfo expNumberCol = addBaseTableColumn("SortOrder", "ExperimentNumber");
+        ColumnInfo expNumberCol = _extension.addExtensionColumn("SortOrder", "ExperimentNumber");
         expNumberCol.setLabel("Experiment Number");
         expNumberCol.setReadOnly(true);
         expNumberCol.setShownInInsertView(false);
 
-        ColumnInfo descriptionCol = addBaseTableColumn("Description", "Description");
+        ColumnInfo descriptionCol = _extension.addExtensionColumn("Description", "Description");
         descriptionCol.setDescription("Summary information about the experiment");
         descriptionCol.setReadOnly(false);
         descriptionCol.setUserEditable(true);
 
-        ColumnInfo createdByCol = addBaseTableColumn("CreatedBy", "CreatedBy");
+        ColumnInfo createdByCol = _extension.addExtensionColumn("CreatedBy", "CreatedBy");
         UserIdQueryForeignKey.initColumn(getUserSchema().getUser(), getUserSchema().getContainer(), createdByCol, false);
         createdByCol.setLabel("Created By");
 
-        ColumnInfo createdCol = addBaseTableColumn("Created", "Created");
+        ColumnInfo createdCol = _extension.addExtensionColumn("Created", "Created");
         createdCol.setLabel("Created");
 
         ColumnInfo modifiedByCol = addWrapColumn(getRealTable().getColumn("ModifiedBy"));
@@ -194,7 +184,7 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
         parentExperimentsCol.setURL(parentExperimentsURL);
         addColumn(parentExperimentsCol);
 
-        ColumnInfo folderTypeCol = addBaseTableColumn("FolderType", "FolderType");
+        ColumnInfo folderTypeCol = _extension.addExtensionColumn("FolderType", "FolderType");
         folderTypeCol.setHidden(true);
         //folderTypeCol.setReadOnly(false);
         //folderTypeCol.setUserEditable(true);
@@ -226,12 +216,25 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
 
     }
 
+    @Override
+    public boolean hasPermission(UserPrincipal user, Class<? extends Permission> perm)
+    {
+        return super.hasPermission(user, perm) && _extension.getExtensionTable().hasPermission(user, perm);
+    }
+
     @Nullable
     @Override
     public QueryUpdateService getUpdateService()
     {
-        final AbstractQueryUpdateService superQUS = (AbstractQueryUpdateService)super.getUpdateService();
-        return new ExperimentsQueryUpdateService(this, getRealTable(), superQUS);
+        QueryUpdateService extensionQUS = _extension.getExtensionTable().getUpdateService();
+        if (extensionQUS instanceof AbstractQueryUpdateService)
+        {
+            AbstractQueryUpdateService qus = new ExtendedTableUpdateService(this, this.getRealTable(), (AbstractQueryUpdateService) extensionQUS);
+
+            return new ExperimentsQueryUpdateService(this, getRealTable(), qus);
+        }
+
+        return null;
     }
 
     private class ExperimentsQueryUpdateService extends SimpleQueryUpdateService
@@ -387,8 +390,9 @@ public class ExperimentsTable extends ExtendedTable<OConnorExperimentsUserSchema
 
         data = new DataIteratorBuilder.Wrapper(in);
 
-        // Feed the modified data iterator to the parent ETL
-        DataIteratorBuilder insertETL = super.persistRows(data, context);
+        // Feed the modified data iterator to the parent ETL to insert into both the Workbooks table and the OConnor experiments dbtable
+        DataIteratorBuilder builder = ((UpdateableTableInfo)_workbooksTable).persistRows(data, context);
+        DataIteratorBuilder insertETL = ((UpdateableTableInfo)getRealTable()).persistRows(builder, context);
         if (insertETL != null)
             insertETL = new _DataIteratorBuilder(insertETL);
         return insertETL;

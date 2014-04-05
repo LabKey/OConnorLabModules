@@ -178,7 +178,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
             String parentExpText = getText(link);
             String parentExpHref = getAttribute(link, "href");
             assertTrue("Expected link to go to project begin for " + parentExpText + ", got: " + parentExpHref,
-                    parentExpHref.contains("/" + parentExpText + "/begin.view"));
+                    parentExpHref.contains("/" + parentExpText + "/begin.view") || parentExpHref.contains("/" + parentExpText + "/project-begin.view"));
         }
 
         checkQueryAndWorkbook();
