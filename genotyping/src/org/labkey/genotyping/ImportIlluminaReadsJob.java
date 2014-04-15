@@ -29,9 +29,13 @@ import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.query.FieldKey;
+import org.labkey.api.security.User;
+import org.labkey.api.security.UserManager;
 import org.labkey.api.sequence.IlluminaFastqParser;
+import org.labkey.api.settings.LookAndFeelProperties;
 import org.labkey.api.util.Compress;
 import org.labkey.api.util.FileUtil;
+import org.labkey.api.util.MailHelper;
 import org.labkey.api.util.Pair;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
@@ -102,6 +106,15 @@ public class ImportIlluminaReadsJob extends PipelineJob
             updateRunStatus(Status.Complete);
             info("Import Illumina reads complete");
             setStatus(TaskStatus.complete);
+
+            User user = UserManager.getUser(_run.getCreatedBy());
+            if (user != null)
+            {
+                MailHelper.ViewMessage m = MailHelper.createMessage(LookAndFeelProperties.getInstance(getContainer()).getSystemEmailAddress(), user.getEmail());
+                m.setSubject("Illumina Run " + _run.getRowId() + " Import Complete");
+                m.setText("Illumina run " + _run.getRowId() + " has finished importing. You can view it at " + getContainer().getStartURL(user));
+                MailHelper.send(m, getUser(), getContainer());
+            }
         }
         catch (Exception e)
         {
@@ -235,7 +248,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 {
                     row = new CaseInsensitiveHashMap<>();
                     row.put("Run", _run.getRowId());
-                    Integer sampleId = (Integer) sampleKey.getKey();
+                    Integer sampleId = sampleKey.getKey();
                     if (sampleId > 0)
                         row.put("SampleId", sampleKey.getKey());
 
