@@ -5,7 +5,7 @@
     <transforms>
         <transform id="Demographics" type="RemoteQueryTransformStep">
             <source schemaName="study" queryName="OConnorETL_Demographics" remoteSource="EHR"/>
-            <destination schemaName="study" queryName="Demographics_template" targetOption="merge"/>
+            <destination schemaName="study" queryName="Demographics" targetOption="merge"/>
         </transform>
     </transforms>
     <incrementalFilter className="SelectAllFilterStrategy"/>
