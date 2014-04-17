@@ -312,7 +312,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         prepForPageLoad();
         q_table.clickHeaderButtonByText("Delete");
         assertAlertContains("Are you sure you want to delete the selected row?");
-        newWaitForPageToLoad();
+        waitForPageToLoad();
         checkQueryAndWorkbook();
     }
 
@@ -357,7 +357,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         prepForPageLoad();
         w_table.clickHeaderButtonByText("Delete");
         assertAlertContains("Are you sure you want to delete the selected row?");
-        newWaitForPageToLoad();
+        waitForPageToLoad();
         checkQueryAndWorkbook();
     }
 

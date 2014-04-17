@@ -248,7 +248,7 @@ public class GenotypingTest extends BaseWebDriverTest
         prepForPageLoad();
         clickButton("Delete", 0);
         getAlert();
-        newWaitForPageToLoad();
+        waitForPageToLoad();
 
         waitForText("1 match was deleted.");
         assertElementPresent(Locator.paginationText(1, 100, 1409));
