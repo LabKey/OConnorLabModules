@@ -43,11 +43,8 @@
                 <datatype>timestamp</datatype>
                 <isReadOnly>true</isReadOnly>
             </column>
-            <column columnName="ExperimentType">
+            <column columnName="ExperimentTypeId">
                 <columnTitle>Experiment Type</columnTitle>
-                <nullable>true</nullable>
-                <datatype>varchar</datatype>
-                <scale>255</scale>
             </column>
             <column columnName="GrantId">
                 <columnTitle>Grant</columnTitle>
@@ -74,6 +71,14 @@
                 </fk>
                 <datatype>entityid</datatype>
             </column>
+        </columns>
+    </table>
+
+    <table tableName="ExperimentType" tableDbType="TABLE">
+        <columns>
+            <column columnName="RowId" />
+            <column columnName="Container" />
+            <column columnName="Name" />
         </columns>
     </table>
 

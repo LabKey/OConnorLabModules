@@ -43,6 +43,7 @@ public class OConnorExperimentsUserSchema extends UserSchema
     public enum Table
     {
         Experiments,
+        ExperimentType,
         ParentExperiments
     }
 
@@ -71,6 +72,8 @@ public class OConnorExperimentsUserSchema extends UserSchema
             return createExperimentsTable(name);
         else if (Table.ParentExperiments.name().equalsIgnoreCase(name))
             return createParentExperimentsTable(name);
+        else if (Table.ExperimentType.name().equalsIgnoreCase(name))
+            return createExperimentTypeTable(name);
 
         return null;
     }
@@ -90,7 +93,8 @@ public class OConnorExperimentsUserSchema extends UserSchema
     public Set<String> getVisibleTableNames()
     {
         return Sets.newCaseInsensitiveHashSet(
-                Table.Experiments.name()
+                Table.Experiments.name(),
+                Table.ExperimentType.name()
         );
     }
 
@@ -106,6 +110,13 @@ public class OConnorExperimentsUserSchema extends UserSchema
     private TableInfo createExperimentsTable(String name)
     {
         return ExperimentsTable.create(this, name);
+    }
+
+    private TableInfo createExperimentTypeTable(String name)
+    {
+        SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable<>(this, OConnorExperimentsSchema.getInstance().createTableInfoExperimentType());
+        table.init();
+        return table;
     }
 
     private TableInfo createParentExperimentsTable(String name)

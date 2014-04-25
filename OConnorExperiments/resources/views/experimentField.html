@@ -19,7 +19,7 @@
             var createdString = 'Created ' + experimentData.Created + ' by ' + experimentData['CreatedBy/DisplayName'];
             var description = experimentData.Description;
             var parentExperiments = experimentData['ParentExperiments/ExperimentNumber'];
-            var experimentType = experimentData.ExperimentType;
+            var experimentTypeId = experimentData.ExperimentTypeId;
             var changeCallback = function(name, newValue, oldValue, failureCb, scope){
                 //console.log(name, newValue, oldValue);
                 experimentData[name] = newValue;
@@ -46,18 +46,49 @@
 
             document.getElementById('createdSpan').textContent = createdString;
 
-            var experimentType = Ext4.create('LABKEY.ocexp.internal.InPlaceText', {
-                flex: 1,
-                labelWidth: 110,
-                fieldLabel: 'Experiment Type',
-                value: experimentType,
+            var experimentTypeStore = Ext4.create('LABKEY.ext4.data.Store', {
+                columns : ['Name', 'RowId'],
+                schemaName : 'OConnorExperiments',
+                queryName : 'ExperimentType',
+                containerPath : LABKEY.container.parentPath, // the workbook parent container's path
+                autoLoad : true,
+                sort : 'Name',
+                supressErrorAlert: true,
                 listeners: {
                     scope: this,
-                    change: function(cmp, newValue, oldValue){
-                        changeCallback('ExperimentType', newValue, oldValue);
+                    load: function() {
+                        experimentTypeCombo.suspendEvents(false);
+                        experimentTypeCombo.setValue(experimentData.ExperimentTypeId);
+                        experimentTypeCombo.resumeEvents();
                     }
                 }
             });
+            var experimentTypeCombo = Ext4.create('Ext.form.field.ComboBox', {
+                store: experimentTypeStore,
+                valueField: 'RowId',
+                width: 450,
+                labelWidth: 110,
+                fieldLabel: 'Experiment Type',
+                tpl: Ext4.create('Ext.XTemplate',
+                        '<tpl for=".">'+
+                                  '<div class="' + Ext4.baseCSSPrefix + 'boundlist-item">'+
+                                      '<div class="list-item">{Name:htmlEncode()}&nbsp;</div>'+
+                                  '</div>'+
+                              '</tpl>'
+                    ),
+                displayTpl: Ext4.create('Ext.XTemplate',
+                        '<tpl for=".">',
+                            '{Name:htmlEncode()}',
+                        '</tpl>'
+                        ),
+                listeners: {
+                    scope: this,
+                    change: function(combo, newValue, oldValue) {
+                        changeCallback('ExperimentTypeId', newValue, oldValue);
+                    }
+                }
+            });
+
             var parentExperiments = Ext4.create('LABKEY.ocexp.internal.InPlaceText', {
                 flex: 1,
                 labelWidth: 130,
@@ -120,7 +151,7 @@
                 border: false,
                 frame: false,
                 layout: 'hbox',
-                items: [experimentType, parentExperiments, grantCombo]
+                items: [experimentTypeCombo, parentExperiments, grantCombo]
             });
             var description = Ext4.create('LABKEY.ocexp.internal.InPlaceTextArea', {
                 fieldLabel: 'Description',

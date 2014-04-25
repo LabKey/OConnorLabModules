@@ -4,6 +4,189 @@
  * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
  */
 
+Ext4.define('LABKEY.ocexp.internal.InPlaceText', {
+    extend : 'Ext.container.Container',
+    alias: 'ocexp-text',
+
+    emptyText: 'Click to edit',
+    emptyCls: Ext4.baseCSSPrefix + 'form-empty-field',
+
+    constructor : function(config){
+        config.layout = 'card';
+        this.callParent([config]);
+        this.addCls("ocexp-edit-in-place-text");
+    },
+
+    initComponent: function(){
+        this.displayField = Ext4.create('Ext.form.field.Display', {
+            fieldLabel: this.fieldLabel,
+            labelWidth: this.labelWidth,
+            value: !this.value || this.value == '' ? this.emptyText : this.value,
+            listeners: {
+                scope: this,
+                render: function(cmp){
+                    this.applyEmptyStyle();
+                    cmp.getEl().on('click', this.showInput, this);
+                }
+            }
+        });
+
+        this.textInput = Ext4.create('Ext.form.field.Text', {
+            fieldLabel: this.fieldLabel,
+            labelWidth: this.labelWidth,
+            value: this.value,
+            listeners: {
+                scope: this,
+                blur: function(){
+                    this.showDisplayField();
+                    if(this.oldValue != this.textInput.getValue()) {
+                        var oldValue = this.oldValue;
+                        this.oldValue = this.textInput.getValue();
+                        this.fireEvent('change', this, this.textInput.getValue(), oldValue);
+                    }
+                }
+            }
+        });
+
+        this.items = [this.displayField, this.textInput];
+
+        this.callParent();
+    },
+
+    applyEmptyStyle: function(){
+        if (this.emptyText && this.displayField.getValue() == this.emptyText) {
+            // Unfortunately, the 'x4-form-display-field' rule is taking precedence over the 'x4-form-empty-field' rule.
+            //this.displayField.getActionEl().addCls(this.emptyCls);
+            this.displayField.getActionEl().setStyle("color", "gray");
+        } else {
+            //this.displayField.getActionEl().removeCls(this.emptyCls);
+            this.displayField.getActionEl().setStyle("color", "");
+        }
+    },
+
+    showInput: function(){
+        this.oldValue = this.textInput.getValue();
+        this.oldDisplayValue = this.displayField.getValue();
+        this.getLayout().setActiveItem(this.textInput.getId());
+        this.textInput.focus(true);
+    },
+
+    showDisplayField: function(){
+        var inputValue = this.textInput.getValue();
+        if(this.oldValue == inputValue) {
+            this.displayField.setValue(this.oldDisplayValue);
+        } else {
+            this.displayField.setValue(inputValue == '' || inputValue == null ? this.emptyText : inputValue);
+            this.applyEmptyStyle();
+        }
+        this.getLayout().setActiveItem(this.displayField.getId());
+    },
+
+    setDisplayValue: function(value){
+        this.displayField.setValue(value);
+    },
+
+    setValue: function(value){
+        this.displayField.setValue(value == '' || value == null ? this.emptyText : value);
+        this.textInput.setValue(value);
+        this.applyEmptyStyle();
+    },
+
+    getValue: function(){
+        return this.textInput.getValue();
+    }
+});
+
+Ext4.define('LABKEY.ocexp.internal.InPlaceTextArea', {
+    extend : 'Ext.container.Container',
+    alias: 'ocexp-textarea',
+
+    emptyText: 'Click to edit',
+    emptyCls: Ext4.baseCSSPrefix + 'form-empty-field',
+
+    constructor: function(config){
+        config.layout = 'card';
+        this.callParent([config]);
+        this.addCls("ocexp-edit-in-place-text");
+    },
+
+    initComponent: function(){
+        this.displayField = Ext4.create('Ext.form.field.Display', {
+            emptyText: this.emptyText,
+            fieldLabel: this.fieldLabel,
+            labelWidth: this.labelWidth,
+            value: !this.value || this.value == '' ? this.emptyText : Ext4.String.htmlEncode(this.value).replace(/\n/g, '<br />'),
+            listeners: {
+                scope: this,
+                render: function(cmp){
+                    this.applyEmptyStyle();
+                    cmp.getEl().on('click', this.showInput, this);
+                }
+            }
+        });
+
+        this.textArea = Ext4.create('Ext.form.field.TextArea', {
+            fieldLabel: this.fieldLabel,
+            labelWidth: this.labelWidth,
+            value: this.value,
+            listeners: {
+                scope: this,
+                blur: function(){
+                    this.showDisplayField();
+                    if(this.oldValue != this.textArea.getValue()) {
+                        var oldValue = this.oldValue;
+                        this.oldValue = this.textArea.getValue();
+                        this.fireEvent('change', this, this.textArea.getValue(), oldValue);
+                    }
+                }
+            }
+        });
+
+        this.items = [this.displayField, this.textArea];
+
+        this.callParent();
+    },
+
+    applyEmptyStyle: function(){
+        if (this.emptyText && this.displayField.getValue() == this.emptyText) {
+            // Unfortunately, the 'x4-form-display-field' rule is taking precedence over the 'x4-form-empty-field' rule.
+            //this.displayField.getActionEl().addCls(this.emptyCls);
+            this.displayField.getActionEl().setStyle("color", "gray");
+        } else {
+            //this.displayField.getActionEl().removeCls(this.emptyCls);
+            this.displayField.getActionEl().setStyle("color", "");
+        }
+    },
+
+    showInput: function(){
+        this.oldValue = this.textArea.getValue();
+        this.getLayout().setActiveItem(this.textArea.getId());
+        this.textArea.focus(true);
+    },
+
+    showDisplayField: function(){
+        var inputValue = this.textArea.getValue();
+        inputValue = Ext4.String.htmlEncode(inputValue).replace(/\n/g, '<br />');
+        this.displayField.setValue(inputValue == '' || inputValue == null ? this.emptyText : inputValue);
+        this.applyEmptyStyle();
+        this.getLayout().setActiveItem(this.displayField.getId());
+    },
+
+    setValue: function(value){
+        this.displayField.setValue(value == '' || value == null ? this.emptyText : value);
+        this.textArea.setValue(value);
+        this.applyEmptyStyle();
+    },
+
+    setDisplayValue: function(value){
+        this.displayField.setValue(value);
+    },
+
+    getValue: function(){
+        return this.textArea.getValue();
+    }
+});
+
 if (!LABKEY.ocexp)
     LABKEY.ocexp = {};
 
@@ -98,7 +281,7 @@ LABKEY.ocexp.internal.Experiment = new function () {
                 requiredVersion: 13.2,
                 schemaName: 'OConnorExperiments',
                 queryName: 'Experiments',
-                columns: ['ExperimentNumber', 'Description', 'ExperimentType', 'ParentExperiments/Container', 'ParentExperiments/ExperimentNumber', 'Created', 'CreatedBy', 'CreatedBy/DisplayName', 'GrantId'],
+                columns: ['ExperimentNumber', 'Description', 'ExperimentTypeId', 'ParentExperiments/Container', 'ParentExperiments/ExperimentNumber', 'Created', 'CreatedBy', 'CreatedBy/DisplayName', 'GrantId'],
                 success: config.success,
                 failure: config.failure,
                 viewName:  'BlankExperiments'  // needed otherwise the default view is used which has an unwanted filter
@@ -157,195 +340,10 @@ LABKEY.ocexp.internal.Experiment = new function () {
                         if (config.invalid)
                             config.invalid(msg);
                         else
-                            config.faliure();
+                            config.failure();
                     }
                 }
             });
         }
     };
 };
-
-Ext4.onReady(function(){
-    Ext4.define('LABKEY.ocexp.internal.InPlaceText', {
-        extend : 'Ext.container.Container',
-        alias: 'ocexp-text',
-
-        emptyText: 'Click to edit',
-        emptyCls: Ext4.baseCSSPrefix + 'form-empty-field',
-
-        constructor : function(config){
-            config.layout = 'card';
-            this.callParent([config]);
-            this.addCls("ocexp-edit-in-place-text");
-        },
-
-        initComponent: function(){
-            this.displayField = Ext4.create('Ext.form.field.Display', {
-                fieldLabel: this.fieldLabel,
-                labelWidth: this.labelWidth,
-                value: !this.value || this.value == '' ? this.emptyText : this.value,
-                listeners: {
-                    scope: this,
-                    render: function(cmp){
-                        this.applyEmptyStyle();
-                        cmp.getEl().on('click', this.showInput, this);
-                    }
-                }
-            });
-
-            this.textInput = Ext4.create('Ext.form.field.Text', {
-                fieldLabel: this.fieldLabel,
-                labelWidth: this.labelWidth,
-                value: this.value,
-                listeners: {
-                    scope: this,
-                    blur: function(){
-                        this.showDisplayField();
-                        if(this.oldValue != this.textInput.getValue()) {
-                            var oldValue = this.oldValue;
-                            this.oldValue = this.textInput.getValue();
-                            this.fireEvent('change', this, this.textInput.getValue(), oldValue);
-                        }
-                    }
-                }
-            });
-
-            this.items = [this.displayField, this.textInput];
-
-            this.callParent();
-        },
-
-        applyEmptyStyle: function(){
-            if (this.emptyText && this.displayField.getValue() == this.emptyText) {
-                // Unfortunately, the 'x4-form-display-field' rule is taking precedence over the 'x4-form-empty-field' rule.
-                //this.displayField.getActionEl().addCls(this.emptyCls);
-                this.displayField.getActionEl().setStyle("color", "gray");
-            } else {
-                //this.displayField.getActionEl().removeCls(this.emptyCls);
-                this.displayField.getActionEl().setStyle("color", "");
-            }
-        },
-
-        showInput: function(){
-            this.oldValue = this.textInput.getValue();
-            this.oldDisplayValue = this.displayField.getValue();
-            this.getLayout().setActiveItem(this.textInput.getId());
-            this.textInput.focus(true);
-        },
-
-        showDisplayField: function(){
-            var inputValue = this.textInput.getValue();
-            if(this.oldValue == inputValue) {
-                this.displayField.setValue(this.oldDisplayValue);
-            } else {
-                this.displayField.setValue(inputValue == '' || inputValue == null ? this.emptyText : inputValue);
-                this.applyEmptyStyle();
-            }
-            this.getLayout().setActiveItem(this.displayField.getId());
-        },
-
-        setDisplayValue: function(value){
-            this.displayField.setValue(value);
-        },
-
-        setValue: function(value){
-            this.displayField.setValue(value == '' || value == null ? this.emptyText : value);
-            this.textInput.setValue(value);
-            this.applyEmptyStyle();
-        },
-
-        getValue: function(){
-            return this.textInput.getValue();
-        }
-    });
-
-    Ext4.define('LABKEY.ocexp.internal.InPlaceTextArea', {
-        extend : 'Ext.container.Container',
-        alias: 'ocexp-textarea',
-
-        emptyText: 'Click to edit',
-        emptyCls: Ext4.baseCSSPrefix + 'form-empty-field',
-
-        constructor: function(config){
-            config.layout = 'card';
-            this.callParent([config]);
-            this.addCls("ocexp-edit-in-place-text");
-        },
-
-        initComponent: function(){
-            this.displayField = Ext4.create('Ext.form.field.Display', {
-                emptyText: this.emptyText,
-                fieldLabel: this.fieldLabel,
-                labelWidth: this.labelWidth,
-                value: !this.value || this.value == '' ? this.emptyText : Ext4.String.htmlEncode(this.value).replace(/\n/g, '<br />'),
-                listeners: {
-                    scope: this,
-                    render: function(cmp){
-                        this.applyEmptyStyle();
-                        cmp.getEl().on('click', this.showInput, this);
-                    }
-                }
-            });
-
-            this.textArea = Ext4.create('Ext.form.field.TextArea', {
-                fieldLabel: this.fieldLabel,
-                labelWidth: this.labelWidth,
-                value: this.value,
-                listeners: {
-                    scope: this,
-                    blur: function(){
-                        this.showDisplayField();
-                        if(this.oldValue != this.textArea.getValue()) {
-                            var oldValue = this.oldValue;
-                            this.oldValue = this.textArea.getValue();
-                            this.fireEvent('change', this, this.textArea.getValue(), oldValue);
-                        }
-                    }
-                }
-            });
-
-            this.items = [this.displayField, this.textArea];
-
-            this.callParent();
-        },
-
-        applyEmptyStyle: function(){
-            if (this.emptyText && this.displayField.getValue() == this.emptyText) {
-                // Unfortunately, the 'x4-form-display-field' rule is taking precedence over the 'x4-form-empty-field' rule.
-                //this.displayField.getActionEl().addCls(this.emptyCls);
-                this.displayField.getActionEl().setStyle("color", "gray");
-            } else {
-                //this.displayField.getActionEl().removeCls(this.emptyCls);
-                this.displayField.getActionEl().setStyle("color", "");
-            }
-        },
-
-        showInput: function(){
-            this.oldValue = this.textArea.getValue();
-            this.getLayout().setActiveItem(this.textArea.getId());
-            this.textArea.focus(true);
-        },
-
-        showDisplayField: function(){
-            var inputValue = this.textArea.getValue();
-            inputValue = Ext4.String.htmlEncode(inputValue).replace(/\n/g, '<br />');
-            this.displayField.setValue(inputValue == '' || inputValue == null ? this.emptyText : inputValue);
-            this.applyEmptyStyle();
-            this.getLayout().setActiveItem(this.displayField.getId());
-        },
-
-        setValue: function(value){
-            this.displayField.setValue(value == '' || value == null ? this.emptyText : value);
-            this.textArea.setValue(value);
-            this.applyEmptyStyle();
-        },
-
-        setDisplayValue: function(value){
-            this.displayField.setValue(value);
-        },
-
-        getValue: function(){
-            return this.textArea.getValue();
-        }
-    });
-});

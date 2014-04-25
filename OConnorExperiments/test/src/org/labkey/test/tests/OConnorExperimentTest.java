@@ -32,6 +32,7 @@ import org.labkey.test.Locator;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
+import org.labkey.test.util.Ext4HelperWD;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.PortalHelper;
@@ -56,6 +57,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
     private static final String SCHEMA_NAME = MODULE_NAME;
     private static final String QUERY_NAME = "Experiments";
     private static final String TABLE_NAME = "Experiments";
+    private static final String EXPERIMENT_TYPE_TABLE_NAME = "ExperimentType";
     private PortalHelper portalHelper = new PortalHelper(this);
     private ArrayList<String> workbookids = new ArrayList<String>();
     private ArrayList<String> pkeys = new ArrayList<>();
@@ -119,8 +121,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         //uploadFileUpdatesModified();
         //editWikiUpdatesModified();
 
-        //TODO: enable this test once bug 17931 is fixed
-        //insertViaWorkbook();
+        insertViaWorkbook();
         updateViaWorkbook();
         deleteViaWorkbook();
         insertViaJavaApi();
@@ -131,23 +132,36 @@ public class OConnorExperimentTest extends BaseWebDriverTest
     {
         log("starting insertViaGenericQueryForm test");
 
+        beginAt("/query/" + getProjectName() + "/insertQueryRow.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + EXPERIMENT_TYPE_TABLE_NAME);
+        waitForElement(Locator.name("quf_Name"));
+        setFormElement(Locator.name("quf_Name"), "type1");
+        clickButton("Submit");
+        beginAt("/query/" + getProjectName() + "/insertQueryRow.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + EXPERIMENT_TYPE_TABLE_NAME);
+        waitForElement(Locator.name("quf_Name"));
+        setFormElement(Locator.name("quf_Name"), "type2");
+        clickButton("Submit");
+        beginAt("/query/" + getProjectName() + "/insertQueryRow.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + EXPERIMENT_TYPE_TABLE_NAME);
+        waitForElement(Locator.name("quf_Name"));
+        setFormElement(Locator.name("quf_Name"), "type3");
+        clickButton("Submit");
+
         beginAt("/query/" + getProjectName() + "/insertQueryRow.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + QUERY_NAME);
         waitForElement(Locator.name("quf_Description"));
         setFormElement(Locator.name("quf_Description"), "description1");
-        setFormElement(Locator.name("quf_ExperimentType"), "type1");
+        selectOptionByText(Locator.name("quf_ExperimentTypeId"), "type1");
         clickButton("Submit");
 
         beginAt("/query/" + getProjectName() + "/insertQueryRow.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + QUERY_NAME);
         waitForElement(Locator.name("quf_Description"));
         setFormElement(Locator.name("quf_Description"), "description2");
-        setFormElement(Locator.name("quf_ExperimentType"), "type2");
+        selectOptionByText(Locator.name("quf_ExperimentTypeId"), "type2");
         selectOptionByText(Locator.name("quf_ParentExperiments"), "1");
         clickButton("Submit");
 
         beginAt("/query/" + getProjectName() + "/insertQueryRow.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + QUERY_NAME);
         waitForElement(Locator.name("quf_Description"));
         setFormElement(Locator.name("quf_Description"), "description3");
-        setFormElement(Locator.name("quf_ExperimentType"), "type3");
+        selectOptionByText(Locator.name("quf_ExperimentTypeId"), "type3");
         selectOptionByText(Locator.name("quf_ParentExperiments"), "1");
         selectOptionByText(Locator.name("quf_ParentExperiments"), "2");
         clickButton("Submit");
@@ -233,8 +247,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         setEditInPlaceContent("Description:", "description4");
         assertEquals("description4", getText(getEditInPlaceDisplayField("Description:")));
 
-        setEditInPlaceContent("Experiment Type:", "type4");
-        assertEquals("type4", getText(getEditInPlaceDisplayField("Experiment Type:")));
+        _ext4Helper.selectComboBoxItem(Ext4HelperWD.Locators.formItemWithLabel("Experiment Type:"), true, "type3");
 
         setEditInPlaceContent("Parent Experiments:", "1,100,101");
         sleep(500);
@@ -247,7 +260,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
 
         DataRegionTable q_table = new DataRegionTable("qwp1", this);
         int row = q_table.getRow("Description", "description4");
-        assertEquals("type4", q_table.getDataAsText(row, "ExperimentType"));
+        assertEquals("type3", q_table.getDataAsText(row, "ExperimentType"));
         String parentExps = q_table.getDataAsText(row, "ParentExperiments");
         assertTrue(parentExps.equals("1, 3") || parentExps.equals("3, 1"));
     }

@@ -156,9 +156,10 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         ColumnInfo modifiedCol = addWrapColumn(getRealTable().getColumn("Modified"));
         modifiedCol.setLabel("Modified");
 
-        ColumnInfo experimentTypeCol = addWrapColumn(getRealTable().getColumn("ExperimentType"));
+        ColumnInfo experimentTypeCol = addWrapColumn(getRealTable().getColumn("ExperimentTypeId"));
         experimentTypeCol.setLabel("Experiment Type");
         experimentTypeCol.setUserEditable(true);
+        experimentTypeCol.setFk(new QueryForeignKey(OConnorExperimentsUserSchema.NAME, getContainer().isWorkbook() ? getContainer().getParent() : getContainer(), null, getUserSchema().getUser(), OConnorExperimentsUserSchema.Table.ExperimentType.name(), "RowId", "Name"));
 
         ColumnInfo grantIdCol = addWrapColumn(getRealTable().getColumn("GrantId"));
         grantIdCol.setLabel("Grant");
@@ -207,9 +208,10 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         setDefaultVisibleColumns(Arrays.asList(
                 FieldKey.fromParts("ExperimentNumber"),
                 FieldKey.fromParts("CreatedBy"),
+                FieldKey.fromParts("Created"),
                 FieldKey.fromParts("Modified"),
                 FieldKey.fromParts("Description"),
-                FieldKey.fromParts("ExperimentType"),
+                FieldKey.fromParts("ExperimentTypeId"),
                 FieldKey.fromParts("GrantId"),
                 FieldKey.fromParts("ParentExperiments")
         ));

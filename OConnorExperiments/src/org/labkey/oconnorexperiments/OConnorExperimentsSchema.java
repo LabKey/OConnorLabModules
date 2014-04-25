@@ -24,6 +24,7 @@ public class OConnorExperimentsSchema
 {
     public static final String NAME = "oconnorexperiments";
     public static final String EXPERIMENTS = "Experiments";
+    public static final String EXPERIMENT_TYPE = "ExperimentType";
     private static final OConnorExperimentsSchema _instance = new OConnorExperimentsSchema();
 
     public static OConnorExperimentsSchema getInstance()
@@ -48,6 +49,11 @@ public class OConnorExperimentsSchema
     public SchemaTableInfo createTableInfoExperiments()
     {
         return getSchema().getTable(EXPERIMENTS);
+    }
+
+    public SchemaTableInfo createTableInfoExperimentType()
+    {
+        return getSchema().getTable(EXPERIMENT_TYPE);
     }
 
     public SchemaTableInfo createTableInfoParentExperiments()
