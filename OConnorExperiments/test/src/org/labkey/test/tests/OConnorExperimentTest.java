@@ -32,7 +32,7 @@ import org.labkey.test.Locator;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
-import org.labkey.test.util.Ext4HelperWD;
+import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.PortalHelper;
@@ -247,7 +247,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         setEditInPlaceContent("Description:", "description4");
         assertEquals("description4", getText(getEditInPlaceDisplayField("Description:")));
 
-        _ext4Helper.selectComboBoxItem(Ext4HelperWD.Locators.formItemWithLabel("Experiment Type:"), true, "type3");
+        _ext4Helper.selectComboBoxItem(Ext4Helper.Locators.formItemWithLabel("Experiment Type:"), true, "type3");
 
         setEditInPlaceContent("Parent Experiments:", "1,100,101");
         sleep(500);
