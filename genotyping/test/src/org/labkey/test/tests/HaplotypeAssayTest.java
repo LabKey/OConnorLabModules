@@ -198,11 +198,11 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "ClientAnimalId", "x123,x234,x345,x456,x567");
 
         // verify concatenated haplotype strings
-        assertTextPresent("A001,A023,B015c,B025a");
-        assertTextPresent("A023,A025,B012b,B017a");
-        assertTextPresent("A001,A001,B001c,B017a");
-        assertTextPresent("A004,A023,B012b,B012b");
-        assertTextPresent("A002a,A002a,B002,B002");
+        assertTextPresent("A001, A023, B015c, B025a");
+        assertTextPresent("A023, A025, B012b, B017a");
+        assertTextPresent("A001, A001, B001c, B017a");
+        assertTextPresent("A004, A023, B012b, B012b");
+        assertTextPresent("A002a, A002a, B002, B002");
 
         // verify that the animal and haplotype rows were properly inserted
         goToQuery("Animal");
@@ -235,9 +235,9 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "ClientAnimalId", "x456,x567,x678,x789,x888,x999");
 
         // verify concatenated haplotype strings
-        assertTextPresent("A001,A023,B015c,B025a");
-        assertTextPresent("A033,A033,B012b,B012b");
-        assertTextPresent("A004,B033,B033");   // record with only 3 haplotype assignments
+        assertTextPresent("A001, A023, B015c, B025a");
+        assertTextPresent("A033, A033, B012b, B012b");
+        assertTextPresent("A004, B033, B033");   // record with only 3 haplotype assignments
 
         // verify that the animal and haplotype rows were properly inserted
         goToQuery("Animal");
@@ -282,7 +282,6 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A002a");
         verifyColumnDataValues(drt, "Mamu-BHaplotype1", "B002");
         verifyColumnDataValues(drt, "Mamu-BHaplotype2", "B002");
-        assertTextPresent("A001,A002a,A002a,B002,B002,B002");   // This should always be ordered, see #17077
         drt.clearFilter("AnimalId");
     }
 

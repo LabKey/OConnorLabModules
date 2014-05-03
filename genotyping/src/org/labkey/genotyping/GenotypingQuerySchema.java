@@ -39,6 +39,7 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.query.ExpSchema;
 import org.labkey.api.module.Module;
+import org.labkey.api.query.AliasedColumn;
 import org.labkey.api.query.DefaultQueryUpdateService;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.DetailsURL;
@@ -46,6 +47,7 @@ import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.LookupForeignKey;
+import org.labkey.api.query.QueryForeignKey;
 import org.labkey.api.query.QueryHelper;
 import org.labkey.api.query.QuerySchema;
 import org.labkey.api.query.QuerySettings;
@@ -527,19 +529,10 @@ public class GenotypingQuerySchema extends UserSchema
                 table.init();
                 table.setContainerFilter(table.getContainerFilter());
 
-                SQLFragment haplotypeSubselectSql = new SQLFragment("SELECT aha.AnimalAnalysisId, h.Name AS Haplotype, h.Type FROM ");
-                haplotypeSubselectSql.append(GS.getAnimalHaplotypeAssignmentTable(), "aha");
-                haplotypeSubselectSql.append(" JOIN ");
-                haplotypeSubselectSql.append(GS.getHaplotypeTable(), "h");
-                haplotypeSubselectSql.append(" ON aha.HaplotypeId = h.RowId");
-
-                // add a concatenated string of the haplotypes assigned to the given animalId
-                SQLFragment haplotypeConcatSql = new SQLFragment("(SELECT " + GS.getSqlDialect().getGroupConcat(new SQLFragment("x.Haplotype"), false, true));
-                haplotypeConcatSql.append(" FROM (SELECT y.AnimalAnalysisId, y.Haplotype FROM (");
-                haplotypeConcatSql.append(haplotypeSubselectSql);
-                haplotypeConcatSql.append(") AS y WHERE y.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID) x");
-                haplotypeConcatSql.append(" GROUP BY x.AnimalAnalysisId)");
-                ExprColumn haplotypeConcatCol = new ExprColumn(table, "ConcatenatedHaplotypes", haplotypeConcatSql, JdbcType.VARCHAR);
+                ColumnInfo haplotypeConcatCol = new AliasedColumn(table, "ConcatenatedHaplotypes", table.getColumn("RowId"));
+                haplotypeConcatCol.setKeyField(false);
+                haplotypeConcatCol.setAutoIncrement(false);
+                haplotypeConcatCol.setFk(new MultiValuedForeignKey(new QueryForeignKey(schema, null, TableType.AnimalHaplotypeAssignment.name(), "AnimalAnalysisId", null), "HaplotypeId"));
                 table.addColumn(haplotypeConcatCol);
 
                 // calculated field for % Unknown = (Total Reads - Identified Reads) / Total Reads
@@ -592,6 +585,7 @@ public class GenotypingQuerySchema extends UserSchema
                 table.setContainerFilter(table.getContainerFilter());
 
                 setDefaultVisibleColumns(table, "AnimalAnalysisId/RunId, AnimalAnalysisId/AnimalId, HaplotypeId");
+                table.setDetailsURL(null);
                 table.setDescription("Contains one row per animal/haplotype assignment in a given run");
                 return table;
             }
