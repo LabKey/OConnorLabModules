@@ -15,6 +15,7 @@
  */
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.collections.Sets;
@@ -471,7 +472,7 @@ public class GenotypingQuerySchema extends UserSchema
                     }
 
                     @Override
-                    public boolean hasPermission(UserPrincipal user, Class<? extends Permission> perm)
+                    public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
                     {
                         return schema.getContainer().hasPermission(user, perm);
                     }
