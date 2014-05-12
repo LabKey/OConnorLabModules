@@ -532,7 +532,11 @@ public class GenotypingQuerySchema extends UserSchema
 
                 ColumnInfo haplotypeConcatCol = new AliasedColumn(table, "ConcatenatedHaplotypes", table.getColumn("RowId"));
                 haplotypeConcatCol.setKeyField(false);
+                haplotypeConcatCol.setRequired(false);
                 haplotypeConcatCol.setAutoIncrement(false);
+                haplotypeConcatCol.setRequired(false);
+                haplotypeConcatCol.setNullable(true);
+                haplotypeConcatCol.setCalculated(true);
                 haplotypeConcatCol.setFk(new MultiValuedForeignKey(new QueryForeignKey(schema, null, TableType.AnimalHaplotypeAssignment.name(), "AnimalAnalysisId", null), "HaplotypeId"));
                 table.addColumn(haplotypeConcatCol);
 
