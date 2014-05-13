@@ -17,6 +17,15 @@
                                 (LABKEY.ActionURL.getContainer()), myJsonObject);
                         </onClick>
                     </item>
+                    <item text="All Experiments" insertPosition="end" requiresSelection="false">
+                        <onClick>
+                            var viewFilter = dataRegionName + '.viewName';
+                            var myJsonObject = {};
+                            myJsonObject[viewFilter] = 'default';
+                            window.location = LABKEY.ActionURL.buildURL("project", "begin",
+                                (LABKEY.ActionURL.getContainer()), myJsonObject);
+                        </onClick>
+                    </item>
                 </buttonBarOptions>
             </table>
         </tables>

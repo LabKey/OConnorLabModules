@@ -1,3 +1,4 @@
+<div id="navTrailAncestors"></div>
 <div id="dashPanel"></div>
 
 <div>
@@ -10,15 +11,18 @@
 </div>
 
 <script type="text/javascript">
-    // Set the navtrail and page title
-    LABKEY.NavTrail.setTrail("<span>Experiment " + LABKEY.container.title + "</span>", undefined, "Experiment " + LABKEY.container.title);
-
     var initPanel = function(data){
         if (data.rows.length > 0) {
             var experimentData = data.rows[0];
             var createdString = 'Created ' + experimentData.Created + ' by ' + experimentData['CreatedBy/DisplayName'];
             var description = experimentData.Description;
             var parentExperiments = experimentData['ParentExperiments/ExperimentNumber'];
+            var parentLinks = [];
+            for (var index = 0; index < parentExperiments.length; index++) {
+                parentLinks.push({title: 'Parent ' + parentExperiments[index], url: "<%=contextPath%>/project<%=containerPath%>/../" + parentExperiments[index] + "/begin.view"});
+            }
+            // Set the navtrail and page title
+            LABKEY.NavTrail.setTrail("<span>Experiment " + LABKEY.container.title + "</span>", parentLinks, "Experiment " + LABKEY.container.title);
             var experimentTypeId = experimentData.ExperimentTypeId;
             var changeCallback = function(name, newValue, oldValue, failureCb, scope){
                 //console.log(name, newValue, oldValue);
@@ -89,7 +93,7 @@
                 }
             });
 
-            var parentExperiments = Ext4.create('LABKEY.ocexp.internal.InPlaceText', {
+            var parentExperimentsText = Ext4.create('LABKEY.ocexp.internal.InPlaceText', {
                 flex: 1,
                 labelWidth: 130,
                 margin: '0 10 0 5',
@@ -151,7 +155,7 @@
                 border: false,
                 frame: false,
                 layout: 'hbox',
-                items: [experimentTypeCombo, parentExperiments, grantCombo]
+                items: [experimentTypeCombo, parentExperimentsText, grantCombo]
             });
             var description = Ext4.create('LABKEY.ocexp.internal.InPlaceTextArea', {
                 fieldLabel: 'Description',
