@@ -18,9 +18,9 @@ package org.labkey.test.tests;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
@@ -275,7 +275,7 @@ public class GenotypingTest extends BaseWebDriverTest
         {
             Locator.XPathLocator l =  Locator.tagWithText("div", allele);
             isElementPresent(l);
-            assertEquals(1, getXpathCount(l));
+            assertEquals(1, getElementCount(l));
         }
 
         //click some checkboxes
@@ -392,22 +392,23 @@ public class GenotypingTest extends BaseWebDriverTest
         log("Verifying FASTQ and ZIP export");
 
         String url = WebTestHelper.getBaseURL() + "/genotyping/" + getProjectName() + "/mergeFastqFiles.view";
-        HttpClient httpClient = WebTestHelper.getHttpClient();
+        List<NameValuePair> args;
         HttpContext context = WebTestHelper.getBasicHttpContext();
-        HttpPost method = null;
+        HttpPost method;
         HttpResponse response = null;
+        SelectRowsResponse resp;
 
-        try
+        try (CloseableHttpClient httpClient = (CloseableHttpClient)WebTestHelper.getHttpClient())
         {
             ExecuteSqlCommand cmd = new ExecuteSqlCommand("genotyping", "SELECT s.* from genotyping.SequenceFiles s LEFT JOIN (select max(rowid) as rowid from genotyping.Runs r WHERE platform = 'Illumina' group by rowid) r ON r.rowid = s.run");
             Connection cn = new Connection(getBaseURL(), PasswordUtil.getUsername(), PasswordUtil.getPassword());
 
-            SelectRowsResponse resp = cmd.execute(cn, getProjectName());
+            resp = cmd.execute(cn, getProjectName());
             assertTrue("Wrong number of files found.  Expected 30, found " + resp.getRows().size(), resp.getRows().size() == 30);
 
             //first try FASTQ merge
             method = new HttpPost(url);
-            List<NameValuePair> args = new ArrayList<>();
+            args = new ArrayList<>();
             for (Map<String, Object> row : resp.getRows())
             {
                 args.add(new BasicNameValuePair("dataIds", row.get("DataId").toString()));
@@ -429,21 +430,25 @@ public class GenotypingTest extends BaseWebDriverTest
                     BufferedReader br = new BufferedReader(new InputStreamReader(gz)))
             {
                 int count = 0;
-                String thisLine;
-                while ((thisLine = br.readLine()) != null)
+                while (br.readLine() != null)
                 {
                     count++;
                 }
 
                 int expectedLength = 1088;
-                assertTrue("Length of file doesnt match expected value of "+expectedLength+", was: " + count, count == expectedLength);
-
-                EntityUtils.consume(response.getEntity());
+                assertTrue("Length of file doesnt match expected value of " + expectedLength + ", was: " + count, count == expectedLength);
             }
+        }
+        finally
+        {
+            if (null != response)
+                EntityUtils.consume(response.getEntity());
+        }
 
+        try (CloseableHttpClient httpClient = (CloseableHttpClient)WebTestHelper.getHttpClient())
+        {
             //then ZIP export
             url = WebTestHelper.getBaseURL() + "/experiment/" + getProjectName() + "/exportFiles.view";
-            httpClient = WebTestHelper.getHttpClient();
 
             method = new HttpPost(url);
             args = new ArrayList<>();
@@ -455,7 +460,7 @@ public class GenotypingTest extends BaseWebDriverTest
             args.add(new BasicNameValuePair("zipFileName", "genotypingZipExport"));
             method.setEntity(new UrlEncodedFormEntity(args));
             response = httpClient.execute(method, context);
-            status = response.getStatusLine().getStatusCode();
+            int status = response.getStatusLine().getStatusCode();
             assertEquals("Status code was incorrect", HttpStatus.SC_OK, status);
             assertEquals("Response header incorrect", "attachment; filename=\"genotypingZipExport\"", response.getHeaders("Content-Disposition")[0].getValue());
             assertEquals("Response header incorrect", "application/zip;charset=UTF-8", response.getHeaders("Content-Type")[0].getValue());
@@ -464,8 +469,6 @@ public class GenotypingTest extends BaseWebDriverTest
         {
             if (null != response)
                 EntityUtils.consume(response.getEntity());
-            if (httpClient != null)
-                httpClient.getConnectionManager().shutdown();
         }
     }
 
