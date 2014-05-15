@@ -135,11 +135,11 @@ public class HaplotypeAssayTest extends GenotypingTest
             int columnIndex = 9;
             for(String[] haplotype : extraHaplotypes)
             {
-                _listHelper.addField("Run", columnIndex++, haplotype[0] + "1", haplotype[1] + " 1", ListHelper.ListColumnType.String);
+                _listHelper.addField("Run Fields", columnIndex++, haplotype[0] + "1", haplotype[1] + " 1", ListHelper.ListColumnType.String);
                 click(Locator.xpath("(//span[@id='propertyShownInInsert']/input)[2]"));
                 click(Locator.xpath("(//span[@id='propertyShownInUpdate']/input)[2]"));
 
-                _listHelper.addField("Run", columnIndex++, haplotype[0] + "2", haplotype[1]  + " 2", ListHelper.ListColumnType.String);
+                _listHelper.addField("Run Fields", columnIndex++, haplotype[0] + "2", haplotype[1]  + " 2", ListHelper.ListColumnType.String);
                 click(Locator.xpath("(//span[@id='propertyShownInInsert']/input)[2]"));
                 click(Locator.xpath("(//span[@id='propertyShownInUpdate']/input)[2]"));
             }
