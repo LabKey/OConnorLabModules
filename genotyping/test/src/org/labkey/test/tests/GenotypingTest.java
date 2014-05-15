@@ -442,7 +442,7 @@ public class GenotypingTest extends BaseWebDriverTest
         finally
         {
             if (null != response)
-                EntityUtils.consume(response.getEntity());
+                EntityUtils.consumeQuietly(response.getEntity());
         }
 
         try (CloseableHttpClient httpClient = (CloseableHttpClient)WebTestHelper.getHttpClient())
@@ -468,7 +468,7 @@ public class GenotypingTest extends BaseWebDriverTest
         finally
         {
             if (null != response)
-                EntityUtils.consume(response.getEntity());
+                EntityUtils.consumeQuietly(response.getEntity());
         }
     }
 
