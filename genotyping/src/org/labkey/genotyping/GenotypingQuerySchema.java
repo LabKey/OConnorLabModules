@@ -96,7 +96,7 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 FilteredTable table = new FilteredTable<>(GS.getRunsTable(), schema);
                 table.wrapAllColumns(true);
-                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer()));
+                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer(), true));
                 setDefaultVisibleColumns(table, "RowId, MetaDataId, Created, CreatedBy");
                 //TODO
                 //table.setDetailsURL(DetailsURL.fromString(c, "/genotyping/runs.view?run=${RowId}"));
@@ -251,7 +251,7 @@ public class GenotypingQuerySchema extends UserSchema
                 table.setContainerFilter(table.getContainerFilter());
 
                 table.wrapAllColumns(true);
-                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer()));
+                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer(), true));
                 SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getAnalysesTable() + ".Run) = ?");
                 containerCondition.add(schema.getContainer().getId());
                 table.addCondition(containerCondition);
@@ -478,8 +478,8 @@ public class GenotypingQuerySchema extends UserSchema
                     }
                 };
                 table.wrapAllColumns(true);
-                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer()));
-                table.getColumn("ModifiedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer()));
+                table.getColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer(), true));
+                table.getColumn("ModifiedBy").setFk(new UserIdQueryForeignKey(schema.getUser(), schema.getContainer(), true));
 
                 setDefaultVisibleColumns(table, "Name, Json, Editable");
                 table.setDescription("Contains one row per saved illumina import template");

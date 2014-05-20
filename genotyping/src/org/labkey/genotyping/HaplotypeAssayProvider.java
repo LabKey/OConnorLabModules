@@ -72,8 +72,8 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
 
     public static final HaplotypeColumnMappingProperty LAB_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty("labAnimalId", "Lab Animal ID", true);
     public static final HaplotypeColumnMappingProperty CLIENT_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty("clientAnimalId", "Client Animal ID", false);
-    public static final HaplotypeColumnMappingProperty TOTAL_READS_COLUMN = new HaplotypeColumnMappingProperty("totalReads", "Total # Reads Evaluated", true);
-    public static final HaplotypeColumnMappingProperty IDENTIFIED_READS_COLUMN = new HaplotypeColumnMappingProperty("identifiedReads","Total # Reads Identified", true);
+    public static final HaplotypeColumnMappingProperty TOTAL_READS_COLUMN = new HaplotypeColumnMappingProperty("totalReads", "Total # Reads Evaluated", false);
+    public static final HaplotypeColumnMappingProperty IDENTIFIED_READS_COLUMN = new HaplotypeColumnMappingProperty("identifiedReads","Total # Reads Identified", false);
     public static final HaplotypeColumnMappingProperty[] HAPLOTYPE_COLUMNS = {
             new HaplotypeColumnMappingProperty("mamuAHaplotype1", "Mamu-A Haplotype 1", true),
             new HaplotypeColumnMappingProperty("mamuAHaplotype2", "Mamu-A Haplotype 2", true),
