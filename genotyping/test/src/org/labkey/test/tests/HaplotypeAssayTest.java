@@ -126,7 +126,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         goToProjectHome();
         goToManageAssays();
         clickButton("New Assay Design");
-        checkRadioButton("providerName", "Haplotype");
+        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Haplotype"));
         clickButton("Next");
         waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
 
@@ -394,7 +394,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         // this method assumes that we are already viewing the Assay results grid
         drt = new DataRegionTable("Data", this);
         drt.setFilter("AnimalId", "Equals", id);
-        checkCheckbox(".select");
+        checkCheckbox(Locator.checkboxByName(".select"));
         clickButton("Produce Report");
         waitForText("Enter the animal IDs separated by whitespace, comma, or semicolon:");
         Locator dr = Locator.id("dataregion_report");
