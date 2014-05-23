@@ -23,10 +23,12 @@ import org.labkey.api.collections.RowMapFactory;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.CoreSchema;
 import org.labkey.api.data.Filter;
 import org.labkey.api.data.JdbcType;
+import org.labkey.api.data.LookupColumn;
 import org.labkey.api.data.MultiValuedForeignKey;
 import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.SimpleFilter;
@@ -118,6 +120,12 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         return (ExperimentsTable)super.init();
     }
 
+    @Override
+    protected void applyContainerFilter(ContainerFilter filter)
+    {
+        // No-op - rely on the fact that we're doing an INNER JOIN to the core.containers table for our filtering
+    }
+
     public void addColumns()
     {
         ColumnInfo containerCol = addWrapColumn(getRealTable().getColumn("Container"));
@@ -126,7 +134,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         containerCol.setSortFieldKeys(Collections.singletonList(FieldKey.fromParts("ExperimentNumber")));
         containerCol.setSortDirection(Sort.SortDirection.DESC);
 
-        _extension = TableExtension.create(this, _workbooksTable, "Container", "EntityId");
+        _extension = TableExtension.create(this, _workbooksTable, "Container", "EntityId", LookupColumn.JoinType.inner);
 
         ColumnInfo idCol = _extension.addExtensionColumn("ID", "ID");
         idCol.setLabel("ID");

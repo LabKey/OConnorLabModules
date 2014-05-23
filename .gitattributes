@@ -11,6 +11,7 @@ OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-0.0
 OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-13.10-13.20.sql -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-13.20-13.30.sql -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-14.10-14.11.sql -text
+OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-14.11-14.12.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/obsolete/oconnorexperiments-13.10-13.11.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/obsolete/oconnorexperiments-13.11-13.12.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/obsolete/oconnorexperiments-13.20-13.21.sql -text
@@ -18,6 +19,7 @@ OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-0.00
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-13.10-13.20.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-13.20-13.30.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-14.10-14.11.sql -text
+OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-14.11-14.12.sql -text
 OConnorExperiments/resources/schemas/oconnorexperiments.xml -text
 OConnorExperiments/resources/views/Experiment[!!-~]Field.webpart.xml -text
 OConnorExperiments/resources/views/experimentField.html -text

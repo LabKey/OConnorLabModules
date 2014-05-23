@@ -7,11 +7,11 @@
                 <buttonBarOptions position="both" includeStandardButtons="true">
                     <item text="My Experiments" insertPosition="end" requiresSelection="false">
                         <onClick>
-                            var userId = LABKEY.Security.currentUser.id;
+                            var displayName = LABKEY.Security.currentUser.displayName;
                             var viewFilter = dataRegionName + '.viewName';
-                            var createdFilter = dataRegionName + '.CreatedBy/UserId~eq';
+                            var createdFilter = dataRegionName + '.CreatedBy/DisplayName~eq';
                             var myJsonObject = {};
-                            myJsonObject[createdFilter] = userId;
+                            myJsonObject[createdFilter] = displayName;
                             myJsonObject[viewFilter] = 'BlankExperiments';
                             window.location = LABKEY.ActionURL.buildURL("project", "begin",
                                 (LABKEY.ActionURL.getContainer()), myJsonObject);
