@@ -15,8 +15,8 @@
  */
 package org.labkey.genotyping;
 
-import org.junit.Assert;
 import org.apache.log4j.Logger;
+import org.junit.Assert;
 import org.junit.Test;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.CaseInsensitiveTreeMap;
@@ -24,6 +24,7 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlExecutor;
+import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.ExperimentException;
@@ -197,10 +198,19 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             String animalKey = row.get(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()).toString();
 
             // first check if the animal row exists
-            Integer rowId = new TableSelector(tinfo, Collections.singleton("RowID"), new SimpleFilter(FieldKey.fromParts(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()), animalKey), null).getObject(Integer.class);
-            if (rowId != null)
+            Map<String, Object> existingAnimal = new TableSelector(tinfo, Table.ALL_COLUMNS, new SimpleFilter(FieldKey.fromParts(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()), animalKey), null).getObject(Map.class);
+            if (existingAnimal != null)
             {
+                Object rowId = existingAnimal.get("RowId");
+                if (rowId == null)
+                {
+                    throw new IllegalStateException("Could not find RowId in existing row for animal " + animalKey);
+                }
                 row.put("RowId", rowId);
+
+                mergeIncomingAnimalInfoIntoExisting(row, existingAnimal);
+                // Push the merged animal info back to the database
+                updateService.updateRows(user, container, Collections.singletonList(existingAnimal), Collections.singletonList(row), null);
             }
             else
             {
@@ -226,6 +236,18 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             }
         }
         return map;
+    }
+
+    private void mergeIncomingAnimalInfoIntoExisting(Map<String, Object> incomingAnimal, Map<String, Object> existingAnimal)
+    {
+        for (String animalPropertyName : new HashSet<>(incomingAnimal.keySet()))
+        {
+            // If the incoming animal record has a property set, transfer its value into the existing animal row
+            if (incomingAnimal.get(animalPropertyName) != null)
+            {
+                existingAnimal.put(animalPropertyName, incomingAnimal.get((animalPropertyName)));
+            }
+        }
     }
 
     private Map<String, Integer> ensureHaplotypeNames(List<Pair<String, String>> haplotypes, User user, Container container) throws Exception

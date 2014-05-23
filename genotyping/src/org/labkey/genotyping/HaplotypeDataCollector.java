@@ -76,11 +76,7 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
     {
         ExpProtocol protocol = context.getProtocol();
         String data = context.getRequest().getParameter(HaplotypeAssayProvider.DATA_PROPERTY_NAME);
-        if (data == null)
-        {
-            return null;
-        }
-        if (data.equals(""))
+        if (data == null || data.trim().isEmpty())
         {
             throw new ExperimentException("Data contained zero data rows");
         }
