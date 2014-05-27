@@ -129,7 +129,9 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
     public void addColumns()
     {
         ColumnInfo containerCol = addWrapColumn(getRealTable().getColumn("Container"));
-        containerCol.setFk(new QueryForeignKey(_workbooksTable, null, "EntityId", null));
+        QueryForeignKey containerFK = new QueryForeignKey(_workbooksTable, null, "EntityId", null);
+        containerFK.setJoinType(LookupColumn.JoinType.inner);
+        containerCol.setFk(containerFK);
         containerCol.setHidden(true);
         containerCol.setSortFieldKeys(Collections.singletonList(FieldKey.fromParts("ExperimentNumber")));
         containerCol.setSortDirection(Sort.SortDirection.DESC);
