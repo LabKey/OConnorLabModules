@@ -33,7 +33,6 @@ import org.labkey.api.security.User;
 import org.labkey.api.security.UserManager;
 import org.labkey.api.sequence.IlluminaFastqParser;
 import org.labkey.api.settings.LookAndFeelProperties;
-import org.labkey.api.util.Compress;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.MailHelper;
 import org.labkey.api.util.Pair;
@@ -238,8 +237,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles();
                 Map<Pair<Integer, Integer>, Integer> readcounts = parser.getReadCounts();
 
-                info("Created " + fileMap.keySet().size() + " FASTQ files");
-                info("Compressing FASTQ files");
+                info("Recording records for each FASTQ file");
 
                 //GZIP and create record for each file
                 Map<String, Object> row;
@@ -258,11 +256,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
                     }
 
                     File input = fileMap.get(sampleKey);
-                    File output = Compress.compressGzip(input);
-                    input.delete();
-
-                    if (input.exists())
-                        throw new PipelineJobException("Unable to delete file: " + input.getPath());
+                    File output = input;
 
                     ExpData data = ExperimentService.get().createData(getContainer(), new DataType("Illumina FASTQ File " + sampleKey.getValue()));
                     data.setDataFileURI(output.toURI());
