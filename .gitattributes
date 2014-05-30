@@ -147,6 +147,7 @@ genotyping/src/org/labkey/genotyping/HaplotypeDataCollector.java -text
 genotyping/src/org/labkey/genotyping/HaplotypeDataHandler.java -text
 genotyping/src/org/labkey/genotyping/HaplotypeProtocolBean.java -text
 genotyping/src/org/labkey/genotyping/HaplotypeProtocolSchema.java -text
+genotyping/src/org/labkey/genotyping/IlluminaFastqParser.java -text
 genotyping/src/org/labkey/genotyping/Import454ReadsJob.java -text
 genotyping/src/org/labkey/genotyping/Import454ReadsPipelineProvider.java -text
 genotyping/src/org/labkey/genotyping/ImportAnalysisJob.java -text

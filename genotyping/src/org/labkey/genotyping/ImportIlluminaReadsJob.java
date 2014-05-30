@@ -31,7 +31,6 @@ import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.security.User;
 import org.labkey.api.security.UserManager;
-import org.labkey.api.sequence.IlluminaFastqParser;
 import org.labkey.api.settings.LookAndFeelProperties;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.MailHelper;
