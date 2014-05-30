@@ -20,24 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.RowMapFactory;
-import org.labkey.api.data.ColumnInfo;
-import org.labkey.api.data.CompareType;
-import org.labkey.api.data.Container;
-import org.labkey.api.data.ContainerFilter;
-import org.labkey.api.data.ContainerManager;
-import org.labkey.api.data.CoreSchema;
-import org.labkey.api.data.Filter;
-import org.labkey.api.data.JdbcType;
-import org.labkey.api.data.LookupColumn;
-import org.labkey.api.data.MultiValuedForeignKey;
-import org.labkey.api.data.SchemaTableInfo;
-import org.labkey.api.data.SimpleFilter;
-import org.labkey.api.data.Sort;
-import org.labkey.api.data.SqlExecutor;
-import org.labkey.api.data.TableExtension;
-import org.labkey.api.data.TableInfo;
-import org.labkey.api.data.TableSelector;
-import org.labkey.api.data.UpdateableTableInfo;
+import org.labkey.api.data.*;
 import org.labkey.api.etl.DataIterator;
 import org.labkey.api.etl.DataIteratorBuilder;
 import org.labkey.api.etl.DataIteratorContext;
@@ -49,9 +32,9 @@ import org.labkey.api.etl.ValidatorIterator;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.AbstractQueryUpdateService;
 import org.labkey.api.query.BatchValidationException;
-import org.labkey.api.query.ExtendedTableUpdateService;
 import org.labkey.api.query.DetailsURL;
 import org.labkey.api.query.DuplicateKeyException;
+import org.labkey.api.query.ExtendedTableUpdateService;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryForeignKey;
@@ -102,6 +85,10 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         setName(name);
 
         _workbooksTable = extensionTable;
+        // For query performance reasons, we're relying on the container filter on the core.containers table (which is
+        // INNER JOINed to the oconnorexperiment.experiments table). We don't want to include workbooks from the parent
+        // when viewing the query, which isn't the normal behavior, so explicitly configure the ContainerFilter here.
+        ((ContainerFilterable) _workbooksTable).setContainerFilter(new DelegatingContainerFilter(this, false));
     }
 
     public static TableInfo create(OConnorExperimentsUserSchema schema, String name)
