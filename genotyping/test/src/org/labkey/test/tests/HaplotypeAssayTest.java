@@ -25,9 +25,12 @@ import org.labkey.test.util.ListHelper;
 import org.labkey.test.util.LogMethod;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @Category({CustomModules.class})
 public class HaplotypeAssayTest extends GenotypingTest
@@ -71,11 +74,11 @@ public class HaplotypeAssayTest extends GenotypingTest
 
         clickAndWait(Locator.linkWithText(DRB_RUN));
         DataRegionTable drt = new DataRegionTable("Data", this);
-//        String[] DR?B1 =
-        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001,A023,A001,A004,A002a");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023,A025,A001,A023,A002a");
-        verifyColumnDataValues(drt, "DRB Haplotype 1", "D015c,D012b,D001c,D012b,D002");
-        verifyColumnDataValues(drt, "DRB Haplotype 2", "D025a,D017a,D017a,D012b,D002");
+
+        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
+        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023", "A025", "A001", "A023", "A002a");
+        verifyColumnDataValues(drt, "DRB Haplotype 1", "D015c", "D012b", "D001c", "D012b", "D002");
+        verifyColumnDataValues(drt, "DRB Haplotype 2", "D025a", "D017a", "D017a", "D012b", "D002");
     }
  
     @Override
@@ -186,32 +189,42 @@ public class HaplotypeAssayTest extends GenotypingTest
         _customizeViewsHelper.saveCustomView();
 
         DataRegionTable drt = new DataRegionTable("Data", this);
-        verifyColumnDataValues(drt, "Animal", "ID-1,ID-2,ID-3,ID-4,ID-5");
-        verifyColumnDataValues(drt, "TotalReads", "1000,2000,3000,4000,5000");
-        verifyColumnDataValues(drt, "IdentifiedReads", "300,1000,600,2500,3250");
-        verifyColumnDataValues(drt, "%Unknown", "70.0,50.0,80.0,37.5,35.0");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001,A023,A001,A004,A002a");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023,A025,A001,A023,A002a");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype1", "B015c,B012b,B001c,B012b,B002");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype2", "B025a,B017a,B017a,B012b,B002");
-        verifyColumnDataValues(drt, "Enabled", "true,true,true,true,true");
-        verifyColumnDataValues(drt, "ClientAnimalId", "x123,x234,x345,x456,x567");
+        verifyColumnDataValues(drt, "Animal", "ID-1", "ID-2", "ID-3", "ID-4", "ID-5");
+        verifyColumnDataValues(drt, "TotalReads", "1000", "2000", "3000", "4000", "5000");
+        verifyColumnDataValues(drt, "IdentifiedReads", "300", "1000", "600", "2500", "3250");
+        verifyColumnDataValues(drt, "%Unknown", "70.0", "50.0", "80.0", "37.5", "35.0");
+        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
+        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023", "A025", "A001", "A023", "A002a");
+        verifyColumnDataValues(drt, "Mamu-BHaplotype1", "B015c", "B012b", "B001c", "B012b", "B002");
+        verifyColumnDataValues(drt, "Mamu-BHaplotype2", "B025a", "B017a", "B017a", "B012b", "B002");
+        verifyColumnDataValues(drt, "Enabled", "true", "true", "true", "true", "true");
+        verifyColumnDataValues(drt, "ClientAnimalId", "x123", "x234", "x345", "x456", "x567");
 
         // verify concatenated haplotype strings
-        assertTextPresent("A001, A023, B015c, B025a");
-        assertTextPresent("A023, A025, B012b, B017a");
-        assertTextPresent("A001, A001, B001c, B017a");
-        assertTextPresent("A004, A023, B012b, B012b");
-        assertTextPresent("A002a, A002a, B002, B002");
+        List<String> concatenated = drt.getColumnDataAsText("ConcatenatedHaplotypes");
+        assertEquals("Wrong number of data rows", 5, concatenated.size());
+        verifyStringContains(concatenated.get(0), "A001", "A023", "B015c", "B025a");
+        verifyStringContains(concatenated.get(1), "A023", "A025", "B012b", "B017a");
+        verifyStringContains(concatenated.get(2), "A001", "A001", "B001c", "B017a");
+        verifyStringContains(concatenated.get(3), "A004", "A023", "B012b", "B012b");
+        verifyStringContains(concatenated.get(4), "A002a", "A002a", "B002", "B002");
 
         // verify that the animal and haplotype rows were properly inserted
         goToQuery("Animal");
         drt = new DataRegionTable("query", this);
         assertEquals("Unexpected number of Animal records", 5, drt.getDataRowCount());
-        verifyColumnDataValues(drt, "Lab Animal Id", "ID-1,ID-2,ID-3,ID-4,ID-5");
-        verifyColumnDataValues(drt, "Client Animal Id", "x123,x234,x345,x456,x567");
+        verifyColumnDataValues(drt, "Lab Animal Id", "ID-1", "ID-2", "ID-3", "ID-4", "ID-5");
+        verifyColumnDataValues(drt, "Client Animal Id", "x123", "x234", "x345", "x456", "x567");
 
         verifyHaplotypeRecordsByType(11, 5, 6);
+    }
+
+    private void verifyStringContains(String string, String... substrings)
+    {
+        for (String substring : substrings)
+        {
+            assertTrue("'" + string + "' does not contain '" + substring + "'", string.contains(substring));
+        }
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
@@ -223,28 +236,30 @@ public class HaplotypeAssayTest extends GenotypingTest
         goToAssayRun("second run");
 
         DataRegionTable drt = new DataRegionTable("Data", this);
-        verifyColumnDataValues(drt, "Animal", "ID-4,ID-5,ID-6,ID-7,ID-8,ID-9");
-        verifyColumnDataValues(drt, "TotalReads", "4000,5000,6000,7000, ,0");
-        verifyColumnDataValues(drt, "IdentifiedReads", "2500,3250,3000,3500, ,1");
-        verifyColumnDataValues(drt, "%Unknown", "37.5,35.0,50.0,50.0, , ");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001, ,A033,A004,A004,A004");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023, ,A033,A004,A004,A004");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype1", "B015c, ,B012b,B033,B033,B033");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype2", "B025a, ,B012b,B033,B033,B033");
-        verifyColumnDataValues(drt, "Enabled", "true,true,true,true,true,true");
-        verifyColumnDataValues(drt, "ClientAnimalId", "x456,x567,x678,x789,x888,x999");
+        verifyColumnDataValues(drt, "Animal", "ID-4", "ID-5", "ID-6", "ID-7", "ID-8", "ID-9");
+        verifyColumnDataValues(drt, "TotalReads", "4000", "5000", "6000", "7000", " ", "0");
+        verifyColumnDataValues(drt, "IdentifiedReads", "2500", "3250", "3000", "3500", " ", "1");
+        verifyColumnDataValues(drt, "%Unknown", "37.5", "35.0", "50.0", "50.0", " ", " ");
+        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001", " ", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023", " ", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, "Mamu-BHaplotype1", "B015c", " ", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, "Mamu-BHaplotype2", "B025a", " ", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, "Enabled", "true", "true", "true", "true", "true", "true");
+        verifyColumnDataValues(drt, "ClientAnimalId", "x456", "x567", "x678", "x789", "x888", "x999");
 
         // verify concatenated haplotype strings
-        assertTextPresent("A001, A023, B015c, B025a");
-        assertTextPresent("A033, A033, B012b, B012b");
-        assertTextPresent("A004, B033, B033");   // record with only 3 haplotype assignments
+        List<String> concatenated = drt.getColumnDataAsText("ConcatenatedHaplotypes");
+        assertEquals("Wrong number of data rows", 6, concatenated.size());
+        verifyStringContains(concatenated.get(0), "A001", "A023", "B015c", "B025a");
+        verifyStringContains(concatenated.get(2), "A033", "A033", "B012b", "B012b");
+        verifyStringContains(concatenated.get(3), "A004", "B033", "B033"); // Record with only 3 haplotypes
 
         // verify that the animal and haplotype rows were properly inserted
         goToQuery("Animal");
         drt = new DataRegionTable("query", this);
         assertEquals("Unexpected number of Animal records", 9, drt.getDataRowCount());
-        verifyColumnDataValues(drt, "LabAnimalId", "ID-1,ID-2,ID-3,ID-4,ID-5,ID-6,ID-7,ID-8,ID-9");
-        verifyColumnDataValues(drt, "ClientAnimalId", "x123,x234,x345,x456,x567,x678,x789,x888,x999");
+        verifyColumnDataValues(drt, "LabAnimalId", "ID-1", "ID-2", "ID-3", "ID-4", "ID-5", "ID-6", "ID-7", "ID-8", "ID-9");
+        verifyColumnDataValues(drt, "ClientAnimalId", "x123", "x234", "x345", "x456", "x567", "x678", "x789", "x888", "x999");
 
         verifyHaplotypeRecordsByType(13, 6, 7);
     }
@@ -304,13 +319,13 @@ public class HaplotypeAssayTest extends GenotypingTest
         waitForElement(dr);
         DataRegionTable drt = new DataRegionTable("report", this);
         assertTextPresentInThisOrder("A001", "B001c", "B017a");
-        verifyColumnDataValues(drt, "ID-3", "2,1,1");
+        verifyColumnDataValues(drt, "ID-3", "2", "1", "1");
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Client Animal ID");
         clickButton("Submit", 0);
         waitForText("x345");
         drt = new DataRegionTable("report", this);
         assertTextPresentInThisOrder("A001","B001c","B017a");
-        verifyColumnDataValues(drt, "x345", "2,1,1");
+        verifyColumnDataValues(drt, "x345", "2", "1", "1");
 
         // test with IDs that only have one result
         _ext4Helper.selectComboBoxItem("Search for animal IDs by:", "Client Animal ID");
@@ -339,8 +354,8 @@ public class HaplotypeAssayTest extends GenotypingTest
         waitForElement(Locator.paginationText(1, 8, 8));
         waitForText("Warning: multiple enabled assay results were found for the following IDs: ID-4 (2), ID-5 (2)");
         drt = new DataRegionTable("report", this);
-        verifyColumnDataValues(drt, "ID-4", "1, ,1,2, ,2,1,1");
-        verifyColumnDataValues(drt, "ID-5", "1,2, , ,3, , , ");
+        verifyColumnDataValues(drt, "ID-4", "1", " ", "1", "2", " ", "2", "1" ,"1");
+        verifyColumnDataValues(drt, "ID-5", "1", "2", " ", " ", "3", " ", " ", " ");
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
@@ -423,21 +438,9 @@ public class HaplotypeAssayTest extends GenotypingTest
         drt.clearFilter("Type");
     }
 
-    private void verifyColumnDataValues(DataRegionTable drt, String colName, String valueStr)
+    private void verifyColumnDataValues(DataRegionTable drt, String colName, String... values)
     {
-        assertEquals("Unexpected values in " + colName + " column", valueStr, listToConcatString(drt.getColumnDataAsText(colName)));
-    }
-
-    private String listToConcatString(List<String> list)
-    {
-        String str = "";
-        String sep = "";
-        for (String s : list)
-        {
-            str += sep + s;
-            sep = ",";
-        }
-        return str;
+        assertEquals("Unexpected values in " + colName + " column", Arrays.asList(values), drt.getColumnDataAsText(colName));
     }
 
     @LogMethod
