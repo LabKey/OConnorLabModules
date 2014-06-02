@@ -17,28 +17,13 @@
 package org.labkey.genotyping;
 
 import org.labkey.api.data.Container;
-import org.labkey.api.data.ContainerManager.ContainerListener;
+import org.labkey.api.data.ContainerManager;
 import org.labkey.api.security.User;
 
-import java.beans.PropertyChangeEvent;
-
-public class GenotypingContainerListener implements ContainerListener
+public class GenotypingContainerListener extends ContainerManager.AbstractContainerListener
 {
-    public void containerCreated(Container c, User user)
-    {
-    }
-
     public void containerDeleted(Container c, User user)
     {
         GenotypingManager.get().delete(c);
-    }
-
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-    }
-
-    @Override
-    public void containerMoved(Container c, Container oldParent, User user)
-    {        
     }
 }
