@@ -234,7 +234,7 @@ LABKEY.ocexp.internal.Experiment = new function () {
             if (exps == "") { // Empty string is ok, it just means we don't have any parents.
                 exps = [];
             } else {
-                var parts = exps.split(',');
+                var parts = exps.split(/[\s;,]+/);
                 for (var i = 0; i < parts.length; i++)
                 {
                     var part = parts[i];
