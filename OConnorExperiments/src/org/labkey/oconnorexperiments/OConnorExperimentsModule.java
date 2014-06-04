@@ -96,7 +96,7 @@ public class OConnorExperimentsModule extends DefaultModule
                     @Override
                     public boolean isAvailable(Container c, String location)
                     {
-                        return !c.isWorkbook() && location.equalsIgnoreCase(HttpView.BODY);
+                        return super.isAvailable(c, location) && !c.isWorkbook() && location.equalsIgnoreCase(HttpView.BODY);
                     }
                 }
         ));
