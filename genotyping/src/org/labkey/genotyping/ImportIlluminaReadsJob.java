@@ -197,16 +197,16 @@ public class ImportIlluminaReadsJob extends PipelineJob
                     if (!inSamples)
                         continue;
 
-                    if (nextLine.length == 0 || null == nextLine[0])
+                    if (nextLine.length == 0 || null == nextLine[0] || nextLine[0].trim().isEmpty())
                         continue;
 
-                    if ("Sample_ID".equalsIgnoreCase(nextLine[0]))
+                    if ("Sample_ID".equalsIgnoreCase(nextLine[0].trim()))
                         continue;
 
                     int sampleId;
                     try
                     {
-                        sampleId = Integer.parseInt(nextLine[0]);
+                        sampleId = Integer.parseInt(nextLine[0].trim());
 
                         if (!finder.isValidSampleKey(sampleId))
                             throw new PipelineJobException("Invalid sample Id for this run: " + nextLine[0]);
