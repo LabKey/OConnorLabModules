@@ -78,6 +78,7 @@ Ext4.define('LABKEY.Genotyping.RunExportWindow', {
                     allowBlank: false,
                     fieldLabel: 'File Prefix',
                     itemId: 'fileName',
+                    name: 'filePrefix',
                     value: 'Sequences'
                 },{
                     xtype: 'radiogroup',
@@ -105,7 +106,7 @@ Ext4.define('LABKEY.Genotyping.RunExportWindow', {
             },{
                 text: 'Cancel',
                 handler: function(btn){
-                    btn.up('window').hide();
+                    btn.up('window').destroy();
                 }
             }]
         });
@@ -148,6 +149,6 @@ Ext4.define('LABKEY.Genotyping.RunExportWindow', {
         });
         form.submit();
 
-        win.hide();
+        win.destroy();
     }
 })

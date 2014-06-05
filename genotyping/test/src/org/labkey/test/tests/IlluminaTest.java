@@ -34,18 +34,25 @@ import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
+import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.ext4cmp.Ext4FieldRef;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipInputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -56,7 +63,7 @@ public class IlluminaTest extends GenotypingBaseTest
     public static final String illuminaImportNum = "206";
     protected int pipelineJobCount = 0;
 
-    String pipelineLoc =  getLabKeyRoot() + "/sampledata/genotyping";
+    File pipelineLoc =  new File(getLabKeyRoot(), "/sampledata/genotyping");
     protected String checkboxId = ".select";
 //    private String expectedAnalysisCount = "1 - 61 of 61";
 
@@ -77,7 +84,8 @@ public class IlluminaTest extends GenotypingBaseTest
         verifyIlluminaSampleSheet();
         goToProjectHome();
         importIlluminaRunTest();
-        verifyIlluminaExport();
+        verifyFASTQExport();
+        verifyZipExport();
         verifyCleanIlluminaSampleSheets();
     }
 
@@ -109,88 +117,85 @@ public class IlluminaTest extends GenotypingBaseTest
         verifyIlluminaSamples();
     }
 
-    private void verifyIlluminaExport() throws Exception
+    @LogMethod
+    private void verifyZipExport() throws Exception
     {
-        log("Verifying FASTQ and ZIP export");
-
-        String url = WebTestHelper.getBaseURL() + "/genotyping/" + getProjectName() + "/mergeFastqFiles.view";
-        List<NameValuePair> args;
-        HttpContext context = WebTestHelper.getBasicHttpContext();
-        HttpPost method;
-        HttpResponse response = null;
-        SelectRowsResponse resp;
-
-        try (CloseableHttpClient httpClient = (CloseableHttpClient)WebTestHelper.getHttpClient())
+        File export = exportAllFiles(ExportType.ZIP, "genotypingExport.zip");
+        try (
+                InputStream is = new FileInputStream(export);
+                ZipInputStream zip = new ZipInputStream(is))
         {
-            ExecuteSqlCommand cmd = new ExecuteSqlCommand("genotyping", "SELECT s.* from genotyping.SequenceFiles s LEFT JOIN (select max(rowid) as rowid from genotyping.Runs r WHERE platform = 'Illumina' group by rowid) r ON r.rowid = s.run");
-            Connection cn = new Connection(getBaseURL(), PasswordUtil.getUsername(), PasswordUtil.getPassword());
-
-            resp = cmd.execute(cn, getProjectName());
-            assertTrue("Wrong number of files found.  Expected 30, found " + resp.getRows().size(), resp.getRows().size() == 30);
-
-            //first try FASTQ merge
-            method = new HttpPost(url);
-            args = new ArrayList<>();
-            for (Map<String, Object> row : resp.getRows())
+            int count = 0;
+            while (zip.getNextEntry() != null)
             {
-                args.add(new BasicNameValuePair("dataIds", row.get("DataId").toString()));
+                count++;
             }
 
-            args.add(new BasicNameValuePair("zipFileName", "genotypingExport"));
-
-            method.setEntity(new UrlEncodedFormEntity(args));
-            response = httpClient.execute(method, context);
-            int status = response.getStatusLine().getStatusCode();
-            assertTrue("FASTQ was not Downloaded", status == HttpStatus.SC_OK);
-            assertTrue("Response header incorrect", response.getHeaders("Content-Disposition")[0].getValue().startsWith("attachment;"));
-            assertTrue("Response header incorrect", response.getHeaders("Content-Type")[0].getValue().startsWith("application/x-gzip"));
-
-
-            try (
-                    InputStream is = response.getEntity().getContent();
-                    GZIPInputStream gz = new GZIPInputStream(is);
-                    BufferedReader br = new BufferedReader(new InputStreamReader(gz)))
-            {
-                int count = 0;
-                while (br.readLine() != null)
-                {
-                    count++;
-                }
-
-                int expectedLength = 1088;
-                assertTrue("Length of file doesnt match expected value of " + expectedLength + ", was: " + count, count == expectedLength);
-            }
+            int expectedLength = 30;
+            assertEquals("Wrong number of zipped files", expectedLength, count);
         }
-        finally
-        {
-            if (null != response)
-                EntityUtils.consumeQuietly(response.getEntity());
-        }
+    }
 
-        try (CloseableHttpClient httpClient = (CloseableHttpClient)WebTestHelper.getHttpClient())
+    @LogMethod
+    private void verifyFASTQExport() throws Exception
+    {
+        File export = exportAllFiles(ExportType.FASTQ, "genotypingExport");
+        try (
+                InputStream is = new FileInputStream(export);
+                GZIPInputStream gz = new GZIPInputStream(is);
+                BufferedReader br = new BufferedReader(new InputStreamReader(gz)))
         {
-            //then ZIP export
-            url = WebTestHelper.getBaseURL() + "/experiment/" + getProjectName() + "/exportFiles.view";
-
-            method = new HttpPost(url);
-            args = new ArrayList<>();
-            for (Map<String, Object> row : resp.getRows())
+            int count = 0;
+            while (br.readLine() != null)
             {
-                args.add(new BasicNameValuePair("dataIds", row.get("DataId").toString()));
+                count++;
             }
 
-            args.add(new BasicNameValuePair("zipFileName", "genotypingZipExport"));
-            method.setEntity(new UrlEncodedFormEntity(args));
-            response = httpClient.execute(method, context);
-            int status = response.getStatusLine().getStatusCode();
-            assertEquals("Status code was incorrect", HttpStatus.SC_OK, status);
-            assertEquals("Response header incorrect", "attachment; filename=\"genotypingZipExport\"", response.getHeaders("Content-Disposition")[0].getValue());
-            assertEquals("Response header incorrect", "application/zip;charset=UTF-8", response.getHeaders("Content-Type")[0].getValue());
+            int expectedLength = 1088;
+            assertTrue("Length of file doesnt match expected value of " + expectedLength + ", was: " + count, count == expectedLength);
         }
-        finally
+    }
+
+    private File exportAllFiles(ExportType fileType, String filePrefix)
+    {
+        DataRegionTable data = new DataRegionTable("Reads", this);
+        data.checkAll();
+
+        clickButton("Download Selected", 0);
+        waitForElement(Ext4Helper.Locators.window("Export Files"));
+        assertTextPresent("You have chosen to export 272 reads");
+
+        _ext4Helper.selectRadioButton(fileType.getRadioLabel());
+        setFormElement(Locator.name("filePrefix"), filePrefix);
+
+        File exportFile = clickAndWaitForDownload(Ext4Helper.Locators.ext4Button("Submit"));
+        assertEquals("Illumina export has wrong file name.", filePrefix + fileType.getFileSuffix(), exportFile.getName());
+
+        return exportFile;
+    }
+
+    private enum ExportType
+    {
+        ZIP("ZIP Archive of Individual Files", ""), //TODO: ZIP export doesn't currently append the correct file extension
+        FASTQ("Merge into Single FASTQ File", ".fastq.gz");
+
+        private String _radioLabel;
+        private String _fileSuffix;
+
+        private ExportType(String radioLabel, String fileSuffix)
         {
-            if (null != response)
-                EntityUtils.consumeQuietly(response.getEntity());
+            _radioLabel = radioLabel;
+            _fileSuffix = fileSuffix;
+        }
+
+        private String getRadioLabel()
+        {
+            return _radioLabel;
+        }
+
+        public String getFileSuffix()
+        {
+            return _fileSuffix;
         }
     }
 
@@ -330,6 +335,7 @@ public class IlluminaTest extends GenotypingBaseTest
     {
         String xpath =  "//a[contains(@class, 'disabled-button')]/span[text()='Download Selected']";
         assertElementPresent(Locator.xpath(xpath));
+        assertElementPresent(Locator.paginationText(30));
 
         xpath = xpath.replace("disabled", "labkey");
         click(Locator.name(checkboxId, 2));
@@ -338,8 +344,8 @@ public class IlluminaTest extends GenotypingBaseTest
         Locator exportButton = Locator.xpath(xpath);
 
         click(exportButton);
-        waitForText("Export Files");
-        assertTextPresent("ZIP Archive", "Merge");
+        waitForElement(Ext4Helper.Locators.window("Export Files"));
+        assertTextPresent("You have chosen to export 28 reads", "ZIP Archive", "Merge");
         clickButtonContainingText("Cancel", 0);
         _extHelper.waitForExt3MaskToDisappear(WAIT_FOR_JAVASCRIPT);
 
@@ -355,9 +361,8 @@ public class IlluminaTest extends GenotypingBaseTest
     private void verifyIlluminaSamples()
     {
         assertExportButtonPresent();
-        File dir = new File(pipelineLoc);
         FilenameFilter filter = new OutputFilter();
-        File[] files = dir.listFiles(filter);
+        File[] files = pipelineLoc.listFiles(filter);
 
         assertEquals(30, files.length);
         DataRegionTable d = new DataRegionTable("Reads", this);
