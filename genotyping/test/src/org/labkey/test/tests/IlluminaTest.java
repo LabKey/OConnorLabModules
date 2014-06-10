@@ -345,7 +345,7 @@ public class IlluminaTest extends GenotypingBaseTest
 
         click(exportButton);
         waitForElement(Ext4Helper.Locators.window("Export Files"));
-        assertTextPresent("You have chosen to export 28 reads", "ZIP Archive", "Merge");
+        assertTextPresent("You have chosen to export 27 reads", "ZIP Archive", "Merge");
         clickButtonContainingText("Cancel", 0);
         _extHelper.waitForExt3MaskToDisappear(WAIT_FOR_JAVASCRIPT);
 
