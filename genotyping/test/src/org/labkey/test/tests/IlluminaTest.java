@@ -30,6 +30,7 @@ import org.labkey.remoteapi.Connection;
 import org.labkey.remoteapi.query.ExecuteSqlCommand;
 import org.labkey.remoteapi.query.SelectRowsResponse;
 import org.labkey.test.Locator;
+import org.labkey.test.SortDirection;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
@@ -337,6 +338,8 @@ public class IlluminaTest extends GenotypingBaseTest
         assertElementPresent(Locator.xpath(xpath));
         assertElementPresent(Locator.paginationText(30));
 
+        DataRegionTable table = new DataRegionTable("Reads", this);
+        table.setSort("DataId", SortDirection.ASC);
         xpath = xpath.replace("disabled", "labkey");
         click(Locator.name(checkboxId, 2));
         click(Locator.name(checkboxId, 3));
