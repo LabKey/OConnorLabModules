@@ -367,12 +367,6 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
                 parentExperimentsQUS.deleteRows(user, container, rowIds, extraScriptContext);
             }
         }
-
-        @Override
-        protected void _delete(Container c, Map<String, Object> row) throws SQLException, InvalidKeyException
-        {
-            super._delete(c, row);
-        }
     }
 
     @Override
