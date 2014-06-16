@@ -117,6 +117,11 @@ public class GenotypingSchema
         return getSchema().getTable("Haplotype");
     }
 
+    public SchemaTableInfo getSpeciesTable()
+    {
+        return getSchema().getTable("Species");
+    }
+
     public SchemaTableInfo getAnimalAnalysisTable()
     {
         return getSchema().getTable("AnimalAnalysis");

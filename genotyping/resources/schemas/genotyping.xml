@@ -190,6 +190,7 @@
       <ns:column columnName="Created"/>
       <ns:column columnName="ModifiedBy"/>
       <ns:column columnName="Modified"/>
+      <ns:column columnName="SpeciesId"/>
     </ns:columns>
   </ns:table>
   <ns:table tableName="Animal" tableDbType="TABLE">
@@ -205,8 +206,17 @@
       <ns:column columnName="Created"/>
       <ns:column columnName="ModifiedBy"/>
       <ns:column columnName="Modified"/>
+      <ns:column columnName="SpeciesId"/>
     </ns:columns>
   </ns:table>
+    <ns:table tableName="Species" tableDbType="TABLE">
+        <ns:columns>
+            <ns:column columnName="RowId">
+                <ns:isHidden>true</ns:isHidden>
+            </ns:column>
+            <ns:column columnName="Species"/>
+        </ns:columns>
+    </ns:table>
   <ns:table tableName="AnimalAnalysis" tableDbType="TABLE">
     <ns:columns>
       <ns:column columnName="RowId">
