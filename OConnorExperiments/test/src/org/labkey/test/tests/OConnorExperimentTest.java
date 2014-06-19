@@ -79,7 +79,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
     protected void doSetup()
     {
         _containerHelper.createProject(PROJECT_NAME, null);
-        enableModule(PROJECT_NAME, MODULE_NAME);
+        _containerHelper.enableModule(PROJECT_NAME, MODULE_NAME);
 
         // Customize the default view for the Experiments table
         beginAt("/query/" + getProjectName() + "/executeQuery.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + QUERY_NAME);
