@@ -121,20 +121,43 @@ public class IlluminaTest extends GenotypingBaseTest
     @LogMethod
     private void verifyZipExport() throws Exception
     {
-        File export = exportAllFiles(ExportType.ZIP, "genotypingExport.zip");
+        final File export = exportAllFiles(ExportType.ZIP, "genotypingExport.zip");
+
+        final int expectedLength = 30;
+        doesElementAppear(new Checker()
+        {
+            @Override
+            public boolean check()
+            {
+                int fileCount;
+                try
+                {
+                    fileCount = getFileCountInZip(export);
+                }
+                catch (Exception e)
+                {
+                    return false;
+                }
+                return expectedLength == fileCount;
+            }
+        }, WAIT_FOR_JAVASCRIPT);
+
+        assertEquals("Wrong number of zipped files", expectedLength, getFileCountInZip(export));
+    }
+
+    private int getFileCountInZip(File file) throws Exception
+    {
+        int count = 0;
         try (
-                InputStream is = new FileInputStream(export);
+                InputStream is = new FileInputStream(file);
                 ZipInputStream zip = new ZipInputStream(is))
         {
-            int count = 0;
             while (zip.getNextEntry() != null)
             {
                 count++;
             }
-
-            int expectedLength = 30;
-            assertEquals("Wrong number of zipped files", expectedLength, count);
         }
+        return count;
     }
 
     @LogMethod
