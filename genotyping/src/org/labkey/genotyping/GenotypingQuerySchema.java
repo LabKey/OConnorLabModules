@@ -507,6 +507,16 @@ public class GenotypingQuerySchema extends UserSchema
                 return table;
             }
         },
+        Species()
+        {
+            @Override
+            FilteredTable createTable(GenotypingQuerySchema schema)
+            {
+                SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable(schema, GS.getSpeciesTable()).init();
+                table.setDescription("Contains one row per species");
+                return table;
+            }
+        },
         AnimalAnalysis()
         {
             @Override

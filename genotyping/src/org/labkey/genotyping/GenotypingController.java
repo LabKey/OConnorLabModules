@@ -2284,6 +2284,33 @@ public class GenotypingController extends SpringActionController
         }
     }
 
+    @RequiresPermissionClass(ReadPermission.class)
+    public class AggregatedResultsReportAction extends BaseAssayAction<ProtocolIdForm>
+    {
+        private ExpProtocol _protocol;
+
+        @Override
+        public ModelAndView getView(ProtocolIdForm form, BindException errors) throws Exception
+        {
+            _protocol = form.getProtocol();
+
+            AssayView result = new AssayView();
+            AssaySchema schema = form.getProvider().createProtocolSchema(getUser(), getContainer(), form.getProtocol(), null);
+            QuerySettings settings = new QuerySettings(getViewContext(), "query", HaplotypeProtocolSchema.AGGREGATED_RESULTS_QUERY_NAME);
+            QueryView view = new QueryView(schema, settings, errors);
+            result.setupViews(view, false, form.getProvider(), _protocol);
+
+            return result;
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            NavTree result = super.appendNavTrail(root);
+            return result.addChild(_protocol.getName() + ": Aggregated Results Report");
+        }
+    }
+
     @RequiresPermissionClass(UpdatePermission.class)
     public class EditHaplotypeAssignmentAction extends SimpleViewAction<AssignmentForm>
     {

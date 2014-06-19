@@ -179,9 +179,9 @@
   </ns:table>
   <ns:table tableName="Haplotype" tableDbType="TABLE">
     <ns:columns>
-        <ns:column columnName="RowId">
-            <ns:isHidden>true</ns:isHidden>
-        </ns:column>
+      <ns:column columnName="RowId">
+        <ns:isHidden>true</ns:isHidden>
+      </ns:column>
       <ns:column columnName="Container"/>
       <ns:column columnName="Name"/>
       <ns:column columnName="Type"/>
@@ -190,6 +190,14 @@
       <ns:column columnName="Created"/>
       <ns:column columnName="ModifiedBy"/>
       <ns:column columnName="Modified"/>
+      <ns:column columnName="SpeciesId">
+        <ns:isUnselectable>true</ns:isUnselectable>
+        <ns:fk>
+            <ns:fkDbSchema>genotyping</ns:fkDbSchema>
+            <ns:fkTable>Species</ns:fkTable>
+            <ns:fkColumnName>RowId</ns:fkColumnName>
+        </ns:fk>
+      </ns:column>
     </ns:columns>
   </ns:table>
   <ns:table tableName="Animal" tableDbType="TABLE">
@@ -205,8 +213,25 @@
       <ns:column columnName="Created"/>
       <ns:column columnName="ModifiedBy"/>
       <ns:column columnName="Modified"/>
+      <ns:column columnName="SpeciesId">
+        <ns:isUnselectable>true</ns:isUnselectable>
+        <ns:fk>
+          <ns:fkDbSchema>genotyping</ns:fkDbSchema>
+          <ns:fkTable>Species</ns:fkTable>
+          <ns:fkColumnName>RowId</ns:fkColumnName>
+        </ns:fk>
+      </ns:column>
     </ns:columns>
   </ns:table>
+    <ns:table tableName="Species" tableDbType="TABLE">
+      <ns:columns>
+        <ns:column columnName="RowId">
+          <ns:isHidden>true</ns:isHidden>
+          <ns:isKeyField>true</ns:isKeyField>
+        </ns:column>
+        <ns:column columnName="Name"/>
+      </ns:columns>
+    </ns:table>
   <ns:table tableName="AnimalAnalysis" tableDbType="TABLE">
     <ns:columns>
       <ns:column columnName="RowId">
@@ -227,6 +252,14 @@
       <ns:column columnName="Modified"/>
     </ns:columns>
   </ns:table>
+    <ns:table tableName="Species" tableDbType="TABLE">
+        <ns:columns>
+            <ns:column columnName="RowId">
+                <ns:isHidden>true</ns:isHidden>
+            </ns:column>
+            <ns:column columnName="Species"/>
+        </ns:columns>
+    </ns:table>
   <ns:table tableName="AnimalHaplotypeAssignment" tableDbType="TABLE">
     <ns:columns>
       <ns:column columnName="RowId">

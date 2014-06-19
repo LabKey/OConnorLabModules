@@ -25,6 +25,7 @@ import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.DomainProperty;
+import org.labkey.api.exp.property.Lookup;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.pipeline.PipelineProvider;
 import org.labkey.api.query.FieldKey;
@@ -80,6 +81,8 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
             new HaplotypeColumnMappingProperty("mamuBHaplotype1", "Mamu-B Haplotype 1", true),
             new HaplotypeColumnMappingProperty("mamuBHaplotype2", "Mamu-B Haplotype 2", true)
     };
+
+    public static final HaplotypeColumnMappingProperty SPECIES_COLUMN = new HaplotypeColumnMappingProperty("speciesId", "Species Name", true);
 
     public HaplotypeAssayProvider()
     {
@@ -177,6 +180,10 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
             dp.setShownInUpdateView(false);
         }
 
+        DomainProperty species = addProperty(runDomain, SPECIES_COLUMN.getName(), SPECIES_COLUMN.getLabel(), PropertyType.INTEGER);
+        species.setLookup(new Lookup(null, GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Species.toString()));
+        species.setRequired(true);
+
         return result;
     }
 
@@ -196,6 +203,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         {
             runProperties.add(propName);
         }
+        runProperties.add(SPECIES_COLUMN.getName());
 
         return domainMap;
     }
@@ -210,6 +218,14 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     public List<NavTree> getHeaderLinks(ViewContext viewContext, ExpProtocol protocol, ContainerFilter containerFilter)
     {
         List<NavTree> result = super.getHeaderLinks(viewContext, protocol, containerFilter);
+
+        for (NavTree nt : result)
+        {
+            if(nt.getText().equals("view results"))
+                nt.setText("view data as uploaded");
+        }
+        ActionURL resultsReportUrl = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(viewContext.getContainer(), protocol, GenotypingController.AggregatedResultsReportAction.class);
+        result.add(0, new NavTree("view results", resultsReportUrl));
 
         ActionURL url = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(viewContext.getContainer(), protocol, GenotypingController.DuplicateAssignmentReportAction.class);
         result.add(new NavTree("view duplicates", url));

@@ -106,7 +106,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
 
             // insert the new animal and haplotype records
             Map<String, Integer> animalRowIdMap = ensureAnimalIds(animalIds, runPropertyValues, info.getUser(), info.getContainer());
-            Map<String, Integer> haplotypeRowIdMap = ensureHaplotypeNames(haplotypes, info.getUser(), info.getContainer());
+            Map<String, Integer> haplotypeRowIdMap = ensureHaplotypeNames(haplotypes, runPropertyValues.get("speciesId"), info.getUser(), info.getContainer());
 
             // insert the animal specific information for this run
             Map<Integer, Integer> animalAnalysisRowIdMap = insertAnimalAnalysis(expRun, dataRows, info.getUser(), info.getContainer(), animalRowIdMap, runPropertyValues);
@@ -250,7 +250,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
     }
 
-    private Map<String, Integer> ensureHaplotypeNames(List<Pair<String, String>> haplotypes, User user, Container container) throws Exception
+    private Map<String, Integer> ensureHaplotypeNames(List<Pair<String, String>> haplotypes, String speciesId, User user, Container container) throws Exception
     {
         // get the updateService for the Haplotype table
         TableInfo tinfo = GenotypingQuerySchema.TableType.Haplotype.createTable(new GenotypingQuerySchema(user, container));
@@ -267,6 +267,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             Map<String, Object> keys = new CaseInsensitiveHashMap<>();
             keys.put("name", entry.first);
             keys.put("type", entry.second);
+            keys.put("speciesId", speciesId);
             rows.add(keys);
         }
 

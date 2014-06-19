@@ -49,6 +49,7 @@ import java.util.List;
 public class HaplotypeProtocolSchema extends AssayProtocolSchema
 {
     public static final String DUPLICATE_ASSIGNMENT_QUERY_NAME = "DuplicateAssignment";
+    public static final String AGGREGATED_RESULTS_QUERY_NAME = "AggregatedAnalysisResults";
 
     public HaplotypeProtocolSchema(User user, Container container, ExpProtocol protocol, Container targetStudy)
     {

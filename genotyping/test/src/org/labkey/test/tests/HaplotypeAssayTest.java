@@ -163,6 +163,9 @@ public class HaplotypeAssayTest extends GenotypingTest
         log("Test errors with Haplotype assay upload");
         goToAssayImport(ASSAY_NAME);
         clickButton("Save and Finish");
+        waitForText("Species Name is required and must be of type Integer.");
+        selectOptionByText(Locator.name("speciesId"), "rhesus macaques");
+        clickButton("Save and Finish");
         waitForText("Data contained zero data rows");
         setFormElement(Locator.name("data"), getFileContents(ERROR_RUN_FILE));
         sleep(1000);
@@ -450,6 +453,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         goToAssayImport(assayName);
         setFormElement(Locator.name("name"), assayId);
         checkCheckbox(Locator.name("enabled"));
+        selectOptionByText(Locator.name("speciesId"), "rhesus macaques");
         setDataAndColumnHeaderProperties(dataFile);
         clickButton("Save and Finish");
         waitForText(assayName + " Runs");
