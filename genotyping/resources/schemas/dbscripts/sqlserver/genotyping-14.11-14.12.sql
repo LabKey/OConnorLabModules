@@ -25,11 +25,15 @@ CREATE TABLE genotyping.Species
 INSERT INTO genotyping.Species (Name) VALUES ('rhesus macaques');
 
 ALTER TABLE genotyping.Animal ADD SpeciesId INT;
+ALTER TABLE genotyping.Haplotype ADD SpeciesId INT;
+GO
+
 UPDATE genotyping.Animal SET SpeciesId = (SELECT RowId FROM genotyping.Species WHERE Name = 'rhesus macaques');
+UPDATE genotyping.Haplotype SET SpeciesId = (SELECT RowId FROM genotyping.Species WHERE Name = 'rhesus macaques');
+GO
+
 ALTER TABLE genotyping.Animal ALTER COLUMN SpeciesId INT NOT NULL;
 ALTER TABLE genotyping.Animal ADD CONSTRAINT FK_Animal_SpeciesId FOREIGN KEY (SpeciesId) REFERENCES genotyping.Species(RowId);
-
-ALTER TABLE genotyping.Haplotype ADD SpeciesId INT;
-UPDATE genotyping.Haplotype SET SpeciesId = (SELECT RowId FROM genotyping.Species WHERE Name = 'rhesus macaques');
 ALTER TABLE genotyping.Haplotype ALTER COLUMN SpeciesId INT NOT NULL;
 ALTER TABLE genotyping.Haplotype ADD CONSTRAINT FK_Haplotype_SpeciesId FOREIGN KEY (SpeciesId) REFERENCES genotyping.Species(RowId);
+GO
