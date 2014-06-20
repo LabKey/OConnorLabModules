@@ -22,7 +22,7 @@ CREATE TABLE genotyping.Species
   CONSTRAINT PK_Species PRIMARY KEY (RowId)
 );
 
-INSERT INTO genotyping.Species VALUES ('rhesus macaques');
+INSERT INTO genotyping.Species (Name) VALUES ('rhesus macaques');
 
 ALTER TABLE genotyping.Animal ADD SpeciesId INT;
 UPDATE genotyping.Animal SET SpeciesId = (SELECT RowId FROM genotyping.Species WHERE Name = 'rhesus macaques');
