@@ -252,14 +252,6 @@
       <ns:column columnName="Modified"/>
     </ns:columns>
   </ns:table>
-    <ns:table tableName="Species" tableDbType="TABLE">
-        <ns:columns>
-            <ns:column columnName="RowId">
-                <ns:isHidden>true</ns:isHidden>
-            </ns:column>
-            <ns:column columnName="Species"/>
-        </ns:columns>
-    </ns:table>
   <ns:table tableName="AnimalHaplotypeAssignment" tableDbType="TABLE">
     <ns:columns>
       <ns:column columnName="RowId">
