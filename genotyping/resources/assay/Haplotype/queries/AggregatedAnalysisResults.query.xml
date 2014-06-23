@@ -1,0 +1,34 @@
+<ns:tables xmlns:ns="http://labkey.org/data/xml">
+    <ns:table tableName="AggregatedAnalysisResults" tableDbType="NOT_IN_DB">
+        <ns:columns>
+            <ns:column columnName="AnimalId">
+                <ns:columnTitle>Animal</ns:columnTitle>
+            </ns:column>
+            <ns:column columnName="SumTotalReads">
+                <ns:columnTitle>Total Reads</ns:columnTitle>
+            </ns:column>
+            <ns:column columnName="SumIdentifiedReads">
+                <ns:columnTitle>Total Identified Reads</ns:columnTitle>
+            </ns:column>
+            <ns:column columnName="AvgPercentUnknown">
+                <ns:columnTitle>Total % Unknown</ns:columnTitle>
+            </ns:column>
+            <ns:column columnName="ConcatentaedHaplotypes">
+                <ns:columnTitle>Concatenated Haplotypes</ns:columnTitle>
+            </ns:column>
+            <ns:column columnName="Enabled"/>
+            <ns:column columnName="mamuAHaplotype1">
+                <ns:columnTitle>Mamu-A Haplotype 1</ns:columnTitle>
+            </ns:column>
+            <ns:column columnName="mamuAHaplotype2">
+                <ns:columnTitle>Mamu-A Haplotype 2</ns:columnTitle>
+            </ns:column>
+            <ns:column columnName="mamuBHaplotype1">
+                <ns:columnTitle>Mamu-B Haplotype 1</ns:columnTitle>
+            </ns:column>
+            <ns:column columnName="mamuBHaplotype2">
+                <ns:columnTitle>Mamu-B Haplotype 2</ns:columnTitle>
+            </ns:column>
+        </ns:columns>
+    </ns:table>
+</ns:tables>

@@ -15,10 +15,10 @@
  */
 -- query to display analysis results with one animal per row
 -- NOTE: this query could probably use some optimization at some point.
-SELECT Data.AnimalId,
+SELECT Data.AnimalId AS AnimalId ,
 SUM(Data.TotalReads) AS "Total Reads",
 SUM(Data.IdentifiedReads) AS "Total Identified Reads",
-SUM(Data.PercentUnknown) AS "Total % Unknown",
+AVG(Data.PercentUnknown) AS "Total % Unknown",
 MIN(cht.ConcatenatedHaplotypes) AS "Concatenated Haplotypes",
 TRUE as "Enabled",
 GROUP_CONCAT(DISTINCT Data.mamuAHaplotype1, ',') AS "Mamu-A Haplotype 1",

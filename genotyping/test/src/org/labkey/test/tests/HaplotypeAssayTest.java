@@ -50,6 +50,12 @@ public class HaplotypeAssayTest extends GenotypingTest
         return PROJECT_NAME;
     }
 
+    @Override
+    protected BrowserType bestBrowser()
+    {
+        return BrowserType.CHROME;
+    }
+
     @Test
     public void testSteps()
     {
@@ -60,6 +66,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyAssayUploadErrors();
         verifyFirstRun();
         verifySecondRun();
+        verifyAggregatedResults();
         verifyExtraHaplotypeAssignment();
         verifyAssignmentReport();
         verifyDuplicateRecords();
@@ -268,10 +275,29 @@ public class HaplotypeAssayTest extends GenotypingTest
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
+    private void verifyAggregatedResults()
+    {
+        log("Verify Haplotype Assignment data for the second run");
+        goToAssayRun("first run");
+        clickAndWait(Locator.linkWithText("view results"));
+
+        DataRegionTable drt = new DataRegionTable("query", this, false);
+        assertEquals("Unexpected number of Animal records", 9, drt.getDataRowCount());
+        verifyColumnDataValues(drt, "Animal", "ID-1", "ID-2", "ID-3", "ID-4", "ID-5", "ID-6", "ID-7", "ID-8", "ID-9");
+        verifyColumnDataValues(drt, "Total Reads", "1000", "2000", "3000", "8000", "10000", "6000", "7000", " ", "0");
+        verifyColumnDataValues(drt, "Total Identified Reads", "300", "1000", "600", "5000", "6500", "3000", "3500", " ", "1");
+        verifyColumnDataValues(drt, "Total % Unknown", "70.0", "50.0", "80.0", "37.5", "35.0", "50.0", "50.0", " ", " ");
+        verifyColumnDataValues(drt, "Mamu-A Haplotype 1", "A001", "A023", "A001", "A001,A004", "A002a", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, "Mamu-A Haplotype 2", "A023", "A025", "A001", "A023", "A002a", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, "Mamu-B Haplotype 1", "B015c", "B012b", "B001c", "B012b,B015c", "B002", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, "Mamu-B Haplotype 2", "B025a", "B017a", "B017a", "B012b,B025a", "B002", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, "Enabled", "true", "true", "true", "true", "true", "true", "true", "true", "true");
+    }
+
+    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
     private void verifyExtraHaplotypeAssignment()
     {
         log("Verify Animal Haplotype Assignment with > 4 assignments");
-        goToProjectHome();
         goToAssayRun("first run");
         _customizeViewsHelper.openCustomizeViewPanel();
         _customizeViewsHelper.showHiddenItems();
