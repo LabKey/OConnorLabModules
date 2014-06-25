@@ -16,6 +16,7 @@
 package org.labkey.genotyping.galaxy;
 
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.util.ContextListener;
 import org.labkey.api.util.ShutdownListener;
 import org.labkey.genotyping.GenotypingManager;
@@ -46,7 +47,7 @@ public class WorkflowCompletionMonitor implements ShutdownListener
 
     private final ScheduledExecutorService _executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
         @Override
-        public Thread newThread(Runnable r)
+        public Thread newThread(@NotNull Runnable r)
         {
             return new Thread(r, "Genotyping Workflow Completion Monitor");
         }
@@ -93,6 +94,12 @@ public class WorkflowCompletionMonitor implements ShutdownListener
         LOG.info("Monitoring for " + completionFile.getAbsolutePath());
     }
 
+
+    @Override
+    public String getName()
+    {
+        return "Genotyping workflow completion monitor";
+    }
 
     @Override
     public void shutdownPre(ServletContextEvent servletContextEvent)
