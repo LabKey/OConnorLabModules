@@ -16,28 +16,33 @@
  */
 %>
 <%@ page import="org.apache.commons.lang3.StringUtils" %>
-<%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.genotyping.GenotypingManager" %>
+<%@ page import="org.labkey.genotyping.GenotypingManager.SEQUENCE_PLATFORMS" %>
 <%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     GenotypingController.ImportReadsBean bean = (GenotypingController.ImportReadsBean)getModelBean();
     String extensions = StringUtils.join(SequenceManager.FASTQ_EXTENSIONS, "\", \"");
+    SEQUENCE_PLATFORMS platform = bean.getPlatform();
 %>
 <form <%=formAction(GenotypingController.ImportReadsAction.class, Method.Post)%> name="importReads">
-
 <%
-    if(bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString())){
+    if (platform == SEQUENCE_PLATFORMS.LS454)
+    {
 %>
     The pipeline will load reads from the file "<%=h(GenotypingManager.READS_FILE_NAME)%>".
 
 <%
     }
-    if(bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString())){
+
+    if (platform == SEQUENCE_PLATFORMS.ILLUMINA)
+    {
 %>
     The pipeline will attempt to load any files in this folder with the following extensions: "<%=h(extensions)%>" or gzipped versions of them.  If you enter a FASTQ prefix, only files beginning with that prefix will be used.
-<%}%>
+<%
+    }
+%>
     <p></p>
 
     <table id="analysesTable">
@@ -51,11 +56,13 @@
             }
         %></select></td></tr>
 <%
-    if(bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString())){
+    if (platform == SEQUENCE_PLATFORMS.ILLUMINA)
+    {
 %>
         <tr><td>FASTQ Prefix (Optional):</td>
         <td><input type="text" name="prefix" value="<%=h(bean.getPrefix())%>"></td></tr>
-<%}
+<%
+    }
 %>
         <tr><td>&nbsp;</td></tr>
         <tr><td>
@@ -65,7 +72,7 @@
             <input type="hidden" name="analyze" value="0">
         </td></tr>
         <tr><td><%= button("Import Reads").submit(true) %>
-            <%=bean.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString()) ? button("Import Reads And Analyze").submit(true).onClick("document.importReads.analyze.value=1;") : ""%>
+            <%=platform == SEQUENCE_PLATFORMS.LS454 ? button("Import Reads And Analyze").submit(true).onClick("document.importReads.analyze.value=1;") : ""%>
         </td></tr>
     </table>
 </form>

@@ -67,16 +67,15 @@ public class GenotypingManager
     public static final String MATCHES_FILE_NAME = "matches.txt";
     public static final String SEQUENCES_FILE_NAME = "sequences.fasta";
 
-    public enum SEQUENCE_PLATFORMS {
-        LS454("LS454"),
-        ILLUMINA("Illumina")
-        ;
+    public enum SEQUENCE_PLATFORMS
+    {
+        LS454, ILLUMINA;
 
-        private SEQUENCE_PLATFORMS(final String text) {
-            this.text = text;
+        // Default to ILLUMINA platform (null or unrecognized)
+        public static @NotNull SEQUENCE_PLATFORMS getPlatform(@Nullable String platform)
+        {
+            return (LS454.name().equals(platform) ? LS454 : ILLUMINA);
         }
-
-        private final String text;
     }
 
     private GenotypingManager()

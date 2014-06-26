@@ -18,6 +18,7 @@ package org.labkey.genotyping;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.action.ExportAction;
 import org.labkey.api.action.FormViewAction;
@@ -45,7 +46,6 @@ import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
-import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.exp.api.ExperimentService;
@@ -77,9 +77,9 @@ import org.labkey.api.study.actions.AssayHeaderView;
 import org.labkey.api.study.actions.AssayRunsAction;
 import org.labkey.api.study.actions.BaseAssayAction;
 import org.labkey.api.study.actions.ProtocolIdForm;
-import org.labkey.api.study.assay.AssayView;
 import org.labkey.api.study.assay.AssaySchema;
 import org.labkey.api.study.assay.AssayUrls;
+import org.labkey.api.study.assay.AssayView;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.HelpTopic;
 import org.labkey.api.util.MinorConfigurationException;
@@ -100,6 +100,7 @@ import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.WebPartView;
 import org.labkey.api.view.template.PageConfig;
+import org.labkey.genotyping.GenotypingManager.SEQUENCE_PLATFORMS;
 import org.labkey.genotyping.GenotypingQuerySchema.TableType;
 import org.labkey.genotyping.galaxy.GalaxyFolderSettings;
 import org.labkey.genotyping.galaxy.GalaxyManager;
@@ -988,7 +989,7 @@ public class GenotypingController extends SpringActionController
     public static class ImportReadsBean
     {
         private List<Integer> _runs;
-        private String _platform;
+        private SEQUENCE_PLATFORMS _platform;
         private String _readsPath;
         private String _path;
         private String _prefix;
@@ -998,7 +999,7 @@ public class GenotypingController extends SpringActionController
             _runs = runs;
             _readsPath = readsPath;
             _path = path;
-            _platform = platform;
+            _platform = SEQUENCE_PLATFORMS.getPlatform(platform) ;
             _prefix = prefix;
         }
 
@@ -1012,7 +1013,7 @@ public class GenotypingController extends SpringActionController
             return _readsPath;
         }
 
-        public String getPlatform()
+        public @NotNull SEQUENCE_PLATFORMS getPlatform()
         {
             return _platform;
         }
