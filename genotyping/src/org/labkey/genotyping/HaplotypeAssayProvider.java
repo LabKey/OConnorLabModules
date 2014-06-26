@@ -135,7 +135,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     @Override
     public AssayProtocolSchema createProtocolSchema(User user, Container container, @NotNull ExpProtocol protocol, @Nullable Container targetStudy)
     {
-        return new HaplotypeProtocolSchema(user, container, protocol, targetStudy);
+        return new HaplotypeProtocolSchema(user, container, this, protocol, targetStudy);
     }
 
     @Override

@@ -15,6 +15,7 @@
  */
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.ButtonBar;
@@ -51,9 +52,9 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
     public static final String DUPLICATE_ASSIGNMENT_QUERY_NAME = "DuplicateAssignment";
     public static final String AGGREGATED_RESULTS_QUERY_NAME = "AggregatedAnalysisResults";
 
-    public HaplotypeProtocolSchema(User user, Container container, ExpProtocol protocol, Container targetStudy)
+    public HaplotypeProtocolSchema(User user, Container container, @NotNull HaplotypeAssayProvider provider, @NotNull ExpProtocol protocol, @Nullable Container targetStudy)
     {
-        super(user, container, protocol, targetStudy);
+        super(user, container, provider, protocol, targetStudy);
     }
 
     @Override
