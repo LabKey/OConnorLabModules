@@ -191,7 +191,6 @@
       <ns:column columnName="ModifiedBy"/>
       <ns:column columnName="Modified"/>
       <ns:column columnName="SpeciesId">
-        <ns:isUnselectable>true</ns:isUnselectable>
         <ns:fk>
             <ns:fkDbSchema>genotyping</ns:fkDbSchema>
             <ns:fkTable>Species</ns:fkTable>
@@ -214,7 +213,6 @@
       <ns:column columnName="ModifiedBy"/>
       <ns:column columnName="Modified"/>
       <ns:column columnName="SpeciesId">
-        <ns:isUnselectable>true</ns:isUnselectable>
         <ns:fk>
           <ns:fkDbSchema>genotyping</ns:fkDbSchema>
           <ns:fkTable>Species</ns:fkTable>
