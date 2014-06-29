@@ -67,7 +67,7 @@ public class OConnorExperimentsModule extends DefaultModule
     @Override
     public double getVersion()
     {
-        return 14.12;
+        return 14.20;
     }
 
     @Override

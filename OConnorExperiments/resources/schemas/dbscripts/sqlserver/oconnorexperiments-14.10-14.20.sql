@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* oconnorexperiments-14.10-14.11.sql */
+
 CREATE TABLE OConnorExperiments.ExperimentType
 (
     RowId INT IDENTITY (1, 1) NOT NULL,
@@ -42,3 +44,10 @@ ALTER TABLE OConnorExperiments.Experiments DROP COLUMN ExperimentType;
 ALTER TABLE OConnorExperiments.Experiments ADD
 	CONSTRAINT FK_Experiments_ExperimentTypeId FOREIGN KEY
 	(ExperimentTypeId) REFERENCES OConnorExperiments.ExperimentType (RowId);
+
+/* oconnorexperiments-14.11-14.12.sql */
+
+CREATE INDEX idx_parent_experiment_container ON oconnorexperiments.parentexperiments(container);
+CREATE INDEX idx_parent_experiment_parent_experiment ON oconnorexperiments.parentexperiments(parentexperiment);
+CREATE INDEX idx_experiments_experimenttypeid ON oconnorexperiments.experiments(experimenttypeid);
+CREATE INDEX idx_experiments_grantid ON oconnorexperiments.experiments(grantid);

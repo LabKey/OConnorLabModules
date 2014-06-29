@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+/* oconnorexperiments-14.10-14.11.sql */
+
 CREATE TABLE OConnorExperiments.ExperimentType
 (
-    RowId INT IDENTITY (1, 1) NOT NULL,
+    RowId SERIAL NOT NULL,
     Container ENTITYID NOT NULL,
-    Name NVARCHAR(255)
+    Name VARCHAR(255)
 );
 
 ALTER TABLE OConnorExperiments.ExperimentType ADD CONSTRAINT PK_ExperimentType PRIMARY KEY (RowId);
@@ -30,8 +32,7 @@ ALTER TABLE OConnorExperiments.ExperimentType ADD
 INSERT INTO OConnorExperiments.ExperimentType (Name, Container) SELECT DISTINCT e.ExperimentType, c.Parent FROM
   OConnorExperiments.Experiments e, core.Containers c WHERE e.Container = c.EntityId;
 
-ALTER TABLE OConnorExperiments.Experiments ADD ExperimentTypeId INT
-GO
+ALTER TABLE OConnorExperiments.Experiments ADD COLUMN ExperimentTypeId INT;
 
 UPDATE OConnorExperiments.Experiments SET ExperimentTypeId =
   (SELECT t.RowId FROM OConnorExperiments.ExperimentType t, core.Containers c
@@ -42,3 +43,10 @@ ALTER TABLE OConnorExperiments.Experiments DROP COLUMN ExperimentType;
 ALTER TABLE OConnorExperiments.Experiments ADD
 	CONSTRAINT FK_Experiments_ExperimentTypeId FOREIGN KEY
 	(ExperimentTypeId) REFERENCES OConnorExperiments.ExperimentType (RowId);
+
+/* oconnorexperiments-14.11-14.12.sql */
+
+CREATE INDEX idx_parent_experiment_container ON oconnorexperiments.parentexperiments(container);
+CREATE INDEX idx_parent_experiment_parent_experiment ON oconnorexperiments.parentexperiments(parentexperiment);
+CREATE INDEX idx_experiments_experimenttypeid ON oconnorexperiments.experiments(experimenttypeid);
+CREATE INDEX idx_experiments_grantid ON oconnorexperiments.experiments(grantid);

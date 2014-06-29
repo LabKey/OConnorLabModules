@@ -16,7 +16,7 @@
 
 CREATE TABLE OConnorExperiments.ExperimentType
 (
-	RowId SERIAL NOT NULL,
+    RowId SERIAL NOT NULL,
     Container ENTITYID NOT NULL,
     Name VARCHAR(255)
 );
