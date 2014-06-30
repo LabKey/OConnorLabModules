@@ -26,6 +26,7 @@ import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.api.ExpProtocol;
+import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.property.DomainProperty;
 import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FieldKey;
@@ -61,8 +62,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
     public FilteredTable createDataTable(boolean includeCopiedToStudyColumns)
     {
         FilteredTable table = (FilteredTable)new GenotypingQuerySchema(getUser(), getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name());
-        List<FieldKey> toCopy = table.getDefaultVisibleColumns();
-        List<FieldKey> keys = new ArrayList<>(toCopy);
+        List<FieldKey> keys = new ArrayList<>(table.getDefaultVisibleColumns());
         HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
         List<? extends DomainProperty> props = HaplotypeAssayProvider.getDomainProps(getProtocol());
 
@@ -73,6 +73,11 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         haplotypeSubselectSql.append(" ON aha.HaplotypeId = h.RowId");
         ExprColumn col;
         String label;
+
+        SQLFragment runConditionSQL = new SQLFragment("RunId IN (SELECT RowId FROM " +
+                ExperimentService.get().getTinfoExperimentRun() + " WHERE ProtocolLSID = ?)");
+        runConditionSQL.add(getProtocol().getLSID());
+        table.addCondition(runConditionSQL, FieldKey.fromParts("RunId"));
 
         for(DomainProperty prop : props)
         {
