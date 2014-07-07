@@ -37,6 +37,7 @@ import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.PortalHelper;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,7 +59,6 @@ public class OConnorExperimentTest extends BaseWebDriverTest
     private static final String QUERY_NAME = "Experiments";
     private static final String TABLE_NAME = "Experiments";
     private static final String EXPERIMENT_TYPE_TABLE_NAME = "ExperimentType";
-    private PortalHelper portalHelper = new PortalHelper(this);
     private ArrayList<String> workbookids = new ArrayList<String>();
     private ArrayList<String> pkeys = new ArrayList<>();
 
@@ -101,8 +101,9 @@ public class OConnorExperimentTest extends BaseWebDriverTest
 
         // Add the webparts to the portal page
         goToProjectHome();
+        PortalHelper portalHelper = new PortalHelper(this);
         portalHelper.addQueryWebPart("Query", SCHEMA_NAME, QUERY_NAME, null);
-        addWebPart("Workbooks");
+        portalHelper.addWebPart("Workbooks");
 
         log("setup complete");
     }
@@ -247,10 +248,9 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         setEditInPlaceContent("Description:", "description4");
         assertEquals("description4", getText(getEditInPlaceDisplayField("Description:")));
 
-        _ext4Helper.selectComboBoxItem(Ext4Helper.Locators.formItemWithLabel("Experiment Type:"), true, "type3");
+        _ext4Helper.selectComboBoxItem(Ext4Helper.Locators.formItemWithLabel("Experiment Type:"), Ext4Helper.TextMatchTechnique.CONTAINS, "type3");
 
         setEditInPlaceContent("Parent Experiments:", "1,100,101");
-        sleep(500);
         waitForText("Experiment numbers not found: 100, 101");
 
         setEditInPlaceContent("Parent Experiments:", "1, 3");
@@ -297,7 +297,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         WebElement el = input.findElement(getDriver());
         el.sendKeys(text);
         fireEvent(el, SeleniumEvent.blur);
-        waitForElement(cmp);
+        shortWait().until(ExpectedConditions.not(ExpectedConditions.visibilityOf(el)));
     }
 
     protected void setEditInPlaceContent(Locator.XPathLocator l, String text)
@@ -386,18 +386,13 @@ public class OConnorExperimentTest extends BaseWebDriverTest
             rowMap.put("ExperimentType", "API Type");
             Connection cn = new Connection(getBaseURL(), PasswordUtil.getUsername(), PasswordUtil.getPassword());
             InsertRowsCommand insertCmd = new InsertRowsCommand(SCHEMA_NAME, TABLE_NAME);
-            insertCmd.addRow(rowMap);;
+            insertCmd.addRow(rowMap);
             SaveRowsResponse resp = insertCmd.execute(cn, getProjectName());
-            String[] pks = new String[insertCmd.getRows().size()];
             for (int i = 0; i < insertCmd.getRows().size(); i++)
             {
                 Map<String, Object> row = resp.getRows().get(i);
                 assertTrue(row.containsKey("container"));
-                pks[i] = ((String)row.get("container")).toString();
-            }
-            for (int i = 0; i < pks.length; i++)
-            {
-                pkeys.add(0, pks[i]);
+                pkeys.add(row.get("container").toString());
             }
         }
         catch (CommandException e)
