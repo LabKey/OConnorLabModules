@@ -18,6 +18,7 @@ package org.labkey.test.tests;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.Locator;
+import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
@@ -37,10 +38,10 @@ public class HaplotypeAssayTest extends GenotypingTest
 {
     private static final String PROJECT_NAME = "HaplotypeAssayVerifyProject";
     private static final String ASSAY_NAME = "HaplotypeAssay";// + TRICKY_CHARACTERS_NO_QUOTES;
-    private static final File FIRST_RUN_FILE = new File(getSampledataPath(), "genotyping/haplotypeAssay/firstRunData.txt");
-    private static final File SECOND_RUN_FILE = new File(getSampledataPath(), "genotyping/haplotypeAssay/secondRunData.txt");
-    private static final File ERROR_RUN_FILE = new File(getSampledataPath(), "genotyping/haplotypeAssay/errorRunData.txt");
-    private static final File DRB_RUN_FILE = new File(getSampledataPath(), "genotyping/haplotypeAssay/dbrRunData.txt");
+    private static final File FIRST_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/firstRunData.txt");
+    private static final File SECOND_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/secondRunData.txt");
+    private static final File ERROR_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/errorRunData.txt");
+    private static final File DRB_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/dbrRunData.txt");
     public static final String DBR_ASSAY = "DBR assay";
     public static final String DRB_RUN = "drb run";
 
@@ -174,7 +175,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         selectOptionByText(Locator.name("speciesId"), "rhesus macaques");
         clickButton("Save and Finish");
         waitForText("Data contained zero data rows");
-        setFormElement(Locator.name("data"), getFileContents(ERROR_RUN_FILE));
+        setFormElement(Locator.name("data"), TestFileUtils.getFileContents(ERROR_RUN_FILE));
         sleep(1000);
         clickButton("Save and Finish");
         waitForText("Column header mapping missing for: Lab Animal ID");
@@ -494,7 +495,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         if (!isElementPresent(cb))
             fail("The Haplotype column header mapping comboboxes should be disbabled until the data is pasted in.");
 
-        setFormElement(Locator.name("data"), getFileContents(dataFile));
+        setFormElement(Locator.name("data"), TestFileUtils.getFileContents(dataFile));
         waitForElementToDisappear(cb, WAIT_FOR_JAVASCRIPT);
         _ext4Helper.selectComboBoxItem("Lab Animal ID *:", "OC ID");
         _ext4Helper.selectComboBoxItem("Client Animal ID:", "Animal ID");

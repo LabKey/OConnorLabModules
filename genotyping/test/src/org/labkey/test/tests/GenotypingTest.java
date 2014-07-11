@@ -18,6 +18,7 @@ package org.labkey.test.tests;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.Locator;
+import org.labkey.test.TestFileUtils;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
@@ -31,7 +32,7 @@ public class GenotypingTest extends GenotypingBaseTest
     public static final String second454importNum = "208";
     protected int pipelineJobCount = 0;
 
-    String pipelineLoc =  getLabKeyRoot() + "/sampledata/genotyping";
+    String pipelineLoc = TestFileUtils.getLabKeyRoot() + "/sampledata/genotyping";
     protected int runNum = 0; //this is globally unique, so we need to retrieve it every time.
     protected String checkboxId = ".select";
 

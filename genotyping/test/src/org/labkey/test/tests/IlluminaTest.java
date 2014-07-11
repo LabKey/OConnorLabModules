@@ -15,44 +15,24 @@
  */
 package org.labkey.test.tests;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.labkey.remoteapi.Connection;
-import org.labkey.remoteapi.query.ExecuteSqlCommand;
-import org.labkey.remoteapi.query.SelectRowsResponse;
 import org.labkey.test.Locator;
 import org.labkey.test.SortDirection;
-import org.labkey.test.WebTestHelper;
+import org.labkey.test.TestFileUtils;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
-import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.ext4cmp.Ext4FieldRef;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipInputStream;
 
 import static org.junit.Assert.assertEquals;
@@ -64,7 +44,7 @@ public class IlluminaTest extends GenotypingBaseTest
     public static final String illuminaImportNum = "206";
     protected int pipelineJobCount = 0;
 
-    File pipelineLoc =  new File(getLabKeyRoot(), "/sampledata/genotyping");
+    File pipelineLoc = new File(TestFileUtils.getLabKeyRoot(), "/sampledata/genotyping");
     protected String checkboxId = ".select";
 //    private String expectedAnalysisCount = "1 - 61 of 61";
 

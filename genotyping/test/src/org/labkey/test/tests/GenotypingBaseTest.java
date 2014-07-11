@@ -20,6 +20,7 @@ import org.labkey.remoteapi.query.DeleteRowsCommand;
 import org.labkey.remoteapi.query.SaveRowsResponse;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
+import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LogMethod;
@@ -35,7 +36,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
     public static final String illuminaImportNum = "206";
     protected int pipelineJobCount = 0;
 
-    String pipelineLoc =  getLabKeyRoot() + "/sampledata/genotyping";
+    String pipelineLoc = TestFileUtils.getLabKeyRoot() + "/sampledata/genotyping";
     protected int runNum = 0; //this is globally unique, so we need to retrieve it every time.
     protected String checkboxId = ".select";
     //    private String expectedAnalysisCount = "1 - 61 of 61";
