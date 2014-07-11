@@ -1453,17 +1453,6 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    private void sendPlainText(String message) throws IOException
-    {
-        HttpServletResponse response = getViewContext().getResponse();
-        response.setContentType("text/plain");
-        PrintWriter out = response.getWriter();
-        out.print(message);
-        out.close();
-        response.flushBuffer();
-    }
-
-
     public static class ImportAnalysisForm
     {
         private int _analysis;
