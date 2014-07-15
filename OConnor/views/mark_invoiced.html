@@ -1,0 +1,185 @@
+<html>
+<head>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorAlabrityConfig.js");
+</script>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorPurchaseCommon.js");
+</script>
+<script type="text/javascript">
+Ext.onReady(function(){
+
+var pageButtons = [{text: 'Mark as Invoiced', requiresSelection: true, handler: markInvoiced}];
+createGrid(dbSchemaName, 'purchases', 'mark_invoiced', '', 'a', 'b',pageButtons);
+
+//on button click, select checked rows, create dialog to choose location where products are received, and update records
+
+function markInvoiced(dataRegion, dataRegionName)
+{
+	var checkedRows = dataRegion.getChecked();
+
+	//change delimiter to semicolon for use in LABKEY.Filter
+	var checkedRowsSemicolon = checkedRows.join(";")
+
+	LABKEY.Query.selectRows({
+		schemaName: dbSchemaName,
+		queryName: 'purchases',
+		successCallback: selectRows,
+		failureCallback: onFailure,
+		filterArray: [
+		              LABKEY.Filter.create('key', checkedRowsSemicolon, LABKEY.Filter.Types.EQUALS_ONE_OF)
+		              ]
+	});
+
+	//store results of selectRows query
+	function selectRows(data)
+	{
+		var selected = data;
+
+		//create function to make text box and capture location. needs to be nested to be in scope
+
+		function makeForm()
+		{
+			var invoice_number = new Ext.form.TextField({
+				fieldLabel: 'Invoice Number',
+				name: 'invoice_number',
+				ref: 'invoice_number',
+				emptyText: ''
+			});
+
+			var theForm = new Ext.FormPanel({
+				xtype: 'form',
+				layout: 'form',
+				width: 300,
+				ref: 'theForm',
+				border: false,
+				labelWidth: 130,
+				items:[invoice_number]
+			});
+
+			var theWindow = new Ext.Window({
+				title: 'Mark purchase(s) as invoiced',
+				width: 320,
+				bodyStyle: 'background-color:#fff;padding: 10px',
+				items: theForm,
+				buttonAlign: 'center',
+				buttons: [{
+					text:'Submit',
+					disabled:false,
+					formBind: true,
+					ref: '../submit',
+					scope: this,
+					handler: function()
+					{
+						theWindow.hide();
+						var invoice_number = theWindow.theForm.invoice_number.getValue();
+						updateRecords(invoice_number,selected);
+					}
+				},
+				{
+					text:'Cancel',
+					disabled:false,
+					formBind: true,
+					ref: '../submit',
+					scope: this,
+					handler: function(){
+						theWindow.hide()
+					}
+				}]
+			});
+
+			theWindow.show();
+		};
+
+		//draw text box. calls updateRecords function on submit of text box to update records
+		makeForm();
+	};
+};
+
+//update records in labkey
+
+function updateRecords(invoice_number, data)
+{
+
+	var sentEmails = [];
+
+	//get current date
+	var now = new Date();
+
+	//get current user
+	var user =  LABKEY.Security.currentUser.displayName;
+
+	//count number of records affected
+	var recCt = data.rows.length;
+
+
+	dataArray = [];
+
+//set status to 4 which corresponds to invoiced
+	for(var i = 0; i < data.rows.length; i++){
+		dataArray.push({
+			key: data.rows[i].key,
+			status: 5,
+			invoice_number: invoice_number,
+			invoiced_date: now,
+			invoiced_by: user
+		});
+
+	}
+
+	LABKEY.Query.updateRows({
+		schemaName: dbSchemaName,
+		queryName: 'purchases',
+		rowDataArray: dataArray,
+		successCallback: onSuccess,
+		failureCallback: onFailure
+	});
+
+
+	//update status notification
+	function onSuccess()
+	{
+		//dialog to user showing order status.
+		var notice = (recCt + ' products have been marked as invoiced' + ' on ' + now);
+
+		//display notice to user
+		var theWindow = new Ext.Window({
+			title: 'Mark purchases as invoiced',
+			width: 320,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			html: notice,
+			modal: true,
+			buttons: [{
+				text:'OK',
+				disabled:false,
+				formBind: true,
+				ref: '../submit',
+				scope: this,
+				handler: function()
+				{
+					reloadWin();
+				}
+			}]
+		});
+
+		theWindow.show();
+
+		function reloadWin()
+		{
+			//refresh browser to show unordered products
+			theWindow.hide();
+			window.location.reload( true );
+		};
+	};
+};
+
+
+});
+</script>
+
+</head>
+<body>
+<div id="a"></div>
+
+</body>
+</html>

@@ -1,0 +1,63 @@
+<query xmlns="http://labkey.org/data/xml/query">
+	<metadata>
+		<tables xmlns="http://labkey.org/data/xml">
+			<table tableName="animals" tableDbType="TABLE">
+				<pkColumnName>Id</pkColumnName>
+				<columns>
+					<column columnName="Id">
+						<isKeyField>true</isKeyField>
+						<fk>
+							<fkFolderPath>/WNPRC/EHR/</fkFolderPath>
+							<fkDbSchema>study</fkDbSchema>
+							<fkTable>Animal</fkTable>
+							<fkColumnName>id</fkColumnName>
+						</fk>
+					</column>
+					<column columnName="Info" wrappedColumnName="id">
+						<columnTitle>Info</columnTitle>
+						<isHidden>false</isHidden>
+						<isUnselectable>true</isUnselectable>
+						<fk>
+							<fkFolderPath>/WNPRC/WNPRC_Laboratories/oconnor/</fkFolderPath>
+							<fkDbSchema>oconnor</fkDbSchema>
+							<fkTable>animalsInfo</fkTable>
+							<fkColumnName>id</fkColumnName>
+						</fk>
+					</column>
+					<column columnName="comments">
+						<displayWidth>5000</displayWidth>
+					</column>
+
+				</columns>
+				<buttonBarOptions position="both"
+					includeStandardButtons="false">
+					<item text="Default View">
+						<onClick>
+							dataRegion.changeView('default');
+                        </onClick>
+					</item>
+					<item text="Blood Draws">
+						<onClick>
+							dataRegion.changeView('Blood Remaining');  
+                        </onClick>
+					</item>
+					<item text="Viral Loads">
+						<onClick>
+							dataRegion.changeView('Viral Loads');  
+                        </onClick>
+					</item>
+					<item text="Views">
+						<originalText>Views</originalText>
+					</item>
+					<item text="Export">
+						<originalText>Export</originalText>
+					</item>
+					<item text="Print">
+						<originalText>Print</originalText>
+					</item>
+
+				</buttonBarOptions>
+			</table>
+		</tables>
+	</metadata>
+</query>

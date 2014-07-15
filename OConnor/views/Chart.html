@@ -1,0 +1,564 @@
+<html>
+<script type="text/javascript">
+
+
+var chart1Colors = ["000000", "FF0000", "99CC00", "339966", "33CCCC", "3366FF", "800080", "969696", "FF00FF", "FFCC00", "FFFF00", "00FF00", "00FFFF", "00CCFF", "993366", "C0C0C0", "FF99CC", "FFCC99", "FFFF99", "CCFFCC", "CCFFFF", "99CCFF", "CC99FF", "FFFFFF"];
+
+
+var chartData = {
+		ids : [],
+		dataType : [],
+		endDates : [],
+		weeksPost: [],
+		startWP : 0,
+		lineColors : chart1Colors,
+		skins : ['CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin'],
+};
+
+chartData.ids = ['cy0114', 'cy0209', 'cy0209'];
+chartData.dataTypes = ['Viral Load', 'Viral Load', 'CD4 Counts'];
+chartData.weeksPost = ['WPI', 'WPI','WPI'];
+
+var completeList = [];
+//var chart1Colors = new Ext.ColorPalette().colors;
+       
+                  
+                  
+console.log(chart1Colors);
+
+var skins = ['CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin'];
+
+
+for (var i = 0; i < chartData.ids.length; i++){
+	completeList.push({
+		animal: chartData.ids[i],
+		color: chart1Colors[i],
+		skin: skins[i].replace('Skin', ''),
+	});
+}
+
+var theData = [];
+theData.push(new Object());
+var theStore;
+
+
+
+Ext.onReady(init);
+
+
+
+function changeColor(el){
+	var row = el.findParentByType('panel');
+	row.getComponent(1).show();
+}
+
+
+
+
+
+function init(){
+	
+	
+	var animalChecks = [];
+	for(var i = 0; i < completeList.length; i++){		
+		var colorP = new Ext.ColorPalette({
+			value: completeList[i].color,
+			listeners: {
+				select: function(pal, color){
+					this.hide();
+					this.findParentByType('panel').getComponent(0).toggle();
+					var idx = this.findParentByType('panel').findParentByType('panel').getId()-1;
+					completeList[idx].color = color;					
+					document.getElementById('color' + idx).style.backgroundColor = '#' + color;
+				}
+			},
+			hidden:true,
+		});
+		
+		var colorPanel = new Ext.Panel({
+			layout: 'table',
+			layoutConfig: {
+				columns: 2,
+			},		
+			border:false,
+			items: [{
+					rowspan: 1,
+					xtype: 'button',
+					enableToggle: true,
+					html: '<form><input id = "color' + i  + '" type="button" value="  "  style="background-color:#' + completeList[i].color + ';"></form>', 
+					handler: function(){
+						if(this.pressed)
+							changeColor(this);
+						else
+							this.findParentByType('panel').getComponent(1).hide();
+							
+					}
+			},colorP],
+		});
+		
+		var combo = new Ext.form.ComboBox({
+			typeAhead: true,
+			typeAheadDelay: 0,
+			lazyRender : true,
+			width: 80,
+			mode: 'local',
+			selectOnFocus: true,
+			forceSelection: true, 
+			triggerAction: 'all',
+			value: completeList[i].skin,
+			store: new Ext.data.ArrayStore({
+				fields: [
+				         'displayText'
+				         ],
+				         data: [['Circle'], ['Rectangle'], ['Diamond'], ['Triangle']],
+			}),
+	//		valueField: 'displayText',
+			displayField: 'displayText',
+			autoHeight: true,
+			fieldLabel: 'Type',
+	        labelStyle: 'font-weight:bold; font-size:14px;',
+		});
+		
+		
+		animalChecks.push(		
+				new Ext.Panel({
+					id: i+1,
+					layout: 'table',
+					layoutConfig: {
+						columns: 5,
+					},
+					border:false,
+					items: [{
+						rowspan: 1,
+						xtype: 'button',
+						text: completeList[i].animal + ' (x)', 
+				    	handler: function(){	
+				    		this.findParentByType('panel').hide();
+				    		//add more
+				    		
+				    	}
+					},colorPanel,
+					combo
+					
+					
+					
+					
+					
+					]})
+				);
+		
+	}
+	
+	var mainPanel = new Ext.Panel({
+		applyTo: 'chart',
+		border:false,
+	
+	});	
+	
+	var settingsPanel = new Ext.Panel({
+		layout: 'table',
+		hideCollapseTool: true,
+		title: 'Settings',
+		id: 'settings',
+		collapsed: false,
+		titleCollapse: true,
+		collapsible: true,
+		layoutConfig: {
+			columns: 1,
+		},
+		items: animalChecks,
+
+		
+	});
+	
+	var chartPanel = new Ext.Panel({
+		hideCollapseTool: true,
+		collapsed: false,
+		title: 'Chart',
+		titleCollapse: true,
+		collapsible: true,
+
+	});
+	
+	var animalPanel = new Ext.Panel({
+		hideCollapseTool: true,
+
+		title: 'Animals',
+		collapsed: true,
+		titleCollapse: true,
+		collapsible: true,
+		html: '<div id = "theAnimals"></div>',
+
+	});
+	
+	var dataPanel = new Ext.Panel({
+		hideCollapseTool: true,
+		collapsed: true,
+		title: 'Data',
+		titleCollapse: true,
+		collapsible: true,
+		html: '<div id = "vlList"></div>',
+
+
+	});
+
+	
+	mainPanel.add([chartPanel, settingsPanel, animalPanel, dataPanel]);
+	
+	var animals = new LABKEY.QueryWebPart({
+		schemaName: 'lists',
+        queryName: 'Animal Data',
+		buttonBar: {
+			position: 'none'
+		},
+		buttonBarPosition: 'both',
+		showBorders: true,
+		showDetailsColumn: false,
+		showUpdateColumn: true,
+		showRecordSelectors: true,
+        frame: 'none',
+		containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+        sort: 'Current Use, challenge_date',
+        buttonBar: {
+               includeStandardButtons: false,
+               items:[
+                      {text: 'Update Animals', handler: update}, 
+					  LABKEY.QueryWebPart.standardButtons.views,
+                      LABKEY.QueryWebPart.standardButtons.exportRows,
+                      LABKEY.QueryWebPart.standardButtons.insertNew,
+                      LABKEY.QueryWebPart.standardButtons.print,
+                      LABKEY.QueryWebPart.standardButtons.pageSize,
+			   ]
+        },
+		success: function(dataReg){	
+				
+			
+			/*
+			dataReg.clearSelected({
+				success: function(d){
+				}	
+			
+			});
+			*/
+		
+			dataReg.setSelected({
+				ids: chartData.ids,
+				checked: true,
+				success: function(d){
+					mainPanel.doLayout();
+	
+				}
+			});
+			
+
+		}
+        
+    });
+	
+	
+	
+	mainPanel.doLayout();
+	animals.render('theAnimals');
+		
+
+	function update(d){
+		console.log(d.getChecked());
+		chartData.ids = d.getChecked();
+		refreshChart();
+	}
+
+	
+	
+   //startChart();
+	refreshChart();
+   
+function refreshChart(){
+	
+	//Probably should get challenge/vaccine dates locally rather than in sql
+	
+
+	
+	var i = 0;
+	
+	chooseTypeFunction(i);
+	
+	function chooseTypeFunction(i){
+		switch(chartData.dataTypes[i]){
+		case ('Viral Load') : 
+			addVLAnimal(i);
+			break;
+		case ('CD4 Counts') :
+			addCD4Animal(i);
+			break;
+		default :
+			createChart(chartData.ids, chart1Colors);
+		}
+	}
+	
+	
+	function addVLAnimal(i){
+		
+		
+		LABKEY.Query.selectRows({
+			filterArray: [LABKEY.Filter.create('Id', chartData.ids[i], LABKEY.Filter.Types.EQUAL)],
+			schemaName: 'study',
+	       	queryName: 'ViralLoadsDates',
+			containerPath: '/WNPRC/WNPRC_Laboratories/oconnor/',
+			columns: 'LogVL,WPI,WPV,date,Id',
+			sort: 	'Id, date',	
+			success: function(data){
+				for (var t = 0; t < data.rows.length; t++){
+					if (theData[t] == undefined)
+						theData[t] = new Object;
+					
+					theData[t][(chartData.ids[i] + chartData.weeksPost[i] + chartData.dataTypes[i])] = data.rows[t][chartData.weeksPost[i] || 'WPI'];
+					theData[t][(chartData.ids[i] + chartData.dataTypes[i])] = data.rows[t].LogVL;	
+				}
+				
+				//continue loop
+				i++;
+				if(i < chartData.ids.length){
+					chooseTypeFunction(i);					
+				} else {
+					createChart(chartData.ids, chart1Colors);
+				}
+			}
+				
+		});
+				
+	}
+	
+	function addCD4Animal(i){
+		
+		LABKEY.Query.selectRows({
+			filterArray: [LABKEY.Filter.create('Id', chartData.ids[i], LABKEY.Filter.Types.EQUAL),
+			              LABKEY.Filter.create('SurfaceMarker', 'CD3+CD4+', LABKEY.Filter.Types.EQUAL)],
+			schemaName: 'oconnor',
+	       	queryName: 'FlowResults',
+			containerPath: '/WNPRC/WNPRC_Laboratories/oconnor/',
+			columns: 'PercentLymphocytes,WPI,WPV,SampleDate,Id',
+			sort: 	'Id, SampleDate',	
+			success: function(data){
+					
+				for (var t = 0; t < data.rows.length; t++){
+					if (theData[t] == undefined)
+						theData[t] = new Object;
+					
+					theData[t][(chartData.ids[i] + chartData.weeksPost[i] + chartData.dataTypes[i])] = data.rows[t][chartData.weeksPost[i] || 'WPI'];
+					theData[t][(chartData.ids[i] + chartData.dataTypes[i])] = data.rows[t].PercentLymphocytes;	
+				}
+							
+				//continue loop
+				i++;
+				if(i < chartData.ids.length){
+					chooseTypeFunction(i);			
+				} else {
+					createChart();
+				}
+			}
+			
+		});
+				
+	}
+	
+	
+	
+	function createChart(){
+		
+		
+		var theFields = [];	
+		for(var t in theData[0])
+			theFields.push(t);
+		
+		
+		//adds NaN to each object/field that doesn't have data
+		for(var i = 0; i < theData.length; i++){	
+			for(var t = 0; t < theFields.length; t++){
+				
+				var aField = theFields[t];
+				var found = false;
+				
+				for(var p in theData[i]){
+					if(p == aField){
+						found = true;
+						break;
+					}
+				}
+				
+				if(!found){
+					theData[i][aField] = 'NaN';
+				}
+			}
+		}
+		
+		
+		
+		
+		console.log(theData);
+		
+		theStore = new Ext.data.JsonStore({	
+			fields:theFields,
+			data: theData
+		});
+		
+				
+		
+		var theSeries = [];
+		for(var i = 0; i<chartData.ids.length; i++){
+			
+			var type;
+			if(chartData.dataTypes[i] == 'CD4 Counts')
+				type = 'secondary';
+			else
+				type = 'primary';
+				
+			theSeries[i] = { 
+					xField: (chartData.ids[i] + chartData.weeksPost[i] + chartData.dataTypes[i]), 
+					yField: (chartData.ids[i] + chartData.dataTypes[i]),
+
+					axis: type,
+					
+				    displayName: chartData.ids[i] + '-' + chartData.dataTypes[i],
+				    style: {
+						size: 9,
+						color: chartData.lineColors[i],
+						skin: chartData.skins[i],
+				//		borderColor: '#ff0000',
+							}	
+				};
+			}	
+				
+
+		var chart = new Ext.chart.LineChart({
+		extraStyle: {
+			animationEnabled: false,
+			legend:{
+			display:'bottom'
+			},
+			xAxis: {
+				color: 0x3366cc,
+				majorTicks: {color: 0x3366cc, length: 4},
+				minorTicks: {color: 0x3366cc, length: 2},
+				majorGridLines: {size: 1, color: 0xdddddd},
+			},
+			yAxis: {
+				color: 0x3366cc,
+				majorGridLines: {size: 1, color: 0xdddddd},
+	            titleRotation:-90,  
+
+			},
+			secondaryYAxis: {
+                titleRotation:90, 
+				majorGridLines: {size: 1, color: 0xdddddd},
+
+			}
+		},
+		    height: 500,
+		    width: 1200,
+		    store: theStore,
+		    series: theSeries,
+		    xAxis: new Ext.chart.NumericAxis({
+				title: 'wpi',
+				minimum: chartData.startWP,
+			//	minimum: 100,
+
+				maximum : 'auto',
+		    	}),
+		    yAxes: [
+		    	    new Ext.chart.NumericAxis({
+		  			title: 'logVL',
+		  			position: 'left',
+		  			minimum: 0,
+					maximum: 'auto',
+		  			}), 
+		  			
+		  			new Ext.chart.NumericAxis({
+		  			title: 'Percent Lymphocyte',
+		  			order: 'secondary',
+		  			position: 'right',
+		  			minimum: 'auto',
+		  			maximum: 'auto',
+		  			labelFormat: {
+		  				value: {
+		  		            decimalPlaces: "0",
+		  				}
+		  			}
+
+		  			})
+		    	    ]
+		});
+		
+		
+		
+		var test = new Ext.chart.NumericAxis({
+  			title: 'logVL',
+  			position: 'left',
+  			minimum: 0,
+			maximum: 10
+  			});
+		
+		console.log(test);
+		
+		
+		
+		chartPanel.removeAll();
+		chartPanel.add(chart);
+		createVls();
+		mainPanel.doLayout();
+		
+	}
+	
+	
+	function createVls(){
+		
+		var vls = document.getElementById('vlList');
+		var row = document.createElement('tr');
+		
+		var count = 0;
+		
+		for (var i = 0; i < chartData.ids.length; i++){
+			
+    		var column = document.createElement('td');
+			column.setAttribute('id',chartData.ids[i]);
+			column.setAttribute('valign',"top");
+
+			var qwp1 = new LABKEY.QueryWebPart({
+		        renderTo: chartData.ids[i],
+				schemaName: 'study',
+		        queryName: 'ViralLoadsDates',
+				containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+	            filterArray: [LABKEY.Filter.create('Id', chartData.ids[i], LABKEY.Filter.Types.EQUALS_ONE_OF)],
+		       // frame: 'title',
+		        title: chartData.ids[i],
+		        //+ ' ' + chartData.dataType[i],
+		    	buttonBarPosition: 'top',
+		    	allowChooseQuery: false,
+		    	allowChooseView: false,
+		        sort: '-Date',
+		    });
+			
+			row.appendChild(column);	
+			
+			count++;
+
+			if (count >= 3){
+				vls.appendChild(row);
+				var row = document.createElement('tr');
+				count = 0;
+			}
+			
+			
+		}
+		
+		vls.appendChild(row);
+		
+	}
+
+}
+
+}
+	</script>
+
+<div id="chart"></div>
+
+</html>

@@ -1,0 +1,134 @@
+<ap:domain xmlns:exp="http://cpas.fhcrc.org/exp/xml" xmlns:ap="http://labkey.org/study/assay/xml">
+<exp:Description>These are the ELISpot result fields.</exp:Description>
+<exp:PropertyDescriptor>
+	<exp:Name>Well</exp:Name>
+	<exp:Description>Well</exp:Description>
+	<exp:Required>true</exp:Required>
+	<exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+	<exp:Label>Well</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+	<exp:Name>Experiment</exp:Name>
+	<exp:Description>Experiment</exp:Description>
+	<exp:Required>true</exp:Required>
+	<exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
+	<exp:Label>Experiment</exp:Label>
+			<exp:FK>
+       		<exp:Schema>oconnor</exp:Schema>
+       		<exp:Query>experiment_db</exp:Query>
+    		</exp:FK>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+        <exp:Name>Id</exp:Name>
+        <exp:Description>Id</exp:Description>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:Label>Id</exp:Label>
+        	<exp:FK>
+       		<exp:Schema>oconnor</exp:Schema>
+       		<exp:Query>animals</exp:Query>
+    		</exp:FK>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+	<exp:Name>SampleDate</exp:Name>
+	<exp:Description>Sample Date</exp:Description>
+	<exp:Required>true</exp:Required>
+	<exp:RangeURI>http://www.w3.org/2001/XMLSchema#dateTime</exp:RangeURI>
+	<exp:Label>Sample Date</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+    <exp:Name>PeptideId</exp:Name>
+    <exp:Description>Peptide Id</exp:Description>
+    <exp:Required>true</exp:Required>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+    <exp:Label>Peptide Id</exp:Label>
+    	<exp:FK>
+        <exp:Schema>oconnor</exp:Schema>
+        <exp:Query>peptides</exp:Query>
+    	</exp:FK>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+    <exp:Name>Control</exp:Name>
+    <exp:Description>Control</exp:Description>
+    <exp:Required>false</exp:Required>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+    <exp:Label>Control</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+    <exp:Name>CellNumber</exp:Name>
+    <exp:Description>Cell Number(x10^5)</exp:Description>
+    <exp:Required>true</exp:Required>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+    <exp:Label>Cell Number(x10^5)</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+	<exp:Name>Spots</exp:Name>
+	<exp:Description>Spots</exp:Description>
+	<exp:Required>true</exp:Required>
+	<exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
+	<exp:Label>Spots</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+	<exp:Name>Comment</exp:Name>
+	<exp:Description>Comment</exp:Description>
+	<exp:Required>false</exp:Required>
+	<exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+	<exp:Label>Comment</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+	<exp:Name>result</exp:Name>
+	<exp:Description>Result</exp:Description>
+	<exp:Required>false</exp:Required>
+	<exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+	<exp:Label>Result</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+	<exp:Name>sfc</exp:Name>
+	<exp:Description>SFC</exp:Description>
+	<exp:Required>false</exp:Required>
+	<exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+	<exp:Label>SFC</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+    <exp:Name>cutoff</exp:Name>
+    <exp:Description>cutoff</exp:Description>
+    <exp:Required>false</exp:Required>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+    <exp:Label>Positive Cutoff</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+	<exp:Name>neg_mean</exp:Name>
+	<exp:Description>neg_mean</exp:Description>
+	<exp:Required>false</exp:Required>
+	<exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+	<exp:Label>Neg Mean</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+    <exp:Name>min_spots</exp:Name>
+    <exp:Description>Minimum Number of Spots for Positive</exp:Description>
+    <exp:Required>false</exp:Required>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
+    <exp:Label>Minimum Spots for Positive</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+    <exp:Name>mean_multiplier</exp:Name>
+    <exp:Description>mean_multiplier</exp:Description>
+    <exp:Required>false</exp:Required>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
+    <exp:Label>Arithmetic Mean Multiplier</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+    <exp:Name>stddev_number</exp:Name>
+    <exp:Description>stddev_number</exp:Description>
+    <exp:Required>false</exp:Required>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
+    <exp:Label>+Number of Standard Deviations</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+    <exp:Name>overall_multiplier</exp:Name>
+    <exp:Description>Overall Threshold Multiplier</exp:Description>
+    <exp:Required>false</exp:Required>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
+    <exp:Label>Overall Threshold Multiplier</exp:Label>
+</exp:PropertyDescriptor>
+</ap:domain>

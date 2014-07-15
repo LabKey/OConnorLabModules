@@ -1,0 +1,21 @@
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+   <columns>
+    <column name="order_number"/>
+	<column name="item"/>
+	<column name="vendor"/>
+	<column name="status"/>
+	<column name="created"/>
+	<column name="ordered_by"/>
+	<column name="ordered_date"/>
+   </columns>
+   
+   <sorts>
+       <sort column="created" descending="true"/>
+   </sorts>
+
+<!-- orders with status 1 and status 2 are not yet received -->
+   
+	<filters>
+       <filter column="status" operator="lt" value="3"/>
+   </filters>
+</customView>

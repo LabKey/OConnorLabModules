@@ -1,0 +1,27 @@
+<!-- show only those shipping locations that are enabled in the dashboard -->
+
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+   <columns>
+    <column name="id">
+    </column>
+	<column name="building">
+	</column>
+	<column name="address">
+	</column>
+	<column name="city">
+	</column>
+	<column name="state">
+	</column>
+	<column name="zip">
+	</column>
+   </columns>
+   
+   <sorts>
+       <sort column="created" descending="true"/>
+   </sorts>
+   
+	<filters>
+       <filter column="enabled" operator="eq" value="TRUE"/>
+   </filters>
+   
+</customView>

@@ -1,0 +1,252 @@
+<html>
+<script type="text/javascript">
+
+LABKEY.requiresScript('oconnor/addOCIcons.js'); 		
+LABKEY.requiresScript('oconnor/oconnorFunctions.js'); 		
+
+
+var trad1 = '';
+var trad2 = '';
+var matrix1 = '';
+var matrix2 = '';
+var table;	
+var rows;
+
+Ext.onReady(main);
+
+
+
+
+
+function main(){		
+	addIcons();
+
+	//toExperiment(1234);
+	
+	var tradExps = LABKEY.ActionURL.getParameter('trad');
+	var matrixExps = LABKEY.ActionURL.getParameter('matrix');
+	
+	if(tradExps != undefined){
+		tradExps = tradExps.split(',');
+		trad1 = tradExps[0];
+		trad2 = tradExps[1];
+	}
+
+	if(matrixExps != undefined){
+		matrixExps = matrixExps.split(',');
+		matrix1 = matrixExps[0];
+		matrix2 = matrixExps[1];
+	}
+		
+	if(matrixExps != undefined || tradExps != undefined){
+		document.getElementById('matches').innerHTML = 'Possible Matches';	
+		document.getElementById('experiments').innerHTML = '&nbsp Trad. 1: ' + '<a href=javascript:toExperiment(trad1)>' + trad1 + '</a>' + '&nbsp Trad. 2: ' + '<a href=javascript:toExperiment(trad2)>' + trad2 + '</a>' + '&nbsp Matrix 1: ' + '<a href=javascript:toExperiment(matrix1)>' + matrix1 + '</a>' + '&nbsp Matrix 2: ' + '<a href=javascript:toExperiment(matrix2)>' + matrix2 + '</a>';
+	}
+	
+	var allexps = matrix1 + ';' + matrix2 + ';' + trad1 + ';' + trad2;
+	
+	LABKEY.Query.selectRows({
+        schemaName: 'oconnor',
+        queryName: 'ELISpotResults',
+		containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+        columns: 'PeptideId, Experiment, result, Control',
+		filterArray: [LABKEY.Filter.create('Experiment', allexps, LABKEY.Filter.Types.EQUALS_ONE_OF)],
+        success: runPeptides, 
+        
+    });
+	
+	
+	function runPeptides(d){
+			
+		matrixPeptides = [];
+		traditionalPeptides = [];
+		
+		for(var i = 0; i < d.rows.length; i++){						
+			if(d.rows[i].Experiment == matrix1 || d.rows[i].Experiment == matrix2)
+				if(d.rows[i].Control == null && d.rows[i].result == 'Pos' )
+					matrixPeptides.push(d.rows[i].PeptideId);
+			
+			if(d.rows[i].Experiment == trad1 || d.rows[i].Experiment == trad2)
+				if(d.rows[i].Control == null && d.rows[i].result == 'Pos' )
+					traditionalPeptides.push(d.rows[i].PeptideId);
+		}
+		
+		
+		var allpeptides = matrixPeptides.join(';') + ';' + traditionalPeptides.join(';');
+		var qwp1 = new LABKEY.QueryWebPart({
+		    renderTo: 'matrix',
+			schemaName: 'oconnor',
+		    queryName: 'elispot_matrix',
+		    frame: 'none',
+		    dataRegionName: 'theTable',
+		    showDetailsColumn : false,
+		    showRecordSelectors : true,
+		    buttonBarPosition: 'none',
+		    showRecordSelectors: false,
+		    sort: 'id',
+			containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+			success: function(){
+				  LABKEY.Query.selectRows({
+				        schemaName: 'oconnor',
+				        queryName: 'peptides',
+						containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+				        columns: 'peptide_number, pool_contents',
+						filterArray: [LABKEY.Filter.create('peptide_number', allpeptides, LABKEY.Filter.Types.EQUALS_ONE_OF)],
+				        success: getPeptides, 
+				        
+				    });
+			}
+		});
+	}
+
+function getPeptides(d){
+	
+	table = document.getElementById('dataregion_theTable');	
+	rows = table.childNodes[3].getElementsByTagName('tr');
+
+		
+	
+	var tradArray = [];
+	var matrixArray = [];
+	
+	for(var i = 0; i < d.rows.length; i++){
+		for(var t = 0; t < matrixPeptides.length; t++){
+			if(d.rows[i].peptide_number == matrixPeptides[t]){
+				var tempString = d.rows[i].pool_contents;
+				tempString = tempString.replace(/\s+/g,"");
+				matrixArray.push(tempString.split(','));
+			}
+		
+		}
+		for(var t = 0; t < traditionalPeptides.length; t++){
+			if(d.rows[i].peptide_number == traditionalPeptides[t]){
+				var tempString = d.rows[i].pool_contents;
+				tempString = tempString.replace(/\s+/g,"");
+				
+				if (tempString.indexOf('-') != -1){
+					var idx = tempString.indexOf('-');
+					var tempArray = [];
+					
+					var start = +tempString.substring(0,idx);
+					var end = +tempString.substring(idx+1,tempString.length);
+					
+					for(var p = start; p <= end; p++){
+						tempArray.push(p);
+					}
+									
+					tradArray.push(tempArray);
+
+				}else{
+					tradArray.push(tempString.split(','));
+				}	
+			}
+		
+		}
+	}
+	
+	
+	
+	var allMatrix = [];
+	
+	for(var i = 0; i < matrixArray.length; i++){
+		for(var t = 0; t < matrixArray[i].length; t++){
+			allMatrix.push(matrixArray[i][t]);
+		}
+	}
+	
+	var allTrad = [];
+	
+	for(var i = 0; i < tradArray.length; i++){
+		for(var t = 0; t < tradArray[i].length; t++){
+			allTrad.push(tradArray[i][t]);
+		}
+	}
+	
+	var shared = [];
+	
+	for(var i = 0; i < allMatrix.length; i++){
+		for(var t = 0; t < allTrad.length; t++){
+			if(allMatrix[i] == allTrad[t])
+				shared.push(allMatrix[i]);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	for(var i = 0; i < matrixArray.length; i++)
+		highlight(matrixArray[i],"#00FF00");
+	
+	for(var i = 0; i < tradArray.length; i++)
+		highlight(tradArray[i],"#FF3333");
+	
+	highlight(shared,"#FFFF00");
+
+	makeQuery(shared);
+	
+	
+	function highlight(highPep,color){
+
+		for (var i = 0; i < rows.length; i++){
+			if(rows[i].className == 'labkey-row' || rows[i].className == 'labkey-alternate-row'){					
+				for(var t = 0; t < rows[i].childNodes.length; t++){
+					
+					for(var p = 0; p < highPep.length; p++){
+						if(rows[i].childNodes[t].innerHTML.indexOf(highPep[p]) != -1)
+							rows[i].childNodes[t].style.backgroundColor = color;	
+					}
+				}
+				
+			}
+			
+		}
+	
+	}
+	
+	
+	function makeQuery(peptides){
+		
+		var qwp2 = new LABKEY.QueryWebPart({
+		    renderTo: 'peptides',
+		    schemaName: 'oconnor',
+	        queryName: 'peptides',
+			containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+		    frame: 'none',
+		    buttonBarPosition: 'top',
+		    allowChooseQuery: false,
+		    showDeleteButton: false,
+		    showInsertNewButton: false,
+		    showUpdateColumn: false,
+		    showDetailsColumn : false,
+		    showRecordSelectors : true,
+			filterArray: [LABKEY.Filter.create('peptide_number', peptides.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+			containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+
+		});
+		
+		
+	}
+	
+	
+}
+
+}
+	
+function newExps(){
+	matrixElispotSelection(null, matrix1, matrix2, trad1, trad2);	
+}
+
+
+</script>
+<INPUT style="font-size:16px;" type="button" value="New Experiments" name="button6" onClick='newExps()'> 
+<span id="experiments" style="font-size:18px; line-height:16px; vertical-align:text-bottom;"></span>
+<br></br>
+<div id="matches" style="font-size:20px"> 
+</div>
+<div id="peptides"></div>
+<br></br>
+<div id="matrix"></div>
+</html>
+

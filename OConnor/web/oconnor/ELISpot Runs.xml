@@ -1,0 +1,13 @@
+<tables xmlns="http://labkey.org/data/xml">
+	<table tableName="ELISpot Runs" tableDbType="TABLE">
+		<columns>
+			<column columnName="RunDate">
+				<sortDescending>true</sortDescending>
+			</column>
+			<column columnName="RunName">
+				<sortDescending>true</sortDescending>
+				<isHidden>true</isHidden>
+			</column>
+		</columns>
+	</table>
+</tables>

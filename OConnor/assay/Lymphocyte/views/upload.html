@@ -1,0 +1,151 @@
+<script type="text/javascript">
+
+LABKEY.requiresScript("ehr/AssayUpload.js");
+LABKEY.requiresScript("oconnor/AddOCIcons.js");
+
+
+if (!LABKEY.ActionURL.getParameter('legacyData')){
+
+	
+	Ext.onReady(function() {	
+		
+		addIcons();
+		
+		today = new Date();
+	   name = LABKEY.Security.currentUser.displayName + '_' + today.format('Y-m-d');
+	    	
+	   EHR.Assay.showButtonBar(LABKEY.page.assay);
+	
+	   var extraMethods = [
+	       new EHR.Assay.Upload.ImportMethod({
+	    	   name: 'FlowJo Upload',
+	           label: 'FlowJo Upload',
+             //  isDefault: true,
+              // exampleData: '<%=contextPath%>/oconnor/ELISpot_Upload.xls?',
+               noTemplateDownload: true,
+			   metadata: {
+		           Run: {
+		           	   Name: {value: name},
+		               PerformedBy: {value: LABKEY.Security.currentUser.displayName},
+		           }
+		       },
+			       
+		       clientParsing: {
+	               contentPre: function(data){
+	            	   alert('still in progress');
+	            	   
+	            	   
+	            	   console.log(data);
+	            	   
+	            	 //  return;
+	               }
+			   
+		       }
+	       
+	       
+	       })
+
+	
+		];
+	   
+	   
+	    new EHR.Assay.UploadPanel({
+	        importMethods: extraMethods,
+	        metadata: {
+	            Run: { 	   
+	           		Name: {value: name},
+	                PerformedBy: {value: LABKEY.Security.currentUser.displayName}
+	            }
+	        }
+	        }).render('uploadArea');
+	
+	});
+	
+} else {
+	console.log('here');
+    //will upload data as a single excel file, then group into runs by DatePerformed and Expt
+    Ext.onReady(function() {
+
+        EHR.Assay.showButtonBar(LABKEY.page.assay);
+    
+        var customUpload = Ext.extend(EHR.Assay.UploadPanel, {
+        processData: function(data, run){
+            LABKEY.page.batch.runs = LABKEY.page.batch.runs || new Array();
+
+            this.processing = {};
+            this.groupedData = {};
+
+            this._parseHeader(data[0]);
+            //This is the format of the uploaded file expected header:
+            //0 Id
+            //1 SampleDate	
+            //2 SurfaceMarker	
+            //3 PerformedBy	
+            //4 PercentLymphocytes	
+            //5 Experiment
+            
+			console.log('d');
+            
+            for (var i = 1; i < data.length; i++) {
+                var row = data[i].concat(this.processing.extraResults);
+
+                //change this line to alter how we group the incoming data
+                var key = (row[3].value + '_xdhofs');
+
+                if(!this.groupedData[key]){
+                    this.groupedData[key] = new LABKEY.Exp.Run();
+
+                    //make sure this is passing a reference
+                    LABKEY.page.batch.runs.push(this.groupedData[key]);
+					                    
+                    //add normal run properties
+                    this._addGlobalFields(this.groupedData[key]);
+                    
+
+                    //add others from the excel file
+                    this.groupedData[key].properties.PerformedBy = row[3].value;
+
+                    this.groupedData[key].dataRows = new Array();
+                    this.groupedData[key].name = key;
+                   
+                    this.groupedData[key].dataInputs = run.dataInputs;
+                    
+                    console.log(this.groupedData[key]);
+                }
+
+                var rowContent = this._rowParse(row);
+                rowContent.QCState = 1;
+
+                this.groupedData[key].dataRows.push(rowContent);
+
+            }
+
+            LABKEY.setDirty(true);
+            this.saveBatch();
+        }
+
+        });
+
+        new customUpload({
+            metadata: {
+                Run: {
+                    PerformedBy: {ext: {value: LABKEY.Security.currentUser.displayName}},
+                }
+            }
+        }).render('uploadArea');
+
+    });
+
+}
+
+
+
+</script>
+<html>
+
+
+<div id="uploadArea"></div>
+
+
+
+</html>

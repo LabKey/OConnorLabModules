@@ -1,0 +1,138 @@
+<html>
+<script type="text/javascript">
+
+var animals = LABKEY.ActionURL.getParameter('animals');
+var animalList = animals.split(',');
+
+Ext.onReady(bloodInfo);
+
+function bloodInfo(){	
+	
+//need weight
+/*	
+	LABKEY.Query.selectRows({
+		  schemaName: 'study',
+		  queryName: 'demographicsBloodSummary',
+		  colums: 'Id, MostRecentWeight, BloodLast30, AvailBlood',
+		  sort: 'Id',
+          containerPath: '/WNPRC/EHR',
+		  filterArray: [LABKEY.Filter.create('Id', animalList.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+		  successCallback: onSuccess
+	});
+    	
+	function onSuccess(data){
+		var animals = [];
+		var weights = [];
+		var blood30 = [];
+		var availBlood = [];
+		
+		
+		for(var  i = 0; i != data.rows.length; i++){
+			animals.push(data.rows[i].Id);
+			weights.push(data.rows[i].MostRecentWeight);
+			blood30.push(data.rows[i].BloodLast30);
+			availBlood.push(data.rows[i].AvailBlood);   			
+		}
+		
+		console.log(animals);
+		console.log(weights);
+		console.log(blood30);
+		console.log(availBlood);
+		
+*/
+		createAnimals();
+		createDraws();
+		
+	
+	
+	
+	function createAnimals(){
+		var qwp1 = new LABKEY.QueryWebPart({
+	        renderTo: 'animals',
+			schemaName: 'oconnor',
+	        queryName: 'animals',
+	        viewName: 'Blood Remaining',
+			containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+            filterArray: [LABKEY.Filter.create('Id', animalList.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+	        frame: 'none',
+			showRecordSelectors: true,
+	        sort: 'Id, current_use',
+
+	    });
+	}
+	
+	function createDraws(){
+		var draws = document.getElementById('draws');
+		var today = new Date();
+		var dateminus30 = new Date();
+		dateminus30.setDate(dateminus30.getDate()-30);
+		
+		for (var i = 0; i < animalList.length; i++){
+			
+			var row = document.createElement('tr');
+			
+    		var column = document.createElement('td');
+			column.setAttribute('id',animalList[i] + 'past');
+			column.setAttribute('valign',"top");
+
+			var qwp1 = new LABKEY.QueryWebPart({
+				timeout:100000000,			
+		        renderTo: animalList[i]  + 'past',
+				schemaName: 'study',
+				containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+		        queryName: 'BloodDrawDates',
+	            filterArray: [LABKEY.Filter.create('Id', animalList[i], LABKEY.Filter.Types.EQUALS_ONE_OF),
+	                          LABKEY.Filter.create('date', dateminus30, LABKEY.Filter.Types.GREATER_THAN_OR_EQUAL)                   
+	                          ],
+		   //     frame: 'title',
+		        title: animalList[i] + ' Draws in the Last 30 Days',
+		        buttonBarPosition: 'top',
+		    	allowChooseQuery: false,
+		    	allowChooseView: false,
+		    	sort: 'date',
+	    });
+			row.appendChild(column);	
+			
+			draws.appendChild(row);
+			
+			var row = document.createElement('tr');
+
+			
+			var column = document.createElement('td');
+			column.setAttribute('id',animalList[i] + 'future');
+			column.setAttribute('valign',"top");
+
+			var qwp1 = new LABKEY.QueryWebPart({
+		        renderTo: animalList[i]  + 'future',
+				schemaName: 'study',
+				containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+		        queryName: 'ProjectedDraws2',
+	            filterArray: [LABKEY.Filter.create('Id', animalList[i], LABKEY.Filter.Types.EQUALS_ONE_OF),
+	                          LABKEY.Filter.create('Date_Needed', today, LABKEY.Filter.Types.GREATER_THAN)
+	                          ],
+		       // frame: 'title',
+		        title: animalList[i]  + ' Future Draws',
+		        buttonBarPosition: 'top',
+		    	allowChooseQuery: false,
+		    	allowChooseView: false,
+		    	sort: 'Date_Needed',
+	    });
+			row.appendChild(column);	
+		
+			
+			draws.appendChild(row);
+
+
+		}
+		
+		
+	}
+}
+	
+
+</script>
+<body>
+<div id="animals"></div>
+<table id="draws" cellspacing="5"></table>
+</body>
+</html>

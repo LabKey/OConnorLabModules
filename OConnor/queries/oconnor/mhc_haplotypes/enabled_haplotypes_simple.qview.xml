@@ -1,0 +1,20 @@
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+<!--
+
+Enabled MHC haplotypes.
+
+-->
+
+   <columns>
+    <column name="id"/>
+	<column name="haplotype"/>
+   </columns>
+   
+   <sorts>
+       <sort column="id" descending="true"/>
+   </sorts>
+
+	<filters>
+       <filter column="enabled" operator="eq" value="TRUE"/>
+   </filters>
+</customView>

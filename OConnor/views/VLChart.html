@@ -1,0 +1,255 @@
+<html>
+<script type="text/javascript">
+
+LABKEY.requiresScript('oconnor/addOCIcons.js'); 	
+
+
+var animals = LABKEY.ActionURL.getParameter('animals');
+var animalList = animals.split(',');
+var chart1Animals = animalList;
+var chart1Colors  = [0x000000, 0x000099, 0x009900, 0x009999, 0x990000, 0x990099, 0x999999, 0x0000FF, 0x00FF00, 0x00FFFF, 0xFF0000, 0xFF00FF];
+
+var challengeDates = [];
+var theData = [];
+var theStore;
+var animalList2 = [];
+
+var skins = ['CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin']; 
+
+
+Ext.onReady(getInfectDates);
+
+function getInfectDates(){
+	addIcons();
+
+	
+    var store = LABKEY.Query.selectRows({
+		timeout:100000000,			
+        schemaName: 'lists',
+        queryName: 'Animal Data',
+		columns: 'challenge_date, vaccine_date, Id',
+		containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+        filterArray: [LABKEY.Filter.create('Id', animalList.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+        sort: 'Id',
+        successCallback: function(data){
+        	for(var i=0; i < data.rows.length; i++){
+        		if(data.rows[i].challenge_date != undefined){
+            		challengeDates.push(new Date(data.rows[i].challenge_date));
+            		animalList2.push(data.rows[i].Id);
+        		} else if(data.rows[i].vaccine_date != undefined){
+            		challengeDates.push(new Date(data.rows[i].vaccine_date));
+            		animalList2.push(data.rows[i].Id);
+        		} else {
+        			alert(data.rows[i].Id + ' doesn\'t have a challenge date');
+        			
+        		} 
+        		
+        		
+        	}
+            startChart();
+        }
+    });
+	}
+
+function startChart(){
+		
+	store1 = new LABKEY.ext.Store({
+			timeout:100000000,			
+            schemaName: 'study',
+            queryName: 'ViralLoads',
+			containerPath: '/EHR/',
+			columns: 'LogVL,date,Id',
+			sort: 	'Id, date',	
+			autoLoad: true,
+            filterArray: [LABKEY.Filter.create('Id', animalList2.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+            listeners: {
+            	scope: this,
+            	load: createSeries
+            	}
+			
+		});
+
+	function createSeries(rec){		
+		var ids = [];
+		var collects = [];
+		
+		ids = rec.collect('Id');
+		
+		console.log(ids);
+		
+		for(var i = 0; i < ids.length; i++){
+			collects.push(rec.query('Id', ids[i]));
+		}
+		
+		console.log(collects);
+		
+		for(var i = 0; i < collects.length; i++){
+			
+			var idx = 0;
+			
+			
+			while(new Date (new Date (collects[i].get(idx).get('date'))-challengeDates[i]) < 0){
+					idx++;
+				
+			}
+			
+		
+			var s = 0;
+			for(idx; idx < collects[i].items.length; idx++){
+				
+				if (theData[s] == undefined){
+					theData[s] = new Object;
+					for(var x = 0; x < ids.length; x++){
+						theData[s][(ids[x] + '_VL')] = 'NaN';
+						theData[s][(ids[x] + '_WPI')] = 'NaN';						
+					}
+				}
+				
+				theData[s][(ids[i] + '_VL')] = collects[i].get(idx).get('LogVL');			
+				theData[s][(ids[i] + '_WPI')] = (Math.round((((new Date (collects[i].get(idx).get('date'))-challengeDates[i])/(86400000*7))*100)))/100;  
+				
+				
+				
+				
+				s++;
+			}				
+		}
+		
+		
+		var theFields = [];	
+		for(var t in theData[0])
+			theFields.push(t);
+				
+		theStore = new Ext.data.JsonStore({	
+			fields:theFields,
+			data: theData
+		});
+					
+		
+		createChart('chart1', chart1Animals, chart1Colors);
+		createQuery();
+		createVls();
+	}
+	
+	function createChart(chart, animals, colors){
+		
+		var theSeries = [];
+		for(var i = 0; i<animals.length; i++){
+			theSeries[i] = { 
+					xField: (animals[i] + '_WPI'), 
+					yField: (animals[i] + '_VL'),
+				    displayName: animals[i],
+				    style: {
+						size: 8,
+						color: colors[i],
+						skin: skins[i]
+							}	
+				};
+			}	
+				
+
+		var chart = new Ext.chart.LineChart({
+		extraStyle: {
+			animationEnabled: false,
+			legend:{
+			display:'bottom'
+			},
+			xAxis: {
+				color: 0x3366cc,
+				majorTicks: {color: 0x3366cc, length: 4},
+				minorTicks: {color: 0x3366cc, length: 2},
+				majorGridLines: {size: 1, color: 0xdddddd}
+			},
+			yAxis: {
+				color: 0x3366cc,
+				majorGridLines: {size: 1, color: 0xdddddd}
+			}
+		},
+		    height: 500,
+		    width: 1200,
+		    store: theStore,
+		    series: theSeries,
+		    renderTo: chart,
+		    xAxis: new Ext.chart.NumericAxis({
+			title: 'wpi'
+		    	}),
+		    yAxis: new Ext.chart.NumericAxis({
+			title: 'logVL',
+			minimum: 1.5,
+
+			})
+		});
+	}
+	
+	
+	
+	function createQuery(){
+		var qwp1 = new LABKEY.QueryWebPart({
+			timeout:100000000,			
+	        renderTo: 'theList',
+			schemaName: 'oconnor',
+	        queryName: 'animals',
+	        viewName: 'Viral Loads',
+			containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+            filterArray: [LABKEY.Filter.create('Id', animalList.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+	        frame: 'none',
+			showRecordSelectors: true,
+
+	    });
+		
+	}
+	
+	function createVls(){
+		
+		var vls = document.getElementById('vlList');
+		var row = document.createElement('tr');
+		
+		var count = 0;
+		
+		for (var i = 0; i < animalList.length; i++){
+			
+    		var column = document.createElement('td');
+			column.setAttribute('id',animalList[i]);
+			column.setAttribute('valign',"top");
+
+			var qwp1 = new LABKEY.QueryWebPart({
+		        renderTo: animalList[i],
+				schemaName: 'study',
+		        queryName: 'ViralLoadsDates',
+				containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+	            filterArray: [LABKEY.Filter.create('Id', animalList[i], LABKEY.Filter.Types.EQUALS_ONE_OF)],
+		       // frame: 'title',
+		        title: animalList[i],
+		    	buttonBarPosition: 'top',
+		    	allowChooseQuery: false,
+		    	allowChooseView: false,
+		        sort: '-Date',
+		    });
+			
+			row.appendChild(column);	
+			
+			count++;
+
+			if (count >= 3){
+				vls.appendChild(row);
+				var row = document.createElement('tr');
+				count = 0;
+			}
+			
+			
+		}
+		
+		vls.appendChild(row);
+		
+	}
+	
+
+}
+
+</script>
+<body>
+<div id="chart1"></div>
+<div id="theList"></div>
+<table id="vlList" cellspacing="20"></table>
+</body>
+</html>

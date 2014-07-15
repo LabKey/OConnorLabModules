@@ -1,0 +1,9 @@
+<query xmlns="http://labkey.org/data/xml/query">
+  <metadata>
+    <ns:tables xmlns:ns="http://labkey.org/data/xml">
+      <ns:table tableName="status" tableDbType="TABLE">
+		<ns:titleColumn>description</ns:titleColumn>
+      </ns:table>
+    </ns:tables>
+  </metadata>
+</query>

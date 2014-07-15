@@ -1,0 +1,1066 @@
+
+<script type="text/javascript">
+
+LABKEY.requiresScript('oconnor/addOCIcons.js'); 	
+LABKEY.requiresScript('oconnor/moreInfo.js'); 	
+
+	
+Ext.onReady(main);
+
+function main(){
+	addIcons();
+	var currentTime = new Date();
+	var date = currentTime.format('Y-m-d');
+	
+	
+	query([LABKEY.Filter.create('Date_Needed', date , LABKEY.Filter.Types.GREATER_THAN_OR_EQUAL)]);
+	
+}
+
+function query(filter){
+	
+	//NEED TO ADD BUTTONS HERE from xmls!
+	
+	console.log(filter);
+	
+	var qwp1 = new LABKEY.QueryWebPart({
+	    renderTo: 'bloodList',
+		schemaName: 'lists',
+	    queryName: 'Blood Draws',
+	    frame: 'none',
+	    filterArray: filter,
+	    showDetailsColumn : false,
+		containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+		buttonBar: {
+			includeStandardButtons: true,
+			items:[
+			   {text: 'Submit', requiresSelection: true, handler: displayWindow},
+		        LABKEY.QueryWebPart.standardButtons.deleteRows,
+			   {text: 'Next Week', handler: nextWeeks},
+			   {text: 'All', handler: all},
+			   {text: 'Calendar', url: LABKEY.ActionURL.buildURL("oconnor", "BloodCalendar", "WNPRC/WNPRC_Laboratories/oconnor")},
+			   {text: 'Surplus Calc.', handler: surplus},
+			   {text: 'More Info', handler: makeChecked},
+		
+		       
+		       ]}
+	});
+	
+	}
+
+
+
+function displayWindow(dataRegion){
+	var debug = false;
+	if(debug)
+		alert('debug');
+	var progress = 0;
+	
+	var checked = dataRegion.getChecked();
+	var count = 0;
+	
+	for (var i = 0; i < checked.length; i++){
+			
+	    LABKEY.Query.selectRows({
+	        schemaName: 'lists',
+	        queryName: 'Blood Draws',
+	        columns: 'ID, Date_Needed, Tube_Type, Tube_Number',
+	        filterArray: [LABKEY.Filter.create('Key', checked[i], LABKEY.Filter.Types.EQUAL)],
+	        successCallback: function (data){
+	        	
+	        	var date = data.rows[0].Date_Needed;
+	        	var animal = data.rows[0].ID.toLowerCase();
+	        	var number = data.rows[0].Tube_Number;
+	     
+	           	var blood;
+
+	    	    switch(data.rows[0].Tube_Type){
+	    	    case '6ml EDTA' :
+	    	    	blood = 6 * number;
+	    	    	break;
+	    	    case '2ml EDTA' :
+	    	    	blood = 2 * number;
+	    	    	break;
+	    	    case '3.5ml SST' :
+	    	    	blood = 3.5 * number;
+	    	    	break;	
+	    	    case '5ml SST' :
+	    	    	blood = 5 * number;
+	    	    	break;
+	    	    case 'None' :
+	    	    	blood = 0;
+	    	    	break;
+	    	    }
+	        	
+	        	
+	        	
+	        	LABKEY.Query.selectRows({
+	      	        schemaName: 'study',
+	      	        queryName: 'demographicsStatus',
+	      	        columns: 'Id, Status',
+	             	containerPath: '/WNPRC/EHR',
+	      	        filterArray: [LABKEY.Filter.create('Id', animal, LABKEY.Filter.Types.EQUAL)],
+	      	        successCallback: function (data){
+	      	        	if(data.rows.length < 1){
+	      	                theWindow.hide();
+	      	        		alert('Could not find ' + animal + ' in EHR');
+	      	        		return;
+	      	        	}
+	      	        	if(data.rows[0].Status == 'Dead'){
+	      	                theWindow.hide();
+	      	        		alert(animal + ' is dead');
+	      	        		return;
+	      	        	}
+	      	        	
+	      	        }
+	      	        });    
+	        	
+	        	LABKEY.Query.selectRows({
+	      	        schemaName: 'study',
+	             	containerPath: '/WNPRC/EHR',
+	      	        queryName: 'demographicsBloodSummary',
+	      	        columns: 'Id, AvailBlood',
+	      	        filterArray: [
+	      	                      LABKEY.Filter.create('Id', animal, LABKEY.Filter.Types.EQUAL),
+	      	                      ],
+	      	        successCallback: function (data){
+	      	        	var tmpblood = 0;
+	      	        	date = new Date(date);
+	      	        	date = date.toDateString();
+	      	        	
+	      	        	if(data.rows.length >= 1){
+	      	        		tmpblood = data.rows[0].AvailBlood;
+	      	        	}
+	      	        	
+	      	        	if(tmpblood == null){
+	      	        		alert('Available blood for ' + animal + ' is not calculated in the EHR. The draw of ' + blood + ' ml on ' + date + ' is possibly over');
+	      	        	}
+	      	        	else if(tmpblood < blood){
+	      	        		alert('Draw for ' + animal + ' of ' + blood + ' ml on ' + date + ' is over available blood of ' + tmpblood + ' ml' );
+	      	        	}    
+	      	        	
+	      	        	
+	      	        	count++;	      	        	
+	      	        	if (count > checked.length-1){    	
+	      	        	    theWindow.buttons[0].enable();	 
+	      	        	    theWindow.buttons[0].setText('Submit');	      	        	    
+
+	      	        	}
+	      	        		
+	      	        	//MIGHT NEED TO ADD SURPLUS CALCULATOR HERE!
+	      	        	
+	      	        }
+	      	        });
+	        	
+	        	
+	        	
+	        }
+	        });      
+
+	}
+
+
+var name;
+var email;
+var phone;
+var comments;
+var dates = [];
+var locs = [];
+var ids = [];
+var tubeNums = [];
+var tubeTypes = [];
+var projs = [];
+var instrs = [];
+var accs = [];
+var cbcs = [];
+var invests = [];
+var vlRs = [];
+var unSubs = [];
+
+var orderIds = [];
+
+
+phone = '608-265-3389';
+
+ 
+    switch(LABKEY.Security.currentUser.email)
+	{
+	case 'phines@primate.wisc.edu' :
+		name = 'Justin Greene';
+		email = 'greene.justin@gmail.com';
+		break;
+	case 'soconnor@primate.wisc.edu' :
+		name = 'Shelby';
+		email = 'slfeinberg@wisc.edu@gmail.com';
+		break;
+	case 'jgreene@primate.wisc.edu' :
+		name = 'Justin Greene';
+		email = 'greene.justin@gmail.com';
+		break;
+	case 'echin@primate.wisc.edu' :
+		name = 'Emily Chin';
+		email = 'emchinster@gmail.com';
+		break;
+	case 'ddudley@primate.wisc.edu' :
+		name = 'Dawn Dudley';
+		email = 'ddudley32@gmail.com';
+		break;
+	case 'bburwitz@primate.wisc.edu' :
+		name = 'Ben Burwitz';
+		email = 'bburwitz@primate.wisc.edu';
+		phone = '608-890-0848';
+		break;
+	default: 
+		name = 'Unknown';
+		email = 'noemail@gmail.com';
+		break;
+	}
+
+             
+     var theWindow = new Ext.Window({
+        width: 330,
+        height: 230,
+        bodyStyle:'padding:5px',
+        closeAction:'hide',
+        closable: false,
+        plain: false,
+       
+       
+        title: 'Submit Requests',
+        layout: 'form',
+        items: [{
+            emptyText:''
+            ,fieldLabel: 'Name'
+            ,ref: 'name'
+            ,xtype: 'textfield'
+            ,width: 200
+            ,required: true
+			,value: name		
+        },{
+            emptyText:''
+            ,fieldLabel: 'Email'
+            ,ref: 'email'
+            ,xtype: 'textfield'
+            ,width: 200
+            ,required: true
+	    ,value: email		
+        },{
+            emptyText:''
+            ,fieldLabel: 'Phone Number'
+            ,ref: 'phone'
+            ,xtype: 'textfield'
+            ,width: 200
+            ,required: true
+	    ,value: phone		
+        },{
+            emptyText:''
+            ,fieldLabel: 'Comments'
+            ,ref: 'comment'
+            ,xtype: 'textarea'
+            ,width: 200
+            ,required: false
+		}],
+		
+        buttons: [{
+            text:'Checking',
+            disabled:true,
+            formBind: true,
+            ref: 'submitButton',
+            scope: this,
+            handler: submit
+        },{
+            text: 'Cancel',
+            scope: this,
+            handler: function(){
+                theWindow.hide();
+            }
+        }]
+        
+    });
+    theWindow.show();      
+                
+   /*
+ 	var theLoadingWindow = new Ext.Window({
+         width: 130,
+         height: 30,
+         bodyStyle:'padding:0px',
+         closeAction:'hide',
+         closable: false,
+         plain: true,
+         items: [{
+        	 xtype: 'box',
+             html: '<div>Submitting...</div>',
+             height: this.boxMaxHeight,
+             width: this.boxMaxWidth
+
+ 		}]});
+    */
+    
+ function submit(){	
+	 
+	 
+		name = theWindow.name.getValue();
+		email = theWindow.email.getValue();
+        phone = theWindow.phone.getValue();
+        comments = theWindow.comment.getValue();
+
+	 	theWindow.hide();	 	
+	//    theLoadingWindow.show();    
+	    Ext.Msg.progress('Submitting');
+
+        
+        LABKEY.Query.selectRows({
+             schemaName: 'lists',
+             queryName: 'Blood Draws',
+             //sort date, investigator, id,
+             sort: 'Date_Needed, Investigator, ID',
+             filterArray: [LABKEY.Filter.create('Key', checked.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+             successCallback: getData
+             });                           
+                                    
+	     function getData(data){
+	    	progress+=.1;
+	    	Ext.Msg.updateProgress(progress); 
+			
+	    	
+	    	for(var  i = 0; i != data.rows.length; i++){
+	    		progress+=(.25 / data.rows.length);
+		    	Ext.Msg.updateProgress(progress); 
+	    		
+	    		
+				var theDate = new Date(data.rows[i].Date_Needed);
+				
+				dates.push((theDate.getMonth()+1) + '\/' + theDate.getDate() + '\/' + theDate.getFullYear());
+				ids.push(data.rows[i].ID.toLowerCase());
+				tubeNums.push(data.rows[i].Tube_Number);
+				tubeTypes.push(data.rows[i].Tube_Type);
+				vlRs.push(data.rows[i].VL_Request);	
+				
+				if(data.rows[i].Submitted != true){
+					unSubs.push(data.rows[i].Key);
+				}	
+
+				//not working
+				if (data.rows[i].Instructions != null)
+					instrs.push(data.rows[i].Instructions);
+				else
+					instrs.push('');
+
+				cbcs.push(data.rows[i].CBC);
+				invests.push(data.rows[i].Investigator);
+			}
+			
+			getLocsProjs();
+		}
+	}
+ 
+ 	function getLocsProjs(){
+ 		Ext.Msg.updateProgress(progress); 
+
+ 		
+ 	
+ 		
+ 		LABKEY.Query.selectRows({
+        	schemaName: 'study',
+         	queryName: 'demographicsCurLocation',
+         	containerPath: '/WNPRC/EHR',
+         	columns: ['Id','location'],
+            sort: 'Id',
+            timeout: 600000000,
+         	filterArray: [LABKEY.Filter.create('Id', ids.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+         	successCallback: getLocs
+         	}); 
+         	
+         	function getLocs(d){
+    			for(var  i = 0; i < d.rows.length; i++){
+    				if(d.rows[i].location == undefined){
+    					alert('Cannot find location for ' + ids[i] + ' in EHR');
+    					Ext.Msg.hide();
+    					return;
+    				}
+    				
+    	    		progress+=(.25 / d.rows.length);
+    		    	Ext.Msg.updateProgress(progress); 
+    				
+    				
+    				locs.push(d.rows[i].location);
+    				orderIds.push(d.rows[i].Id.toLowerCase());
+    			}
+         	}
+         	
+     	LABKEY.Query.selectRows({
+        	schemaName: 'study',
+         	queryName: 'demographicsAssignmentSummary',
+         	containerPath: '/WNPRC/EHR',
+         	columns: ['Id','ActiveResearchAssignments'],
+            sort: 'Id',
+            timeout: 600000000,
+         	filterArray: [LABKEY.Filter.create('Id', ids.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+         	successCallback: function (d){   
+    			for(var  i = 0; i < d.rows.length; i++){
+    				if(d.rows[i].ActiveResearchAssignments == undefined){
+    					alert('Cannot find project for ' + ids[i] + ' in EHR');
+    					Ext.Msg.hide();
+    					return;
+    				}
+    				
+    				console.log(progress);
+    	    		progress+=(.25 / d.rows.length);
+    		    	Ext.Msg.updateProgress(progress); 
+    				
+    				
+    				projs.push(d.rows[i].ActiveResearchAssignments);
+    			}
+    			
+             	getAccs();
+
+         		}
+             }); 
+ 	}
+ 
+ 
+	
+	function getAccs(){
+   	 	Ext.Msg.updateProgress(progress); 
+
+		
+		for(var i=0; i<projs.length; i++){
+			projs[i] = projs[i][projs[i].length-1];
+		}
+		
+		
+		
+		LABKEY.Query.selectRows({
+            	schemaName: 'lists',
+             	queryName: 'project',
+             	containerPath: '/WNPRC/EHR',
+                timeout: 600000000,
+             	columns: ['account','project', 'Id'],
+             	filterArray: [LABKEY.Filter.create('project', projs.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+             	successCallback: function (d){  
+
+             		
+             		var tmpProjs = [];
+             		var tmpAccs = [];
+             		
+             		for(var  i = 0; i != d.rows.length; i++){
+             			tmpAccs.push(d.rows[i]['account']);
+             			tmpProjs.push(d.rows[i]['project']);		
+             		}
+             		
+             		for(var i = 0; i != projs.length; i++){
+             			for(var t = 0; t != tmpProjs.length; t++){
+             				if(tmpProjs[t] == projs[i]){
+          						accs.push(tmpAccs[t]);
+          					}
+             			}
+             		}            	
+             		
+
+             		makeEmails();
+             	}            	
+
+			}); 
+	}
+	
+
+	function makeEmails(){
+   	 	Ext.Msg.updateProgress(progress); 
+
+				
+		var request = '';
+		//Construct message
+	
+		var currentTime = new Date();
+		var date = currentTime.format('Y-m-d');
+
+		request += '<p>New Blood Draw Schedule</p><table>';
+		request += '<tr><td>REQUESTED BY:</td><td>	' + name + '</td></tr>';
+		request += '<tr><td>DATE SUBMITTED:</td><td>	' + date + '</td></tr>';
+		request += '<tr><td>DELIVER TO:</td><td>	Research Park</td></tr>';
+		request += '<tr><td>PHONE NUMBER:</td><td>	' + phone + '</td></tr>';
+		request += '<tr><td>EMAIL:</td><td>	' + email + '</td></tr>';
+		request += '<tr><td>COMMENTS:</td><td>	' + comments + '</td></tr>';
+		request += '</table>';	
+		request += '<p></p><table border="1">';
+		request += '<tr><td>Date Needed</td><td>Time Needed</td><td>Location</td><td>ID</td><td># of tubes</td><td>Type of Tube</td><td>Project #</td><td>Instructions</td><td>Account #</td><td>CBC/Vet-19</td><td>Investigator</td></tr>';
+
+
+
+		var projCount = 0;
+		for(var i = 0; i < ids.length; i++){
+			
+			for(var t = 0; t < orderIds.length; t++){
+				if(ids[i] == orderIds[t]){
+					projCount = t;
+					break;
+				}
+			}
+			
+			if(i > 0)
+				if(dates[i]!=dates[i-1]){
+					request += '<p></p><table border="1">';
+					request += '<tr><td>Date Needed</td><td>Time Needed</td><td>Location</td><td>ID</td><td># of tubes</td><td>Type of Tube</td><td>Project #</td><td>Instructions</td><td>Account #</td><td>CBC/Vet-19</td><td>Investigator</td></tr>';
+
+				}
+			request +='<tr>';
+			request +='<td>' + dates[i] + '</td>';
+			request +='<td>10:00am</td>';
+			request +='<td>' + locs[projCount] + '</td>';
+			request +='<td>' + ids[i] + '</td>';
+			request +='<td>' + tubeNums[i] + '</td>';
+			request +='<td>' + tubeTypes[i] + '</td>';
+			request +='<td>' + projs[projCount] + '</td>';
+			request +='<td>' + instrs[i] + '</td>';
+			request +='<td>' + accs[projCount] + '</td>';
+			request +='<td>' + cbcs[i] + '</td>';
+			request +='<td>' + invests[i] + '</td>';
+			request +='</tr>';
+			
+			if(i < ids.length-1)
+				if(dates[i]!=dates[i+1])
+					request += '</table>';
+				
+		}
+
+		var vlRequest = '';
+		var flag = false;
+		vlRequest += '<table border="1">';
+		vlRequest += '<tr><td>sample or animal #</td><td>Request date</td><td>Sample date</td><td>Sample type</td><td>SIV infected or naive</td><td>Requested by</td><td>email</td><td>Date needed by</td><td>grant to charge</td></tr>';
+
+		
+		projCount = 0;
+		for(var i = 0; i < vlRs.length; i++){
+			
+			for(var t = 0; t < orderIds.length; t++){
+				if(ids[i] == orderIds[t]){
+					projCount = t;
+					break;
+				}
+			}
+			
+			
+			if(vlRs[i] == true){
+				flag = true;
+				vlRequest += '<tr><td>' + ids[i] + '</td>';
+				vlRequest += '<td>' + currentTime.format('Y-m-d') + '</td>';
+				vlRequest += '<td>' + dates[i] + '</td>';
+				vlRequest += '<td>plasma</td>';
+				vlRequest += '<td>SIV+</td>';
+				vlRequest += '<td>' + invests[i] + '</td>';
+				vlRequest += '<td>' + email + '</td>';
+				
+				var needDate = new Date(dates[i]);
+				//needDate.setDate(needDate.getDate()+7);				
+				//vlRequest += '<td>' + needDate.format('Y-m-d') + '</td>';
+				vlRequest += '<td>Anytime</td>';
+				vlRequest += '<td>' + accs[projCount] + '</td></tr>';
+
+			}
+					
+		}
+		
+		
+		vlRequest += '</table>';	
+		
+		
+		if(!debug){
+		
+			var rowsUpdate = [];
+			for(var i = 0; i < unSubs.length; i++)
+			{
+				rowsUpdate.push({'Key' : unSubs[i], Submitted : true});
+			}
+			
+			if(rowsUpdate.length > 0){	
+				LABKEY.Query.updateRows({
+		            schemaName: 'lists',
+		            queryName: 'Blood Draws',
+					rowDataArray: rowsUpdate
+		         	});
+			}
+				
+		}
+
+		if(flag)
+			sendVLRequest(vlRequest);
+		
+		sendRequest(request);
+		
+
+	}
+	
+	function sendRequest(request){
+   	 	Ext.Msg.updateProgress(progress); 
+
+		
+		var currentTime = new Date();
+		var date = currentTime.format('Y-m-d');
+	
+		/*
+		var recipients;
+		
+		if(!debug)
+			recipients = 'judithp@primate.wisc.edu, darken@primate.wisc.edu, carissab@primate.wisc.edu, kristins@primate.wisc.edu, cpi@primate.wisc.edu' + email;
+		else
+			recipients = 'hines.paul@gmail.com';
+		
+		
+		var href = "mailto:"
+			+ recipients +
+			"?subject=New Blood Draw Request " + date + "&"
+			+ "body=" + request;
+		var wndMail = window.open(href);
+		
+		 */	
+		
+		if (!debug)
+			recipients = [
+			                LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, LABKEY.Security.currentUser.email),
+			                LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, 'judithp@primate.wisc.edu'),
+			                LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, 'darken@primate.wisc.edu'),
+			                LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, 'carissab@primate.wisc.edu'),
+			                LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, 'cpi@primate.wisc.edu'),
+			                LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, 'phines@primate.wisc.edu')
+			            ];
+		else
+			recipients = [ LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, 'phines@primate.wisc.edu')];
+		
+		
+		
+		LABKEY.Message.sendMessage({
+            msgFrom: LABKEY.Security.currentUser.email,
+            msgSubject: 'New Blood Draw Schedule ' + date,
+  //          msgSubject: 'TESTING THE BLOOD DRAW SYSTEM ' + date,
+
+            msgRecipients: recipients,
+            msgContent: [
+                LABKEY.Message.createMsgContent(LABKEY.Message.msgType.html, request)
+            ],
+            successCallback: function(){
+         	Ext.Msg.updateProgress(1); 
+			Ext.Msg.hide();
+			Ext.Msg.alert('', 'A confirmation email was sent to ' + LABKEY.Security.currentUser.email);
+            }
+        });
+		
+	
+	
+	}
+	
+	function sendVLRequest(vlRequest){
+		
+		var vlrecipients;
+		
+		if (!debug)
+			vlrecipients = [
+			                LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, LABKEY.Security.currentUser.email),
+			                LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, 'jnelson@primate.wisc.edu'),
+			                LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, 'aweiler@primate.wisc.edu'),		          
+			            ];
+		else
+			vlrecipients = [ LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, 'phines@primate.wisc.edu')];
+		
+		
+		
+		
+		LABKEY.Message.sendMessage({
+            msgFrom: LABKEY.Security.currentUser.email,
+            msgSubject: 'New VL Request',
+            msgRecipients: vlrecipients,
+            msgContent: [
+                LABKEY.Message.createMsgContent(LABKEY.Message.msgType.html, vlRequest)
+            ],
+            successCallback: function(){
+            	if(!debug)
+            		dataRegion.changeView('default');
+            }
+        });
+        
+	}
+	
+}
+
+
+function calendar(){
+	
+	var calendar = LABKEY.ActionURL.buildURL("oconnor", "BloodCalendar", "/WNPRC/WNPRC_Laboratories/oconnor/");
+
+	window.location = calendar;
+	
+}
+
+
+function nextWeeks(){
+	
+	console.log('ere');
+	
+	var currentTime = new Date();
+	var day = currentTime.getDay();
+	currentTime.setDate(currentTime.getDate()+(7-day));
+	
+	var dayone =  currentTime.format('Y-m-d');
+	
+	currentTime.setDate(currentTime.getDate()+7);
+
+	var dayseven = currentTime.format('Y-m-d');
+	query([LABKEY.Filter.create('Date_Needed', dayone , LABKEY.Filter.Types.GREATER_THAN_OR_EQUAL) ]);
+
+	
+}
+
+function all(){
+	query([]);
+}
+
+
+
+function makeChecked(dataRegion){
+	
+	var checked = [];
+//	var dates = [];
+//	var keys = [];
+	
+	LABKEY.Query.selectRows({
+        schemaName: dataRegion.schemaName,
+        queryName: dataRegion.queryName,
+        filterArray: [LABKEY.Filter.create('Key', dataRegion.getChecked().join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+        sort: 'ID',
+        columns: 'ID',
+        	
+        	//, Date_Needed, Key
+        	
+        successCallback: function(data){
+        	for(var i=0; i < data.rows.length; i++){
+        		checked.push(data.rows[i]['ID']);
+        	//	dates.push(data.rows[i]['Date_Needed']);
+        	//	keys.push(data.rows[i]['Key']);
+        	}
+   /*     	
+        	var rowsUpdate = [];
+        	for(var i = 0; i < dates.length; i++){
+        		dates[i] = new Date(dates[i]);
+        		dates[i] = dates[i].toDateString();
+        	}
+        	
+        	
+        	for(var i = 0; i < dates.length; i++)
+        	{
+        		rowsUpdate.push({'Key' : keys[i], Date_Needed : dates[i]});
+        	}
+        	
+        	if(rowsUpdate.length > 0){	
+        		LABKEY.Query.updateRows({
+                    schemaName: 'lists',
+                    queryName: 'Blood Draws',
+        			rowDataArray: rowsUpdate
+                 	});
+        	}
+        	
+     */   	
+        	
+        	
+        	checked = checked.join(', ');
+            moreInfo(checked);
+        }
+	
+	
+	});
+}
+
+
+function surplus(dataRegion){
+	
+	var checked2 = [];
+	var dates2 = [];
+	var firstKey = dataRegion.getChecked();
+
+	if (firstKey.length == 0){
+		surplusWindow('','');
+	}
+	else {
+		LABKEY.Query.selectRows({
+	        schemaName: dataRegion.schemaName,
+	        queryName: dataRegion.queryName,
+	        filterArray: [LABKEY.Filter.create('Key', firstKey[0], LABKEY.Filter.Types.EQUAL)],
+	        sort: 'ID',
+	        columns: 'ID, Date_Needed',
+	        successCallback: function(data){
+	        	for(var i=0; i < data.rows.length; i++){
+	        		checked2.push(data.rows[i]['ID']);
+	        		dates2.push(data.rows[i]['Date_Needed']);
+	
+	        	}
+	        	
+	        	checked2 = checked2.join(', ');
+	        	for(var i = 0; i <dates2.length; i++){
+	        		dates2[i] = new Date(dates2[i]);
+	        		dates2[i] = '' + dates2[i].getFullYear() + '-' + (dates2[i].getMonth()+1) + '-' + dates2[i].getDate();
+	        	}
+	        	
+	        	
+	        	dates2 = dates2.join(', ');
+	            surplusWindow(checked2, dates2);
+	        }
+		
+		
+		});
+	}
+}
+
+
+function surplusWindow(checked2, dates2){
+	
+	var theWindow = new Ext.Window({
+	       width: 220,
+	       height: 220,
+	       bodyStyle:'padding:5px',
+	       closeAction:'hide',
+	       closable:false,
+	       plain: false,
+	      
+	       title: 'Blood Surplus Calculator',
+	       defaults: {
+	           bodyStyle:'padding:20px'
+	       },
+	       layout: 'table',
+	       layoutConfig: {
+	           columns: 2,
+	           padding: '30',
+	           bodyStyle:'padding:20px'
+
+	       },
+	       
+	       items: [{
+	    	   xtype: 'box',
+	    	   html: '<div>Animal</<div>'	    	    
+	  		},{	
+	  			xtype: 'box',
+		    	html: '<div>Date</<div>'	    	    
+		  	},{	
+	           emptyText:'',
+	           fieldLabel: 'Animal',
+	           ref: 'list',
+	           width: 100,
+	           xtype: 'textfield',
+	           value: checked2,
+	           required: false
+			},{   
+			   emptyText:'',
+	           fieldLabel: 'Date',
+	           ref: 'dates',
+	           width: 100,
+	           value: dates2,
+	           xtype: 'textfield',
+	           required: false
+			},{	
+		  			 xtype: 'box',
+			    	 colspan: 2,
+			    	 ref: 'info'
+			}],
+			
+	       buttons: [{
+	           text:'Submit',
+	           disabled:false,
+	           formBind: true,
+	           ref: '../submit',
+	           scope: this,
+	           handler: submitSurplus
+	       },{	        
+	           text: 'Cancel',
+	           scope: this,
+	           handler: function(){
+	               theWindow.hide(); 
+	           }
+	       }]
+	       
+	   });
+	    
+	   theWindow.show();      
+	
+	   function submitSurplus(){
+		   today = new Date();
+		   today = new Date(today.toDateString());
+		   table = '';
+		   
+		   var maxBlood;		  
+		   var past = 0;
+		   var future = 0;
+		   
+		   
+		   theDate = theWindow.dates.getValue();
+		   checked = theWindow.list.getValue();
+		
+		   
+		   
+		   
+		   LABKEY.Query.selectRows({
+			    schemaName: 'study',
+		        queryName: 'demographicsBloodSummary',
+		        containerPath: '/WNPRC/EHR',
+		        filterArray: [LABKEY.Filter.create('ID', checked, LABKEY.Filter.Types.EQUAL)],
+		        sort: 'ID',
+		        columns: 'MaxBlood',
+		        successCallback: function(data){
+		        	for(var i=0; i < data.rows.length; i++){
+		        		maxBlood = (data.rows[i].MaxBlood); 	
+		        	}
+
+		        	//parse date input
+		        	var datetemp = new Date();
+	        		var strtemp = theDate.split('-');		        		
+	        		datetemp.setFullYear(strtemp[0]);
+	        		datetemp.setMonth(strtemp[1]-1);
+	        		datetemp.setDate(strtemp[2]);
+	        		datetemp = new Date(datetemp.toDateString());
+	        		
+	        		theDate = new Date(datetemp);
+	        		
+	        		datetemp.setDate(datetemp.getDate()-30);
+	        		var dateMinus30 = (new Date(datetemp));
+	        		datetemp.setDate(datetemp.getDate()+60);
+	        		var datePlus30 = (new Date(datetemp));
+
+		        	
+	        		console.log(dateMinus30);
+	        		console.log(datePlus30);
+	        		console.log(today);
+	        		console.log(theDate);
+	        		
+		      
+
+		        	if (dateMinus30 <= today){
+		        		
+		        		LABKEY.Query.selectRows({
+		    			    schemaName: 'study',
+		    		        queryName: 'Blood Draws',
+		    		        containerPath: '/WNPRC/EHR',
+		    		        filterArray: [LABKEY.Filter.create('ID', checked, LABKEY.Filter.Types.EQUAL),
+		    		                      LABKEY.Filter.create('Date', dateMinus30.toDateString(), LABKEY.Filter.Types.GREATER_THAN_OR_EQUAL),
+		    		                      LABKEY.Filter.create('Date', today.toDateString(), LABKEY.Filter.Types.LESS_THAN_OR_EQUAL),
+
+		    		                      ],
+		    		        columns: 'quantity',
+		    		        successCallback: function(data){
+		    		        	console.log(data);
+		    		        
+		    		        	for(var i=0; i < data.rows.length; i++){
+		    		        		past += data.rows[i].quantity;
+		    		        	}
+		    		        	
+		    		        	
+		    		       
+
+		    		        	LABKEY.Query.selectRows({
+				    			    schemaName: 'study',
+				    		        queryName: 'ProjectedBloodDraws',
+				    		        containerPath: '/WNPRC/WNPRC_Laboratories/oconnor',
+				    		        filterArray: [LABKEY.Filter.create('ID', checked, LABKEY.Filter.Types.EQUAL),
+				    		                      LABKEY.Filter.create('Date_Needed', today.toDateString(), LABKEY.Filter.Types.GREATER_THAN_OR_EQUAL),
+				    		                      LABKEY.Filter.create('Date_Needed', datePlus30.toDateString(), LABKEY.Filter.Types.LESS_THAN_OR_EQUAL),
+				    		                      ],
+				    		        columns: 'Quantity, Date_Needed',
+				    		        successCallback: function(data){
+				    		        	
+				    		        	
+				    		        	for(var i=0; i < data.rows.length; i++){
+				    		        		
+				    		        		if (new Date(data.rows[i].Date_Needed) > theDate){
+				    		        			future+=data.rows[i].Quantity;
+				    		        		} else {
+				    		        			past+=data.rows[i].Quantity;
+				    		        		}
+				    		        		
+				    		        	}
+				    		        	
+				    		        	getSurplus();     
+				    		        }
+		
+		    		        	});
+		    		        }
+  
+		        		});
+		   
+		        	} else {
+		        		
+		        		LABKEY.Query.selectRows({
+		    			    schemaName: 'study',
+		    		        queryName: 'ProjectedBloodDraws',
+		    		        containerPath: '/WNPRC/WNPRC_Laboratories/oconnor',
+		    		        filterArray: [LABKEY.Filter.create('ID', checked, LABKEY.Filter.Types.EQUAL),
+		    		                      LABKEY.Filter.create('Date_Needed', dateMinus30.toDateString(), LABKEY.Filter.Types.GREATER_THAN_OR_EQUAL),
+		    		                      LABKEY.Filter.create('Date_Needed', datePlus30.toDateString(), LABKEY.Filter.Types.LESS_THAN_OR_EQUAL),
+		    		                      ],
+		    		        columns: 'Date_Needed, Quantity',
+		    		        successCallback: function(data){
+		    		        	
+		    		        	for(var i=0; i < data.rows.length; i++){
+		    		        		if (new Date (data.rows[i].Date_Needed) > theDate)
+		    		        			future+=data.rows[i].Quantity;
+		    		        		else
+		    		        			past+=data.rows[i].Quantity;
+	
+		    		        	}
+		    		        	getSurplus();     
+     
+	    		           
+		    		        }
+
+    		        	});
+		        			        		
+		        	
+		        	}
+	   
+		    
+		        }
+			});
+		    
+		    
+		    
+		    
+		    
+		    
+		    function getSurplus(){
+		    	
+		    	console.log(future);
+		    	console.log(past);
+		    	
+		    	table = '';
+		    	var surplusBlood;
+		    	var availableBlood = Math.floor(maxBlood - past);
+		    	
+		    	
+		    	if ((future-past) >= 0)
+		    		surplusBlood = Math.floor(availableBlood - (future-past));
+		    	else
+		    		surplusBlood = availableBlood;
+		    	
+		    	table += '<table border="0">';
+		    	table += '<td>Surplus: ' + surplusBlood + ' ml </td>';
+		    	table += '<tr><td>Possible: ' + availableBlood + ' ml </td></tr>';
+		    	table += '<tr><td>Maximum: ' + maxBlood + ' ml </td></tr>';
+		    	table += '<tr><td>Last 30 Days: ' + past + ' ml </td></tr>';
+		    	table += '<tr><td>Next 30 Days: ' + future + ' ml </td></tr>';
+		    	table += '</table>';
+
+
+		    	
+		    	
+			    theWindow.info.update(table);
+			    theWindow.doLayout();
+		    }
+	
+	   }
+	
+}
+
+
+
+
+
+
+	
+</script>
+<div id="bloodList"></div>
+
+

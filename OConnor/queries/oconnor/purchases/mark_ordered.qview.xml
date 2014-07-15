@@ -1,0 +1,44 @@
+<!-- show only those orders that have been placed but have not yet arrived in the dashboard -->
+
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+   <columns>
+    <column name="order_number">
+    </column>
+    <column name="item">
+    </column>
+    <column name="item_number">
+    </column>
+	<column name="quantity">
+	</column>
+    <column name="item_unit">
+    </column>
+	<column name="price">
+	</column>
+    <column name="vendor">
+    </column>
+    <column name="vendor/phone"/>
+    <column name="vendor/email"/>
+    <column name="vendor/url"/>
+    <column name="grant_number/id">
+    </column>
+    <column name="grant_number/grant_unit">
+    </column>
+	<column name="comment">
+	</column>
+	<column name="placed_by">
+	</column>	
+	<column name="created">
+	</column>
+
+
+   </columns>
+   
+   <sorts>
+       <sort column="created" descending="true"/>
+   </sorts>
+   
+	<filters>
+       <filter column="status" operator="eq" value="1"/>
+   </filters>
+   
+</customView>

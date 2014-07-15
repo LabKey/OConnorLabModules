@@ -1,0 +1,17 @@
+<!-- displays fields for simple_experiment. sorts on experiment number descending -->
+
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+   <columns>
+    <column name="expNumber"></column>
+    <column name="created"></column>
+	<column name="expDescription"></column>
+	<column name="expParent"></column>
+	<column name="expType"></column>
+	<column name="initials"></column>
+   </columns>
+
+   <sorts>
+       <sort column="expNumber" descending="true"/>
+   </sorts>
+   
+</customView>

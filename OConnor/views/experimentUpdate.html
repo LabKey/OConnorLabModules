@@ -1,0 +1,133 @@
+<html>
+<link rel="stylesheet" type="text/css" href="<%=contextPath%>/oconnor/oconnor.css">
+<body>
+<div id="expForm" />
+
+<script>
+var expNum = LABKEY.ActionURL.getParameter('experimentId');
+
+Ext4.onReady( function() {	
+	Ext.QuickTips.init();  // enable tooltips for the htmleditor xtype
+	
+	LABKEY.Query.selectRows({
+        schemaName: 'oconnor',
+        queryName: 'simple_experiment',
+        columns: ['expNumber', 'expDescription', 'expParent', 'expType', 'expComments', 'key'],
+        filterArray: [LABKEY.Filter.create('expNumber', expNum, LABKEY.Filter.Types.EQUAL)],
+        success: onSuccess,
+    });
+});
+
+function onSuccess(data){
+	var expCurrentDescription = data.rows[0].expDescription;
+	var expCurrentParent = data.rows[0].expParent;
+	var expCurrentDetails = data.rows[0].expComments;
+	var expCurrentType = data.rows[0].expType;
+	var expKey = data.rows[0].key;
+
+	var theForm = Ext4.create('Ext.form.Panel', {
+		renderTo: 'expForm', 
+		border: false,
+		buttonAlign: 'left',
+		defaults: {
+			width: 400,
+			labelWidth: 130
+		},
+		buttons: [
+			{
+				text: 'Submit',
+				handler: function() {
+					console.log(theForm.getComponent('expDescription').value);
+					var expDescription = theForm.getComponent('expDescription').value;
+					var expComments = theForm.getComponent('expDetails').value;
+					var expParent = theForm.getComponent('expParent').value;
+					var expType = theForm.getComponent('expType').value;
+					updateExp(expDescription,expComments,expParent,expType,expKey);
+				}
+			},
+			{
+				text: 'Cancel',
+				handler: function() {window.history.back()}
+			}
+		],
+		items:[
+			{
+				xtype: 'textarea',
+				fieldLabel: 'Summary*',
+				name: 'expDescription',
+				allowBlank: false,
+				itemId: 'expDescription',
+				value: expCurrentDescription
+			},
+			{
+				xtype: 'textfield',
+				fieldLabel: 'Parent Experiment(s)',
+				name: 'expParent',
+				itemId: 'expParent',
+				value: expCurrentParent
+			},
+			{
+				xtype: 'textfield',
+				fieldLabel: 'Experiment Type',
+				name: 'expType',
+				itemId: 'expType',
+				value: expCurrentType
+			},
+			{
+				xtype: 'htmleditor',
+				fieldLabel: 'Experiment Details',
+				name: 'expDetails',
+				itemId: 'expDetails',
+				height: 300,
+				width: 800,
+				value: expCurrentDetails
+			},
+			{
+				xtype: 'displayfield',
+				hideLabel: true,
+				value: 'Fields marked with an * are required'
+			}
+		],
+	
+	});
+}
+
+function updateExp(expDescription,expComments,expParent,expType,expKey) {
+	//log all arguments to addExp
+	console.log(["addExp arguments: ", arguments]);
+
+	LABKEY.Query.updateRows({
+		schemaName: 'oconnor',
+		queryName: 'simple_experiment',
+		rowDataArray: [{
+			key: expKey,
+			expNumber: expNum,
+			expDescription: expDescription,
+			expComments: expComments,
+			expParent: expParent,
+			expType: expType
+		}],
+		successCallback: onUpdateSuccess,
+		failureCallback: onFailure
+	});
+}
+
+function onUpdateSuccess(data)
+{
+    //log all data entered into insertRows
+    console.log(["inserted data", data.rows[0]]);
+	window.location = '/oconnor' + LABKEY.container.path + '/experiments_files.view?experimentId=' + expNum;
+}
+
+//generic failure. disabled on 2012-04-06 because of innocuous error when run on ehr.primate.wisc.edu
+function onFailure(errorInfo, options, responseObj)
+{
+//             if(errorInfo && errorInfo.exception)
+//             alert("Failure: " + errorInfo.exception);
+//             else
+//             alert("Failure: " + responseObj.statusText);
+};
+
+</script>
+</body>
+</html>

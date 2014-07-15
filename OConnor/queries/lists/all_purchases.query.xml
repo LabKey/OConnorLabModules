@@ -1,0 +1,30 @@
+<!-- query metadata for all_purchases.sql. defines 'Key' as the primary key and changes the display title. vendors and grants are defined as foreign keys. -->
+
+<query xmlns="http://labkey.org/data/xml/query">
+ <metadata>
+     <tables xmlns="http://labkey.org/data/xml">
+         <table tableName="all_purchases" tableDbType="NOT_IN_DB">
+             <columns>
+             	<column columnName="Key">
+             		<isKeyField>true</isKeyField>
+             		<columnTitle>Order Number</columnTitle>
+             	</column>
+                 <column columnName="vendor">
+                     <fk>
+                         <fkColumnName>Key</fkColumnName>
+                         <fkTable>vendors</fkTable>
+                         <fkDbSchema>lists</fkDbSchema>
+                     </fk>
+                 </column>
+                 <column columnName="grant">
+                     <fk>
+                         <fkColumnName>id</fkColumnName>
+                         <fkTable>grants</fkTable>
+                         <fkDbSchema>lists</fkDbSchema>
+                     </fk>
+                 </column>
+             </columns>
+         </table>
+     </tables>
+ </metadata>
+</query>

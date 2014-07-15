@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query xmlns="http://labkey.org/data/xml/query">
+	<metadata>
+		<tables xmlns="http://labkey.org/data/xml">
+			<table tableName="Runs" tableDbType="TABLE">
+				<columns>
+					<column columnName="Name">
+						<columnTitle>Run Name</columnTitle>
+					</column>
+					<column columnName="AssayId">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="Comments">
+						<shownInInsertView>true</shownInInsertView>
+					</column>
+					<column columnName="Created">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="Modified">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="ModifiedBy">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="RunCount">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="BatchProtocol">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="Flag">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="CreatedBy">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="FilePathRoot">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="Protocol">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="Output">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="Input">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="Batch">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="RunGroups">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+					<column columnName="Folder">
+						<shownInInsertView>false</shownInInsertView>
+					</column>
+				</columns>
+			</table>
+		</tables>
+	</metadata>
+</query>

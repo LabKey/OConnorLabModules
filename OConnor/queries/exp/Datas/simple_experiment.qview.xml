@@ -1,0 +1,15 @@
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+<!--
+
+view used of exp.Datas for simple_experiment system. Expects that the custom fields experiment and comments are defined for the file module in the folder where this is installed.
+
+-->
+
+   <columns>
+   <column name="DownloadLink"/>
+	<column name="experiment"/>
+	<column name="comments"/>
+	<column name="Created"/>
+	<column name="CreatedBy"/>
+   </columns>
+</customView>

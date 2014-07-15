@@ -1,0 +1,24 @@
+<html>
+<head>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorAlabrityConfig.js");
+</script>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorPurchaseCommon.js");
+</script>
+<script type="text/javascript">
+//wait until page contents load
+Ext.onReady(function(){
+	
+//render all orders placed by current user
+createGrid(dbSchemaName, 'my_orders', 'my_orders', '', 'a', 'b','');
+}
+);
+ </script>
+</head>
+<body>
+
+<div id="a"></div>
+
+</body>
+</html>

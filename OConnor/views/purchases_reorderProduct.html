@@ -1,0 +1,294 @@
+<html>
+<head>
+<script>
+
+//script logic
+
+// displays grid of all products ordered previously, using the purchases_status query so that the person who placed the order can be displayed. user can select product(s) to reorder and add quantity and grant to use. Grant descriptions are fetched from the active_grants query so that only current grants can be used.
+
+//first display list of all purchases that need to be invoiced
+populateGrid('lists', 'purchases_status', 'reorderDiv', 'reorderGrid', 'reorder previously ordered product', 'reorder')
+
+//create grid to display products that could be marked as invoiced
+function populateGrid(schema, query, render, region, title, view)
+
+//render grid
+{
+	new LABKEY.QueryWebPart
+	(
+			{
+				renderTo: render,
+				dataRegionName: region,
+				frame: 'none',
+				title: title,
+				schemaName: schema,
+				queryName: query,
+				viewName: view,
+				sort: '-Key',
+				timeout: 1000000,
+				showDetailsColumn: false,
+				showUpdateColumn: false,
+				buttonBarPosition: 'top',
+				buttonBar: {
+					includeStandardButtons: false,
+					items: [
+					        {
+					        	text: 'Reorder previously ordered product',
+					        	requiresSelection: true,
+					        	handler: selectProduct
+					        },
+					        ]
+				},
+				showRecordSelectors: true,
+				allowChooseQuery: false
+			}
+	);
+};
+
+function selectProduct(dataRegion, dataRegionName)
+{
+	var checkedRows = dataRegion.getChecked();
+
+	//check there is at only one checked row
+	if (checkedRows.length > 1)
+	{
+		var win = new Ext.Window({
+			title: 'Status update',
+			width: 320,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			html: 'Error: Only one product can be reordered at a time. More than one product is selected. Please select only one product and try again.',
+			modal: true,
+			buttons: [{
+				text: 'OK',
+				disabled: false,
+				formBind: true,
+				ref: '../submit',
+				scope: this,
+				handler: function()
+				{
+					win.hide();
+					return false;
+				}
+			}]
+		});
+		win.show();
+	}
+	else
+	{
+		LABKEY.Query.selectRows({
+			schemaName: 'lists',
+			queryName: 'purchases',
+			successCallback: newData,
+			failureCallback: onFailure,
+			filterArray: [
+			              LABKEY.Filter.create('Key', checkedRows, LABKEY.Filter.Types.EQUALS)
+			              ]
+		});
+	};
+};
+
+function newData(data)
+{
+	var keyId = data.rows[0].Key;
+
+	var storeTest = new LABKEY.ext.Store({
+		schemaName: 'lists',
+		queryName: 'active_grants',
+		viewName: 'pulldown',
+		autoLoad: true,
+		listeners: {
+			scope: this,
+			load: function() {
+				console.log('i loaded')
+			}
+		}
+	});
+
+	var theGrant = {
+			xtype: 'combo',
+			ref: 'theGrant',
+			store: storeTest,
+			fieldLabel: 'Grant',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local',
+			valueField: 'id',
+			displayField: 'grantDescription'
+	};
+
+	var quantity = {
+			xtype: 'textfield',
+			ref: 'quantity',
+			fieldLabel: 'Quantity',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	};
+
+	var comments = {
+			xtype: 'textfield',
+			ref: 'comments',
+			fieldLabel: 'Comments',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	};
+
+	var theForm = {
+			xtype: 'form',
+			width: 400,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			monitorValid: true,
+			ref: 'theForm',
+			border: false,
+			labelWidth: 130,
+			items: [theGrant, quantity,comments],
+			buttonAlign: 'center',
+			buttons: [{
+				text: 'Submit',
+				formBind: true,
+				scope: this,
+				handler: function()
+				{
+					//hide window
+					theWindow.hide();
+
+					//get information from existing record
+					LABKEY.Query.selectRows({
+						schemaName: 'lists',
+						queryName: 'purchases',
+						filterArray: [LABKEY.Filter.create('Key', keyId, LABKEY.Filter.Types.EQUALS)],
+						successCallback: reorderProduct,
+						errorCallback: onFailure
+					});
+
+					function reorderProduct(data)
+					{
+						//set parameters for inserting new row
+						var now = new Date();
+						var user = LABKEY.Security.currentUser.displayName;
+
+						var row = data.rows[0];
+						
+						//get other details from previous order
+						var rowData = {
+								"status" : 1,
+								"item": row.item,
+								"itemNumber" : row.itemNumber,
+								"quantity" : theWindow.theForm.quantity.getValue(),
+								"unit" : row.unit,
+								"price" : row.price,
+								"grant" : theWindow.theForm.theGrant.getValue(),
+								"vendor" : row.vendor,
+								"address" : row.address,
+								"confirmationNumber" : row.confirmationNumber,
+								"comment" : theWindow.theForm.comments.getValue(),
+								"keyword" : row.keyword,
+								"modifiedBy": LABKEY.Security.currentUser.displayName,
+						};
+
+						var html = '<h2>Reorder Receipt &nbsp;</h2><p style="padding-left: 30px;"><span style="font-size: x-small;"><strong><span style="font-size: small;">ITEM:</span></strong></span> ' + rowData.item + '</p><p style="padding-left: 30px;"><span style="font-size: small;"><strong>CATALOG NUMBER:</strong></span> ' + rowData.itemNumber + '</p><p style="padding-left: 30px;"><strong><span style="font-size: small;">QUANTITY:</span></strong> ' + rowData.quantity + '</p><p style="padding-left: 30px;"><span style="font-size: small;"><strong>GRANT:</strong></span> ' + rowData.grant + '</p><p style="padding-left: 30px;"><strong><span style="font-size: small;">ADDRESS:</span></strong> ' + rowData.address + '&nbsp;</p>';
+
+						//insert record into labkey
+						LABKEY.Query.insertRows({
+							schemaName: 'lists',
+							queryName: 'purchases',
+							success: function(d){
+								var currentTime = new Date();
+								var date = currentTime.format('Y-m-d');
+		                    	onSuccess(d);
+
+								
+/*
+				                LABKEY.Message.sendMessage({
+				                    msgFrom: LABKEY.Security.currentUser.email,
+				                    msgSubject: 'Reordered product receipt ' + date,
+				                    msgRecipients: [ LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, LABKEY.Security.currentUser.email) ],
+				                    msgContent: [LABKEY.Message.createMsgContent(LABKEY.Message.msgType.html, html)],
+				                    successCallback: function(){
+				                    	console.log('sent email');
+				                    	onSuccess(d);
+				                    }
+				                });
+					                */
+							},
+							rows:[rowData],
+							failure: function(err) {console.log(err)}
+						});
+					};
+				}
+			},
+			{
+				text: 'Cancel',
+				scope: this,
+				handler: function()
+				{
+					theWindow.hide();
+				}
+			}
+			]
+	};
+
+	var theWindow = new Ext.Window({
+		title: 'Reorder product',
+		width: 420,
+		bodyStyle: 'background-color:#fff',
+		autoHeight: true,
+		items: theForm,
+	});
+
+	theWindow.show();
+};
+
+//generic success
+function onSuccess(data)
+{
+	//dialog to user showing order status.
+	var notice = ('Product reordered successfully. Use it well. Thank you for patronizing the OC ordering system, v3.1.');
+
+	//display notice to user
+	var theWindow = new Ext.Window({
+		title: 'Status update',
+		width: 320,
+		bodyStyle: 'background-color:#fff;padding: 10px',
+		html: notice,
+		modal: true,
+		buttons: [{
+			text:'OK',
+			disabled:false,
+			formBind: true,
+			ref: '../submit',
+			scope: this,
+			handler: function()
+			{
+				reloadWin();
+			}
+		}]
+	});
+
+	theWindow.show();
+
+	function reloadWin()
+	{
+		//refresh browser to show unordered products
+		theWindow.hide();
+	};
+};
+
+
+//generic failure
+function onFailure(errorInfo, options, responseObj)
+{
+	if (errorInfo && errorInfo.exception)
+		alert("Failure: " + errorInfo.exception);
+	else
+		alert("Failure: " + responseObj.statusText);
+};
+
+
+</script>
+</head>
+<body>
+<div id = "reorderDiv"> </div>
+</body>
+</html>
