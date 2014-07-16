@@ -1,0 +1,62 @@
+<html>
+<head>
+<script type="text/javascript" src="<%=contextPath%>/fileBrowser.js"></script>
+<script type="text/javascript" src="<%=contextPath%>/oconnor/addExperiment.js"></script>
+<script type="text/javascript">
+
+// 2012-04-06. this is the primary interface for interacting with the experiment database. the data is in the simple_experiment hard table. 
+// new experiments are added by clicking a button in the top menu bar. this invokes a javascript that adds a new experiment 
+// and creates a directory to store files associated with the experiment. all standard labkey manipulations (sorting, filtering, etc.) 
+// can be performed using the QueryWebPart grid. Deletion of experiments is disabled because this should not happen. The expNumber field has 
+// a URL link defined in XML. This links to experiments_files, a page that loads a custom file browser showing only the contents of a single
+// experiment.
+
+//we need to add the fileBrowser.js for the create directory function to work
+//addExperiment.js holds the function for creating a new experiment
+
+//wait until page contents load
+
+Ext.onReady(function(){
+var containerPath = LABKEY.ActionURL.getContainer();
+
+//define items in button bar. there is only one custom function, adding a new experiment
+//the function for adding an experiment is defined in addExperiment.js
+
+var buttonBarItems = [
+							{text: 'Add New Experiment', handler: function() {window.location = '/oconnor' + containerPath + '/experimentInsert.view?'}}	        					
+					 ];
+					 
+//list all experiments. sort descending by experiment number so newest experiments are at top of grid
+//deletion of experiments is specifically disallowed
+//standard buttons have been renamed in simple_experiment xml, so definitions of custom buttons must use the new names, not the labkey button defaults. for now, just set to 'use default buttons' and specifically disable deletion
+
+var grid = new LABKEY.QueryWebPart({
+	renderTo: 'a',
+	schemaName: 'oconnor',
+	queryName: 'simple_experiment',
+	frame: 'none',
+	sort: '-expNumber',
+	updateURL: '/oconnor/experimentUpdate.view?experimentId=${expNumber}',
+	detailsURL: '/oconnor/experiments_files.view?experimentId=${expNumber}',
+	showDeleteButton: false,
+	showInsertNewButton: false,
+	showPagination: true,
+	showExportButton: true,
+	buttonBar: {
+					position: 'top',
+					includeStandardButtons: true,
+					items: buttonBarItems
+				}            				
+	});
+}
+);
+
+</script>
+</head>
+<body>
+
+<div id="a"></div>
+
+
+</body>
+</html>

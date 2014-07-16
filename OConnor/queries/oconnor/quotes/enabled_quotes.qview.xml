@@ -1,0 +1,25 @@
+<!-- show enabled vendor quotes -->
+
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+   <columns>
+    <column name="quote_number">
+    </column>
+    <column name="vendor">
+    </column>
+    <column name="vendor_quote_number">
+    </column>
+    <column name="vendor_quote_expiration_date">
+    </column>
+	<column name="vendor_quote_comments">
+	</column>
+   </columns>
+   
+   <sorts>
+       <sort column="created" descending="true"/>
+   </sorts>
+   
+	<filters>
+       <filter column="enabled" operator="eq" value="true"/>
+   </filters>
+   
+</customView>

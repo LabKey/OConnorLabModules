@@ -1,0 +1,58 @@
+
+<script type="text/javascript">
+
+LABKEY.requiresScript('oconnor/addOCIcons.js'); 	
+LABKEY.requiresScript('oconnor/moreInfo.js'); 	
+	
+	
+Ext.onReady(main);
+
+
+
+function main(){
+	
+	
+	addIcons();
+	
+	var qwp1 = new LABKEY.QueryWebPart({
+	    renderTo: 'animalList',
+		schemaName: 'oconnor',
+	    queryName: 'animals',
+	    frame: 'none',
+	    showDetailsColumn : false,
+	    showRecordSelectors : true,
+		containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+		buttonBar: {
+			includeStandardButtons: true,
+			   items:[{text: 'More Info', handler: makeChecked}],
+
+		}
+	});
+	
+
+}
+
+function makeChecked(dataRegion){
+	
+	
+	console.log(dataRegion);
+	
+	var checked = '';
+	if (dataRegion != undefined){
+		var tmp = dataRegion.getChecked();
+		
+		
+		checked = tmp.join(', ');
+	}
+	
+	moreInfo(checked);
+	
+
+}
+
+
+	
+</script>
+<div id="animalList"></div>
+
+

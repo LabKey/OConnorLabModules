@@ -1,0 +1,160 @@
+<html>
+<head>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorAlabrityConfig.js");
+</script>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorPurchaseCommon.js");
+</script>
+<script type="text/javascript">
+Ext.onReady(function(){
+
+var pageButtons = [{text: 'Mark as Cancelled', requiresSelection: true, handler: markCancelled}];
+createGrid(dbSchemaName, 'purchases', 'all_orders', '', 'a', 'b',pageButtons);
+
+//on button click, select checked rows, create dialog to choose location where products are received, and update records
+
+function markCancelled(dataRegion, dataRegionName)
+{
+	var checkedRows = dataRegion.getChecked();
+
+	//change delimiter to semicolon for use in LABKEY.Filter
+	var checkedRowsSemicolon = checkedRows.join(";")
+
+	LABKEY.Query.selectRows({
+		schemaName: dbSchemaName,
+		queryName: 'purchases',
+		successCallback: selectRows,
+		failureCallback: onFailure,
+		filterArray: [
+		              LABKEY.Filter.create('key', checkedRowsSemicolon, LABKEY.Filter.Types.EQUALS_ONE_OF)
+		              ]
+	});
+
+	//store results of selectRows query
+	function selectRows(data)
+	{
+		var selected = data;
+
+		//create function to make text box and capture location. needs to be nested to be in scope
+
+		var win = new Ext.Window({
+			title: 'Status update',
+			width: 320,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			html: 'Are you sure that you want to cancel the selected orders?',
+			modal: true,
+			buttons: [{
+				text: 'Yes',
+				disabled: false,
+				formBind: true,
+				ref: '../submit',
+				scope: this,
+				handler: function()
+				{
+					win.hide();
+					updateRecords(selected);
+				}
+			},
+			{
+				text: 'No',
+				disabled: false,
+				formBind: true,
+				ref: '../cancel',
+				scope: this,
+				handler: function()
+				{
+					win.hide();
+					return;
+				}
+			}		
+			]
+		});
+		win.show();
+		};
+
+		//draw text box. calls updateRecords function on submit of text box to update records
+		makeForm();
+	};
+
+//update records in labkey
+
+function updateRecords(data)
+{
+
+	var sentEmails = [];
+
+	//get current date
+	var now = new Date();
+
+	//get current user
+	var user =  LABKEY.Security.currentUser.displayName;
+
+	//count number of records affected
+	var recCt = data.rows.length;
+
+
+	dataArray = [];
+
+	for(var i = 0; i < data.rows.length; i++){
+		dataArray.push({
+			key: data.rows[i].key,
+			status: 4
+		});
+
+	}
+
+	LABKEY.Query.updateRows({
+		schemaName: dbSchemaName,
+		queryName: 'purchases',
+		rowDataArray: dataArray,
+		successCallback: onSuccess,
+		failureCallback: onFailure
+	});
+
+
+	//update status notification
+	function onSuccess()
+	{
+		//dialog to user showing order status.
+		var notice = (recCt + ' products have been marked as cancelled on ' + now);
+
+		//display notice to user
+		var theWindow = new Ext.Window({
+			title: 'Mark order as cancelled',
+			width: 320,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			html: notice,
+			modal: true,
+			buttons: [{
+				text:'OK',
+				disabled:false,
+				formBind: true,
+				ref: '../submit',
+				scope: this,
+				handler: function()
+				{
+					reloadWin();
+				}
+			}]
+		});
+
+		theWindow.show();
+
+		function reloadWin()
+		{
+			//refresh browser to show unordered products
+			theWindow.hide();
+			window.location.reload( true );
+		};
+	};
+};
+
+});
+</script>
+
+</head>
+<body>
+<div id="a"></div>
+</body>
+</html>

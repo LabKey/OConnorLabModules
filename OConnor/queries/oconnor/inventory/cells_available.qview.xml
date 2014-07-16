@@ -1,0 +1,39 @@
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+<!--
+
+Defines a custom view on the inventory table.
+
+-->
+   <columns>
+	<column name="specimen_id"/>
+	<column name="sample_date"/>
+	<column name="cell_type"/>
+	<column name="cell_source"/>
+	<column name="cell_concentration"/>
+	<column name="cell_freeze_date"/>
+	<column name="cell_mhc_restriction"/>
+	<column name="cell_peptide_stimulation"/>
+	<column name="cell_passage_number"/>
+	<column name="cell_transforming_virus"/>
+	<column name="experiment"/>
+	<column name="initials"/>
+	<column name="specimen_species"/>
+	<column name="specimen_geographic_origin"/>
+	<column name="specimen_collaborator"/>
+	<column name="specimen_quantity"/>
+	<column name="specimen_additive"/>
+	<column name="comments"/>
+	<column name="freezer"/>
+	<column name="cane"/>
+	<column name="box"/>
+	<column name="box_row"/>
+	<column name="box_column"/>
+   </columns>
+   <filters>
+       <filter column="sample_type" operator="contains" value="In vitro cell"/>
+   </filters>
+   <sorts>
+       <sort column="sample_date" descending="true"/>
+   </sorts>
+</customView>
+

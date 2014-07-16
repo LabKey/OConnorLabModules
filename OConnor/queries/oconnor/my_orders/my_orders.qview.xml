@@ -1,0 +1,28 @@
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+<!--
+
+Defines a custom view on the inventory table.
+
+-->
+
+   <columns>
+    <column name="order_number"/>
+	<column name="item"/>
+	<column name="item_unit"/>
+	<column name="vendor"/>
+	<column name="quantity"/>
+	<column name="price"/>
+	<column name="grant_number"/>
+	<column name="status"/>
+	<column name="created"/>
+	<column name="ordered_by"/>
+	<column name="ordered_date"/>
+	<column name="received_by"/>
+	<column name="received_date"/>
+	<column name="received_location"/>
+   </columns>
+   
+   <sorts>
+       <sort column="created" descending="true"/>
+   </sorts>
+</customView>

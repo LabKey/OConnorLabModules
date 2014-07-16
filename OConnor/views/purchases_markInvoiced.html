@@ -1,0 +1,230 @@
+<html>
+	<head>
+	
+
+	<script>
+	
+	//displays grid of products marked as received. allows user to select products to mark as invoiced. displays dialog box to add invoice details. updates records in labkey with information from the dialog box
+	
+	//script logic
+	
+	//first display list of all purchases that need to be marked as invoiced
+	
+	populateGrid('lists','all_purchases','invoiceDiv','invoiceGrid','Mark as invoiced','mark_invoiced')
+
+//create grid to display products that could be marked as invoiced
+	
+function populateGrid(schema,query,render,region,title,view)
+
+//render grid	
+{
+new LABKEY.QueryWebPart
+        (
+                {
+                        renderTo: render,
+              
+                        frame: 'none',
+                        title: title,
+                        schemaName: schema,
+                        queryName: query,
+                        viewName: view,
+                        showDetailsColumn: false,
+                        showUpdateColumn: false,
+                        buttonBarPosition: 'top',
+                        buttonBar: {
+                        includeStandardButtons: false,
+                        items:[
+                        {text: 'Mark as Invoiced', requiresSelection: true, handler: markInvoiced},
+        				]
+        		},
+        showRecordSelectors: true,
+        allowChooseQuery: false
+        }
+        );
+};
+
+//on button click, select checked rows, create dialog to choose location where products are received, and update records
+
+function markInvoiced(dataRegion)
+        {
+                var checkedRows = dataRegion.getChecked();
+                console.log(checkedRows);
+				//check there is at least one checked row
+                if (!checkedRows.length)
+                return false;
+
+            	//change delimiter to semicolon for use in LABKEY.Filter
+                var checkedRowsSemicolon = checkedRows.join(";")
+				
+                LABKEY.Query.selectRows({
+                schemaName: 'lists',
+                queryName: 'purchases',
+                successCallback: selectRows,
+                failureCallback: onFailure,
+                filterArray: [
+                LABKEY.Filter.create('Key', checkedRowsSemicolon, LABKEY.Filter.Types.EQUALS_ONE_OF)
+                ]
+                });
+                
+                //store results of selectRows query
+                function selectRows(data)
+                {
+                var selected = data;
+                
+                
+                
+                //create function to make text box and capture location. needs to be nested to be in scope
+
+				function makeForm()
+				{
+				var confNum = new Ext.form.TextField({
+					fieldLabel: 'Invoice Number',
+					name: 'confNum',
+					ref: 'confNum',
+					emptyText: '(optional)'
+				});
+				
+				var theForm = new Ext.FormPanel({
+						xtype: 'form',
+					  layout: 'form',
+					  width: 300,
+					  ref: 'theForm',
+					  border: false,
+					  labelWidth: 130,
+					  items:[confNum]
+					  });
+					
+				var theWindow = new Ext.Window({
+					title: 'Mark order as Invoiced',
+					width: 320,
+					bodyStyle: 'background-color:#fff;padding: 10px',
+					items: theForm,
+					buttonAlign: 'center',
+					buttons: [{
+					               text:'Submit',
+					               disabled:false,
+					               formBind: true,
+					               ref: '../submit',
+					               scope: this,
+					               handler: function()
+					               		{
+					               		theWindow.hide();
+					               		var invoiceNumber = theWindow.theForm.confNum.getValue();
+					               		updateRecords(invoiceNumber,selected);
+					               		}
+					             },
+					             { 		
+					               text:'Cancel',
+					               disabled:false,
+					               formBind: true,
+					               ref: '../submit',
+					               scope: this,
+					               handler: function(){
+									theWindow.hide()
+								 	}
+								 }] 
+				});	
+				
+				theWindow.show();
+				theWindow.theForm.confNum.focus();	
+				};
+                
+                //draw text box. calls updateRecords function on submit of text box to update records
+                makeForm();    
+                };
+        };
+        
+
+
+//update records in labkey
+
+function updateRecords(invoiceNumber, data)
+        		{   		
+        		//get current date
+        		var now = new Date();
+        		
+        		//get current user
+        		var user =  LABKEY.Security.currentUser.displayName;
+        		
+        		//count number of records affected
+        		var recCt = data.rows.length;
+        		
+                for (var i = 0; i < data.rows.length; i++)
+                {
+           
+                var row = data.rows[i];
+
+                LABKEY.Query.updateRows({
+                schemaName: 'lists',
+                queryName: 'purchases',
+                rowDataArray: [
+                {Key: row.Key,
+                status: 6,
+                invoiceNumber: invoiceNumber,
+                invoiceDate: now,
+                invoiceBy: user}],
+                successCallback: onSuccess,
+                failureCallback: onFailure,
+                });
+                };
+                
+        //update status notification
+function onSuccess(data)
+	{
+                //dialog to user showing order status. 
+                var notice = (recCt + ' orders have been marked as invoiced by ' + user + ' on ' + now);
+                
+                //display notice to user
+                var theWindow = new Ext.Window({
+					title: 'Mark orders as invoiced',
+					width: 320,
+					bodyStyle: 'background-color:#fff;padding: 10px',
+					html: notice,
+					modal: true,
+					buttons: [{
+					               text:'OK',
+					               disabled:false,
+					               formBind: true,
+					               ref: '../submit',
+					               scope: this,
+					               handler: function()
+					               		{
+					               		reloadWin();
+					               		}
+					             }]
+				});	
+				
+				theWindow.show();	
+				
+                function reloadWin()
+                {
+                //refresh browser to show unordered products
+                theWindow.hide();
+                window.location.reload( true );
+                };     
+};
+               
+        };
+
+
+
+
+
+//generic failure
+function onFailure(errorInfo, options, responseObj)
+	{
+            if(errorInfo && errorInfo.exception)
+            alert("Failure: " + errorInfo.exception);
+            else
+            alert("Failure: " + responseObj.statusText);
+    };                
+        
+	</script>
+	</head>
+	
+	<body>
+
+	<div id="invoiceDiv"></div>
+
+	</body>
+</html>

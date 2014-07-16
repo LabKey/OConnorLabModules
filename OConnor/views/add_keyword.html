@@ -1,0 +1,190 @@
+<html>
+<head>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorAlabrityConfig.js");
+</script>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorPurchaseCommon.js");
+</script>
+<script type="text/javascript">
+Ext.onReady(function(){
+
+var pageButtons = [{text: 'Add Keyword', requiresSelection: true, handler: addKeyword}];
+createGrid(dbSchemaName, 'purchases', 'all_orders', '', 'a', 'b',pageButtons);
+
+//on button click, select checked rows, create dialog to add keyword and update records
+
+function addKeyword(dataRegion, dataRegionName)
+{
+	var checkedRows = dataRegion.getChecked();
+
+	//change delimiter to semicolon for use in LABKEY.Filter
+	var checkedRowsSemicolon = checkedRows.join(";")
+
+	LABKEY.Query.selectRows({
+		schemaName: dbSchemaName,
+		queryName: 'purchases',
+		successCallback: selectRows,
+		failureCallback: onFailure,
+		filterArray: [
+		              LABKEY.Filter.create('key', checkedRowsSemicolon, LABKEY.Filter.Types.EQUALS_ONE_OF)
+		              ]
+	});
+
+	//store results of selectRows query
+	function selectRows(data)
+	{
+		var selected = data;
+
+		//create function to make text box and capture location. needs to be nested to be in scope
+
+		function makeForm()
+		{
+			var keyword = new Ext.form.TextField({
+				fieldLabel: 'Keyword',
+				name: 'keyword',
+				ref: 'keyword',
+				emptyText: ''
+			});
+
+			var theForm = new Ext.FormPanel({
+				xtype: 'form',
+				layout: 'form',
+				width: 300,
+				ref: 'theForm',
+				border: false,
+				labelWidth: 130,
+				items:[keyword]
+			});
+
+			var theWindow = new Ext.Window({
+				title: 'Add keyword to purchase',
+				width: 320,
+				bodyStyle: 'background-color:#fff;padding: 10px',
+				items: theForm,
+				buttonAlign: 'center',
+				buttons: [{
+					text:'Submit',
+					disabled:false,
+					formBind: true,
+					ref: '../submit',
+					scope: this,
+					handler: function()
+					{
+						theWindow.hide();
+						var keyword = theWindow.theForm.keyword.getValue();
+						updateRecords(keyword,selected);
+					}
+				},
+				{
+					text:'Cancel',
+					disabled:false,
+					formBind: true,
+					ref: '../submit',
+					scope: this,
+					handler: function(){
+						theWindow.hide()
+					}
+				}]
+			});
+
+			theWindow.show();
+		};
+
+		//draw text box. calls updateRecords function on submit of text box to update records
+		makeForm();
+	};
+};
+
+//update records in labkey
+
+function updateRecords(keyword, data)
+{
+
+	var sentEmails = [];
+
+	//get current date
+	var now = new Date();
+
+	//get current user
+	var user =  LABKEY.Security.currentUser.displayName;
+
+	//count number of records affected
+	var recCt = data.rows.length;
+
+
+	dataArray = [];
+
+	for(var i = 0; i < data.rows.length; i++){
+	//append keyword if there is already keyword associated with purchase. otherwise just add keyword.
+	if(!data.rows[i].keyword)
+	{
+	var updateKeyword = keyword;
+	}
+	else
+	{
+	var updateKeyword = data.rows[i].keyword + '; ' + keyword;
+	}
+	;
+	
+		dataArray.push({
+			key: data.rows[i].key,
+			keyword: updateKeyword
+		});
+
+	}
+
+	LABKEY.Query.updateRows({
+		schemaName: dbSchemaName,
+		queryName: 'purchases',
+		rowDataArray: dataArray,
+		successCallback: onSuccess,
+		failureCallback: onFailure
+	});
+
+
+	//update status notification
+	function onSuccess()
+	{
+		//dialog to user showing order status.
+		var notice = (recCt + ' products have had keywords added.');
+
+		//display notice to user
+		var theWindow = new Ext.Window({
+			title: 'Add keyword',
+			width: 320,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			html: notice,
+			modal: true,
+			buttons: [{
+				text:'OK',
+				disabled:false,
+				formBind: true,
+				ref: '../submit',
+				scope: this,
+				handler: function()
+				{
+					reloadWin();
+				}
+			}]
+		});
+
+		theWindow.show();
+
+		function reloadWin()
+		{
+			//refresh browser to show unordered products
+			theWindow.hide();
+			window.location.reload( true );
+		};
+	};
+};
+
+});
+</script>
+
+</head>
+<body>
+<div id="a"></div>
+</body>
+</html>

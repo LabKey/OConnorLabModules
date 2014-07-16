@@ -1,0 +1,58 @@
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+<!--
+
+Defines a custom view on the inventory table.
+
+-->
+
+   <columns>
+	<column name="specimen_id"/>
+	<column name="sample_date"/>
+	<column name="gs_id"/>
+	<column name="cohort_id"/>
+	<column name="specimen_type"/>
+	<column name="experiment"/>
+	<column name="sample_number"/>
+	<column name="initials"/>
+	<column name="specimen_species"/>
+	<column name="specimen_geographic_origin"/>
+	<column name="specimen_collaborator"/>
+	<column name="specimen_quantity"/>
+	<column name="specimen_additive"/>
+	<column name="cell_type"/>
+	<column name="cell_source"/>
+	<column name="cell_concentration"/>
+	<column name="cell_freeze_date"/>
+	<column name="cell_mhc_restriction"/>
+	<column name="cell_peptide_stimulation"/>
+	<column name="cell_passage_number"/>
+	<column name="cell_transforming_virus"/>
+	<column name="dna_type"/>
+	<column name="dna_vector"/>
+	<column name="dna_insert"/>
+	<column name="dna_sequence"/>
+	<column name="oligo_number"/>
+	<column name="oligo_name"/>
+	<column name="oligo_sequence"/>
+	<column name="oligo_type"/>
+	<column name="oligo_modifications"/>
+	<column name="oligo_target"/>
+	<column name="oligo_date"/>
+	<column name="virus_strain"/>
+	<column name="virus_freeze_date"/>
+	<column name="virus_vl"/>
+	<column name="virus_tcid50"/>
+	<column name="virus_grown_on"/>
+	<column name="comments"/>
+	<column name="freezer"/>
+	<column name="cane"/>
+	<column name="box"/>
+	<column name="box_row"/>
+	<column name="box_column"/>
+	<column name="coordinate"/>
+   </columns>
+   
+   <sorts>
+       <sort column="sample_date" descending="true"/>
+   </sorts>
+</customView>

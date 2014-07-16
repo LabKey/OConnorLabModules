@@ -1,0 +1,322 @@
+<html>
+<script type="text/javascript">
+
+LABKEY.requiresScript('oconnor/addOCIcons.js'); 	
+
+var iconsAdded = false;
+var currentDate = new Date();
+var weekOf = document.getElementById('week');
+var content;
+var theDiv = document.getElementById('theDiv');
+
+Ext.onReady(calendar);
+
+function calendar(){	
+
+	if (!iconsAdded)
+		addIcons();
+	
+	iconsAdded = true;
+	
+	
+	var currentDay = currentDate.getDay();
+	var weekArray = [];
+	
+	//dates before
+	for(var i = currentDay-1; i >= 1; i--){
+		weekArray.push(new Date(currentDate.getTime()-(i*86400000)));	
+	}
+	
+	if(currentDay != 0 && currentDay != 6)
+		weekArray.push(new Date(currentDate));	
+
+	//dates after
+	for(var i = 1; i <= 5-currentDay; i++){
+		weekArray.push(new Date(currentDate.getTime()+(i*86400000)));	
+	}
+
+	weekOf = document.getElementById('week');
+	weekOf.setAttribute('style', 'width:190px;text-align:center;');
+	weekOf.style.fontWeight = 'bold';
+	
+	while(weekOf.lastChild != undefined){
+		weekOf.removeChild(weekOf.lastChild);
+	}
+	content = document.createTextNode((weekArray[0].getMonth()+1) + '\/' + weekArray[0].getDate() + '\/' + weekArray[0].getFullYear() + ' - '
+			+ (weekArray[weekArray.length-1].getMonth()+1) + '\/' + weekArray[weekArray.length-1].getDate() + '\/' + weekArray[weekArray.length-1].getFullYear());
+	weekOf.appendChild(content);
+	
+	for(var i = 0; i < weekArray.length; i++){
+		weekArray[i] = weekArray[i].toDateString();
+	}
+			
+
+	
+	
+	
+    LABKEY.Query.selectRows({
+        schemaName: 'lists',
+        queryName: 'Blood Draws',
+		containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+        columns: 'ID, Date_Needed, Tube_Type, Tube_Number, Instructions, Investigator, Submitted, Key',
+        sort: 'ID, Date_Needed',
+		filterArray: [LABKEY.Filter.create('Date_Needed', weekArray.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+        successCallback: runBox
+        });                           
+	
+    function runBox(data){
+    	var week = [[],[],[],[],[]];
+    	var animal = [[],[],[],[],[]];
+    	var urls = [[],[],[],[],[]];
+    	    	    	
+    	for(var i = 0; i<data.rows.length; i++){
+    		//get amounts
+        	var blood;
+        	var bloodType;
+
+        	        	
+    	    switch(data.rows[i].Tube_Type){
+    	    case '6ml EDTA' :
+    	    	blood = 6 * data.rows[i].Tube_Number;
+    	    	bloodType = 'EDTA';
+    	    	break;
+    	    case '2ml EDTA' :
+    	    	blood = 2 * data.rows[i].Tube_Number;
+    	    	bloodType = 'EDTA';
+    	    	break;
+    	    case '3.5ml SST' :
+    	    	blood = 3.5 * data.rows[i].Tube_Number;
+    	    	bloodType = 'SST';
+    	    	break;	
+    	    case '5ml SST' :
+    	    	blood = 5 * data.rows[i].Tube_Number;
+    	    	bloodType = 'SST';
+    	    	break;
+    	    case 'None' :
+    	    	blood = 0;
+    	    	bloodType = '';
+    	    	break;
+    	    }
+
+    	    var date = new Date(data.rows[i].Date_Needed);
+    	    var investigator = data.rows[i].Investigator.split(' ');
+    	    var inst = '';
+    	    
+    	    if (data.rows[i].Instructions != null)
+				inst = (data.rows[i].Instructions);
+    	    
+    	    id = '' + data.rows[i].ID; 
+    	    entry = ' ' + blood + 'ml ' + bloodType + ' ' + investigator[0];
+    
+    	    if (inst != ''){
+    	    	entry = entry.concat(' - ' + inst);
+    	    }
+    	    
+    	    if (data.rows[i].Submitted != true){
+    	    	entry = entry.concat('*');
+    	    }
+    	    
+    	  
+    	    
+    	    
+    	    animal[date.getDay()-1].push(id);
+    	    week[date.getDay()-1].push(entry);
+    	    
+    		var theURL = LABKEY.ActionURL.buildURL("list", "update", "WNPRC/WNPRC_Laboratories/oconnor",{"listId" : 1335, "pk" : data.rows[i].Key} );
+
+    	    console.log(theURL);
+    	    
+    	    urls[date.getDay()-1].push(theURL);
+
+    		   	
+    	}
+    	    	
+    	
+    	var weekStr = ['Mon', 'Tues', 'Weds', 'Thurs', 'Fri'];
+    	
+    	theDiv = document.getElementById('theDiv');
+    	while(theDiv.lastChild != undefined){
+			theDiv.removeChild(theDiv.lastChild);
+    	}
+		var table1 = document.createElement('table');
+		
+		table1.setAttribute('border', '4');
+		table1.setAttribute('border-width', '4');
+
+		table1.setAttribute('cellspacing', '4');
+		table1.setAttribute('cellpadding', '5');
+		table1.style.borderCollapse = 'collapse';
+		//table1.style.borderWidth = '5px';
+
+		
+//		table1.setAttribute('width', '900');
+
+
+
+    	var weekRow = document.createElement('tr');
+		
+		for(var i = 0; i < weekArray.length; i++){
+			var theDay = document.createTextNode(weekStr[i] + ' ' + (new Date(weekArray[i]).getMonth()+1) + '\/' + new Date(weekArray[i]).getDate());
+			var weekCol = document.createElement('td');
+
+			weekCol.setAttribute('style', 'font-size:15px;font-weight:bold;');
+			weekCol.appendChild(theDay);
+	    	
+			weekCol.style.borderStyle = 'solid';
+			weekCol.style.borderWidth = '4px';
+			weekCol.style.borderColor = '#000000';
+			weekRow.appendChild(weekCol);
+		}
+		
+		weekRow.style.borderStyle = 'solid';
+		weekRow.style.borderWidth = '4px';
+
+		
+		
+		table1.appendChild(weekRow);
+		
+    	
+    	for(var i = 0; i < week.length; i++){
+        	
+    		var column = document.createElement('td');
+        	
+    		for(var t = 0; t < week[i].length; t++){
+    				var row = document.createElement('tr');
+    				
+    				
+    				var content = document.createElement('span');
+    				content.innerHTML = '<a style= "font-size :14px" href="' + urls[i][t] + '">' + animal[i][t] + week[i][t] + '</a>';
+    				
+            		row.appendChild(content);
+                	column.appendChild(row);
+ 
+        	}
+    	
+    		
+    		column.style.padding = '10px';
+    		column.style.borderStyle = 'solid';
+    		column.style.borderWidth = '4px';
+    		column.style.borderColor = '#000000';
+
+    		
+        	table1.appendChild(column);
+        	
+    	}
+    	
+		theDiv.appendChild(table1);
+    	
+    	    	
+    }
+
+
+}
+
+function next(){
+	currentDate.setDate(currentDate.getDate()+7);	
+	calendar();
+}
+
+function previous(){
+	currentDate.setDate(currentDate.getDate()-7);	
+	calendar();
+}
+
+function jump(){
+	 today = new Date();
+	
+	 
+
+	     var dp = new Ext.DatePicker({
+	    	 disabledDays : [0,6],
+	         listeners: {
+	             'select': function(date_picker, date){
+	                
+	            	 console.log(date);
+	            	 
+	            	 currentDate = new Date(date);
+		        		theWindow.hide();
+		        		calendar();
+	            	 
+	             }
+	 
+	         }
+	     });
+
+	 
+	 var textinput = {	
+	            emptyText:''
+	                ,ref: 'date'
+	                ,xtype: 'textfield'
+	                ,width: 170
+	                ,required: true
+	    			,value: (today.getMonth()+1) + '\/' + today.getDate() + '\/' + today.getFullYear()	
+			};
+	 
+	 var theWindow = new Ext.Window({
+	       width: 189,
+	       height: 216,
+	  //     bodyStyle:'padding:5px',
+	       closeAction:'hide',
+	       plain: true,
+	       closable: true,
+	      
+	       title: 'Jump to Date',
+	       items: [dp],
+	/*		
+	       buttons: [{
+	           text:'Submit',
+	           disabled:false,
+	           formBind: true,
+	           ref: '../submit',
+	           scope: this,
+	           handler: function(){
+	        		currentDate = new Date(theWindow.date.getValue());
+	        		theWindow.hide();
+	        		calendar();
+
+	           }
+	       },{
+	           text: 'Cancel',
+	           scope: this,
+	           handler: function(){
+	               theWindow.hide();
+	           }
+	       }]
+	       */
+	   });
+	    
+	   theWindow.show();      
+
+}
+    
+</script>
+<body>
+<div align="center">
+
+<table>
+<tr>
+<td>
+<input value='Previous' type='button' onclick='previous()'>
+</td>
+<td id="week"></td>
+<td>
+<input value='Next' type='button' onclick='next()'>
+</td>
+<td>
+<input value='Jump To' type='button' onclick='jump()'>
+</td>
+</tr>
+<tr>
+</tr>
+
+
+</table>
+<br>
+
+<div id='theDiv'>
+</div>
+<br>
+<table width = '900 '><tr><td>*Unsubmitted</td></tr></table>
+
+</body>
+</html>

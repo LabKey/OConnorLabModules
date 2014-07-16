@@ -1,0 +1,31 @@
+<!-- show only those orders that have been received but not yet invoiced -->
+
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+   <columns>
+    <column name="id">
+    </column>
+    <column name="title">
+    </column>
+    <column name="funding_source">
+    </column>
+    <column name="grant_type">
+    </column>
+	<column name="grant_unit">
+	</column>
+	<column name="expiration_date">
+	</column>
+	<column name="budget">
+	</column>
+	<column name="comments">
+	</column>
+   </columns>
+   
+   <sorts>
+       <sort column="created" descending="true"/>
+   </sorts>
+   
+	<filters>
+       <filter column="enabled" operator="eq" value="true"/>
+   </filters>
+   
+</customView>

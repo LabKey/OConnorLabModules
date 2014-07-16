@@ -1,0 +1,175 @@
+<html>
+<head>
+
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorAlabrityConfig.js");
+</script>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorPurchaseCommon.js");
+</script>
+<script type="text/javascript">
+Ext.onReady(function()
+{
+var pageButtons = [{text: 'Add New Grant', handler: addGrant}];
+createGrid(dbSchemaName, 'grants', 'enabled_grants', '', 'a', 'b',pageButtons);
+
+//generate form to add new grant	
+function addGrant(data)
+{
+//form fields. for some reason that i can't figure out, the checkbox I tried to create to select 'enabled' kept breaking the entire form. I defaulted to adding new vendors as 'enabled'. This is almost certainly the most common usage case.
+	var grant_id = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'grant_id',
+			fieldLabel: 'Grant Number',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+
+	var grant_title = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'grant_title',
+			fieldLabel: 'Grant Title',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var funding_source = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'funding_source',
+			fieldLabel: 'Funding Source',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var grant_type = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'grant_type',
+			fieldLabel: 'Grant Mechanism (e.g., R01)',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+
+	var grant_unit = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'grant_unit',
+			fieldLabel: 'Administrative Group',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+
+	var expiration_date = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'expiration_date',
+			fieldLabel: 'Expiration Date',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var budget = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'budget',
+			fieldLabel: 'Budget',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var comments = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'comments',
+			fieldLabel: 'Comments',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+//construct form
+	var theForm = new Ext.FormPanel({
+			xtype: 'form',
+			layout: 'form',
+			width: 300,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			monitorValid: true,
+			ref: 'theForm',
+			border: false,
+			labelWidth: 130,
+			items: [grant_id,grant_title,funding_source,grant_type,grant_unit,expiration_date,budget,comments]
+		});		
+console.log(theForm);
+	var theWindow = new Ext.Window({
+		title: 'Add new grant',
+		width: 320,
+		bodyStyle: 'background-color:#fff',
+		autoHeight: true,
+		items: theForm,
+		buttonAlign: 'center',
+		buttons: [{
+				text: 'Submit',
+				formBind: true,
+				scope: this,
+				handler: function()
+				{
+					//hide window
+					theWindow.hide();
+
+					//communicate with labkey/db to add new vendor
+
+						//set parameters for inserting new row
+						var now = new Date();
+						var user = LABKEY.Security.currentUser.displayName;
+						
+						//get other details from previous order
+						var rowData = {
+								"id" : theWindow.theForm.grant_id.getValue(),
+								"enabled": 'true',
+								"title" : theWindow.theForm.grant_title.getValue(),
+								"funding_source" : theWindow.theForm.funding_source.getValue(),
+								"grant_type" : theWindow.theForm.grant_type.getValue(),
+								"grant_unit" : theWindow.theForm.grant_unit.getValue(),
+								"expiration_date" : theWindow.theForm.expiration_date.getValue(),
+								"budget" : theWindow.theForm.budget.getValue(),
+								"comments" : theWindow.theForm.comments.getValue()
+						};
+						//insert record into labkey
+						LABKEY.Query.insertRows({
+							schemaName: dbSchemaName,
+							queryName: 'grants',
+							successCallback: function(d){
+								var currentTime = new Date();
+								var date = currentTime.format('Y-m-d');
+		                    	onSuccess(d);
+							},
+							rowDataArray:[rowData]
+						});
+				}
+			},
+			{
+				text: 'Cancel',
+				scope: this,
+				handler: function()
+				{
+					theWindow.hide();
+				}
+			}]
+					
+	});
+	
+	theWindow.show();
+};
+}
+);
+</script>
+
+</head>
+<body>
+<div id="a"></div>
+
+
+</body>
+</html>

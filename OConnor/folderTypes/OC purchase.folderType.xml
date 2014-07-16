@@ -1,0 +1,16 @@
+<ft:folderType xmlns:ft="http://labkey.org/data/xml/folderType">
+    <ft:name>OConnor Purchasing System</ft:name>
+    <ft:description>Folder that contains the code necessary to run the Alabrity purchasing system.</ft:description>
+    <ft:requiredWebParts> 
+        <ft:webPart>
+            <ft:name>oc_purchase_start</ft:name>
+            <ft:location>body</ft:location>
+        </ft:webPart>
+    </ft:requiredWebParts>
+    <ft:preferredWebParts>
+    </ft:preferredWebParts>
+    <ft:modules>
+        <ft:moduleName>oconnor</ft:moduleName>
+    </ft:modules>
+    <ft:defaultModule>oconnor</ft:defaultModule>
+</ft:folderType>

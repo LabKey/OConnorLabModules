@@ -1,0 +1,491 @@
+<html>
+<head>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorAlabrityConfig.js");
+</script>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorPurchaseCommon.js");
+</script>
+<script type="text/javascript">
+//wait until page contents load
+Ext.onReady(function(){
+
+var pageButtons = [{text: 'Reorder popular product',requiresSelection: true,handler: selectProduct}];
+
+//render all orders placed by current user
+createGrid(dbSchemaName, 'popular_purchases', 'default', '', 'a', 'b',pageButtons);
+
+function selectProduct(dataRegion, dataRegionName)
+{
+	var checkedRows = dataRegion.getChecked();
+
+	//check there is at only one checked row
+	if (checkedRows.length > 1)
+	{
+		var win = new Ext.Window({
+			title: 'Status update',
+			width: 320,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			html: 'Error: Only one product can be reordered at a time. More than one product is selected. Please select only one product and try again.',
+			modal: true,
+			buttons: [{
+				text: 'OK',
+				disabled: false,
+				formBind: true,
+				ref: '../submit',
+				scope: this,
+				handler: function()
+				{
+					win.hide();
+					return false;
+				}
+			}]
+		});
+		win.show();
+	}
+	else
+	{
+		LABKEY.Query.selectRows({
+			schemaName: dbSchemaName,
+			queryName: 'purchases',
+			successCallback: newData,
+			failureCallback: onFailure,
+			filterArray: [
+			              LABKEY.Filter.create('key', checkedRows, LABKEY.Filter.Types.EQUALS)
+			              ]
+		});
+	};
+};
+
+//used to reorder previously purchased product
+function newData(data)
+{
+var keyId = data.rows[0].key;
+
+//get active grants. populate pulldown
+	var storeTest = new LABKEY.ext.Store({
+		schemaName: dbSchemaName,
+		queryName: 'active_grants',
+		autoLoad: true,
+		listeners: {
+			scope: this,
+			load: function() {
+				console.log('i loaded')
+			}
+		}
+	});
+
+	var theGrant = {
+			xtype: 'combo',
+			ref: 'theGrant',
+			store: storeTest,
+			fieldLabel: 'Grant',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local',
+			valueField: 'id',
+			displayField: 'displaytitle'
+	};
+
+	var quantity = {
+			xtype: 'textfield',
+			ref: 'quantity',
+			fieldLabel: 'Quantity',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	};
+
+	var comments = {
+			xtype: 'textfield',
+			ref: 'comments',
+			fieldLabel: 'Comments',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	};
+
+	var theForm = {
+			xtype: 'form',
+			width: 400,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			monitorValid: true,
+			ref: 'theForm',
+			border: false,
+			labelWidth: 130,
+			items: [theGrant, quantity,comments],
+			buttonAlign: 'center',
+			buttons: [{
+				text: 'Submit',
+				formBind: true,
+				scope: this,
+				handler: function()
+				{
+					//hide window
+					theWindow.hide();
+
+					//get information from existing record
+					LABKEY.Query.selectRows({
+						schemaName: dbSchemaName,
+						queryName: 'purchases',
+						filterArray: [LABKEY.Filter.create('key', keyId, LABKEY.Filter.Types.EQUALS)],
+						successCallback: reorderProduct,
+						errorCallback: onFailure
+					});
+
+					function reorderProduct(data)
+					{
+						//set parameters for inserting new row
+						var now = new Date();
+						var user = LABKEY.Security.currentUser.displayName;
+
+						var row = data.rows[0];
+						
+						//get other details from previous order
+						var rowData = {
+								"status" : 1,
+								"item": row.item,
+								"item_number" : row.item_number,
+								"quantity" : theWindow.theForm.quantity.getValue(),
+								"item_unit" : row.item_unit,
+								"price" : row.price,
+								"grant_number" : theWindow.theForm.theGrant.getValue(),
+								"vendor" : row.vendor,
+								"address" : row.address,
+								"confirmation_number" : '',
+								"comment" : theWindow.theForm.comments.getValue(),
+								"keyword" : row.keyword,
+								"placed_by" : user
+						};
+
+						var html = '<h2>Reorder Receipt &nbsp;</h2><p style="padding-left: 30px;"><span style="font-size: x-small;"><strong><span style="font-size: small;">ITEM:</span></strong></span> ' + rowData.item + '</p><p style="padding-left: 30px;"><span style="font-size: small;"><strong>CATALOG NUMBER:</strong></span> ' + rowData.item_number + '</p><p style="padding-left: 30px;"><strong><span style="font-size: small;">QUANTITY:</span></strong> ' + rowData.quantity + '</p><p style="padding-left: 30px;"><span style="font-size: small;"><strong>GRANT:</strong></span> ' + rowData.grant + '</p><p style="padding-left: 30px;"><strong><span style="font-size: small;">ADDRESS:</span></strong> ' + rowData.address + '&nbsp;</p>';
+
+						//insert record into labkey
+						LABKEY.Query.insertRows({
+							schemaName: dbSchemaName,
+							queryName: 'purchases',
+							successCallback: function(d){
+								var currentTime = new Date();
+								var date = currentTime.format('Y-m-d');
+		                    	onSuccess(d);
+
+								
+/*
+				                LABKEY.Message.sendMessage({
+				                    msgFrom: LABKEY.Security.currentUser.email,
+				                    msgSubject: 'Reordered product receipt ' + date,
+				                    msgRecipients: [ LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, LABKEY.Security.currentUser.email) ],
+				                    msgContent: [LABKEY.Message.createMsgContent(LABKEY.Message.msgType.html, html)],
+				                    successCallback: function(){
+				                    	console.log('sent email');
+				                    	onSuccess(d);
+				                    }
+				                });
+					                */
+							},
+							rowDataArray:[rowData]
+						});
+					};
+				}
+			},
+			{
+				text: 'Cancel',
+				scope: this,
+				handler: function()
+				{
+					theWindow.hide();
+				}
+			}
+			]
+	};
+
+	var theWindow = new Ext.Window({
+		title: 'Reorder product',
+		width: 420,
+		bodyStyle: 'background-color:#fff',
+		autoHeight: true,
+		items: theForm,
+	});
+
+	theWindow.show();
+};
+
+//used for purchasing new product never ordered before
+function newProduct(data)
+{
+//script logic
+	var item = {
+			xtype: 'textfield',
+			ref: 'item',
+			fieldLabel: 'Item Description',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	};
+
+	var item_number = {
+			xtype: 'textfield',
+			ref: 'item_number',
+			fieldLabel: 'Item Number',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	};
+
+	var item_unit = {
+			xtype: 'textfield',
+			ref: 'item_unit',
+			fieldLabel: 'Item Unit',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	};
+	
+	var item_price = {
+			xtype: 'textfield',
+			ref: 'item_price',
+			fieldLabel: 'Unit Price',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	};
+
+//get active grants. populate pulldown
+	var storeGrants = new LABKEY.ext.Store({
+		schemaName: dbSchemaName,
+		queryName: 'active_grants',
+		autoLoad: true,
+		listeners: {
+			scope: this,
+			load: function() {
+				console.log('i loaded')
+			}
+		}
+	});
+
+	var theGrant = {
+			xtype: 'combo',
+			ref: 'theGrant',
+			store: storeGrants,
+			fieldLabel: 'Grant',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local',
+			valueField: 'id',
+			displayField: 'displaytitle'
+	};
+	
+//get active vendors. populate pulldown
+	var storeVendors = new LABKEY.ext.Store({
+		schemaName: dbSchemaName,
+		queryName: 'vendors',
+		viewName: 'dashboard_vendors',
+		autoLoad: true,
+		listeners: {
+			scope: this,
+			load: function() {
+				console.log('i loaded')
+			}
+		}
+	});
+
+	var theVendor = {
+			xtype: 'combo',
+			ref: 'theVendor',
+			store: storeVendors,
+			fieldLabel: 'Vendor',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local',
+			valueField: 'vendor',
+			displayField: 'vendor'
+	};	
+
+//get active shipping addresses. populate pulldown
+	var storeAddress = new LABKEY.ext.Store({
+		schemaName: dbSchemaName,
+		queryName: 'shipping',
+		viewName: 'dashboard_shipping',
+		autoLoad: true,
+		listeners: {
+			scope: this,
+			load: function() {
+				console.log('i loaded')
+			}
+		}
+	});
+
+	var theAddress = {
+			xtype: 'combo',
+			ref: 'theAddress',
+			store: storeAddress,
+			fieldLabel: 'Shipping Address',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local',
+			valueField: 'id',
+			displayField: 'id'
+	};	
+
+	var quantity = {
+			xtype: 'textfield',
+			ref: 'quantity',
+			fieldLabel: 'Quantity',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	};
+
+	var comments = {
+			xtype: 'textfield',
+			ref: 'comments',
+			fieldLabel: 'Comments',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	};
+
+	var keyword = {
+			xtype: 'textfield',
+			ref: 'keyword',
+			fieldLabel: 'Keywords',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	};
+
+	var theForm = {
+			xtype: 'form',
+			width: 400,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			monitorValid: true,
+			ref: 'theForm',
+			border: false,
+			labelWidth: 130,
+			items: [item,item_number,quantity,item_unit,item_price,theGrant,theVendor,theAddress,comments,keyword],
+			buttonAlign: 'center',
+			buttons: [{
+				text: 'Submit',
+				formBind: true,
+				scope: this,
+				handler: function()
+				{
+					//hide window
+					theWindow.hide();
+
+						//set parameters for inserting new row
+						var now = new Date();
+						var user = LABKEY.Security.currentUser.displayName;
+						
+						//get other details from previous order
+						var rowData = {
+								"status" : 1,
+								"item": theWindow.theForm.item.getValue(),
+								"item_number" : theWindow.theForm.item_number.getValue(),
+								"quantity" : theWindow.theForm.quantity.getValue(),
+								"item_unit" : theWindow.theForm.item_unit.getValue(),
+								"price" : theWindow.theForm.item_price.getValue(),
+								"grant_number" : theWindow.theForm.theGrant.getValue(),
+								"vendor" : theWindow.theForm.theVendor.getValue(),
+								"address" : theWindow.theForm.theAddress.getValue(),
+								"comment" : theWindow.theForm.comments.getValue(),
+								"keyword" : theWindow.theForm.keyword.getValue(),
+								"placed_by" : user
+						};
+
+						var html = '<h2>New Order Receipt &nbsp;</h2><p style="padding-left: 30px;"><span style="font-size: x-small;"><strong><span style="font-size: small;">ITEM:</span></strong></span> ' + rowData.item + '</p><p style="padding-left: 30px;"><span style="font-size: small;"><strong>CATALOG NUMBER:</strong></span> ' + rowData.item_number + '</p><p style="padding-left: 30px;"><strong><span style="font-size: small;">QUANTITY:</span></strong> ' + rowData.quantity + '</p><p style="padding-left: 30px;"><span style="font-size: small;"><strong>GRANT:</strong></span> ' + rowData.grant + '</p><p style="padding-left: 30px;"><strong><span style="font-size: small;">ADDRESS:</span></strong> ' + rowData.address + '&nbsp;</p>';
+
+						//insert record into labkey
+						LABKEY.Query.insertRows({
+							schemaName: dbSchemaName,
+							queryName: 'purchases',
+							successCallback: function(d){
+								var currentTime = new Date();
+								var date = currentTime.format('Y-m-d');
+		                    	onSuccess(d);
+
+								
+/*
+				                LABKEY.Message.sendMessage({
+				                    msgFrom: LABKEY.Security.currentUser.email,
+				                    msgSubject: 'Reordered product receipt ' + date,
+				                    msgRecipients: [ LABKEY.Message.createRecipient(LABKEY.Message.recipientType.to, LABKEY.Security.currentUser.email) ],
+				                    msgContent: [LABKEY.Message.createMsgContent(LABKEY.Message.msgType.html, html)],
+				                    successCallback: function(){
+				                    	console.log('sent email');
+				                    	onSuccess(d);
+				                    }
+				                });
+					                */
+							},
+							rowDataArray:[rowData]
+						});
+				}
+			},
+			{
+				text: 'Cancel',
+				scope: this,
+				handler: function()
+				{
+					theWindow.hide();
+				}
+			}
+			]
+	};
+
+	var theWindow = new Ext.Window({
+		title: 'Order new product',
+		width: 420,
+		bodyStyle: 'background-color:#fff',
+		autoHeight: true,
+		items: theForm,
+	});
+
+	theWindow.show();
+};
+
+//generic success
+function onSuccess(data)
+{
+console.log(data);
+	//dialog to user showing order status.
+	var notice = ('Order number ' + data.rows[0].order_number + ' for ' +data.rows[0].item + ' placed by ' + data.rows[0].placed_by + ' successfully.');
+
+	//display notice to user
+	var theWindow = new Ext.Window({
+		title: 'Status update',
+		width: 320,
+		bodyStyle: 'background-color:#fff;padding: 10px',
+		html: notice,
+		modal: true,
+		buttons: [{
+			text:'OK',
+			disabled:false,
+			formBind: true,
+			ref: '../submit',
+			scope: this,
+			handler: function()
+			{
+				reloadWin();
+			}
+		}]
+	});
+
+	theWindow.show();
+
+	function reloadWin()
+	{
+		//refresh browser to show unordered products
+		theWindow.hide();
+	};
+};
+}
+);
+ </script>
+</head>
+<body>
+
+<div id="a"></div>
+
+</body>
+</html>

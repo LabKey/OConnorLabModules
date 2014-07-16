@@ -1,0 +1,153 @@
+<html>
+<head>
+
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorAlabrityConfig.js");
+</script>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorPurchaseCommon.js");
+</script>
+<script type="text/javascript">
+Ext.onReady(function()
+{
+var pageButtons = [{text: 'Add New Vendor Quote', handler: addQuote}];
+createGrid(dbSchemaName, 'quotes', 'enabled_quotes', '', 'a', 'b',pageButtons);
+
+//generate form to add new grant	
+function addQuote(data)
+{
+//form fields. for some reason that i can't figure out, the checkbox I tried to create to select 'enabled' kept breaking the entire form. I defaulted to adding new vendors as 'enabled'. This is almost certainly the most common usage case.
+	
+	var storeTest = new LABKEY.ext.Store({
+		schemaName: dbSchemaName,
+		queryName: 'vendors',
+		autoLoad: true,
+		listeners: {
+			scope: this,
+			load: function() {
+				console.log('i loaded')
+			}
+		}
+	});
+
+	var theVendor = {
+			xtype: 'combo',
+			ref: 'theVendor',
+			store: storeTest,
+			width: 130,
+			fieldLabel: 'Vendor',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local',
+			valueField: 'vendor',
+			displayField: 'vendor'
+	};
+	
+	var quote_number = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'quote_number',
+			fieldLabel: 'Quote Number',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+
+	var expiration_date = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'expiration_date',
+			fieldLabel: 'Expiration Date',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var comments = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'comments',
+			fieldLabel: 'Comments',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+//construct form
+	var theForm = new Ext.FormPanel({
+			xtype: 'form',
+			layout: 'form',
+			width: 300,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			monitorValid: true,
+			ref: 'theForm',
+			border: false,
+			labelWidth: 130,
+			items: [theVendor,quote_number,expiration_date,comments]
+		});		
+console.log(theForm);
+	var theWindow = new Ext.Window({
+		title: 'Add new vendor quote',
+		width: 320,
+		bodyStyle: 'background-color:#fff',
+		autoHeight: true,
+		items: theForm,
+		buttonAlign: 'center',
+		buttons: [{
+				text: 'Submit',
+				formBind: true,
+				scope: this,
+				handler: function()
+				{
+					//hide window
+					theWindow.hide();
+
+					//communicate with labkey/db to add new vendor
+
+						//set parameters for inserting new row
+						var now = new Date();
+						var user = LABKEY.Security.currentUser.displayName;
+						
+						//get other details from previous order
+						var rowData = {
+								"enabled": 'true',
+								"vendor" : theWindow.theForm.theVendor.getValue(),
+								"vendor_quote_number" : theWindow.theForm.quote_number.getValue(),
+								"vendor_quote_expiration_date" : theWindow.theForm.expiration_date.getValue(),
+								"vendor_quote_comments" : theWindow.theForm.comments.getValue()
+						};
+						console.log(rowData);
+						//insert record into labkey
+						LABKEY.Query.insertRows({
+							schemaName: dbSchemaName,
+							queryName: 'quotes',
+							successCallback: function(d){
+								var currentTime = new Date();
+								var date = currentTime.format('Y-m-d');
+		                    	onSuccess(d);
+							},
+							rowDataArray:[rowData]
+						});
+				}
+			},
+			{
+				text: 'Cancel',
+				scope: this,
+				handler: function()
+				{
+					theWindow.hide();
+				}
+			}]
+					
+	});
+	
+	theWindow.show();
+};
+}
+);
+</script>
+
+</head>
+<body>
+<div id="a"></div>
+
+
+</body>
+</html>
