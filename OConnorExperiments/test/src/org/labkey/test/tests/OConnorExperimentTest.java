@@ -41,6 +41,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -500,9 +501,9 @@ public class OConnorExperimentTest extends BaseWebDriverTest
     }
 
     @Override
-    public String getAssociatedModuleDirectory()
+    public List<String> getAssociatedModules()
     {
-        return "server/customModules/OConnorExperiments";
+        return Arrays.asList("OConnorExperiments");
     }
 
     @Override public BrowserType bestBrowser()

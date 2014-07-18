@@ -23,6 +23,8 @@ import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 
 @Category({CustomModules.class})
@@ -259,9 +261,9 @@ public class GenotypingTest extends GenotypingBaseTest
     }
 
     @Override
-    public String getAssociatedModuleDirectory()
+    public java.util.List<String> getAssociatedModules()
     {
-        return "server/customModules/genotyping";
+        return Arrays.asList("genotyping");
     }
 
 }
