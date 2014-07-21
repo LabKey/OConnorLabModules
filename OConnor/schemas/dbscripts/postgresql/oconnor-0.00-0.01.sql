@@ -4,8 +4,6 @@
 
 CREATE SCHEMA oconnor;
 
-SET search_path = oconnor, pg_catalog;
-
 CREATE FUNCTION add_order_number() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
@@ -171,13 +169,7 @@ CREATE SEQUENCE alabrity_sequence
 
 COMMENT ON SEQUENCE alabrity_sequence IS 'sequence used for primary key throughout entire alabrity system';
 
-
-SET default_tablespace = '';
-
-SET default_with_oids = false;
-
---
--- Name: grants; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: grants; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
 CREATE TABLE grants (
@@ -2152,10 +2144,3 @@ COMMENT ON CONSTRAINT vendor_exists ON quotes IS 'requires vendor to exist befor
 
 ALTER TABLE ONLY inventory
     ADD CONSTRAINT "virusStrain" FOREIGN KEY (virus_strain) REFERENCES virus_strain(virus_strain);
-
-
-
--- PostgreSQL database dump complete
---
-
-SET search_path = pg_catalog;
