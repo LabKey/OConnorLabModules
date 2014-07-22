@@ -391,21 +391,6 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
 
         in = LoggingDataIterator.wrap(x);
 
-        // Issue 18119: Add length validation for "Experiment Type".
-        // Remove this block when StandatdETL adds scale/length validation by default.
-        for (int i = 1; i < x.getColumnCount(); i++)
-        {
-            ColumnInfo col = x.getColumnInfo(i);
-            if ("experimentType".equalsIgnoreCase(col.getColumnName()))
-            {
-                ValidatorIterator validate = new ValidatorIterator(x, context, getContainer(), getUserSchema().getUser());
-                validate.setDebugName("ExperimentsTable validate");
-                validate.addLengthValidator(i, col);
-                in = LoggingDataIterator.wrap(validate);
-                break;
-            }
-        }
-
         data = new DataIteratorBuilder.Wrapper(in);
 
         // Feed the modified data iterator to the parent ETL to insert into both the Workbooks table and the OConnor experiments dbtable
