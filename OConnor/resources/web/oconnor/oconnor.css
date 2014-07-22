@@ -1,0 +1,12 @@
+/*NOW DEFUNCT*/
+/*This is a CSS file for the update/insert/view pages for the O'Connor Experiment submodule
+ probably wouldn't hurt to use this for all future insert data pages*/
+ 
+ .oconnor-form-label
+ {
+ 	width: 130
+ }
+  .oconnor-form-field
+ {
+ 	width: 400
+ }
