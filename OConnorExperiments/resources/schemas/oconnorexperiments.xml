@@ -79,6 +79,9 @@
             <column columnName="RowId" />
             <column columnName="Container" />
             <column columnName="Name" />
+            <column columnName="Enabled">
+                <defaultValue>true</defaultValue>
+            </column>
         </columns>
     </table>
 

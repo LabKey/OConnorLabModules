@@ -11,7 +11,10 @@ Ext.QuickTips.init();
 			var listSpecimenTypes = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'specimen_type',
-				autoLoad: true
+				autoLoad: true,
+                filter: [
+                    {property: 'Enabled', value: true}
+                ]
 			});
 			
 			var listCellTypes = new LABKEY.ext.Store({
@@ -107,7 +110,8 @@ Ext.QuickTips.init();
 					forceSelection: true,
 					valueField: 'rowid',
 					displayField: 'specimen_type',
-					anchor: '95%'
+					anchor: '95%',
+                    typeAhead: true
 					},
 					
 					{xtype: 'combo',
@@ -125,7 +129,8 @@ Ext.QuickTips.init();
 					forceSelection: true,
 					valueField: 'specimen_species',
 					displayField: 'specimen_species',
-					anchor: '95%'
+					anchor: '95%',
+                    typeAhead: true
 					},
 					
 					{xtype: 'combo',
@@ -143,8 +148,9 @@ Ext.QuickTips.init();
 					forceSelection: true,
 					valueField: 'cell_type',
 					anchor: '95%',
-					displayField: 'cell_type'
-					},
+					displayField: 'cell_type',
+                    typeAhead: true
+                    },
 					
 					{xtype: 'combo',
 					ref: 'specimen_geographic_origin',
@@ -161,7 +167,8 @@ Ext.QuickTips.init();
 					forceSelection: true,
 					valueField: 'rowid',
 					displayField: 'specimen_geographic_origin',
-					anchor: '95%'
+					anchor: '95%',
+                    typeAhead: true
 					},
 	
 					{
@@ -180,7 +187,8 @@ Ext.QuickTips.init();
 					forceSelection: true,
 					valueField: 'rowid',
 					displayField: 'specimen_collaborator',
-					anchor: '95%'
+					anchor: '95%',
+                    typeAhead: true
 					},
 					
 					{xtype: 'textfield',
@@ -206,7 +214,8 @@ Ext.QuickTips.init();
 					forceSelection: true,
 					valueField: 'rowid',
 					displayField: 'specimen_additive',
-					anchor: '95%'
+					anchor: '95%',
+                    typeAhead: true
 					}
 					]
 				}
@@ -280,7 +289,8 @@ Ext.QuickTips.init();
 						forceSelection: true,
 						valueField: 'rowid',
 						displayField: 'freezer_id',
-						anchor: '95%'
+						anchor: '95%',
+                        typeAhead: true
 						},
 		
 						{xtype: 'textfield',

@@ -30,6 +30,9 @@ var theFormPanel = layoutForm(); //save form panel to theFormPanel
 
 theFormPanel.findById('current_status').html = 'Ready to add specimen to inventory...'
 
+// stash the form values (helps with a bunch of expensive operations)
+var formValues = theFormPanel.getForm().getValues();
+
 //add buttons that are specific to this function. add the button by running ext addButton method
 
 var buttons = [{xtype: 'button',
@@ -42,27 +45,27 @@ var buttons = [{xtype: 'button',
 						{
 						
 					//get values to load into labkey. set status manually
-					var labkeyRowData = {"specimen_id":theFormPanel.getForm().getValues().specimen_id,
-					"sample_date":theFormPanel.getForm().getValues().sample_date,
-					"comments":theFormPanel.getForm().getValues().comments,
-					"specimen_type":theFormPanel.getForm().getValues().specimen_type,
-					"specimen_species":theFormPanel.getForm().getValues().specimen_species,
-					"cell_type":theFormPanel.getForm().getValues().cell_type,
-					"specimen_geographic_origin":theFormPanel.getForm().getValues().specimen_geographic_origin,
-					"specimen_collaborator":theFormPanel.getForm().getValues().specimen_collaborator,
-					"specimen_quantity":theFormPanel.getForm().getValues().specimen_quantity,
-					"specimen_additive":theFormPanel.getForm().getValues().specimen_additive,
-					"initials":theFormPanel.getForm().getValues().initials,
-					"gs_id":theFormPanel.getForm().getValues().gs_id,
-					"cohort_id":theFormPanel.getForm().getValues().cohort_id,
-					"experiment":theFormPanel.getForm().getValues().experiment,
-					"sample_number":theFormPanel.getForm().getValues().sample_number,
-					"freezer":theFormPanel.getForm().getValues().freezer,
-					"cane":theFormPanel.getForm().getValues().cane,
-					"box":theFormPanel.getForm().getValues().box,
-					"box_row":theFormPanel.getForm().getValues().box_row,
-					"box_column":theFormPanel.getForm().getValues().box_column,
-					"coordinate":theFormPanel.getForm().getValues().coordinate,
+					var labkeyRowData = {"specimen_id": formValues.specimen_id,
+					"sample_date": formValues.sample_date,
+					"comments": formValues.comments,
+					"specimen_type": formValues.specimen_type,
+					"specimen_species": formValues.specimen_species,
+					"cell_type": formValues.cell_type,
+					"specimen_geographic_origin": formValues.specimen_geographic_origin,
+					"specimen_collaborator": formValues.specimen_collaborator,
+					"specimen_quantity": formValues.specimen_quantity,
+					"specimen_additive": formValues.specimen_additive,
+					"initials": formValues.initials,
+					"gs_id": formValues.gs_id,
+					"cohort_id": formValues.cohort_id,
+					"experiment": formValues.experiment,
+					"sample_number": formValues.sample_number,
+					"freezer": formValues.freezer,
+					"cane": formValues.cane,
+					"box": formValues.box,
+					"box_row": formValues.box_row,
+					"box_column": formValues.box_column,
+					"coordinate": formValues.coordinate,
 					"status":"available",
 					"sample_type":"specimen"};
 					
@@ -73,7 +76,7 @@ var buttons = [{xtype: 'button',
 						rows: [labkeyRowData],
 						successCallback: function(){
 							//update html of status update box
-							Ext.getCmp('current_status').update('Specimen from '+ theFormPanel.getForm().getValues().specimen_id + ' successfully added to freezer ' + theFormPanel.getForm().getValues().freezer + '; cane ' + theFormPanel.getForm().getValues().cane + '; box ' + theFormPanel.getForm().getValues().box + '; row ' + theFormPanel.getForm().getValues().box_row + '; column ' + theFormPanel.getForm().getValues().box_column +'; coordinate ' + theFormPanel.getForm().getValues().coordinate + '. Thank you for your ongoing responsibility.');
+							Ext.getCmp('current_status').update('Specimen from '+  formValues.specimen_id + ' successfully added to freezer ' +  formValues.freezer + '; cane ' +  formValues.cane + '; box ' +  formValues.box + '; row ' +  formValues.box_row + '; column ' +  formValues.box_column +'; coordinate ' +  formValues.coordinate + '. Thank you for your ongoing responsibility.');
 							}	
 						});	
 	
@@ -137,27 +140,27 @@ var buttons = [{xtype: 'button',
 						{
 						
 					//get values to load into labkey from form
-					var labkeyRowData = {"specimen_id":theFormPanel.getForm().getValues().specimen_id,
-					"sample_date":theFormPanel.getForm().getValues().sample_date,
-					"comments":theFormPanel.getForm().getValues().comments,
-					"specimen_type":theFormPanel.getForm().getValues().specimen_type,
-					"specimen_species":theFormPanel.getForm().getValues().specimen_species,
-					"cell_type":theFormPanel.getForm().getValues().cell_type,
-					"specimen_geographic_origin":theFormPanel.getForm().getValues().specimen_geographic_origin,
-					"specimen_collaborator":theFormPanel.getForm().getValues().specimen_collaborator,
-					"specimen_quantity":theFormPanel.getForm().getValues().specimen_quantity,
-					"specimen_additive":theFormPanel.getForm().getValues().specimen_additive,
-					"initials":theFormPanel.getForm().getValues().initials,
-					"gs_id":theFormPanel.getForm().getValues().gs_id,
-					"cohort_id":theFormPanel.getForm().getValues().cohort_id,
-					"experiment":theFormPanel.getForm().getValues().experiment,
-					"sample_number":theFormPanel.getForm().getValues().sample_number,
-					"freezer":theFormPanel.getForm().getValues().freezer,
-					"cane":theFormPanel.getForm().getValues().cane,
-					"box":theFormPanel.getForm().getValues().box,
-					"box_row":theFormPanel.getForm().getValues().box_row,
-					"box_column":theFormPanel.getForm().getValues().box_column,
-					"coordinate":theFormPanel.getForm().getValues().coordinate,
+					var labkeyRowData = {"specimen_id": formValues.specimen_id,
+					"sample_date": formValues.sample_date,
+					"comments": formValues.comments,
+					"specimen_type": formValues.specimen_type,
+					"specimen_species": formValues.specimen_species,
+					"cell_type": formValues.cell_type,
+					"specimen_geographic_origin": formValues.specimen_geographic_origin,
+					"specimen_collaborator": formValues.specimen_collaborator,
+					"specimen_quantity": formValues.specimen_quantity,
+					"specimen_additive": formValues.specimen_additive,
+					"initials": formValues.initials,
+					"gs_id": formValues.gs_id,
+					"cohort_id": formValues.cohort_id,
+					"experiment": formValues.experiment,
+					"sample_number": formValues.sample_number,
+					"freezer": formValues.freezer,
+					"cane": formValues.cane,
+					"box": formValues.box,
+					"box_row": formValues.box_row,
+					"box_column": formValues.box_column,
+					"coordinate": formValues.coordinate,
 					"status":"available",
 					"sample_type":"specimen"};
 					

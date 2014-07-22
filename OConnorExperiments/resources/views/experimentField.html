@@ -51,7 +51,7 @@
             document.getElementById('createdSpan').textContent = createdString;
 
             var experimentTypeStore = Ext4.create('LABKEY.ext4.data.Store', {
-                columns : ['Name', 'RowId'],
+                columns : ['Name', 'RowId', 'Enabled'],
                 schemaName : 'OConnorExperiments',
                 queryName : 'ExperimentType',
                 containerPath : LABKEY.container.parentPath, // the workbook parent container's path
@@ -65,7 +65,11 @@
                         experimentTypeCombo.setValue(experimentData.ExperimentTypeId);
                         experimentTypeCombo.resumeEvents();
                     }
-                }
+                },
+                filters: [
+                    {property: 'Enabled', value: true}
+                ]
+
             });
             var experimentTypeCombo = Ext4.create('Ext.form.field.ComboBox', {
                 store: experimentTypeStore,
