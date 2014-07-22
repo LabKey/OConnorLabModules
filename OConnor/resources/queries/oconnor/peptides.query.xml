@@ -1,0 +1,14 @@
+<query xmlns="http://labkey.org/data/xml/query">
+	<metadata>
+		<tables xmlns="http://labkey.org/data/xml">
+			<table tableName="peptides" tableDbType="TABLE">
+				<titleColumn>peptide_number</titleColumn>
+				<columns>
+					<column columnName="target_sequence">
+						<displayWidth>5000</displayWidth>
+					</column>
+				</columns>
+			</table>
+		</tables>
+	</metadata>
+</query> 

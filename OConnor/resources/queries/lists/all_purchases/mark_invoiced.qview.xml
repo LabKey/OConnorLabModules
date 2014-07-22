@@ -1,0 +1,26 @@
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+<!--
+
+view that is used on the mark_invoiced html page.
+
+-->
+
+   <columns>
+	<column name="Key"/>
+	<column name="item"/>
+	<column name="itemNumber"/>
+	<column name="quantity"/>
+	<column name="price"/>
+	<column name="vendor/vendor"/>
+	<column name="status"/>
+	<column name="grant/id"/>
+	<column name="receivedBy"/>
+	<column name="receivedDate"/>
+    <column name="comment"/>
+   </columns>
+   <filters>
+       <filter column="status" operator="eq" value="3"/>
+   </filters>
+</customView>
+
+										

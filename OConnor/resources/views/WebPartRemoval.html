@@ -1,0 +1,32 @@
+<html>
+<script type="text/javascript">
+
+
+
+function remove(){
+
+	var lastID;
+	LABKEY.Portal.getWebParts({
+	success: function(d){
+		LABKEY.Portal.removeWebPart({
+			updateDOM : true,
+			webPartId : d.body[d.body.length-2].webPartId
+			
+		});
+	}
+
+	});
+	
+}
+
+
+
+
+</script>
+<FORM> 
+<INPUT type="button" value="Remove Last WebPart" name="button6" onClick='remove()'> 
+</FORM>
+
+</html>
+
+

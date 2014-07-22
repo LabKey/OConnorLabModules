@@ -1,0 +1,225 @@
+<html>
+<head>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorAlabrityConfig.js");
+</script>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorFreezerCommon.js");
+</script>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/inventoryDrawVirusLayout.js");
+</script>
+<script type="text/javascript">
+Ext.onReady(function(){
+
+//add custom button to add specimens to inventory
+var pageButtons = [{text: 'Add new specimens', requiresSelection: false, handler: addRecord},
+{text: 'Batch edit', requiresSelection: true, handler: editRecord}];
+createGrid(dbSchemaName, 'inventory', 'virus_available', 'Inventory', 'a', 'b',pageButtons);
+
+//we will run one function to draw the form panel with specimen information. the same form panel can be used to add new samples or batch edit existing samples. 
+//we will render the form panel the same way for the add new specimen and modify specimen buttons, but will call different handlers for the different button presses ('add' for new records, 'edit' to batch edit - from freezerCommon.js)
+
+function addRecord()
+{			
+//draw specimen. calls drawSpecimen function from external file
+
+var theFormPanel = layoutForm(); //save form panel to theFormPanel
+
+//change status message to be specific to this action
+
+theFormPanel.findById('current_status').html = 'Ready to add virus stock to inventory...'
+
+//add buttons that are specific to this function. add the button by running ext addButton method
+
+var buttons = [{xtype: 'button',
+					text:'Submit',
+					disabled:false,
+					formBind: true,
+					ref: '../submit',
+					scope: this,
+					handler: function()
+						{
+						
+					//get values to load into labkey. set status manually
+					var labkeyRowData = {"comments":theFormPanel.getForm().getValues().comments,
+					"virus_strain":theFormPanel.getForm().getValues().virus_strain,
+					"virus_freeze_date":theFormPanel.getForm().getValues().virus_freeze_date,
+					"virus_vl":theFormPanel.getForm().getValues().virus_vl,
+					"virus_tcid50":theFormPanel.getForm().getValues().virus_tcid50,
+					"virus_grown_on":theFormPanel.getForm().getValues().virus_grown_on,
+					"initials":theFormPanel.getForm().getValues().initials,
+					"experiment":theFormPanel.getForm().getValues().experiment,
+					"sample_number":theFormPanel.getForm().getValues().sample_number,
+					"freezer":theFormPanel.getForm().getValues().freezer,
+					"cane":theFormPanel.getForm().getValues().cane,
+					"box":theFormPanel.getForm().getValues().box,
+					"box_row":theFormPanel.getForm().getValues().box_row,
+					"box_column":theFormPanel.getForm().getValues().box_column,
+					"coordinate":theFormPanel.getForm().getValues().coordinate,
+					"status":"available",
+					"sample_type":"SIV stock"};
+					
+					//submit to LABKEY. need to call first item from labkeyRowData array
+					LABKEY.Query.insertRows({
+						schemaName: dbSchemaName,
+						queryName: 'inventory',
+						rows: [labkeyRowData],
+						successCallback: function(){
+							//update html of status update box
+							Ext.getCmp('current_status').update('Virus stock '+ theFormPanel.getForm().getValues().virus_strain + ' successfully added to freezer ' + theFormPanel.getForm().getValues().freezer + '; cane ' + theFormPanel.getForm().getValues().cane + '; box ' + theFormPanel.getForm().getValues().box + '; row ' + theFormPanel.getForm().getValues().box_row + '; column ' + theFormPanel.getForm().getValues().box_column +'; coordinate ' + theFormPanel.getForm().getValues().coordinate + '. Thank you for your ongoing responsibility.');
+							}	
+						});	
+	
+						}
+					},	
+						
+					{xtype: 'button',
+					text:'Cancel',
+					disabled:false,
+					formBind: false,
+					ref: '../submit',
+					scope: this,
+					handler: function(){
+						theWindow.close()
+						}
+					}];
+					
+theFormPanel.addButton(buttons); //add button to form panel
+
+//create window to hold form panel
+//put buttons in window - this lets me call theFormPanel methods to work with form data
+		var theWindow = new Ext.Window({
+				title: 'Add new virus strain',
+				width: 800,
+				closable: true,
+				bodyStyle: 'background-color:#fff;padding: 10px',
+				items: theFormPanel
+				});
+		
+//display form panel		
+			theWindow.show();
+			
+};
+
+function editRecord(dataRegion, dataRegionName){
+
+//get primary key of checked rows
+var checkedRows = dataRegion.getChecked();
+
+//draw specimen. calls drawSpecimen function from external file
+
+var theFormPanel = layoutForm(); //save form panel to theFormPanel
+
+//change status message to be specific to this action
+
+theFormPanel.findById('current_status').html = 'Make batch edits to selected virus strains. Be sure you know what you are doing.'
+
+//change monitorValid on the form to false. this is only needed to ensure required fields are entered when new records are created
+
+theFormPanel.monitorValid = false;
+
+//add buttons that are specific to this function. add the button by running ext addButton method
+
+var buttons = [{xtype: 'button',
+					text:'Submit',
+					disabled:false,
+					formBind: true,
+					ref: '../submit',
+					scope: this,
+					handler: function()
+						{
+						
+					//get values to load into labkey from form
+					var labkeyRowData = {"comments":theFormPanel.getForm().getValues().comments,
+					"virus_strain":theFormPanel.getForm().getValues().virus_strain,
+					"virus_freeze_date":theFormPanel.getForm().getValues().virus_freeze_date,
+					"virus_vl":theFormPanel.getForm().getValues().virus_vl,
+					"virus_tcid50":theFormPanel.getForm().getValues().virus_tcid50,
+					"virus_grown_on":theFormPanel.getForm().getValues().virus_grown_on,
+					"initials":theFormPanel.getForm().getValues().initials,
+					"experiment":theFormPanel.getForm().getValues().experiment,
+					"sample_number":theFormPanel.getForm().getValues().sample_number,
+					"freezer":theFormPanel.getForm().getValues().freezer,
+					"cane":theFormPanel.getForm().getValues().cane,
+					"box":theFormPanel.getForm().getValues().box,
+					"box_row":theFormPanel.getForm().getValues().box_row,
+					"box_column":theFormPanel.getForm().getValues().box_column,
+					"coordinate":theFormPanel.getForm().getValues().coordinate,
+					"status":"available",
+					"sample_type":"SIV stock"};
+					
+					//delete fields that are blank so these are not updated
+					
+					if (labkeyRowData.comments===''){ delete labkeyRowData.comments};
+					if (labkeyRowData.virus_strain===''){ delete labkeyRowData.virus_strain};
+					if (labkeyRowData.virus_freeze_date===''){ delete labkeyRowData.virus_freeze_date};
+					if (labkeyRowData.virus_vl===''){ delete labkeyRowData.virus_vl};
+					if (labkeyRowData.virus_tcid50===''){ delete labkeyRowData.virus_tcid50};
+					if (labkeyRowData.virus_grown_on===''){ delete labkeyRowData.virus_grown_on};
+					if (labkeyRowData.initials===''){ delete labkeyRowData.initials};
+					if (labkeyRowData.experiment===''){ delete labkeyRowData.experiment};
+					if (labkeyRowData.sample_number===''){ delete labkeyRowData.sample_number};
+					if (labkeyRowData.freezer===''){ delete labkeyRowData.freezer};
+					if (labkeyRowData.cane===''){ delete labkeyRowData.cane};
+					if (labkeyRowData.box===''){ delete labkeyRowData.box};
+					if (labkeyRowData.box_row===''){ delete labkeyRowData.box_row};
+					if (labkeyRowData.box_column===''){ delete labkeyRowData.box_column};
+					if (labkeyRowData.coordinate===''){ delete labkeyRowData.coordinate};
+					
+					//iterate through checked records and add key to labkeyRowData. then update row in labkey
+					
+					for (i=0; i<checkedRows.length; i++){
+					labkeyRowData.key = checkedRows[i];
+					
+					//submit to LABKEY. need to call first item from labkeyRowData array
+					LABKEY.Query.updateRows({
+					schemaName: dbSchemaName,
+					queryName: 'inventory',
+					rows: [labkeyRowData],
+					successCallback: function(){
+ 							//update html of status update box
+							Ext.getCmp('current_status').update(checkedRows.length + ' virus stocks successfully batch updated.');
+							}	
+						});	
+					};
+						}
+					},	
+						
+					{xtype: 'button',
+					text:'Cancel',
+					disabled:false,
+					formBind: false,
+					ref: '../submit',
+					scope: this,
+					handler: function(){
+						theWindow.close()
+						}
+					}];
+					
+theFormPanel.addButton(buttons); //add button to form panel
+
+//create window to hold form panel
+//put buttons in window - this lets me call theFormPanel methods to work with form data
+		var theWindow = new Ext.Window({
+				title: 'Batch edit virus strains',
+				width: 800,
+				closable: true,
+				bodyStyle: 'background-color:#fff;padding: 10px',
+				items: theFormPanel
+				});
+		
+//display form panel		
+			theWindow.show();
+};
+
+});
+</script>
+
+</head>
+<body>
+
+<div id="a"></div>
+
+</body>
+</html>

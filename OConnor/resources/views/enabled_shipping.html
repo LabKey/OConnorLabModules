@@ -1,0 +1,152 @@
+<html>
+<head>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorAlabrityConfig.js");
+</script>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorPurchaseCommon.js");
+</script>
+<script type="text/javascript">
+Ext.onReady(function()
+{
+var pageButtons = [{text: 'New Shipping Address', handler: newAddress}];
+createGrid(dbSchemaName, 'shipping', 'dashboard_shipping', '', 'a', 'b',pageButtons);
+
+//generate form to add new grant	
+function newAddress(data)
+{
+//form fields	
+	var shipping_id = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'shipping_id',
+			fieldLabel: 'Address Nickname',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+
+	var building = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'building',
+			fieldLabel: 'Building',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var address = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'address',
+			fieldLabel: 'Address',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var city = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'city',
+			fieldLabel: 'City',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+
+	var state = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'state',
+			fieldLabel: 'State',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+
+	var zip = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'zip',
+			fieldLabel: 'Zip Code',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+//construct form
+	var theForm = new Ext.FormPanel({
+			xtype: 'form',
+			layout: 'form',
+			width: 300,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			monitorValid: true,
+			ref: 'theForm',
+			border: false,
+			labelWidth: 130,
+			items: [shipping_id,building,address,city,state,zip]
+		});		
+
+	var theWindow = new Ext.Window({
+		title: 'Add new shipping address',
+		width: 320,
+		bodyStyle: 'background-color:#fff',
+		autoHeight: true,
+		items: theForm,
+		buttonAlign: 'center',
+		buttons: [{
+				text: 'Submit',
+				formBind: true,
+				scope: this,
+				handler: function()
+				{
+					//hide window
+					theWindow.hide();
+
+					//communicate with labkey/db to add new vendor
+
+						//set parameters for inserting new row
+						var now = new Date();
+						var user = LABKEY.Security.currentUser.displayName;
+						
+						//get other details from previous order
+						var rowData = {
+								"id" : theWindow.theForm.shipping_id.getValue(),
+								"enabled": 'true',
+								"building" : theWindow.theForm.building.getValue(),
+								"address" : theWindow.theForm.address.getValue(),
+								"city" : theWindow.theForm.city.getValue(),
+								"state" : theWindow.theForm.state.getValue(),
+								"zip" : theWindow.theForm.zip.getValue()
+						};
+						//insert record into labkey
+						LABKEY.Query.insertRows({
+							schemaName: dbSchemaName,
+							queryName: 'shipping',
+							successCallback: function(d){
+								var currentTime = new Date();
+								var date = currentTime.format('Y-m-d');
+		                    	onSuccess(d);
+							},
+							rowDataArray:[rowData]
+						});
+				}
+			},
+			{
+				text: 'Cancel',
+				scope: this,
+				handler: function()
+				{
+					theWindow.hide();
+				}
+			}]
+					
+	});
+	
+	theWindow.show();
+};
+
+});
+</script>
+
+</head>
+<body>
+<div id="a"></div>
+</body>
+</html>

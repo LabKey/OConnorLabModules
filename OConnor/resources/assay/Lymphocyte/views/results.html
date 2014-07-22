@@ -1,0 +1,24 @@
+<script type="text/javascript">
+
+LABKEY.requiresScript("ehr/AssayUtils.js");
+LABKEY.requiresScript("oconnor/AddOCIcons.js");
+
+
+
+Ext.onReady(function() {
+	addIcons();
+	EHR.Assay.showButtonBar(LABKEY.page.assay);
+	
+    var wp = new LABKEY.QueryWebPart({
+        renderTo:"resultsQWP"
+       ,schemaName: "assay"
+       ,queryName: LABKEY.page.assay.name+" Data"
+       ,dataRegionName: LABKEY.page.assay.name+" Data"
+       ,frame: 'none'
+
+    }).render();
+});
+
+</script>
+
+<div id="resultsQWP"></div>

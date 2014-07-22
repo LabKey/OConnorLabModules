@@ -1,0 +1,175 @@
+<html>
+<body>
+<div id="expForm" />
+<script>
+Ext4.onReady( function() {	
+	Ext.QuickTips.init();  // enable tooltips for the htmleditor xtype
+	
+	var theForm = Ext4.create('Ext.form.Panel', {
+		renderTo: 'expForm', 
+		border: false,
+		width: '800px',
+		buttonAlign: 'left',
+		defaults: {
+			width: 400,
+			labelWidth: 130
+		},
+		buttons: [
+			{
+				text: 'Submit', 
+				handler: function() {
+					var expDescription = theForm.getComponent('expDescription').value;
+					var expComments = theForm.getComponent('expComments').value;
+					var expParent = theForm.getComponent('expParent').value;
+					var expType = theForm.getComponent('expType').value;
+					addExp(expDescription,expComments,expParent,expType);
+				}
+			},
+			{
+				text: 'Cancel', 
+				handler: function() {window.history.back()}
+			}
+		],
+		items:[
+			{
+				xtype: 'textarea',
+				fieldLabel: 'Summary*',
+				name: 'expDescription',
+				allowBlank: false,
+				itemId: 'expDescription',
+			},
+			{
+				xtype: 'textfield',
+				fieldLabel: 'Parent Experiment',
+				name: 'expParent',
+				itemId: 'expParent',
+			},
+			{
+				xtype: 'textfield',
+				fieldLabel: 'Experiment Type',
+				name: 'expType',
+				itemId: 'expType',
+			},
+			{
+				xtype: 'htmleditor',
+				fieldLabel: 'Experiment Details',
+				name: 'expComments',
+				height: 300,
+				width: 800,
+				itemId: 'expComments',
+			},
+			{
+				xtype: 'displayfield',
+				hideLabel: true,
+				value: 'Fields marked with an * are required'
+			}
+		],
+	
+	});
+});
+
+function addExp(expDescription,expComments,expParent,expType)
+        		{
+        		//log all arguments to addExp
+				console.log(["addExp arguments: ", arguments]);
+
+        		//get current date
+        		var now = new Date();
+
+        		//get current user
+        		var displayName =  LABKEY.Security.currentUser.displayName;
+
+				//get last experiment number in container and add one integer to calculate next experiment number
+				LABKEY.Query.executeSql({
+                     		schemaName: 'oconnor',
+                     		sql: 'SELECT (1+e.expNumber) AS exp FROM simple_experiment e ORDER BY e.expNumber DESC LIMIT 1',
+                     		success: writeTotals
+             				});
+
+function writeTotals(data)
+				{
+				//log all arguments to writeTotals
+				console.log(["writeTotals arguments: ", arguments]);
+
+				//if no existing experiment numbers in sql query from above (as in a new installation), initialize first experiment as number 1
+							if (data.rows.length == 0)
+							{
+							nextExpNum = 1;
+							}
+							else
+							{
+							nextExpNum = data.rows[0].exp;
+							};
+
+                LABKEY.Query.insertRows({
+                schemaName: 'oconnor',
+                queryName: 'simple_experiment',
+                rowDataArray: [
+                {expNumber: nextExpNum,
+                expDescription: expDescription,
+                expComments: expComments,
+                expParent: expParent,
+                expType: expType,
+                created: now,
+                initials: displayName}],
+                successCallback: onSuccess,
+                failureCallback: onFailure
+                });
+                };
+                };
+
+function onSuccess(data)
+{
+    //log all data entered into insertRows
+    console.log(["inserted data", data.rows[0]]);
+
+    //create folder to hold experiment files, code from Mark Igra 2012-03-04.
+    var dirName = nextExpNum;
+    //uses fileBrowser.js. must be loaded at top of script
+    var fileSystem = new LABKEY.FileSystem.WebdavFileSystem({baseUrl:'/_webdav' + window.encodeURI(LABKEY.container.path + '/@files') });
+    fileSystem.createDirectory({path: dirName, success: directoryCreationSuccess, failure: function() {alert('Test')}});
+    return false;
+}
+
+function directoryCreationSuccess(fs, path)
+{
+    //dialog to user showing order status.
+    var notice = ('Experiment number ' + nextExpNum + ' added by ' + LABKEY.Security.currentUser.displayName);
+
+    //display notice to user
+    var theWindow = new Ext.Window({
+        title: 'Status',
+        width: 320,
+        bodyStyle: 'background-color:#fff;padding: 10px',
+        html: notice,
+        modal: true,
+        buttons: [{
+                       text:'OK',
+                       disabled:false,
+                       formBind: true,
+                       ref: '../submit',
+                       scope: this,
+                       handler: function()
+                        {
+                            //refresh browser
+                            theWindow.hide();
+                            window.location = '/oconnor' + LABKEY.container.path + '/experiments_files.view?experimentId=' + nextExpNum;
+                        }
+                     }]
+    });
+
+    theWindow.show();
+}
+
+//generic failure. disabled on 2012-04-06 because of innocuous error when run on ehr.primate.wisc.edu
+function onFailure(errorInfo, options, responseObj)
+{
+//             if(errorInfo && errorInfo.exception)
+//             alert("Failure: " + errorInfo.exception);
+//             else
+//             alert("Failure: " + responseObj.statusText);
+};
+
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+<!--
+
+Defines a custom view on the inventory table.
+
+-->
+   <columns>
+	<column name="experiment"/>
+	<column name="sample_number"/>
+	<column name="virus_strain"/>
+	<column name="virus_freeze_date"/>
+	<column name="virus_vl"/>
+	<column name="virus_tcid50"/>
+	<column name="virus_grown_on"/>
+	<column name="initials"/>
+	<column name="comments"/>
+	<column name="freezer"/>
+	<column name="cane"/>
+	<column name="box"/>
+	<column name="box_row"/>
+	<column name="box_column"/>
+	<column name="coordinate"/>
+   </columns>
+   <filters>
+       <filter column="sample_type" operator="eq" value="SIV stock"/>
+   </filters>
+   <sorts>
+       <sort column="virus_freeze_date" descending="true"/>
+   </sorts>
+</customView>

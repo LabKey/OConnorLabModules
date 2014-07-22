@@ -1,0 +1,47 @@
+<query xmlns="http://labkey.org/data/xml/query">
+  <metadata>
+    <ns:tables xmlns:ns="http://labkey.org/data/xml">
+      <ns:table tableName="vendors" tableDbType="TABLE">
+        <ns:titleColumn>vendor</ns:titleColumn>
+        <ns:columns>
+          <ns:column columnName="key">
+            <ns:shownInInsertView>false</ns:shownInInsertView>
+            <ns:shownInUpdateView>false</ns:shownInUpdateView>
+          </ns:column>
+          <ns:column columnName="enabled">
+            <ns:defaultValue>true</ns:defaultValue>
+          </ns:column>
+          <ns:column columnName="url">
+            <ns:columnTitle>URL</ns:columnTitle>
+          </ns:column>
+          <ns:column columnName="po">
+            <ns:columnTitle>Purchase order number</ns:columnTitle>
+<ns:displayWidth>50</ns:displayWidth>
+
+          </ns:column>
+          <ns:column columnName="vendor">
+            <ns:displayWidth>50</ns:displayWidth>
+          </ns:column>
+          <ns:column columnName="phone">
+            <ns:displayWidth>125</ns:displayWidth>
+          </ns:column>
+              <ns:column columnName="fax">
+            <ns:displayWidth>125</ns:displayWidth>
+          </ns:column>
+          <ns:column columnName="email">
+            <ns:displayWidth>50</ns:displayWidth>
+          </ns:column>
+          <ns:column columnName="url">
+            <ns:displayWidth>50</ns:displayWidth>
+          </ns:column>
+          <ns:column columnName="comments">
+            <ns:displayWidth>50</ns:displayWidth>
+          </ns:column>
+          <ns:column columnName="account_number">
+            <ns:displayWidth>50</ns:displayWidth>
+          </ns:column>
+        </ns:columns>
+      </ns:table>
+    </ns:tables>
+  </metadata>
+</query>

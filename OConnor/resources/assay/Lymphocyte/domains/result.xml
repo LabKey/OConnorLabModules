@@ -1,0 +1,54 @@
+<ap:domain xmlns:exp="http://cpas.fhcrc.org/exp/xml"
+   xmlns:ap="http://labkey.org/study/assay/xml">
+<exp:Description>These are the Lymphocyte Counts result fields.</exp:Description>
+<exp:PropertyDescriptor>
+        <exp:Name>Id</exp:Name>
+        <exp:Description>Animal Id</exp:Description>
+        <exp:Required>true</exp:Required>
+        <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+        <exp:Label>Animal Id</exp:Label>
+        	<exp:FK>
+   				<exp:FolderPath>/WNPRC/WNPRC_Laboratories/oconnor</exp:FolderPath>
+       			<exp:Schema>oconnor</exp:Schema>
+       			<exp:Query>animals</exp:Query>
+    		</exp:FK>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+	<exp:Name>SampleDate</exp:Name>
+	<exp:Description>Sample Date</exp:Description>
+	<exp:Required>true</exp:Required>
+	<exp:RangeURI>http://www.w3.org/2001/XMLSchema#dateTime</exp:RangeURI>
+	<exp:Label>Sample Date</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+    <exp:Name>SurfaceMarker</exp:Name>
+    <exp:Description>Surface Marker</exp:Description>
+    <exp:Required>true</exp:Required>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+    <exp:Label>Surface Marker</exp:Label>
+    <exp:FK>
+   		<exp:FolderPath>/WNPRC/WNPRC_Laboratories/oconnor</exp:FolderPath>
+        <exp:Schema>oconnor</exp:Schema>
+        <exp:Query>flow_markers</exp:Query>
+    </exp:FK>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+    <exp:Name>PercentLymphocytes</exp:Name>
+    <exp:Description>Percent Lymphocytes</exp:Description>
+    <exp:Required>true</exp:Required>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#double</exp:RangeURI>
+    <exp:Label>Percent Lymphocytes</exp:Label>
+</exp:PropertyDescriptor>
+<exp:PropertyDescriptor>
+	<exp:Name>Experiment</exp:Name>
+	<exp:Description>Experiment</exp:Description>
+	<exp:Required>false</exp:Required>
+	<exp:RangeURI>http://www.w3.org/2001/XMLSchema#int</exp:RangeURI>
+	<exp:Label>Experiment</exp:Label>
+	    <exp:FK>
+   		<exp:FolderPath>/WNPRC/WNPRC_Laboratories/oconnor/</exp:FolderPath>
+        <exp:Schema>oconnor</exp:Schema>
+        <exp:Query>experiment_db</exp:Query>
+    </exp:FK>
+</exp:PropertyDescriptor>
+</ap:domain>

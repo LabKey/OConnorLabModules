@@ -1,0 +1,12 @@
+<ap:domain xmlns:exp="http://cpas.fhcrc.org/exp/xml"
+           xmlns:ap="http://labkey.org/study/assay/xml">
+<exp:Description>These are the Lymphocyte Counts run fields.</exp:Description>
+<exp:PropertyDescriptor>
+    <exp:Name>PerformedBy</exp:Name>
+    <exp:Description>Performed By</exp:Description>
+    <exp:Required>true</exp:Required>
+    <exp:RangeURI>http://www.w3.org/2001/XMLSchema#string</exp:RangeURI>
+    <exp:Label>Performed By</exp:Label>
+</exp:PropertyDescriptor>
+</ap:domain>
+

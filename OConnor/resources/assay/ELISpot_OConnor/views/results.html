@@ -1,0 +1,784 @@
+<script type="text/javascript">
+
+//LABKEY.requiresScript('oconnor/addOCIcons.js'); 	
+
+//LABKEY.requiresScript("ehr/AssayUtils.js");
+
+Ext.onReady(function() {
+	//EHR.Assay.showButtonBar(LABKEY.page.assay);
+	
+	//addIcons();
+
+	
+	
+	//Display the intial query
+	query();
+	
+	//Set up global variables
+	var dataReg;	
+	var ids = [];	
+	var exps = [];
+	var peptides = [];
+	
+	//Create Reanalysis Panel
+	var panel = new Ext.Panel({
+		border: true,
+		width: 270,
+        bodyStyle:'padding:5px',
+        closeAction:'hide',
+        plain: true,
+        title: 'Re-Analyze Selected',
+        layout: 'form',
+        labelWidth: 200,
+        labelAlign: 'left',
+        
+		items:  [{
+            fieldLabel: 'Minimum Spots for Positive',
+            xtype: 'textfield',
+            width: 50,
+            height:20,
+            ref: 'min_spots',
+			value: 10,	
+            },{	
+            emptyText:'',
+            fieldLabel: 'Arithmetic Mean Multiplier',
+           	ref: 'mean_multiplier',
+            xtype: 'textfield',
+            width: 50,
+			value: 1,	
+            },{
+            emptyText:'',
+            fieldLabel: 'Number of Standard Deviations',
+           	ref: 'stddev_number',
+            xtype: 'textfield',
+            width: 50,
+            required: true,
+			value: 2,	
+            },{
+            emptyText:'',
+            fieldLabel: 'Overall Threshold Multiplier',
+           	ref: 'overall_multiplier',
+            xtype: 'textfield',
+            width: 50,
+            required: true,
+			value: 1,	
+            }
+
+				],
+		buttons: [{
+            text: 'Analyze',
+                formBind: true,
+                handler: function(){
+                	d = (Ext.ComponentMgr.get(LABKEY.page.assay.name+" Data"));
+                	doAnalyze(d);
+                }
+            },{
+                text: 'Cancel',
+                width: 50,
+                handler: function(){
+                	d = (Ext.ComponentMgr.get(LABKEY.page.assay.name+" Data"));
+          		  	d.selectPage(false);
+          		 	ids = [];
+	          		exps = [];
+	          		peptides = [];
+
+	          		fullPanel.hide();  
+                	query();
+                }
+            
+            }],
+	});
+	
+	//Place reanalysis panel into larger panel with description and intially hide
+	var fullPanel = new Ext.Panel({
+		applyTo: 'analyze',
+		border: false,
+		width: 1020,
+        closeAction:'hide',
+        plain: true,
+        hidden: true,
+        layout: 'hbox',
+		items:  [panel,
+		         {
+			xtype: 'displayfield',
+			html: '<p><span style="font-size: small;">Changing these values allows you to define the threshold for ELISpot positivity. The minimum number of spots for a well to be considered positive is the larger of either the <b>Minimum Spots for Positive</b> or the following formula:</p></span><p><span style="font-size: small;"> (Mean of Neg Control Well Spots * <b>Arithmetic Mean Multiplier</b>) + (Standard Deviation of Neg Control Well Spots * <b>Number of Standard Deviations</b>) * <b>Overall Threshold Multiplier</b></span></p><p><span style="font-size: small;">To remove a result from the re-analysis uncheck it below</p></span>',
+			margins: {top:0, right:0, bottom:0, left:20},	
+		         }],
+	});
+		
+	
+	//sets up query results display
+	function query(){
+	 	var wp = new LABKEY.QueryWebPart({
+	       renderTo:"resultsQWP",
+	       queryName: "ELISpotResults",
+	       schemaName: "oconnor",
+	       showRecordSelectors: true,
+	       dataRegionName: LABKEY.page.assay.name+" Data",
+	       frame: 'none',
+   		timeout: 10000000000,
+
+	       buttonBar: {
+	    	   includeStandardButtons: true,
+	    	   items:[
+					{text: 'Re-Analyze', handler: openReanalysis, requiresSelection : 'true'},
+					{text: 'Open Image', handler: openImage, requiresSelection : 'true'},
+
+	    	          ]
+	       }
+	    }).render();
+	 	
+	 	
+	 	LABKEY.Query.selectRows({
+ 	       queryName: "ELISpotResults",
+	       schemaName: "oconnor",
+	        columns: ['Experiment/experiment_number, Experiment/workbook', 'Well'],
+	        successCallback: function(d) { 
+	        	
+	        	if(d.rows[0] == undefined)
+	        		return;
+	        
+	        		    
+	        	var expImage = new Object();
+	        	var urls = [];
+	        	var count = 0;
+	        	
+	        	
+	        	var i = d.rows.length-1;
+	        	checkImage(i);
+	        	function checkImage(i){
+	        			        		
+	        		var wbk = d.rows[i]["Experiment/workbook"];	
+	        		var noImage = [];
+	        	
+	        		
+	        		
+	        		LABKEY.Query.selectRows({
+	        		    schemaName: "exp",
+	        		    queryName: "Datas",
+	        		    containerPath: "/dho/experiments/workbook-" + wbk,
+	        	        successCallback: function(d2) { 
+	        	       		
+	        	        	var found = false;
+	        	        	for(var t = 0; t < d2.rows.length; t++){
+	        	        		if(d.rows[i].Well + ".JPG" == d2.rows[t].Name){
+									found = true;	
+	        	        			break;
+	        	        		}
+	        	        		  	        		
+	        	        	}
+	        	        	
+	        	        	if (!found){
+	        	        		if (expImage[d.rows[i]["Experiment/experiment_number"]] == undefined){
+	        	        			expImage[d.rows[i]["Experiment/experiment_number"]] = [];
+	        	        		
+	        	        			urls.push(d.rows[i]["_labkeyurl_Experiment/experiment_number"]);
+									count++;
+	        	        		}
+	        	        			
+	        	        		expImage[d.rows[i]["Experiment/experiment_number"]].push(d.rows[i].Well);	
+	        	        		
+	        	        	}
+	        	        	
+	        	        	i--;
+	        	        	
+	        	        	
+	        	        	//change this for what criteria
+	        	        	if(i > 0 && count < 3 && d.rows[i]["Experiment/experiment_number"] > 700)	        	        	
+	        	        		checkImage(i);
+	        	        	else if (d.rows[i]["Experiment/experiment_number"] > 700)
+	        	        		displayImageExps(expImage, urls);
+
+	        	        }
+	        		});
+	        		
+	        		
+	        		
+	        		
+	        	}
+	        	
+				function displayImageExps(expImage, urls){
+					
+					
+					var exps = [];
+					
+					var theList = '';
+					for(var i in expImage){
+						exps.push(i);
+						
+					}
+					
+
+					for(var i = 0; i < exps.length; i++){
+						theList += '<div><a href = "' + urls[i] + '">Exp ' + exps[i] + ': </a>';
+						
+						
+						for(var t = 0; t < expImage[exps[i]].length; t++){
+							theList += ' ' + expImage[exps[i]][t];
+						}
+						
+						theList += '</div><br>';
+						
+					}
+					
+					
+					
+					  var theWindow = new Ext.Window({
+					        width: 500,
+					        height: 'auto',
+					        bodyStyle:'padding:5px',
+					        closeAction:'hide',
+					        plain: false,
+					       
+					        title: 'Missing ELISpot Images',
+					        layout: 'form',
+					        items: [{
+					            ref: 'name',
+					            hideLabel: true,
+					            xtype: 'displayfield',
+								html: theList,		
+					        }]
+					  });
+					
+					
+			//ENABLE THIS FOR REMINDER TO ADD IMAGES		  
+			//		  theWindow.show();
+					
+					
+					
+					
+					}
+	        		        	
+	        }
+	 	});
+	 	
+	 	
+	 	
+	}
+	
+	
+	
+	
+	function doAnalyze(dataReg){
+			
+		//this function runs after the duplicates and found
+		
+		Ext.Msg.wait('Re-Analyzing');
+    	var newIds;
+    	var batchesIds = [[]];
+    	    	
+    	var newIds = dataReg.getChecked();
+		
+    	var mean_multiplier = panel.mean_multiplier.getValue();
+    	var stddev_number = panel.stddev_number.getValue();
+    	var overall_multiplier = panel.overall_multiplier.getValue();
+    	var min_spots = panel.min_spots.getValue();
+    	    
+    		
+        	
+		LABKEY.Query.selectRows({
+			  queryName: "ELISpotResults",
+   	       schemaName: "oconnor",
+            columns: ['rowid', 'Run/Batch/Row Id', 'Run'],
+           	sort:'rowid',
+            timeout:10000000,
+            filterArray: [ LABKEY.Filter.create('rowid', newIds.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF),
+                          ],
+            successCallback: function(d) { 
+            	         
+            	
+				var curRun = d.rows[0].Run;
+
+            	
+            	//prime batchesIds array with first values because always distinct 
+            	batchesIds[0].push(d.rows[0]['Run/Batch/Row Id']);
+            	batchesIds[0].push(d.rows[0]['rowid']);
+            	
+            	
+            	//each array in batchesIds array starts with the batch number and then all the row ids associated with that batch id
+        		for(var i = 1; i<d.rows.length; i++){
+        			
+        			//adds new ids and batches to array
+        			
+        			var distinct = true;
+    	        	for(var t = 0; t < batchesIds.length; t++){
+    	        		
+    	        		if(batchesIds[t][0] == d.rows[i]['Run/Batch/Row Id']){
+    	                	batchesIds[t].push(d.rows[i]['rowid']);
+    	                	distinct = false;
+							break;
+    	        		}
+    	        	}
+        		
+    	        	if(distinct){
+    	        		batchesIds.push([]);
+    	        		batchesIds[batchesIds.length-1].push(d.rows[i]['Run/Batch/Row Id']);
+                    	batchesIds[batchesIds.length-1].push(d.rows[i]['rowid']);
+    	        	}
+    	        	
+        		}
+        		
+        		        		
+        		
+        		var idx = 0;
+        		//MAIN LOOP
+        		runBatches(idx);     		     		
+        		function runBatches(i){
+
+        			
+        			var batch = batchesIds[i];
+        			
+        			
+        			//need to get all rows in batch to find index of row objects and compare to batchesids
+        			LABKEY.Query.selectRows({
+        				  queryName: "ELISpotResults",
+        	    	       schemaName: "oconnor",
+	            		timeout: 10000000000,
+	                   	sort:'rowid',
+                        columns: ['rowid', 'Run/Batch/Row Id', 'Run'],
+                        filterArray: [ LABKEY.Filter.create('Run/Batch/Row Id', batch[0] , LABKEY.Filter.Types.EQUAL), LABKEY.Filter.create('Run', curRun , LABKEY.Filter.Types.EQUAL)],
+                        successCallback: function(d) { 
+        					var objectIds = [];
+							for(var t = 0; t < d.rows.length; t++){
+								objectIds.push(d.rows[t]['rowid']);
+							}
+							
+							var curBatch;
+							
+							LABKEY.Experiment.loadBatch({
+			            		assayId: LABKEY.page.assay.id,
+			            		batchId: batch[0],
+			            		timeout: 10000000000,
+			            		success: function(d){
+			            			
+			            			
+			            			curBatch = d;
+			            	
+			            			var runidx = 0;
+			    
+			            			//find the correct run within the batch
+			            			for(var s = 0; s < curBatch.runs.length; s++){
+			            				if (curBatch.runs[s].id == curRun){
+			            					runidx = s;
+			            					break;
+			            				}
+			            			}
+			            			
+			            			dataRuns = d.runs[runidx].dataRows;
+			            		
+			            			var results = [];
+			            						            			
+			            			//gathering selected results
+		            				for(var t = 1; t < batch.length; t++){
+		            					for(var p = 0; p < objectIds.length; p++){		            						
+		            						
+		            						if(batch[t] == objectIds[p]){
+		            							results.push(dataRuns[p]);
+		            						}
+		            					}	            			
+		            				}
+			            			
+			            			
+			            			
+			            			var negSpots = [];
+			            			var negMean = 0;
+			            			var negSum = 0;
+			            			
+			            			for(var t = 0; t < results.length; t++){
+			            				if(results[t].Control == 'Neg'){
+			            					negSpots.push(results[t].Spots);
+			            				}
+			            			}
+			            			
+			            			for(var t = 0; t < negSpots.length; t++)
+			            				negSum += negSpots[t];
+			            			
+			            			//calculate negMean
+			            			negMean = negSum/(negSpots.length);
+			            			
+			            			//round to two decimals
+									negMean = (Math.round(negMean*100)/100);
+
+			                    	var devSum = 0;
+			                    	for (var t=0; t < negSpots.length; t++){
+			                    		devSum+=(Math.pow(negMean - negSpots[t],2));
+			                    	}
+									
+			                    	var negStdDev = 0;
+			                    	if (negSpots.length > 1){
+			                    		negStdDev = Math.sqrt(devSum/(negSpots.length-1));
+			    						negStdDev = (Math.round(negStdDev*100)/100);
+
+			                    	}
+			            			
+			                    	
+			                    	
+			                    	var cutoff = (negMean * mean_multiplier) + (negStdDev * stddev_number) * overall_multiplier;
+			                    	
+									
+									if (cutoff < min_spots)
+			                    		cutoff = min_spots;
+			                    	
+									cutoff = (Math.round(cutoff*100)/100);
+									
+									
+									//THERE IS AN ERROR BELOW WHERE THE SPOTS ARE NOT SUMMED CORRECTLY FOR IDENTICAL PEPTIDES
+									
+									
+									//for each result peptide
+									for(var t = 0; t < results.length; t++){
+										
+										var peptideSpots = [];
+										
+										//THIS IS WHERE THE ERROR IS MOST LIKELY, THIS SHOULD MATCH PEPTIDES AND SUM THE SPOTS
+										for(var p = 0; p < results.length; p++){
+//											if (p != t && results[t].PeptideId == results[p].PeptideId);
+											
+											//THIS CHANGE MAY HAVE CORRECTED IT
+											if (results[t].PeptideId == results[p].PeptideId);
+
+												peptideSpots.push(results[t].Spots);
+										}
+										
+										var tempSum = 0;
+			                    		var peptideMean = 0;
+			                    		for (var p=0; p < peptideSpots.length; p++){
+			                    			tempSum += peptideSpots[p];
+			                    		}
+			                    		
+			                    		peptideMean = tempSum/peptideSpots.length;
+
+			                    		
+			                    		
+			                    		var devSum = 0;
+			                        	for (var p=0; p < peptideSpots.length; p++){
+			                        		devSum+=(Math.pow(peptideMean - peptideSpots[p],2));
+			                        	}
+			    						
+			                        	var peptideStdDev = Math.sqrt(devSum/(peptideSpots.length-1));
+			                    		
+									
+			                        	
+			                        	if (peptideMean > cutoff){
+			                    			results[t].result = 'Pos';
+			                    			var temp = ((peptideMean - negMean) * 10) / results[t].CellNumber;
+			                            	results[t].sfc = (Math.round(temp*10000)/10000);
+			                    		} else {
+			                    			results[t].result = 'Neg';
+			                    			results[t].sfc = null;
+			                    		}
+			                    		
+			                        	results[t].neg_mean = negMean;
+			                        	
+			                        	results[t].cutoff = cutoff;
+			                        	
+			                        	results[t].mean_multiplier = mean_multiplier;
+			                        	results[t].stddev_number = stddev_number;
+			                        	results[t].overall_multiplier = overall_multiplier;
+			                        	results[t].min_spots = min_spots;
+			                        	
+									
+									}
+									
+
+				        			LABKEY.Experiment.saveBatch({
+					            		assayId: LABKEY.page.assay.id,
+					            		batch: curBatch,
+					            		timeout: 10000000000,
+					            		success: function(d){
+			            					console.log('saved');
+			            					idx++
+	            		        	    	   if(idx < batchesIds.length)
+	            		        	    		   runBatches(idx);
+			            					
+	            		        	    	   else {
+	            		        	    		 //find from batch things to sort by bc objectIds change
+			            					
+					            					var wp = new LABKEY.QueryWebPart({
+					            		        	       renderTo:"resultsQWP",
+					            		        	       queryName: "ELISpotResults",
+					            		        	       schemaName: "oconnor",
+					            		        	       showRecordSelectors: true,
+					            		        	       dataRegionName: LABKEY.page.assay.name+" Data",
+					            		        	       frame: 'none',
+					            		        	      //FIGURE OUT! sort: 'Properties/Control',
+					            		                //   filterArray: [LABKEY.Filter.create('ObjectId',newIds.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+					            		                   buttonBar: {
+					            		        	    	   includeStandardButtons: true,
+					            		        	    	   items:[
+					            		        					{text: 'Re-Analyze', handler: openReanalysis, requiresSelection : 'true'},
+					            		        					{text: 'Open Image', handler: openImage, requiresSelection : 'true'},
+
+					            		        	    	          ]
+					            		        	       },
+					            		        	       successCallback: function(d){
+					            		        	    	   
+					            		            		   d.selectPage(false);
+					            		        	    	   fullPanel.hide();
+					            		        	    	   Ext.Msg.hide();
+					            		        	    	   //idx++
+					            		        	       }
+					            		        	       
+					            		        	    });
+	            		        	    	   }
+			            					
+
+					            		}
+				        			});
+									
+				        			
+				        			
+			            		}
+			            			
+			            			
+		            		});
+
+						
+							
+                        }
+                    
+        			
+        			});
+
+        		}//this is the main for loop
+        		
+
+	            	
+        		
+        		
+        		
+
+            } 	
+    	});
+
+		
+	}
+	
+	
+	function openImage(dataReg){
+		
+		
+    	var checked = dataReg.getChecked();
+
+    	
+    	
+		LABKEY.Query.selectRows({
+			  queryName: "ELISpotResults",
+   	       schemaName: "oconnor",
+
+            columns: ['Experiment/workbook','Well', 'Experiment'],
+            filterArray: [LABKEY.Filter.create('rowid', checked.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+            successCallback: function(d){				
+				           
+            	
+            	var wbks = [];
+            	var wells = [];
+            	var exps = [];
+            	            	
+            	for(var i = 0; i < d.rows.length; i++){
+            		wbks.push(d.rows[i]["Experiment/workbook"]);
+            		wells.push(d.rows[i]["Well"]);
+            		exps.push(d.rows[i]["Experiment"]);
+            	}
+        		
+                        	
+            	var i = 0;
+            	getImages(i,wbks, wells, exps);
+            	
+            	function getImages(i,workbooks,theWells, exps){
+
+
+            		
+            		LABKEY.Query.selectRows({
+            		    schemaName: "exp",
+            		    queryName: "Datas",
+            		    containerPath: "/dho/experiments/workbook-" + workbooks[i],
+            	        successCallback: function(d2) { 
+    						
+            	        	
+            	        	if (d2.rows.length == 0){
+            	        		alert('No images were found in experiment ' + exps[i]);
+            	        	}else{
+            	        	
+	        	        		var found = false;
+	            	        	for(var t = 0; t < d2.rows.length; t++){
+	            	        		
+	            	        		if(d2.rows[t].Name == theWells[i] + '.JPG'){
+	           						
+	            	        			found = true;
+	            						var win = window.open(LABKEY.ActionURL.buildURL("experiment", "showData","dho/experiments/workbook-" + workbooks[i], {rowId : d2.rows[t].RowId }), '_blank', 'location = 0');
+	            	        			break;
+	            	        		}
+	            	        		
+	            	        	}
+	            	        	
+	            	        	if (!found){
+	        	        			alert(theWells[i] + '.JPG was not found for experiment ' + exps[i]);
+	        	        		}
+            	        	
+            	        	}
+            	        	
+            	        	i++;
+            	        	if(i < wbks.length){
+            	        		getImages(i, workbooks, theWells, exps);
+            	        		
+            	        	}
+            	        }
+            		});
+            		
+            	}
+            	
+            	
+        		
+            }
+		
+		});
+	}
+	
+	
+    function openReanalysis(dataReg){
+    	
+    	inReanalysis = true;
+    	var checked = dataReg.getChecked();
+    	
+    	if(checked.length < 1){
+    		alert('Please select a row');
+    		return;
+    	}
+    	
+		Ext.Msg.wait('Selecting Duplicates and Negative Controls');
+
+    	
+    	LABKEY.Query.selectRows({
+    		  queryName: "ELISpotResults",
+   	       schemaName: "oconnor",
+
+            columns: ['Experiment','PeptideId'],
+            filterArray: [LABKEY.Filter.create('rowid', checked.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+            successCallback: function(d){
+		
+            	for(var i = 0; i<d.rows.length; i++){
+            		exps.push(d.rows[i]['Experiment']);
+            		peptides.push(d.rows[i]['PeptideId']);
+
+            	}
+            	
+
+            	selectPeptides();
+
+            },  	
+    	});
+    	
+   		//must repeat for each individual experiment
+    	
+   		var idx = 0;
+   		function selectPeptides(){
+    		
+       		LABKEY.Query.selectRows({
+       		  queryName: "ELISpotResults",
+   	       schemaName: "oconnor",
+
+                columns: ['rowid'],
+                filterArray: [
+                              LABKEY.Filter.create('Experiment', exps[idx], LABKEY.Filter.Types.EQUAL),
+                              LABKEY.Filter.create('PeptideId', peptides[idx], LABKEY.Filter.Types.EQUAL),
+
+                              ],
+                successCallback: function(d) {                	
+            		for(var i = 0; i<d.rows.length; i++){
+        	        	ids.push(d.rows[i]['rowid']);	
+            		}            		
+            		idx++;
+            		if(idx<exps.length)
+            			selectPeptides();
+            		else
+            			selectNegControl();
+
+            		//recursive calling
+            		                	
+                }
+        	});
+
+    		
+    		
+    	}
+    	    	
+    	
+    	
+    	function selectNegControl(){
+    		    		
+    		LABKEY.Query.selectRows({
+    			queryName: "ELISpotResults",
+       	        schemaName: "oconnor",
+                columns: ['rowid'],
+                filterArray: [
+                              LABKEY.Filter.create('Experiment', exps.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF),
+                              LABKEY.Filter.create('Control', 'Neg', LABKEY.Filter.Types.EQUAL),
+                              ],
+                successCallback: function(d) {  
+            		for(var i = 0; i<d.rows.length; i++){
+        	        	ids.push(d.rows[i]['rowid']);	
+            		}
+            	
+                	display();
+
+                } 	
+        	});
+	
+    	}
+    	    	    	
+    	
+    	function display(){
+    		    		
+    		
+    		//must have rendered variable to stop refreshing on d.selectPage
+    		var rendered = false;
+        	var wp = new LABKEY.QueryWebPart({
+    	       renderTo:"resultsQWP",
+    	       showRecordSelectors: true,
+    	       dataRegionName: LABKEY.page.assay.name+" Data",
+    	       queryName: "ELISpotResults",
+    	       schemaName: "oconnor",
+    	       frame: 'none',
+    	       sort: '-PeptideId',
+               filterArray: [LABKEY.Filter.create('rowid',ids.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+        
+               buttonBar: {
+    	    	   includeStandardButtons: true,
+    	    	   items:[
+    					{text: 'Open Image', handler: openImage},
+
+    	    	          ]
+    	       },
+
+    	       successCallback: function(d){
+    	    	   
+    	    	   
+    	    	   if(!rendered){
+    	    		   d.showAll();
+            		   d.selectPage(true);
+    	    	   }
+    	    		   rendered = true;
+               		
+    	    		Ext.Msg.hide();
+    	        	fullPanel.show();
+
+    	       
+    	       }
+    	       
+    	    });
+    		
+    	}
+    	
+      	
+    	
+    }
+    
+    
+   
+    
+});
+
+</script>
+<div id="analyze"></div>
+<div id="resultsQWP"></div>

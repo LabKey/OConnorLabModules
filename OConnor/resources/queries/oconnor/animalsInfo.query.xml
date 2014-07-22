@@ -1,0 +1,15 @@
+<query xmlns="http://labkey.org/data/xml/query">
+	<metadata>
+		<tables xmlns="http://labkey.org/data/xml">
+			<table tableName="animalsInfo" tableDbType="NOT_IN_DB">
+				<columns>
+					<column columnName="id">
+						<isKeyField>true</isKeyField>
+						<isHidden>true</isHidden>
+					</column>
+				</columns>
+				<titleColumn>id</titleColumn>
+			</table>
+		</tables>
+	</metadata>
+</query>

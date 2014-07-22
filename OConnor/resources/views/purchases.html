@@ -1,0 +1,99 @@
+<html>
+<head>
+<script>
+
+//script to extract id of lists for  data import. can be generically used to find any list id. note that the request to the server is asynchronous. it is best to write the html from within the callback function 
+
+getQueries('lists');
+
+function getQueries(schema)
+{
+new LABKEY.Query.getQueries({
+	schemaName: schema,
+	success: queries})
+};
+
+//labkey function puts data into queriesInfo
+function queries(queriesInfo)
+		{
+        for (var i = 0; i < queriesInfo.queries.length; i++)
+           {
+           var row = queriesInfo.queries[i];
+           if (row.name == 'purchases') 
+           	{
+           	//split url into directories
+           	var listUrl = row.viewDataUrl.split('/');
+           	//split last directory into name/value pair
+           	var listDir = listUrl[listUrl.length-1].split('=');
+           	//extract list ID
+           	var listId = listDir[1];
+           	//write HTML that uses listID to create upload form
+           	document.getElementById('purchasesUpload').innerHTML = '<li><span style="font-size: small;"><strong>Place new purchase request</strong></span><span style="font-size: small;">:&nbsp;click to&nbsp;<a  href="<%=contextPath%>/list<%=containerPath%>/insert.view?listId=' + listId + '"> <strong>enter new item</strong></a>&nbsp;to purchase</span></li>';
+           	document.getElementById('purchasesCancel').innerHTML = '<li><span style="font-size: small;"><strong>Cancel existing order</strong>: click to&nbsp;<a  href="<%=contextPath%>/list<%=containerPath%>/grid.view?listId=' + listId + '"><strong>cancel an existing order</strong></a></span></li>';
+           	};
+           	
+           var row = queriesInfo.queries[i];
+           if (row.name == 'vendors') 
+           	{
+           	//split url into directories
+           	var listUrl = row.viewDataUrl.split('/');
+           	//split last directory into name/value pair
+           	var listDir = listUrl[listUrl.length-1].split('=');
+           	//extract list ID
+           	var listId = listDir[1];
+           	//write HTML that uses listID to create upload form
+           	document.getElementById('vendorsUpload').innerHTML = '<li><span style="font-size: small;"><strong>Enter new vendor</strong>:&nbsp;click to&nbsp;<a href="<%=contextPath%>/list<%=containerPath%>/insert.view?listId=' + listId + '"><strong>add a new vendor</strong></a>&nbsp;&nbsp;</span></li>';
+           	};
+           	
+           var row = queriesInfo.queries[i];
+           if (row.name == 'grants') 
+           	{
+           	//split url into directories
+           	var listUrl = row.viewDataUrl.split('/');
+           	//split last directory into name/value pair
+           	var listDir = listUrl[listUrl.length-1].split('=');
+           	//extract list ID
+           	var listId = listDir[1];
+           	//write HTML that uses listID to create upload form
+           	document.getElementById('grantsUpload').innerHTML = '<li><span style="font-size: small;"><strong>Add new funding source</strong>: click to&nbsp;<a href="<%=contextPath%>/list<%=containerPath%>/insert.view?listId=' + listId + '"><strong>add a new grant</strong></a></span></li>';
+           	};
+           };
+
+//check whether listID can be extracted for each of the lists. If not, display an error that the lists are not properly installed. Not checking status list.
+
+          if (!document.getElementById('purchasesUpload').innerHTML || !document.getElementById('vendorsUpload').innerHTML ||!document.getElementById('grantsUpload').innerHTML)
+          {
+          document.getElementById('listsError').innerHTML = '<h2><strong><span style="background-color: #ff0000;">The necessary lists that contain data for the purchasing module are not properly installed. Import the list archive from <a href="<%=contextPath%>/purchases_definitions.lists.zip">here</a> and try again.&nbsp;</span></strong></h2>';
+          };
+		};
+
+</script>
+</head>
+
+<body>
+<div id="listsError"></div>
+<div style="color: #000000; font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; background-image: initial; background-attachment: initial; background-origin: initial; background-clip: initial; background-color: #ffffff; margin: 8px;">
+<p><span style="font-size: medium;"><br />OC Lab Purchasing v3.1</span></p>
+<p><span style="font-size: small;">Enter new purchase, vendor, or grant:</span></p>
+<ul>
+<div id="purchasesUpload"></div>
+<li><span style="font-size: small;"><strong>Reorder previously ordered product</strong>: click to&nbsp;<strong><a href="<%=contextPath%>/oconnor/<%=containerPath%>/purchases_reorderProduct.view">reorder a product</a></strong>&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;</span></li>
+<div id="vendorsUpload"></div>
+<div id="grantsUpload"></div>
+</ul>
+<p><span style="font-size: small;">Process existing order:</span></p>
+<ul>
+<li><span style="font-size: small;"><strong>Place order with company</strong></span><span style="font-size: small;">: click to&nbsp;<strong><a href="<%=contextPath%>/oconnor/<%=containerPath%>/purchases_placeOrders.view">see&nbsp;purchase requests that need to be ordered</a></strong></span><span style="font-size: small;"><strong></strong></span></li>
+<li><span style="font-size: small;"><strong>Mark order as received</strong>: click to&nbsp;<strong><a href="<%=contextPath%>/oconnor/<%=containerPath%>/purchases_markReceived.view">mark that an order has arrived</a></strong>&nbsp;in lab</span></li>
+<li><span style="font-size: small;"><strong>Mark received order as invoiced</strong>: click to&nbsp;<a href="<%=contextPath%>/oconnor/<%=containerPath%>/purchases_markInvoiced.view"><strong>add invoice details</strong></a></span></li>
+<div id="purchasesCancel"></div>
+</ul>
+<p><span style="font-size: small;">Other purchasing activities:</span></p>
+<ul>
+<li><span style="font-size: small;"><strong>Check order status</strong></span><span style="font-size: small;">:&nbsp;click to<strong>&nbsp;<a href="<%=contextPath%>/query<%=containerPath%>/executeQuery.view?schemaName=lists&amp;query.queryName=purchases_status">review all orders</a></strong></span></li>
+<li><span style="font-size: small;"><strong>Review all vendors</strong>: click to&nbsp;<strong><a href="<%=contextPath%>/query<%=containerPath%>/executeQuery.view?schemaName=lists&amp;query.queryName=vendors">see and edit vendor data</a></strong></span></li>
+<li><span style="font-size: small;"><strong>Review all grants</strong>: click to&nbsp;<a href="<%=contextPath%>/query<%=containerPath%>/executeQuery.view?schemaName=lists&amp;query.queryName=grants"><strong>review and edit grant information</strong></a></span></li>
+</ul>
+</div>
+</body>
+</html>

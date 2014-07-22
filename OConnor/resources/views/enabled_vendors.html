@@ -1,0 +1,217 @@
+<html>
+<head>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorAlabrityConfig.js");
+</script>
+<script type="text/javascript">
+LABKEY.Utils.requiresScript("oconnor/oconnorPurchaseCommon.js");
+</script>
+<script type="text/javascript">
+Ext.onReady(function(){
+//draw grid for all vendors
+
+var pageButtons = [{text: 'Add New Vendor', handler: addVendor}];
+createGrid(dbSchemaName, 'vendors', 'dashboard_vendors', '', 'a', 'b',pageButtons);
+
+//generate form to add new vendor	
+function addVendor(data)
+{
+//form fields. for some reason that i can't figure out, the checkbox I tried to create to select 'enabled' kept breaking the entire form. I defaulted to adding new vendors as 'enabled'. This is almost certainly the most common usage case.
+	var vendor = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'vendor',
+			fieldLabel: 'Vendor',
+			allowBlank: false,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+
+	var phone = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'phone',
+			fieldLabel: 'Phone Number',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var fax = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'fax',
+			fieldLabel: 'Fax Number',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var email = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'email',
+			fieldLabel: 'Email Address',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+
+	var url = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'url',
+			fieldLabel: 'URL',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+
+	var address = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'address',
+			fieldLabel: 'Mailing Address',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var city = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'city',
+			fieldLabel: 'City',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var state = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'state',
+			fieldLabel: 'State',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var zip = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'zip',
+			fieldLabel: 'Zip code',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var po = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'po',
+			fieldLabel: 'Purchase Order Number',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var comments = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'comments',
+			fieldLabel: 'Comments',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+	
+	var account_number = new Ext.form.TextField({
+			xtype: 'textfield',
+			ref: 'account_number',
+			fieldLabel: 'Account Number',
+			allowBlank: true,
+			triggerAction: 'all',
+			mode: 'local'
+	});
+console.log(account_number);
+//construct form
+	var theForm = new Ext.FormPanel({
+			xtype: 'form',
+			layout: 'form',
+			width: 300,
+			bodyStyle: 'background-color:#fff;padding: 10px',
+			monitorValid: true,
+			ref: 'theForm',
+			border: false,
+			labelWidth: 130,
+			items: [vendor,phone,fax,email,url,address,city,state,zip,po,comments,account_number]
+		});		
+
+console.log(theForm);
+	var theWindow = new Ext.Window({
+		title: 'Add new vendor',
+		width: 320,
+		bodyStyle: 'background-color:#fff',
+		autoHeight: true,
+		items: theForm,
+		buttonAlign: 'center',
+		buttons: [{
+				text: 'Submit',
+				formBind: true,
+				scope: this,
+				handler: function()
+				{
+					//hide window
+					theWindow.hide();
+
+					//communicate with labkey/db to add new vendor
+
+						//set parameters for inserting new row
+						var now = new Date();
+						var user = LABKEY.Security.currentUser.displayName;
+						
+						//get other details from previous order
+						var rowData = {
+								"vendor" : theWindow.theForm.vendor.getValue(),
+								"enabled": 'true',
+								"phone" : theWindow.theForm.phone.getValue(),
+								"fax" : theWindow.theForm.fax.getValue(),
+								"email" : theWindow.theForm.email.getValue(),
+								"url" : theWindow.theForm.url.getValue(),
+								"address" : theWindow.theForm.address.getValue(),
+								"city" : theWindow.theForm.city.getValue(),
+								"state" : theWindow.theForm.state.getValue(),
+								"zip" : theWindow.theForm.zip.getValue(),
+								"po" : theWindow.theForm.po.getValue(),
+								"comments" : theWindow.theForm.comments.getValue(),
+								"account_number" : theWindow.theForm.account_number.getValue(),
+								modifiedBy: LABKEY.Security.currentUser.id,
+								createdBy: LABKEY.Security.currentUser.id
+						};
+						//insert record into labkey
+						LABKEY.Query.insertRows({
+							schemaName: dbSchemaName,
+							queryName: 'vendors',
+							successCallback: function(d){
+								var currentTime = new Date();
+								var date = currentTime.format('Y-m-d');
+		                    	onSuccess(d);
+							},
+							rowDataArray:[rowData]
+						});
+				}
+			},
+			{
+				text: 'Cancel',
+				scope: this,
+				handler: function()
+				{
+					theWindow.hide();
+				}
+			}]
+					
+	});
+	
+	theWindow.show();
+};
+
+});
+</script>
+
+</head>
+<body>
+<div id="a"></div>
+
+</body>
+</html>

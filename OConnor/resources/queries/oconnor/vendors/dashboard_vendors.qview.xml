@@ -1,0 +1,23 @@
+<!-- show only those vendors that are enabled in the dashboard -->
+
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+   <columns>
+    <column name="vendor">
+    </column>
+	<column name="phone">
+	</column>
+	<column name="fax">
+	</column>
+	<column name="email">
+	</column>
+   </columns>
+   
+   <sorts>
+       <sort column="created" descending="true"/>
+   </sorts>
+   
+	<filters>
+       <filter column="enabled" operator="eq" value="TRUE"/>
+   </filters>
+   
+</customView>

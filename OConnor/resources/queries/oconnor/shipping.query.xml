@@ -1,0 +1,25 @@
+<query xmlns="http://labkey.org/data/xml/query">
+  <metadata>
+    <ns:tables xmlns:ns="http://labkey.org/data/xml">
+      <ns:table tableName="shipping" tableDbType="TABLE">
+        <ns:titleColumn>id</ns:titleColumn>
+        <ns:columns>
+          <ns:column columnName="key">
+            <ns:shownInInsertView>false</ns:shownInInsertView>
+            <ns:shownInUpdateView>false</ns:shownInUpdateView>
+          </ns:column>
+          <ns:column columnName="id">
+            <ns:columnTitle>Address Nickname</ns:columnTitle>
+            <ns:displayWidth>50</ns:displayWidth>
+          </ns:column>
+                    <ns:column columnName="building">
+            <ns:displayWidth>50</ns:displayWidth>
+          </ns:column>
+          <ns:column columnName="enabled">
+            <ns:defaultValue>true</ns:defaultValue>
+          </ns:column>
+        </ns:columns>
+      </ns:table>
+    </ns:tables>
+  </metadata>
+</query>

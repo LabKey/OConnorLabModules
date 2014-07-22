@@ -1,0 +1,49 @@
+<query xmlns="http://labkey.org/data/xml/query">
+  <metadata>
+    <ns:tables xmlns:ns="http://labkey.org/data/xml">
+      <ns:table tableName="purchases" tableDbType="TABLE">
+	<ns:columns>
+      <ns:column columnName="createdBy">
+        <ns:shownInInsertView>false</ns:shownInInsertView>
+                    <ns:fk>
+              <ns:fkDbSchema>core</ns:fkDbSchema>
+              <ns:fkTable>Users</ns:fkTable>
+              <ns:fkColumnName>userId</ns:fkColumnName>
+            </ns:fk>
+      </ns:column>
+      <ns:column columnName="modifiedBy">
+        <ns:shownInInsertView>false</ns:shownInInsertView>
+        <ns:shownInInsertView>false</ns:shownInInsertView>
+                    <ns:fk>
+              <ns:fkDbSchema>core</ns:fkDbSchema>
+              <ns:fkTable>Users</ns:fkTable>
+              <ns:fkColumnName>userId</ns:fkColumnName>
+            </ns:fk>
+      </ns:column>
+      <ns:column columnName="vendor">
+                    <ns:fk>
+              <ns:fkDbSchema>oconnor</ns:fkDbSchema>
+              <ns:fkTable>vendors</ns:fkTable>
+              <ns:fkColumnName>vendor</ns:fkColumnName>
+            </ns:fk>
+      </ns:column>
+      <ns:column columnName="grantNumber">
+                    <ns:fk>
+              <ns:fkDbSchema>oconnor</ns:fkDbSchema>
+              <ns:fkTable>grants</ns:fkTable>
+              <ns:fkColumnName>id</ns:fkColumnName>
+            </ns:fk>
+      </ns:column>
+      <ns:column columnName="address">
+      <ns:columnTitle>Deliver to:</ns:columnTitle>
+            <ns:fk>
+              <ns:fkDbSchema>oconnor</ns:fkDbSchema>
+              <ns:fkTable>shipping</ns:fkTable>
+              <ns:fkColumnName>id</ns:fkColumnName>
+            </ns:fk>
+    </ns:column>
+    </ns:columns>
+      </ns:table>
+    </ns:tables>
+  </metadata>
+</query>

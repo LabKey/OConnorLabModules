@@ -1,0 +1,36 @@
+<customView xmlns="http://labkey.org/data/xml/queryCustomView">
+<!--
+
+Defines a custom view on the inventory table.
+
+-->
+   <columns>
+	<column name="specimen_id"/>
+	<column name="sample_date"/>
+	<column name="gs_id"/>
+	<column name="cohort_id"/>
+	<column name="specimen_type"/>
+	<column name="cell_type"/>
+	<column name="experiment"/>
+	<column name="sample_number"/>
+	<column name="initials"/>
+	<column name="specimen_species"/>
+	<column name="specimen_geographic_origin"/>
+	<column name="specimen_collaborator"/>
+	<column name="specimen_quantity"/>
+	<column name="specimen_additive"/>
+	<column name="comments"/>
+	<column name="freezer"/>
+	<column name="cane"/>
+	<column name="box"/>
+	<column name="box_row"/>
+	<column name="box_column"/>
+	<column name="coordinate"/>
+   </columns>
+   <filters>
+       <filter column="sample_type" operator="eq" value="specimen"/>
+   </filters>
+   <sorts>
+       <sort column="sample_date" descending="true"/>
+   </sorts>
+</customView>
