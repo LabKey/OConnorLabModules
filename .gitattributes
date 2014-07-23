@@ -213,6 +213,7 @@ OConnor/resources/web/oconnor/server.png -text
 OConnor/resources/web/oconnor/shopping.png -text
 OConnor/resources/web/oconnor/users.png -text
 OConnor/resources/web/purchases_definitions.lists.zip -text
+OConnor/skipBuild.txt -text
 OConnorExperiments/OConnorExperiments.iml -text
 OConnorExperiments/module.properties -text
 OConnorExperiments/resources/queries/OConnorExperiments/Experiments.query.xml -text
