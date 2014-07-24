@@ -22,5 +22,5 @@ purchases.invoiceDate,
 purchases.invoiceBy,
 purchases.comment,
 purchases.keyword
-FROM oconnor.purchases
+FROM purchases
 

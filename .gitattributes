@@ -87,8 +87,7 @@ OConnor/resources/queries/oconnor/simple_experiment/all_experiments.qview.xml -t
 OConnor/resources/queries/oconnor/status.query.xml -text
 OConnor/resources/queries/oconnor/vendors.query.xml -text
 OConnor/resources/queries/oconnor/vendors/dashboard_vendors.qview.xml -text
-OConnor/resources/schemas/dbscripts/postgresql/oconnor-0.00-14.20.sql -text
-OConnor/resources/schemas/dbscripts/postgresql/oconnor-14.20-14.21.sql -text
+OConnor/resources/schemas/dbscripts/postgresql/oconnor-0.00-0.01.sql -text
 OConnor/resources/schemas/oconnor.xml -text
 OConnor/resources/views/AnimalList.html -text
 OConnor/resources/views/AnimalList.view.xml -text
@@ -214,6 +213,7 @@ OConnor/resources/web/oconnor/server.png -text
 OConnor/resources/web/oconnor/shopping.png -text
 OConnor/resources/web/oconnor/users.png -text
 OConnor/resources/web/purchases_definitions.lists.zip -text
+OConnor/skipBuild.txt -text
 OConnorExperiments/OConnorExperiments.iml -text
 OConnorExperiments/module.properties -text
 OConnorExperiments/resources/queries/OConnorExperiments/Experiments.query.xml -text

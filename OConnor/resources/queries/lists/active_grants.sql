@@ -8,5 +8,5 @@ grants.department AS department,
 grants.expirationDate AS expirationDate,
 grants.comments AS comments,
 grants.id || ' - ' || grants.title AS grantDescription
-FROM oconnor.grants
-WHERE oconnor.grants.expirationDate>'NOW()'
+FROM grants
+WHERE grants.expirationDate>'NOW()'
