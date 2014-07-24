@@ -76,6 +76,12 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         super.doCleanup(afterTest);
     }
 
+    @Override
+    public void validateQueries(boolean validateSubfolders)
+    {
+
+    }
+
     @LogMethod(category = LogMethod.MethodType.SETUP)
     protected void doSetup()
     {

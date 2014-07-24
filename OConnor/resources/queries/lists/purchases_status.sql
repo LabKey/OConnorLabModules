@@ -24,7 +24,7 @@ MIN(a.date) AS placeDate,
 MAX(p.invoiceNumber) AS invoiceNumber,
 MAX(p.invoiceDate) AS invoiceDate,
 MAX(p.invoiceBy) AS invoiceBy
-FROM purchases p
+FROM oconnor.purchases p
 LEFT JOIN auditLog.audit a
 ON p.entityId=a.Key2
 --kludge to display the user who created the record in the auditLog for orders entered in labkey. Legacy orders from xdhofs do not have records in labkey and are expempt.
