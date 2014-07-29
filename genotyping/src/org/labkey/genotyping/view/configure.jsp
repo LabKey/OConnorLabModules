@@ -22,7 +22,19 @@
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.genotyping.GenotypingFolderSettings" %>
 <%@ page import="org.labkey.genotyping.GenotypingQuerySchema" %>
+<%@ page import="org.labkey.api.view.template.ClientDependency" %>
+<%@ page import="java.util.LinkedHashSet" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
+<%!
+
+    public LinkedHashSet<ClientDependency> getClientDependencies()
+    {
+        LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
+        resources.add(ClientDependency.fromFilePath("Ext3"));
+        resources.add(ClientDependency.fromFilePath("viewPicker.js"));
+        return resources;
+    }
+%>
 <%
     GenotypingController.AdminForm form = (GenotypingController.AdminForm)getModelBean();
     GenotypingQuerySchema schema = new GenotypingQuerySchema(getUser(), getContainer());
@@ -36,9 +48,6 @@
     haplotypeEditDomainURL.addParameter(ActionURL.Param.returnUrl, getActionURL().toString());
 %>
 <script type="text/javascript">
-//    Ext.QuickTips.init();
-//    window.onbeforeunload = LABKEY.beforeunload();    // TODO: Check for dirty
-    LABKEY.requiresScript("viewPicker.js");
     var queries = {};
 
     function update(query, hiddenId, divId)
