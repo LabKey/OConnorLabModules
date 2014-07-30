@@ -229,7 +229,7 @@ LABKEY.ocexp.internal.Experiment = new function () {
         var exps = config.parentExperiments;
 
         // Convert string into array of strings
-        if (exps != undefined && exps != null && Ext.isString(exps))
+        if (exps != undefined && exps != null && Ext4.isString(exps))
         {
             if (exps == "") { // Empty string is ok, it just means we don't have any parents.
                 exps = [];
@@ -245,7 +245,7 @@ LABKEY.ocexp.internal.Experiment = new function () {
             }
         }
 
-        if (!exps || !Ext.isArray(exps))
+        if (!exps || !Ext4.isArray(exps))
             throw new Error("Expected array of strings");
 
         exps = uniq(exps);
@@ -277,7 +277,7 @@ LABKEY.ocexp.internal.Experiment = new function () {
          * @param config
          */
         getExperiment: function (config) {
-            config = Ext.applyIf(config, {
+            config = Ext4.applyIf(config, {
                 requiredVersion: 13.2,
                 schemaName: 'OConnorExperiments',
                 queryName: 'Experiments',
