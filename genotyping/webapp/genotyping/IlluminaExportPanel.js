@@ -374,7 +374,7 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                 });
 
                 Ext4.each(obj[section], function(row){
-                    var value = Ext4.isDate(row[1]) ? row[1].format('m/d/Y') : row[1];
+                    var value = Ext4.isDate(row[1]) ? Ext4.Date.format(row[1], 'm/d/Y') : row[1];
 
                     rows.push({
                         xtype: 'displayfield',
@@ -528,7 +528,7 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             if(obj[section]){
                 rows.push(['[' + section + ']']);
                 Ext4.each(obj[section], function(row){
-                    var value = Ext4.isDate(row[1]) ? row[1].format('m/d/Y') : row[1];
+                    var value = Ext4.isDate(row[1]) ? Ext4.Date.format(row[1], 'm/d/Y') : row[1];
                     var thisRow = [row[0]];
                     if(!Ext4.isEmpty(value))
                         thisRow.push(value);
