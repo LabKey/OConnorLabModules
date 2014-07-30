@@ -21,7 +21,19 @@
 <%@ page import="org.labkey.api.view.JspView" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="java.util.Arrays" %>
+<%@ page import="org.labkey.api.view.template.ClientDependency" %>
+<%@ page import="java.util.LinkedHashSet" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
+<%!
+
+    public LinkedHashSet<ClientDependency> getClientDependencies()
+    {
+        LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
+        resources.add(ClientDependency.fromFilePath("clientapi/ext3"));
+        resources.add(ClientDependency.fromFilePath("Ext4"));
+        return resources;
+    }
+%>
 <%
     JspView<GenotypingController.AssignmentReportBean> me = (JspView<GenotypingController.AssignmentReportBean>) HttpView.currentView();
     GenotypingController.AssignmentReportBean bean = me.getModelBean();
