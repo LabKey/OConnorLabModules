@@ -739,24 +739,18 @@ public class GenotypingController extends SpringActionController
             }
 
             PageFlowUtil.prepareResponseForFile(response, Collections.<String, String>emptyMap(), filename, true);
-            FileInputStream in = null;
-            try
+
+            for (File f : files)
             {
-                for (File f : files)
+                if (!f.exists())
                 {
-                    if(!f.exists())
-                    {
-                        throw new NotFoundException("File " + f.getPath() + " does not exist");
-                    }
-                    in = new FileInputStream(f);
-                    IOUtils.copy(in, response.getOutputStream());
-                    in.close();
+                    throw new NotFoundException("File " + f.getPath() + " does not exist");
                 }
-            }
-            finally
-            {
-                if(in != null)
-                    in.close();
+
+                try (FileInputStream in = new FileInputStream(f))
+                {
+                    IOUtils.copy(in, response.getOutputStream());
+                }
             }
         }
     }
