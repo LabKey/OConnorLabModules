@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2014 David O'Connor
+ *
+ * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
+ */
 /* query purchase table and join to auditLog in order to extract the name of the person who initially created a purchase record */
 
 SELECT 

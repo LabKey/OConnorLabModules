@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2014 David O'Connor
+ *
+ * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
+ */
 SELECT 
 m.haplotype,
 --count number of animals with haplotype, then divide by total number of animals with haplotype

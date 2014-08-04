@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2014 David O'Connor
+ *
+ * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
+ */
 //this function makes an Ext layout that can be used to add new specimens or batch edit existing ones. 
 function layoutForm()
 {

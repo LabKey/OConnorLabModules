@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2014 David O'Connor
+ *
+ * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
+ */
 //2012-04-16 - created file to draw new ui for accessing freezer system
 //will begin by creating options for viewing existing records, may eventually build new interface for sample upload
 

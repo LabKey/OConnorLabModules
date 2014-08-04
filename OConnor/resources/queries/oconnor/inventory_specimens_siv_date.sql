@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2014 David O'Connor
+ *
+ * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
+ */
 --max_virus_challenge_date is an sql view defined in oconnor schema using static load of virus_challenges data from ehr
 SELECT
 i.specimen_id,
