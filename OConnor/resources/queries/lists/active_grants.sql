@@ -7,11 +7,10 @@
 
 SELECT grants.id AS id,
 grants.title AS title,
-grants.fundingSource AS fundingSource,
-grants.grantType AS grantType,
-grants.department AS department,
-grants.expirationDate AS expirationDate,
+grants.funding_source AS funding_source,
+grants.grant_type AS grant_type,
+grants.expiration_date AS expiration_date,
 grants.comments AS comments,
-grants.id || ' - ' || grants.title AS grantDescription
-FROM grants
-WHERE grants.expirationDate>'NOW()'
+grants.id || ' - ' || grants.title AS grant_description
+FROM oconnor.grants
+WHERE grants.expiration_date>'NOW()'

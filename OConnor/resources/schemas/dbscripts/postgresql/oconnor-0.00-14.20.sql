@@ -5,32 +5,32 @@
  */
 CREATE SCHEMA oconnor;
 
-CREATE FUNCTION add_order_number() RETURNS trigger
+CREATE FUNCTION oconnor.add_order_number() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
     BEGIN
-    	--check to see if any purchases exist in container, assign first order number 1. if orders already exist in container, assign next order number
-       	IF
-		(SELECT
-        	COUNT(*) as row_count
-        	FROM 
-        	oconnor.purchases p
-			WHERE
-			p.container=NEW.container
-		) = 0 
-		THEN	
-			NEW.order_number :=1;
-		ELSE
-		NEW.order_number :=
-			(SELECT
-        	p.order_number+1 as test
-        	FROM 
-        	oconnor.purchases p
-        	WHERE
-			p.container=NEW.container
-        	ORDER by p.order_number DESC
-			LIMIT 1);
-		END IF;
+      --check to see if any purchases exist in container, assign first order number 1. if orders already exist in container, assign next order number
+        IF
+    (SELECT
+          COUNT(*) as row_count
+          FROM
+          oconnor.purchases p
+      WHERE
+      p.container=NEW.container
+    ) = 0
+    THEN
+      NEW.order_number :=1;
+    ELSE
+    NEW.order_number :=
+      (SELECT
+          p.order_number+1 as test
+          FROM
+          oconnor.purchases p
+          WHERE
+      p.container=NEW.container
+          ORDER by p.order_number DESC
+      LIMIT 1);
+    END IF;
         RETURN NEW;
     END;
 $$;
@@ -39,45 +39,44 @@ $$;
 -- Name: add_quote_number(); Type: FUNCTION; Schema: oconnor; Owner: oconnor
 --
 
-CREATE FUNCTION add_quote_number() RETURNS trigger
+CREATE FUNCTION oconnor.add_quote_number() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
     BEGIN
-    	--check to see if any quotes exist in container, assign first quote number 1. if quotes already exist in container, assign next quote number
-       	IF
-		(SELECT
-        	COUNT(*) as row_count
-        	FROM 
-        	oconnor.quotes p
-			WHERE
-			p.container=NEW.container
-		) = 0 
-		THEN	
-			NEW.quote_number :=1;
-		ELSE
-		NEW.quote_number :=
-			(SELECT
-        	p.quote_number+1 as test
-        	FROM 
-        	oconnor.quotes p
-        	WHERE
-			p.container=NEW.container
-        	ORDER by p.quote_number DESC
-			LIMIT 1);
-		END IF;
+      --check to see if any quotes exist in container, assign first quote number 1. if quotes already exist in container, assign next quote number
+        IF
+    (SELECT
+          COUNT(*) as row_count
+          FROM
+          oconnor.quotes p
+      WHERE
+      p.container=NEW.container
+    ) = 0
+    THEN
+      NEW.quote_number :=1;
+    ELSE
+    NEW.quote_number :=
+      (SELECT
+          p.quote_number+1 as test
+          FROM
+          oconnor.quotes p
+          WHERE
+      p.container=NEW.container
+          ORDER by p.quote_number DESC
+      LIMIT 1);
+    END IF;
         RETURN NEW;
     END;
 $$;
 
-CREATE FUNCTION create_miseq_mhc_genotypes() RETURNS trigger
+CREATE FUNCTION oconnor.acreate_miseq_mhc_genotypes() RETURNS trigger
     LANGUAGE plpgsql
     AS $$BEGIN
 DROP TABLE IF EXISTS miseq_mhc_genotypes;
 
---create table to hold miseq_mhc_genotypes from query. note there is no pkey on this table as per rules with 'create table as'
+--CREATE TABLE oconnor.to hold miseq_mhc_genotypes from query. note there is no pkey on this table as per rules with 'CREATE TABLE oconnor.as'
 
-CREATE TABLE
-miseq_mhc_genotypes 
+CREATE TABLE oconnor.miseq_mhc_genotypes
 AS
 (SELECT
 --extract run name from each read. use regular expression to find run name, which is second component of header
@@ -88,7 +87,7 @@ mid,
 lineage,
 --count instances of lineage
 COUNT(read) as read_ct
-FROM 
+FROM
 oconnor.miseq_mhc_reads
 GROUP BY
 --extract run name from read name using regexp. then group by run name, mid, and lineage.
@@ -103,7 +102,7 @@ END;
 $$;
 
 
-CREATE FUNCTION inventory_audit_deleted() RETURNS trigger
+CREATE FUNCTION oconnor.inventory_audit_deleted() RETURNS trigger
     LANGUAGE plpgsql
     AS $$BEGIN
 DROP TABLE IF EXISTS emp;
@@ -118,30 +117,30 @@ RETURN OLD;
 END;$$;
 
 
-CREATE FUNCTION inventory_duplicate_check() RETURNS trigger
+CREATE FUNCTION oconnor.inventory_duplicate_check() RETURNS trigger
     LANGUAGE plpgsql
     AS $$--set variable quantity to 0. will update when the query runs. if the query finds one or more rows (indicating existing sample), it errors out
-DECLARE 
+DECLARE
 quantity INTEGER := 0;
 
 BEGIN
-	SELECT 
-	COUNT(*) 
-		INTO quantity
-        FROM 
+  SELECT
+  COUNT(*)
+    INTO quantity
+        FROM
         oconnor.inventory i
         WHERE
         i.freezer=NEW.freezer
-	AND 
-	i.cane=NEW.cane
-	AND
-	i.box=NEW.box
-	AND
-	i.box_row=NEW.box_row
-	AND
-	i.box_column=NEW.box_column
-	AND
-	i.status='available';
+  AND
+  i.cane=NEW.cane
+  AND
+  i.box=NEW.box
+  AND
+  i.box_row=NEW.box_row
+  AND
+  i.box_column=NEW.box_column
+  AND
+  i.status='available';
 
 IF quantity > 0 THEN
     RAISE EXCEPTION 'Sample already exists in freezer: %, cane: %, box: %, row: %, column: %. Please check your coordinates and try again.', NEW.freezer, NEW.cane, NEW.box, NEW.box_row, NEW.box_column;
@@ -156,7 +155,7 @@ $$;
 -- Name: alabrity_sequence; Type: SEQUENCE; Schema: oconnor; Owner: oconnor
 --
 
-CREATE SEQUENCE alabrity_sequence
+CREATE SEQUENCE oconnor.alabrity_sequence
     START WITH 30770
     INCREMENT BY 1
     NO MINVALUE
@@ -168,13 +167,13 @@ CREATE SEQUENCE alabrity_sequence
 -- Name: SEQUENCE alabrity_sequence; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON SEQUENCE alabrity_sequence IS 'sequence used for primary key throughout entire alabrity system';
+COMMENT ON SEQUENCE oconnor.alabrity_sequence IS 'sequence used for primary key throughout entire alabrity system';
 
 -- Name: grants; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE grants (
-    key integer DEFAULT nextval('alabrity_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.grants (
+    key integer DEFAULT nextval('oconnor.alabrity_sequence'::regclass) NOT NULL,
     container character varying(36) NOT NULL,
     created timestamp without time zone NOT NULL,
     modified timestamp without time zone NOT NULL,
@@ -196,23 +195,23 @@ CREATE TABLE grants (
 -- Name: active_grants; Type: VIEW; Schema: oconnor; Owner: oconnor
 --
 
-CREATE VIEW active_grants AS
-    SELECT g.id, g.container, (((g.id)::text || ' - '::text) || g.title) AS displaytitle FROM grants g WHERE ((g.enabled = true) AND (now() < g.expiration_date));
+CREATE VIEW oconnor.active_grants AS
+    SELECT g.id, g.container, (((g.id)::text || ' - '::text) || g.title) AS displaytitle FROM oconnor.grants g WHERE ((g.enabled = true) AND (now() < g.expiration_date));
 
 
 --
 -- Name: active_quotes; Type: VIEW; Schema: oconnor; Owner: oconnor
 --
 
-CREATE VIEW active_quotes AS
-    SELECT g.id, g.container, (((g.id)::text || ' - '::text) || g.title) AS displaytitle FROM grants g WHERE ((g.enabled = true) AND (now() < g.expiration_date));
+CREATE VIEW oconnor.active_quotes AS
+    SELECT g.id, g.container, (((g.id)::text || ' - '::text) || g.title) AS displaytitle FROM oconnor.grants g WHERE ((g.enabled = true) AND (now() < g.expiration_date));
 
 
 --
 -- Name: oc_sequence; Type: SEQUENCE; Schema: oconnor; Owner: oconnor
 --
 
-CREATE SEQUENCE oc_sequence
+CREATE SEQUENCE oconnor.oc_sequence
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -221,14 +220,14 @@ CREATE SEQUENCE oc_sequence
 
 
 --
--- Name: all_species; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: all_species; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE all_species (
+CREATE TABLE oconnor.all_species (
     specimen_species character varying(255) NOT NULL,
     species_common_name character varying(255) NOT NULL,
     species_short_name character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -236,16 +235,16 @@ CREATE TABLE all_species (
 -- Name: TABLE all_species; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE all_species IS 'used as lookup in inventory app';
+COMMENT ON TABLE oconnor.all_species IS 'used as lookup in inventory app';
 
 
 --
--- Name: all_specimens; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: all_specimens; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE all_specimens (
+CREATE TABLE oconnor.all_specimens (
     specimen_type character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -253,14 +252,14 @@ CREATE TABLE all_specimens (
 -- Name: TABLE all_specimens; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE all_specimens IS 'used as lookup in inventory app';
+COMMENT ON TABLE oconnor.all_specimens IS 'used as lookup in inventory app';
 
 
 --
--- Name: animals; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: animals; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE animals (
+CREATE TABLE oconnor.animals (
     id character varying(255) NOT NULL,
     gs_id character varying(255),
     cr_id character varying(255),
@@ -280,16 +279,16 @@ CREATE TABLE animals (
 -- Name: TABLE animals; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE animals IS 'animals intensively studied by the O''Connor lab. Used to store data on commonly used fields like SIV infection date and MHC genotype.';
+COMMENT ON TABLE oconnor.animals IS 'animals intensively studied by the O''Connor lab. Used to store data on commonly used fields like SIV infection date and MHC genotype.';
 
 
 --
--- Name: availability; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: availability; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE availability (
+CREATE TABLE oconnor.availability (
     availability character varying(25) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -297,16 +296,16 @@ CREATE TABLE availability (
 -- Name: TABLE availability; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE availability IS 'lookup used by inventory system';
+COMMENT ON TABLE oconnor.availability IS 'lookup used by inventory system';
 
 
 --
--- Name: cell_type; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: cell_type; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE cell_type (
+CREATE TABLE oconnor.cell_type (
     cell_type character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -314,15 +313,15 @@ CREATE TABLE cell_type (
 -- Name: TABLE cell_type; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE cell_type IS 'lookup used by inventory system';
+COMMENT ON TABLE oconnor.cell_type IS 'lookup used by inventory system';
 
 
 --
--- Name: diff_snp; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: diff_snp; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE diff_snp (
-    key integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.diff_snp (
+    key integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL,
     uploaded_variation character varying(100) NOT NULL,
     location character varying(100) NOT NULL,
     allele character varying(100) NOT NULL,
@@ -346,14 +345,14 @@ CREATE TABLE diff_snp (
 -- Name: TABLE diff_snp; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE diff_snp IS 'comparison of differential SNPs in genome sequencing data from CY0165 and CY0166. intended for data browsing, not long-term data storage. ';
+COMMENT ON TABLE oconnor.diff_snp IS 'comparison of differential SNPs in genome sequencing data from CY0165 and CY0166. intended for data browsing, not long-term data storage. ';
 
 
 --
--- Name: dna_sequences; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: dna_sequences; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE dna_sequences (
+CREATE TABLE oconnor.dna_sequences (
     allele_name character varying(255) NOT NULL,
     initials character varying(255) NOT NULL,
     file_active integer NOT NULL,
@@ -383,10 +382,10 @@ CREATE TABLE dna_sequences (
 
 
 --
--- Name: dna_sequences_draft_2013; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: dna_sequences_draft_2013; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE dna_sequences_draft_2013 (
+CREATE TABLE oconnor.dna_sequences_draft_2013 (
     allele_name character varying(255) NOT NULL,
     initials character varying(255) NOT NULL,
     file_active integer DEFAULT 1 NOT NULL,
@@ -416,12 +415,12 @@ CREATE TABLE dna_sequences_draft_2013 (
 
 
 --
--- Name: dna_type; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: dna_type; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE dna_type (
+CREATE TABLE oconnor.dna_type (
     dna_type character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -429,14 +428,14 @@ CREATE TABLE dna_type (
 -- Name: TABLE dna_type; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE dna_type IS 'lookup used in inventory system';
+COMMENT ON TABLE oconnor.dna_type IS 'lookup used in inventory system';
 
 
 --
--- Name: elispot_matrix; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: elispot_matrix; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE elispot_matrix (
+CREATE TABLE oconnor.elispot_matrix (
     pool character varying(255) NOT NULL,
     id integer NOT NULL,
     "500-587" integer,
@@ -458,14 +457,14 @@ CREATE TABLE elispot_matrix (
 -- Name: TABLE elispot_matrix; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE elispot_matrix IS 'used to deconvolute elispot pools. written by paul hines.';
+COMMENT ON TABLE oconnor.elispot_matrix IS 'used to deconvolute elispot pools. written by paul hines.';
 
 
 --
--- Name: experiment_db; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: experiment_db; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE experiment_db (
+CREATE TABLE oconnor.experiment_db (
     experiment_number integer NOT NULL,
     created timestamp without time zone,
     createdby public.userid,
@@ -485,14 +484,14 @@ CREATE TABLE experiment_db (
 -- Name: TABLE experiment_db; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE experiment_db IS 'oconnor lab experiment log.';
+COMMENT ON TABLE oconnor.experiment_db IS 'oconnor lab experiment log.';
 
 
 --
 -- Name: experiment_db_experiment_number_seq; Type: SEQUENCE; Schema: oconnor; Owner: oconnor
 --
 
-CREATE SEQUENCE experiment_db_experiment_number_seq
+CREATE SEQUENCE oconnor.experiment_db_experiment_number_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -504,14 +503,14 @@ CREATE SEQUENCE experiment_db_experiment_number_seq
 -- Name: experiment_db_experiment_number_seq; Type: SEQUENCE OWNED BY; Schema: oconnor; Owner: oconnor
 --
 
-ALTER SEQUENCE experiment_db_experiment_number_seq OWNED BY experiment_db.experiment_number;
+ALTER SEQUENCE oconnor.experiment_db_experiment_number_seq OWNED BY oconnor.experiment_db.experiment_number;
 
 
 --
--- Name: experiment_types; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: experiment_types; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE experiment_types (
+CREATE TABLE oconnor.experiment_types (
     type character varying(255) NOT NULL,
     container public.entityid,
     createdby public.userid,
@@ -525,36 +524,36 @@ CREATE TABLE experiment_types (
 -- Name: TABLE experiment_types; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE experiment_types IS 'lookup used in experiment system';
+COMMENT ON TABLE oconnor.experiment_types IS 'lookup used in experiment system';
 
 
 --
--- Name: flow_markers; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: flow_markers; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE flow_markers (
+CREATE TABLE oconnor.flow_markers (
     surfacemarkers character varying(255) NOT NULL,
     subsetname character varying(255) NOT NULL
 );
 
 
 --
--- Name: flow_markers_copy; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: flow_markers_copy; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE flow_markers_copy (
+CREATE TABLE oconnor.flow_markers_copy (
     surfacemarkers character varying(255) NOT NULL,
     subsetname character varying(255) NOT NULL
 );
 
 
 --
--- Name: freezer_id; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: freezer_id; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE freezer_id (
+CREATE TABLE oconnor.freezer_id (
     freezer_id character varying(25) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -562,15 +561,15 @@ CREATE TABLE freezer_id (
 -- Name: TABLE freezer_id; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE freezer_id IS 'lookup used by inventory system';
+COMMENT ON TABLE oconnor.freezer_id IS 'lookup used by inventory system';
 
 
 --
--- Name: inventory; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: inventory; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE inventory (
-    key integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.inventory (
+    key integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL,
     status character varying(255) DEFAULT NULL::character varying NOT NULL,
     experiment integer,
     sample_number character varying(255) DEFAULT NULL::character varying,
@@ -640,22 +639,22 @@ CREATE TABLE inventory (
 -- Name: TABLE inventory; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE inventory IS 'samples in oconnor inventory';
+COMMENT ON TABLE oconnor.inventory IS 'samples in oconnor inventory';
 
 
 --
 -- Name: COLUMN inventory.container; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON COLUMN inventory.container IS 'container default is for ''oconnor'' folder on Labkey';
+COMMENT ON COLUMN oconnor.inventory.container IS 'container default is for ''oconnor'' folder on Labkey';
 
 
 --
--- Name: inventory_removed; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: inventory_removed; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE inventory_removed (
-    key integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.inventory_removed (
+    key integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL,
     status character varying(255) NOT NULL,
     experiment integer,
     sample_number character varying(255),
@@ -725,21 +724,21 @@ CREATE TABLE inventory_removed (
 -- Name: TABLE inventory_removed; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE inventory_removed IS 'samples removed from oconnor inventory. automatically populated using a trigger that runs when a sample is deleted from the inventory table.';
+COMMENT ON TABLE oconnor.inventory_removed IS 'samples removed from oconnor inventory. automatically populated using a trigger that runs when a sample is deleted from the inventory table.';
 
 
 --
 -- Name: COLUMN inventory_removed.container; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON COLUMN inventory_removed.container IS 'defaults to container id for oconnor folder on labkey';
+COMMENT ON COLUMN oconnor.inventory_removed.container IS 'defaults to container id for oconnor folder on labkey';
 
 
 --
--- Name: jr_read_length; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: jr_read_length; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE jr_read_length (
+CREATE TABLE oconnor.jr_read_length (
     rowid integer NOT NULL,
     run integer NOT NULL,
     length integer NOT NULL,
@@ -751,7 +750,7 @@ CREATE TABLE jr_read_length (
 -- Name: TABLE jr_read_length; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE jr_read_length IS 'apparently used as part of 454 sequence manger. not entirely sure how it is used.
+COMMENT ON TABLE oconnor.jr_read_length IS 'apparently used as part of 454 sequence manger. not entirely sure how it is used.
 ';
 
 
@@ -759,7 +758,7 @@ COMMENT ON TABLE jr_read_length IS 'apparently used as part of 454 sequence mang
 -- Name: jr_read_length_rowid_seq; Type: SEQUENCE; Schema: oconnor; Owner: oconnor
 --
 
-CREATE SEQUENCE jr_read_length_rowid_seq
+CREATE SEQUENCE oconnor.jr_read_length_rowid_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -771,16 +770,16 @@ CREATE SEQUENCE jr_read_length_rowid_seq
 -- Name: jr_read_length_rowid_seq; Type: SEQUENCE OWNED BY; Schema: oconnor; Owner: oconnor
 --
 
-ALTER SEQUENCE jr_read_length_rowid_seq OWNED BY jr_read_length.rowid;
+ALTER SEQUENCE oconnor.jr_read_length_rowid_seq OWNED BY oconnor.jr_read_length.rowid;
 
 
 --
--- Name: laboratory; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: laboratory; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE laboratory (
+CREATE TABLE oconnor.laboratory (
     laboratory character varying(25) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -788,14 +787,14 @@ CREATE TABLE laboratory (
 -- Name: TABLE laboratory; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE laboratory IS 'lookup used in inventory system';
+COMMENT ON TABLE oconnor.laboratory IS 'lookup used in inventory system';
 
 
 --
--- Name: virus_challenges; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: virus_challenges; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE virus_challenges (
+CREATE TABLE oconnor.virus_challenges (
     id character varying(255) NOT NULL,
     challenge_date timestamp(6) without time zone NOT NULL,
     code character varying(255) NOT NULL,
@@ -809,15 +808,15 @@ CREATE TABLE virus_challenges (
 -- Name: max_virus_challenge_date; Type: VIEW; Schema: oconnor; Owner: oconnor
 --
 
-CREATE VIEW max_virus_challenge_date AS
-    SELECT v.id, max(v.challenge_date) AS challenge_date FROM virus_challenges v WHERE ((v.challenge_type)::text ~~ '%SIV%'::text) GROUP BY v.id;
+CREATE VIEW oconnor.max_virus_challenge_date AS
+    SELECT v.id, max(v.challenge_date) AS challenge_date FROM oconnor.virus_challenges v WHERE ((v.challenge_type)::text ~~ '%SIV%'::text) GROUP BY v.id;
 
 
 --
--- Name: mcm_cd8_tcell_epitopes; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: mcm_cd8_tcell_epitopes; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE mcm_cd8_tcell_epitopes (
+CREATE TABLE oconnor.mcm_cd8_tcell_epitopes (
     official_name character varying(255) NOT NULL,
     confirmed boolean NOT NULL,
     allele_specificity character varying(255) NOT NULL,
@@ -834,15 +833,15 @@ CREATE TABLE mcm_cd8_tcell_epitopes (
 -- Name: TABLE mcm_cd8_tcell_epitopes; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE mcm_cd8_tcell_epitopes IS 'not sure who is using or maintaining this.';
+COMMENT ON TABLE oconnor.mcm_cd8_tcell_epitopes IS 'not sure who is using or maintaining this.';
 
 
 --
--- Name: mhc_haplotypes; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: mhc_haplotypes; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE mhc_haplotypes (
-    key integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.mhc_haplotypes (
+    key integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL,
     container character varying(36) NOT NULL,
     created timestamp without time zone NOT NULL,
     modified timestamp without time zone NOT NULL,
@@ -860,11 +859,11 @@ CREATE TABLE mhc_haplotypes (
 
 
 --
--- Name: mhc_haplotypes_dictionary; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: mhc_haplotypes_dictionary; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE mhc_haplotypes_dictionary (
-    key integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.mhc_haplotypes_dictionary (
+    key integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL,
     container character varying(36) NOT NULL,
     created timestamp without time zone NOT NULL,
     modified timestamp without time zone NOT NULL,
@@ -881,10 +880,10 @@ CREATE TABLE mhc_haplotypes_dictionary (
 
 
 --
--- Name: miseq_mhc_genotypes; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: miseq_mhc_genotypes; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE miseq_mhc_genotypes (
+CREATE TABLE oconnor.miseq_mhc_genotypes (
     run text,
     mid smallint,
     lineage character varying(50),
@@ -893,11 +892,11 @@ CREATE TABLE miseq_mhc_genotypes (
 
 
 --
--- Name: miseq_mhc_reads; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: miseq_mhc_reads; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE miseq_mhc_reads (
-    key integer DEFAULT nextval('alabrity_sequence'::regclass),
+CREATE TABLE oconnor.miseq_mhc_reads (
+    key integer DEFAULT nextval('oconnor.alabrity_sequence'::regclass),
     container character varying(36) NOT NULL,
     created timestamp without time zone DEFAULT now() NOT NULL,
     modified timestamp without time zone DEFAULT now() NOT NULL,
@@ -910,11 +909,11 @@ CREATE TABLE miseq_mhc_reads (
 
 
 --
--- Name: miseq_mhc_samples; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: miseq_mhc_samples; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE miseq_mhc_samples (
-    key integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.miseq_mhc_samples (
+    key integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL,
     container character varying(36) NOT NULL,
     created timestamp without time zone NOT NULL,
     modified timestamp without time zone NOT NULL,
@@ -928,12 +927,12 @@ CREATE TABLE miseq_mhc_samples (
 
 
 --
--- Name: oligo_purification; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: oligo_purification; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE oligo_purification (
+CREATE TABLE oconnor.oligo_purification (
     oligo_purification character varying(25) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -941,16 +940,16 @@ CREATE TABLE oligo_purification (
 -- Name: TABLE oligo_purification; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE oligo_purification IS 'lookup used in inventory system.';
+COMMENT ON TABLE oconnor.oligo_purification IS 'lookup used in inventory system.';
 
 
 --
--- Name: oligo_type; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: oligo_type; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE oligo_type (
+CREATE TABLE oconnor.oligo_type (
     oligo_type character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -958,16 +957,16 @@ CREATE TABLE oligo_type (
 -- Name: TABLE oligo_type; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE oligo_type IS 'lookup used in inventory system.';
+COMMENT ON TABLE oconnor.oligo_type IS 'lookup used in inventory system.';
 
 
 --
--- Name: peptide_vendor; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: peptide_vendor; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE peptide_vendor (
+CREATE TABLE oconnor.peptide_vendor (
     peptide_vendor character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -975,14 +974,14 @@ CREATE TABLE peptide_vendor (
 -- Name: TABLE peptide_vendor; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE peptide_vendor IS 'lookup used in inventory system';
+COMMENT ON TABLE oconnor.peptide_vendor IS 'lookup used in inventory system';
 
 
 --
--- Name: peptides; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: peptides; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE peptides (
+CREATE TABLE oconnor.peptides (
     peptide_number smallint NOT NULL,
     pool_contents character varying(255),
     peptide_virus_strain character varying(255),
@@ -1002,15 +1001,15 @@ CREATE TABLE peptides (
 -- Name: TABLE peptides; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE peptides IS 'synthetic peptides used in immunology experiments. separated from inventory in 2011 by Paul Hines to support ELISPOT data analysis within labkey';
+COMMENT ON TABLE oconnor.peptides IS 'synthetic peptides used in immunology experiments. separated from inventory in 2011 by Paul Hines to support ELISPOT data analysis within labkey';
 
 
 --
--- Name: purchases; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: purchases; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE purchases (
-    key integer DEFAULT nextval('alabrity_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.purchases (
+    key integer DEFAULT nextval('oconnor.alabrity_sequence'::regclass) NOT NULL,
     container character varying(36) NOT NULL,
     created timestamp without time zone NOT NULL,
     modified timestamp without time zone NOT NULL,
@@ -1042,11 +1041,11 @@ CREATE TABLE purchases (
 
 
 --
--- Name: quotes; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: quotes; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE quotes (
-    key integer DEFAULT nextval('alabrity_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.quotes (
+    key integer DEFAULT nextval('oconnor.alabrity_sequence'::regclass) NOT NULL,
     container character varying(36) NOT NULL,
     created timestamp without time zone NOT NULL,
     modified timestamp without time zone NOT NULL,
@@ -1062,12 +1061,12 @@ CREATE TABLE quotes (
 
 
 --
--- Name: sample_type; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: sample_type; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE sample_type (
+CREATE TABLE oconnor.sample_type (
     sample_type character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -1075,15 +1074,15 @@ CREATE TABLE sample_type (
 -- Name: TABLE sample_type; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE sample_type IS 'lookup used in inventory system';
+COMMENT ON TABLE oconnor.sample_type IS 'lookup used in inventory system';
 
 
 --
--- Name: shipping; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: shipping; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE shipping (
-    key integer DEFAULT nextval('alabrity_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.shipping (
+    key integer DEFAULT nextval('oconnor.alabrity_sequence'::regclass) NOT NULL,
     container character varying(36) NOT NULL,
     created timestamp without time zone NOT NULL,
     modified timestamp without time zone NOT NULL,
@@ -1100,11 +1099,11 @@ CREATE TABLE shipping (
 
 
 --
--- Name: simple_experiment; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: simple_experiment; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE simple_experiment (
-    key integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.simple_experiment (
+    key integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL,
     container character varying(36) NOT NULL,
     created timestamp(6) without time zone DEFAULT NULL::timestamp without time zone NOT NULL,
     modified timestamp(6) without time zone DEFAULT NULL::timestamp without time zone NOT NULL,
@@ -1122,14 +1121,14 @@ CREATE TABLE simple_experiment (
 -- Name: COLUMN simple_experiment."expFiles"; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON COLUMN simple_experiment."expFiles" IS 'estimated number of files associated with experiment';
+COMMENT ON COLUMN oconnor.simple_experiment."expFiles" IS 'estimated number of files associated with experiment';
 
 
 --
--- Name: specimen; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE specimen (
+CREATE TABLE oconnor.specimen (
     "Experiment" integer NOT NULL,
     sample_number character varying(255) NOT NULL,
     sample_type character varying(255) NOT NULL,
@@ -1161,12 +1160,12 @@ CREATE TABLE specimen (
 
 
 --
--- Name: specimen_additive; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_additive; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE specimen_additive (
+CREATE TABLE oconnor.specimen_additive (
     specimen_additive character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -1174,16 +1173,16 @@ CREATE TABLE specimen_additive (
 -- Name: TABLE specimen_additive; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE specimen_additive IS 'lookup used in inventory system';
+COMMENT ON TABLE oconnor.specimen_additive IS 'lookup used in inventory system';
 
 
 --
--- Name: specimen_collaborator; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_collaborator; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE specimen_collaborator (
+CREATE TABLE oconnor.specimen_collaborator (
     specimen_collaborator character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -1191,16 +1190,16 @@ CREATE TABLE specimen_collaborator (
 -- Name: TABLE specimen_collaborator; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE specimen_collaborator IS 'lookup used in inventory system';
+COMMENT ON TABLE oconnor.specimen_collaborator IS 'lookup used in inventory system';
 
 
 --
--- Name: specimen_geographic_origin; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_geographic_origin; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE specimen_geographic_origin (
+CREATE TABLE oconnor.specimen_geographic_origin (
     specimen_geographic_origin character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -1208,16 +1207,16 @@ CREATE TABLE specimen_geographic_origin (
 -- Name: TABLE specimen_geographic_origin; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE specimen_geographic_origin IS 'lookup used in inventory system';
+COMMENT ON TABLE oconnor.specimen_geographic_origin IS 'lookup used in inventory system';
 
 
 --
--- Name: specimen_institution; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_institution; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE specimen_institution (
+CREATE TABLE oconnor.specimen_institution (
     specimen_institution character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL,
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL,
     institution_display_name character varying(255)
 );
 
@@ -1226,18 +1225,18 @@ CREATE TABLE specimen_institution (
 -- Name: TABLE specimen_institution; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE specimen_institution IS 'lookup used in inventory system';
+COMMENT ON TABLE oconnor.specimen_institution IS 'lookup used in inventory system';
 
 
 --
--- Name: specimen_species; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_species; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE specimen_species (
+CREATE TABLE oconnor.specimen_species (
     specimen_species character varying(255) NOT NULL,
     species_common_name character varying(255),
     species_short_name character varying(255),
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -1245,16 +1244,16 @@ CREATE TABLE specimen_species (
 -- Name: TABLE specimen_species; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE specimen_species IS 'lookup used in inventory system';
+COMMENT ON TABLE oconnor.specimen_species IS 'lookup used in inventory system';
 
 
 --
--- Name: specimen_type; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_type; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE specimen_type (
+CREATE TABLE oconnor.specimen_type (
     specimen_type character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -1262,25 +1261,25 @@ CREATE TABLE specimen_type (
 -- Name: TABLE specimen_type; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE specimen_type IS 'lookup used in inventory system';
+COMMENT ON TABLE oconnor.specimen_type IS 'lookup used in inventory system';
 
 
 --
--- Name: status; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: status; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE status (
-    key integer DEFAULT nextval('alabrity_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.status (
+    key integer DEFAULT nextval('oconnor.alabrity_sequence'::regclass) NOT NULL,
     id smallint NOT NULL,
     description character varying(10) NOT NULL
 );
 
 
 --
--- Name: tmp_ordernum; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: tmp_ordernum; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE tmp_ordernum (
+CREATE TABLE oconnor.tmp_ordernum (
     order_number integer NOT NULL,
     placed_by character varying(255) NOT NULL,
     user_id integer NOT NULL
@@ -1288,11 +1287,11 @@ CREATE TABLE tmp_ordernum (
 
 
 --
--- Name: vendors; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: vendors; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE vendors (
-    key integer DEFAULT nextval('alabrity_sequence'::regclass) NOT NULL,
+CREATE TABLE oconnor.vendors (
+    key integer DEFAULT nextval('oconnor.alabrity_sequence'::regclass) NOT NULL,
     container character varying(36) NOT NULL,
     created timestamp without time zone NOT NULL,
     modified timestamp without time zone NOT NULL,
@@ -1315,10 +1314,10 @@ CREATE TABLE vendors (
 
 
 --
--- Name: virus_sequencing_data; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: virus_sequencing_data; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE virus_sequencing_data (
+CREATE TABLE oconnor.virus_sequencing_data (
     labkey_id character varying(255) NOT NULL,
     ref_nt smallint NOT NULL,
     actg_ct smallint NOT NULL,
@@ -1338,7 +1337,7 @@ CREATE TABLE virus_sequencing_data (
     dip_percent numeric NOT NULL,
     date_added timestamp without time zone DEFAULT now() NOT NULL,
     active smallint DEFAULT 1 NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL,
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL,
     code text
 );
 
@@ -1347,23 +1346,23 @@ CREATE TABLE virus_sequencing_data (
 -- Name: TABLE virus_sequencing_data; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE virus_sequencing_data IS 'used to store viral sequencing data output from Galaxy whole-genome workflows. Mainly for HIV/SIV 454 data.';
+COMMENT ON TABLE oconnor.virus_sequencing_data IS 'used to store viral sequencing data output from Galaxy whole-genome workflows. Mainly for HIV/SIV 454 data.';
 
 
 --
 -- Name: COLUMN virus_sequencing_data.code; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON COLUMN virus_sequencing_data.code IS '4 character code representing percentage of A,C,G,T at a given position';
+COMMENT ON COLUMN oconnor.virus_sequencing_data.code IS '4 character code representing percentage of A,C,G,T at a given position';
 
 
 --
--- Name: virus_strain; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: virus_strain; Type: TABLE; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE TABLE virus_strain (
+CREATE TABLE oconnor.virus_strain (
     virus_strain character varying(255) NOT NULL,
-    rowid integer DEFAULT nextval('oc_sequence'::regclass) NOT NULL
+    rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL
 );
 
 
@@ -1371,364 +1370,364 @@ CREATE TABLE virus_strain (
 -- Name: TABLE virus_strain; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TABLE virus_strain IS 'lookup used in inventory system';
+COMMENT ON TABLE oconnor.virus_strain IS 'lookup used in inventory system';
 
 
 --
 -- Name: experiment_number; Type: DEFAULT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY experiment_db ALTER COLUMN experiment_number SET DEFAULT nextval('experiment_db_experiment_number_seq'::regclass);
+ALTER TABLE ONLY oconnor.experiment_db ALTER COLUMN experiment_number SET DEFAULT nextval('oconnor.experiment_db_experiment_number_seq'::regclass);
 
 
 --
 -- Name: rowid; Type: DEFAULT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY jr_read_length ALTER COLUMN rowid SET DEFAULT nextval('jr_read_length_rowid_seq'::regclass);
+ALTER TABLE ONLY oconnor.jr_read_length ALTER COLUMN rowid SET DEFAULT nextval('oconnor.jr_read_length_rowid_seq'::regclass);
 
 
 --
--- Name: ELISpotMatrix_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: ELISpotMatrix_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY elispot_matrix
+ALTER TABLE ONLY oconnor.elispot_matrix
     ADD CONSTRAINT "ELISpotMatrix_pkey" PRIMARY KEY (id);
 
 
 --
--- Name: all_species_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: all_species_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY all_species
+ALTER TABLE ONLY oconnor.all_species
     ADD CONSTRAINT all_species_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: all_specimens_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: all_specimens_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY all_specimens
+ALTER TABLE ONLY oconnor.all_specimens
     ADD CONSTRAINT all_specimens_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: animals_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: animals_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY animals
+ALTER TABLE ONLY oconnor.animals
     ADD CONSTRAINT animals_pkey PRIMARY KEY (id);
 
 
 --
--- Name: availability_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: availability_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY availability
+ALTER TABLE ONLY oconnor.availability
     ADD CONSTRAINT availability_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: cell_type_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: cell_type_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY cell_type
+ALTER TABLE ONLY oconnor.cell_type
     ADD CONSTRAINT cell_type_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: diff_snp_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: diff_snp_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY diff_snp
+ALTER TABLE ONLY oconnor.diff_snp
     ADD CONSTRAINT diff_snp_pkey PRIMARY KEY (key);
 
 
 --
--- Name: dna_sequences_draft_2013_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: dna_sequences_draft_2013_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY dna_sequences_draft_2013
+ALTER TABLE ONLY oconnor.dna_sequences_draft_2013
     ADD CONSTRAINT dna_sequences_draft_2013_pkey PRIMARY KEY (id);
 
 
 --
--- Name: dna_type_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: dna_type_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY dna_type
+ALTER TABLE ONLY oconnor.dna_type
     ADD CONSTRAINT dna_type_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: duplicate_reads; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: duplicate_reads; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY miseq_mhc_reads
+ALTER TABLE ONLY oconnor.miseq_mhc_reads
     ADD CONSTRAINT duplicate_reads UNIQUE (read);
 
 
 --
--- Name: flow_markers_copy_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: flow_markers_copy_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY flow_markers_copy
+ALTER TABLE ONLY oconnor.flow_markers_copy
     ADD CONSTRAINT flow_markers_copy_pkey PRIMARY KEY (surfacemarkers);
 
 
 --
--- Name: flow_markers_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: flow_markers_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY flow_markers
+ALTER TABLE ONLY oconnor.flow_markers
     ADD CONSTRAINT flow_markers_pkey PRIMARY KEY (surfacemarkers);
 
 
 --
--- Name: freezer_id_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: freezer_id_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY freezer_id
+ALTER TABLE ONLY oconnor.freezer_id
     ADD CONSTRAINT freezer_id_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: grant_exists; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: grant_exists; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY grants
+ALTER TABLE ONLY oconnor.grants
     ADD CONSTRAINT grant_exists UNIQUE (container, id);
 
 
 --
--- Name: grants_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: grants_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY grants
+ALTER TABLE ONLY oconnor.grants
     ADD CONSTRAINT grants_pkey PRIMARY KEY (key);
 
 
 --
--- Name: inventory_copy2_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: inventory_copy2_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY inventory_removed
+ALTER TABLE ONLY oconnor.inventory_removed
     ADD CONSTRAINT inventory_copy2_pkey PRIMARY KEY (key);
 
 
 --
--- Name: inventorytemp_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: inventorytemp_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY inventory
+ALTER TABLE ONLY oconnor.inventory
     ADD CONSTRAINT inventorytemp_pkey PRIMARY KEY (key);
 
 
 --
--- Name: jr_read_length_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: jr_read_length_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY jr_read_length
+ALTER TABLE ONLY oconnor.jr_read_length
     ADD CONSTRAINT jr_read_length_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: laboratory_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: laboratory_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY laboratory
+ALTER TABLE ONLY oconnor.laboratory
     ADD CONSTRAINT laboratory_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: mcm_cd8_tcell_epitopes_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: mcm_cd8_tcell_epitopes_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY mcm_cd8_tcell_epitopes
+ALTER TABLE ONLY oconnor.mcm_cd8_tcell_epitopes
     ADD CONSTRAINT mcm_cd8_tcell_epitopes_pkey PRIMARY KEY (official_name);
 
 
 --
--- Name: mhc_haplotypes_dictionary_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: mhc_haplotypes_dictionary_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY mhc_haplotypes_dictionary
+ALTER TABLE ONLY oconnor.mhc_haplotypes_dictionary
     ADD CONSTRAINT mhc_haplotypes_dictionary_pkey PRIMARY KEY (key);
 
 
 --
--- Name: mhc_haplotypes_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: mhc_haplotypes_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY mhc_haplotypes
+ALTER TABLE ONLY oconnor.mhc_haplotypes
     ADD CONSTRAINT mhc_haplotypes_pkey PRIMARY KEY (key);
 
 
 --
--- Name: oligo_purification_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: oligo_purification_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY oligo_purification
+ALTER TABLE ONLY oconnor.oligo_purification
     ADD CONSTRAINT oligo_purification_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: oligo_type_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: oligo_type_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY oligo_type
+ALTER TABLE ONLY oconnor.oligo_type
     ADD CONSTRAINT oligo_type_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: peptide_vendor_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: peptide_vendor_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY peptide_vendor
+ALTER TABLE ONLY oconnor.peptide_vendor
     ADD CONSTRAINT peptide_vendor_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: peptides_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: peptides_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY peptides
+ALTER TABLE ONLY oconnor.peptides
     ADD CONSTRAINT peptides_pkey PRIMARY KEY (peptide_number);
 
 
 --
--- Name: pk_experiment_db; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: pk_experiment_db; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY experiment_db
+ALTER TABLE ONLY oconnor.experiment_db
     ADD CONSTRAINT pk_experiment_db PRIMARY KEY (experiment_number);
 
 
 --
--- Name: pk_module_experiment_types; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: pk_module_experiment_types; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY experiment_types
+ALTER TABLE ONLY oconnor.experiment_types
     ADD CONSTRAINT pk_module_experiment_types PRIMARY KEY (type);
 
 
 --
--- Name: purchases_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: purchases_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY purchases
+ALTER TABLE ONLY oconnor.purchases
     ADD CONSTRAINT purchases_pkey PRIMARY KEY (key);
 
 
 --
--- Name: quotes_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: quotes_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY quotes
+ALTER TABLE ONLY oconnor.quotes
     ADD CONSTRAINT quotes_pkey PRIMARY KEY (key);
 
 
 --
--- Name: sample_type_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: sample_type_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY sample_type
+ALTER TABLE ONLY oconnor.sample_type
     ADD CONSTRAINT sample_type_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: ship_address_exists; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: ship_address_exists; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY shipping
+ALTER TABLE ONLY oconnor.shipping
     ADD CONSTRAINT ship_address_exists UNIQUE (container, id);
 
 
 --
--- Name: shipping_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: shipping_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY shipping
+ALTER TABLE ONLY oconnor.shipping
     ADD CONSTRAINT shipping_pkey PRIMARY KEY (key);
 
 
 --
--- Name: simple_experiment_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: simple_experiment_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY simple_experiment
+ALTER TABLE ONLY oconnor.simple_experiment
     ADD CONSTRAINT simple_experiment_pkey PRIMARY KEY (key);
 
 
 --
--- Name: specimen_additive_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_additive_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY specimen_additive
+ALTER TABLE ONLY oconnor.specimen_additive
     ADD CONSTRAINT specimen_additive_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: specimen_collaborator_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_collaborator_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY specimen_collaborator
+ALTER TABLE ONLY oconnor.specimen_collaborator
     ADD CONSTRAINT specimen_collaborator_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: specimen_geographic_origin_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_geographic_origin_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY specimen_geographic_origin
+ALTER TABLE ONLY oconnor.specimen_geographic_origin
     ADD CONSTRAINT specimen_geographic_origin_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: specimen_institution_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_institution_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY specimen_institution
+ALTER TABLE ONLY oconnor.specimen_institution
     ADD CONSTRAINT specimen_institution_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: specimen_species_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_species_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY specimen_species
+ALTER TABLE ONLY oconnor.specimen_species
     ADD CONSTRAINT specimen_species_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: specimen_type_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: specimen_type_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY specimen_type
+ALTER TABLE ONLY oconnor.specimen_type
     ADD CONSTRAINT specimen_type_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: status_exists; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: status_exists; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY status
+ALTER TABLE ONLY oconnor.status
     ADD CONSTRAINT status_exists UNIQUE (id);
 
 
 --
--- Name: status_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: status_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY status
+ALTER TABLE ONLY oconnor.status
     ADD CONSTRAINT status_pkey PRIMARY KEY (key);
 
 
 --
--- Name: vendor_exists; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: vendor_exists; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY vendors
+ALTER TABLE ONLY oconnor.vendors
     ADD CONSTRAINT vendor_exists UNIQUE (container, vendor);
 
 
@@ -1736,412 +1735,412 @@ ALTER TABLE ONLY vendors
 -- Name: CONSTRAINT vendor_exists ON vendors; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON CONSTRAINT vendor_exists ON vendors IS 'Does not allow creation of vendors that already exist';
+COMMENT ON CONSTRAINT vendor_exists ON oconnor.vendors IS 'Does not allow creation of vendors that already exist';
 
 
 --
--- Name: vendors_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: vendors_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY vendors
+ALTER TABLE ONLY oconnor.vendors
     ADD CONSTRAINT vendors_pkey PRIMARY KEY (key);
 
 
 --
--- Name: virus_sequencing_data_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: virus_sequencing_data_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY virus_sequencing_data
+ALTER TABLE ONLY oconnor.virus_sequencing_data
     ADD CONSTRAINT virus_sequencing_data_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: virus_strain_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: virus_strain_pkey; Type: CONSTRAINT; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-ALTER TABLE ONLY virus_strain
+ALTER TABLE ONLY oconnor.virus_strain
     ADD CONSTRAINT virus_strain_pkey PRIMARY KEY (rowid);
 
 
 --
--- Name: all_species_specimen_species_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: all_species_specimen_species_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE UNIQUE INDEX all_species_specimen_species_key ON all_species USING btree (specimen_species);
-
-
---
--- Name: availability_availability_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
---
-
-CREATE UNIQUE INDEX availability_availability_key ON availability USING btree (availability);
+CREATE UNIQUE INDEX all_species_specimen_species_key ON oconnor.all_species USING btree (specimen_species);
 
 
 --
--- Name: cell_type_cell_type_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: availability_availability_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE UNIQUE INDEX cell_type_cell_type_key ON cell_type USING btree (cell_type);
-
-
---
--- Name: consequence_index; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
---
-
-CREATE INDEX consequence_index ON diff_snp USING hash (consequence);
+CREATE UNIQUE INDEX availability_availability_key ON oconnor.availability USING btree (availability);
 
 
 --
--- Name: dna_type_dna_type_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: cell_type_cell_type_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE UNIQUE INDEX dna_type_dna_type_key ON dna_type USING btree (dna_type);
-
-
---
--- Name: experiment_db_experiment_number_created_createdby_description_t; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
---
-
-CREATE UNIQUE INDEX experiment_db_experiment_number_created_createdby_description_t ON experiment_db USING btree (experiment_number, created, createdby, description, type, parents, workbook, container, modifiedby, modified, comments);
+CREATE UNIQUE INDEX cell_type_cell_type_key ON oconnor.cell_type USING btree (cell_type);
 
 
 --
--- Name: experiment_db_experiment_number_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: consequence_index; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE UNIQUE INDEX experiment_db_experiment_number_key ON experiment_db USING btree (experiment_number);
-
-
---
--- Name: freezer_id_freezer_id_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
---
-
-CREATE UNIQUE INDEX freezer_id_freezer_id_key ON freezer_id USING btree (freezer_id);
+CREATE INDEX consequence_index ON oconnor.diff_snp USING hash (consequence);
 
 
 --
--- Name: gene_common_name_index; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: dna_type_dna_type_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE INDEX gene_common_name_index ON diff_snp USING btree (gene_common_name);
-
-
---
--- Name: key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
---
-
-CREATE UNIQUE INDEX key ON inventory USING btree (key);
+CREATE UNIQUE INDEX dna_type_dna_type_key ON oconnor.dna_type USING btree (dna_type);
 
 
 --
--- Name: laboratory_laboratory_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: experiment_db_experiment_number_created_createdby_description_t; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE UNIQUE INDEX laboratory_laboratory_key ON laboratory USING btree (laboratory);
-
-
---
--- Name: oligo_purification_oligo_purification_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
---
-
-CREATE UNIQUE INDEX oligo_purification_oligo_purification_key ON oligo_purification USING btree (oligo_purification);
+CREATE UNIQUE INDEX experiment_db_experiment_number_created_createdby_description_t ON oconnor.experiment_db USING btree (experiment_number, created, createdby, description, type, parents, workbook, container, modifiedby, modified, comments);
 
 
 --
--- Name: oligo_type_oligo_type_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: experiment_db_experiment_number_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE UNIQUE INDEX oligo_type_oligo_type_key ON oligo_type USING btree (oligo_type);
-
-
---
--- Name: peptide_vendor_peptide_vendor_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
---
-
-CREATE UNIQUE INDEX peptide_vendor_peptide_vendor_key ON peptide_vendor USING btree (peptide_vendor);
+CREATE UNIQUE INDEX experiment_db_experiment_number_key ON oconnor.experiment_db USING btree (experiment_number);
 
 
 --
--- Name: sample_type_sample_type_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: freezer_id_freezer_id_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE UNIQUE INDEX sample_type_sample_type_key ON sample_type USING btree (sample_type);
-
-
---
--- Name: selectViruses; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
---
-
-CREATE INDEX "selectViruses" ON virus_sequencing_data USING btree (labkey_id, ref_nt);
+CREATE UNIQUE INDEX freezer_id_freezer_id_key ON oconnor.freezer_id USING btree (freezer_id);
 
 
 --
--- Name: specimen_additive_specimen_additive_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: gene_common_name_index; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE UNIQUE INDEX specimen_additive_specimen_additive_key ON specimen_additive USING btree (specimen_additive);
-
-
---
--- Name: specimen_collaborator_specimen_collaborator_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
---
-
-CREATE UNIQUE INDEX specimen_collaborator_specimen_collaborator_key ON specimen_collaborator USING btree (specimen_collaborator);
+CREATE INDEX gene_common_name_index ON oconnor.diff_snp USING btree (gene_common_name);
 
 
 --
--- Name: specimen_geographic_origin_specimen_geographic_origin_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE UNIQUE INDEX specimen_geographic_origin_specimen_geographic_origin_key ON specimen_geographic_origin USING btree (specimen_geographic_origin);
-
-
---
--- Name: specimen_institution_specimen_institution_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
---
-
-CREATE UNIQUE INDEX specimen_institution_specimen_institution_key ON specimen_institution USING btree (specimen_institution);
+CREATE UNIQUE INDEX key ON oconnor.inventory USING btree (key);
 
 
 --
--- Name: specimen_species_specimen_species_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: laboratory_laboratory_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE UNIQUE INDEX specimen_species_specimen_species_key ON specimen_species USING btree (specimen_species);
-
-
---
--- Name: specimen_type_specimen_type_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
---
-
-CREATE UNIQUE INDEX specimen_type_specimen_type_key ON specimen_type USING btree (specimen_type);
+CREATE UNIQUE INDEX laboratory_laboratory_key ON oconnor.laboratory USING btree (laboratory);
 
 
 --
--- Name: virus_strain_virus_strain_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace: 
+-- Name: oligo_purification_oligo_purification_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
 --
 
-CREATE UNIQUE INDEX virus_strain_virus_strain_key ON virus_strain USING btree (virus_strain);
+CREATE UNIQUE INDEX oligo_purification_oligo_purification_key ON oconnor.oligo_purification USING btree (oligo_purification);
+
+
+--
+-- Name: oligo_type_oligo_type_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
+--
+
+CREATE UNIQUE INDEX oligo_type_oligo_type_key ON oconnor.oligo_type USING btree (oligo_type);
+
+
+--
+-- Name: peptide_vendor_peptide_vendor_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
+--
+
+CREATE UNIQUE INDEX peptide_vendor_peptide_vendor_key ON oconnor.peptide_vendor USING btree (peptide_vendor);
+
+
+--
+-- Name: sample_type_sample_type_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
+--
+
+CREATE UNIQUE INDEX sample_type_sample_type_key ON oconnor.sample_type USING btree (sample_type);
+
+
+--
+-- Name: selectViruses; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
+--
+
+CREATE INDEX "selectViruses" ON oconnor.virus_sequencing_data USING btree (labkey_id, ref_nt);
+
+
+--
+-- Name: specimen_additive_specimen_additive_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
+--
+
+CREATE UNIQUE INDEX specimen_additive_specimen_additive_key ON oconnor.specimen_additive USING btree (specimen_additive);
+
+
+--
+-- Name: specimen_collaborator_specimen_collaborator_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
+--
+
+CREATE UNIQUE INDEX specimen_collaborator_specimen_collaborator_key ON oconnor.specimen_collaborator USING btree (specimen_collaborator);
+
+
+--
+-- Name: specimen_geographic_origin_specimen_geographic_origin_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
+--
+
+CREATE UNIQUE INDEX specimen_geographic_origin_specimen_geographic_origin_key ON oconnor.specimen_geographic_origin USING btree (specimen_geographic_origin);
+
+
+--
+-- Name: specimen_institution_specimen_institution_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
+--
+
+CREATE UNIQUE INDEX specimen_institution_specimen_institution_key ON oconnor.specimen_institution USING btree (specimen_institution);
+
+
+--
+-- Name: specimen_species_specimen_species_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
+--
+
+CREATE UNIQUE INDEX specimen_species_specimen_species_key ON oconnor.specimen_species USING btree (specimen_species);
+
+
+--
+-- Name: specimen_type_specimen_type_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
+--
+
+CREATE UNIQUE INDEX specimen_type_specimen_type_key ON oconnor.specimen_type USING btree (specimen_type);
+
+
+--
+-- Name: virus_strain_virus_strain_key; Type: INDEX; Schema: oconnor; Owner: oconnor; Tablespace:
+--
+
+CREATE UNIQUE INDEX virus_strain_virus_strain_key ON oconnor.virus_strain USING btree (virus_strain);
 
 
 --
 -- Name: add_order; Type: TRIGGER; Schema: oconnor; Owner: oconnor
 --
 
-CREATE TRIGGER add_order BEFORE INSERT ON purchases FOR EACH ROW EXECUTE PROCEDURE add_order_number();
+CREATE TRIGGER add_order BEFORE INSERT ON oconnor.purchases FOR EACH ROW EXECUTE PROCEDURE oconnor.add_order_number();
 
 
 --
 -- Name: add_quote; Type: TRIGGER; Schema: oconnor; Owner: oconnor
 --
 
-CREATE TRIGGER add_quote BEFORE INSERT ON quotes FOR EACH ROW EXECUTE PROCEDURE add_quote_number();
+CREATE TRIGGER add_quote BEFORE INSERT ON oconnor.quotes FOR EACH ROW EXECUTE PROCEDURE oconnor.add_quote_number();
 
 
 --
 -- Name: check_dup; Type: TRIGGER; Schema: oconnor; Owner: oconnor
 --
 
-CREATE TRIGGER check_dup BEFORE INSERT ON inventory FOR EACH ROW EXECUTE PROCEDURE inventory_duplicate_check();
+CREATE TRIGGER check_dup BEFORE INSERT ON oconnor.inventory FOR EACH ROW EXECUTE PROCEDURE oconnor.inventory_duplicate_check();
 
 
 --
--- Name: TRIGGER check_dup ON inventory; Type: COMMENT; Schema: oconnor; Owner: oconnor
+-- Name: TRIGGER check_dup ON oconnor.inventory; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TRIGGER check_dup ON inventory IS 'ensures location of sample being inserted is not redundant';
+COMMENT ON TRIGGER check_dup ON oconnor.inventory IS 'ensures location of sample being inserted is not redundant';
 
 
 --
 -- Name: copy_inventory; Type: TRIGGER; Schema: oconnor; Owner: oconnor
 --
 
-CREATE TRIGGER copy_inventory AFTER DELETE ON inventory FOR EACH ROW EXECUTE PROCEDURE inventory_audit_deleted();
+CREATE TRIGGER copy_inventory AFTER DELETE ON oconnor.inventory FOR EACH ROW EXECUTE PROCEDURE oconnor.inventory_audit_deleted();
 
 
 --
--- Name: TRIGGER copy_inventory ON inventory; Type: COMMENT; Schema: oconnor; Owner: oconnor
+-- Name: TRIGGER copy_inventory ON oconnor.inventory; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TRIGGER copy_inventory ON inventory IS 'moves deleted samples from inventory to inventory_removed';
+COMMENT ON TRIGGER copy_inventory ON oconnor.inventory IS 'moves deleted samples from inventory to inventory_removed';
 
 
 --
 -- Name: create_genotype_table; Type: TRIGGER; Schema: oconnor; Owner: oconnor
 --
 
-CREATE TRIGGER create_genotype_table AFTER INSERT OR UPDATE ON miseq_mhc_reads FOR EACH STATEMENT EXECUTE PROCEDURE create_miseq_mhc_genotypes();
+CREATE TRIGGER create_genotype_table AFTER INSERT OR UPDATE ON oconnor.miseq_mhc_reads FOR EACH STATEMENT EXECUTE PROCEDURE oconnor.acreate_miseq_mhc_genotypes();
 
 
 --
 -- Name: TRIGGER create_genotype_table ON miseq_mhc_reads; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON TRIGGER create_genotype_table ON miseq_mhc_reads IS 'drops genotypes table if exists and recreates it using data from reads table';
+COMMENT ON TRIGGER create_genotype_table ON oconnor.miseq_mhc_reads IS 'drops genotypes table if exists and recreates it using data from reads table';
 
 
 --
 -- Name: availability; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT availability FOREIGN KEY (status) REFERENCES availability(availability);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT availability FOREIGN KEY (status) REFERENCES oconnor.availability(availability);
 
 
 --
 -- Name: cell_type; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT cell_type FOREIGN KEY (cell_type) REFERENCES cell_type(cell_type);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT cell_type FOREIGN KEY (cell_type) REFERENCES oconnor.cell_type(cell_type);
 
 
 --
 -- Name: dna_type; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT dna_type FOREIGN KEY (dna_type) REFERENCES dna_type(dna_type);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT dna_type FOREIGN KEY (dna_type) REFERENCES oconnor.dna_type(dna_type);
 
 
 --
 -- Name: freezer; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT freezer FOREIGN KEY (freezer) REFERENCES freezer_id(freezer_id);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT freezer FOREIGN KEY (freezer) REFERENCES oconnor.freezer_id(freezer_id);
 
 
 --
 -- Name: grant_number; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY purchases
-    ADD CONSTRAINT grant_number FOREIGN KEY (grant_number, container) REFERENCES grants(id, container);
+ALTER TABLE ONLY oconnor.purchases
+    ADD CONSTRAINT grant_number FOREIGN KEY (grant_number, container) REFERENCES oconnor.grants(id, container);
 
 
 --
 -- Name: laboratory; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT laboratory FOREIGN KEY (lab_name) REFERENCES laboratory(laboratory);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT laboratory FOREIGN KEY (lab_name) REFERENCES oconnor.laboratory(laboratory);
 
 
 --
 -- Name: oligo_purification; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT oligo_purification FOREIGN KEY (oligo_purification) REFERENCES oligo_purification(oligo_purification);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT oligo_purification FOREIGN KEY (oligo_purification) REFERENCES oconnor.oligo_purification(oligo_purification);
 
 
 --
 -- Name: oligo_type; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT oligo_type FOREIGN KEY (oligo_type) REFERENCES oligo_type(oligo_type);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT oligo_type FOREIGN KEY (oligo_type) REFERENCES oconnor.oligo_type(oligo_type);
 
 
 --
 -- Name: sampleType; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT "sampleType" FOREIGN KEY (sample_type) REFERENCES sample_type(sample_type);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT "sampleType" FOREIGN KEY (sample_type) REFERENCES oconnor.sample_type(sample_type);
 
 
 --
 -- Name: shipping_address; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY purchases
-    ADD CONSTRAINT shipping_address FOREIGN KEY (address, container) REFERENCES shipping(id, container);
+ALTER TABLE ONLY oconnor.purchases
+    ADD CONSTRAINT shipping_address FOREIGN KEY (address, container) REFERENCES oconnor.shipping(id, container);
 
 
 --
 -- Name: specimenAdditive; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT "specimenAdditive" FOREIGN KEY (specimen_additive) REFERENCES specimen_additive(specimen_additive);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT "specimenAdditive" FOREIGN KEY (specimen_additive) REFERENCES oconnor.specimen_additive(specimen_additive);
 
 
 --
 -- Name: specimenCollaborator; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT "specimenCollaborator" FOREIGN KEY (specimen_collaborator) REFERENCES specimen_collaborator(specimen_collaborator);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT "specimenCollaborator" FOREIGN KEY (specimen_collaborator) REFERENCES oconnor.specimen_collaborator(specimen_collaborator);
 
 
 --
 -- Name: specimenGeographicOrigin; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT "specimenGeographicOrigin" FOREIGN KEY (specimen_geographic_origin) REFERENCES specimen_geographic_origin(specimen_geographic_origin);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT "specimenGeographicOrigin" FOREIGN KEY (specimen_geographic_origin) REFERENCES oconnor.specimen_geographic_origin(specimen_geographic_origin);
 
 
 --
 -- Name: specimenInstitution; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT "specimenInstitution" FOREIGN KEY (specimen_institution) REFERENCES specimen_institution(specimen_institution);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT "specimenInstitution" FOREIGN KEY (specimen_institution) REFERENCES oconnor.specimen_institution(specimen_institution);
 
 
 --
 -- Name: specimenSpecies; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT "specimenSpecies" FOREIGN KEY (specimen_species) REFERENCES specimen_species(specimen_species);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT "specimenSpecies" FOREIGN KEY (specimen_species) REFERENCES oconnor.specimen_species(specimen_species);
 
 
 --
 -- Name: specimenType; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT "specimenType" FOREIGN KEY (specimen_type) REFERENCES specimen_type(specimen_type);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT "specimenType" FOREIGN KEY (specimen_type) REFERENCES oconnor.specimen_type(specimen_type);
 
 
 --
 -- Name: status; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY purchases
-    ADD CONSTRAINT status FOREIGN KEY (status) REFERENCES status(id);
+ALTER TABLE ONLY oconnor.purchases
+    ADD CONSTRAINT status FOREIGN KEY (status) REFERENCES oconnor.status(id);
 
 
 --
 -- Name: vendor; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY purchases
-    ADD CONSTRAINT vendor FOREIGN KEY (vendor, container) REFERENCES vendors(vendor, container);
+ALTER TABLE ONLY oconnor.purchases
+    ADD CONSTRAINT vendor FOREIGN KEY (vendor, container) REFERENCES oconnor.vendors(vendor, container);
 
 
 --
 -- Name: vendor_exists; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY quotes
-    ADD CONSTRAINT vendor_exists FOREIGN KEY (vendor, container) REFERENCES vendors(vendor, container);
+ALTER TABLE ONLY oconnor.quotes
+    ADD CONSTRAINT vendor_exists FOREIGN KEY (vendor, container) REFERENCES oconnor.vendors(vendor, container);
 
 
 --
 -- Name: CONSTRAINT vendor_exists ON quotes; Type: COMMENT; Schema: oconnor; Owner: oconnor
 --
 
-COMMENT ON CONSTRAINT vendor_exists ON quotes IS 'requires vendor to exist before a quote number can be added';
+COMMENT ON CONSTRAINT vendor_exists ON oconnor.quotes IS 'requires vendor to exist before a quote number can be added';
 
 
 --
 -- Name: virusStrain; Type: FK CONSTRAINT; Schema: oconnor; Owner: oconnor
 --
 
-ALTER TABLE ONLY inventory
-    ADD CONSTRAINT "virusStrain" FOREIGN KEY (virus_strain) REFERENCES virus_strain(virus_strain);
+ALTER TABLE ONLY oconnor.inventory
+    ADD CONSTRAINT "virusStrain" FOREIGN KEY (virus_strain) REFERENCES oconnor.virus_strain(virus_strain);
