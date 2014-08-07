@@ -22,8 +22,19 @@
 <%@ page import="java.io.IOException" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.SortedSet" %>
+<%@ page import="org.labkey.api.view.template.ClientDependency" %>
+<%@ page import="java.util.LinkedHashSet" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
+<%!
+
+    public LinkedHashSet<ClientDependency> getClientDependencies()
+    {
+        LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
+        resources.add(ClientDependency.fromFilePath("clientapi/ext3"));
+        return resources;
+    }
+%>
 <%
     AnalyzeBean bean = (AnalyzeBean)getModelBean();
 

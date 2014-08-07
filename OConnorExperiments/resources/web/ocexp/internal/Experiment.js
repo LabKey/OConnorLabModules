@@ -330,7 +330,7 @@ LABKEY.ocexp.internal.Experiment = new function () {
                         // Create array of values that weren't found on the server
                         var invalidValues = Ext4.Array.clone(exps);
                         for (var i = 0; i < json.rows.length; i++) {
-                            invalidValues.remove("" + json.rows[i].ExperimentNumber);
+                            Ext4.Array.remove(invalidValues, "" + json.rows[i].ExperimentNumber);
                         }
 
                         var msg = "Experiment " + (invalidValues.length > 1 ? "numbers" : "number") + " not found";
