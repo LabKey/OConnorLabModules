@@ -36,6 +36,7 @@ import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.PortalHelper;
+import org.labkey.test.util.PostgresOnlyTest;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
@@ -52,7 +53,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @Category({CustomModules.class})
-public class OConnorExperimentTest extends BaseWebDriverTest
+public class OConnorExperimentTest extends BaseWebDriverTest implements PostgresOnlyTest
 {
     private static final String PROJECT_NAME = "OConnor Experiment Project";
     private static final String MODULE_NAME = "OConnorExperiments";
@@ -120,6 +121,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest
         deleteViaQueryWebPart();
 
         insertViaQueryWebPart();
+        // TODO: write these functions
         //uploadFileUpdatesModified();
         //editWikiUpdatesModified();
 
