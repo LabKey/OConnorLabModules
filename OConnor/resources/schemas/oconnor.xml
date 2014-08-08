@@ -396,9 +396,6 @@
         <columns>
             <column columnName="specimen_type"/>
             <column columnName="rowid"/>
-            <column columnName="enabled">
-                <defaultValue>true</defaultValue>
-            </column>
         </columns>
     </table>
     <table tableName="sample_type" tableDbType="TABLE">
