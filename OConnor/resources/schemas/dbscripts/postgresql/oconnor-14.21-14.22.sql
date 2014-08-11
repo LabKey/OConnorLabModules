@@ -246,7 +246,7 @@ COMMENT ON TABLE oconnor.all_species IS 'used as lookup in inventory app';
 CREATE TABLE oconnor.all_specimens (
     specimen_type character varying(255) NOT NULL,
     rowid integer DEFAULT nextval('oconnor.oc_sequence'::regclass) NOT NULL,
-    enabled boolean DEFAULT true NOT NULL;
+    enabled boolean DEFAULT true NOT NULL
 );
 
 
