@@ -90,6 +90,7 @@ OConnor/resources/queries/oconnor/vendors/dashboard_vendors.qview.xml -text
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-0.00-14.20.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-14.20-14.21.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-14.21-14.22.sql -text
+OConnor/resources/schemas/dbscripts/postgresql/oconnor-14.22-14.23.sql -text
 OConnor/resources/schemas/oconnor.xml -text
 OConnor/resources/views/AnimalList.html -text
 OConnor/resources/views/AnimalList.view.xml -text
