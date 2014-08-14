@@ -41,9 +41,11 @@ public class HaplotypeAssayTest extends GenotypingTest
     private static final File FIRST_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/firstRunData.txt");
     private static final File SECOND_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/secondRunData.txt");
     private static final File ERROR_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/errorRunData.txt");
-    private static final File DRB_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/dbrRunData.txt");
-    public static final String DBR_ASSAY = "DBR assay";
+    private static final File DRB_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/drbRunData.txt");
+    private static final File STR_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/strRunData.txt");
+    public static final String DRB_ASSAY = "DRB assay";
     public static final String DRB_RUN = "drb run";
+    public static final String STR_RUN = "str run";
 
     @Override
     protected String getProjectName()
@@ -62,6 +64,9 @@ public class HaplotypeAssayTest extends GenotypingTest
     {
         setUp2();  // from GenotypingTest
 
+        File listArchive = new File(TestFileUtils.getLabKeyRoot() + "/sampledata/genotyping/haplotypeAssay/STRHaplotype.lists.zip");
+        new ListHelper(this).importListArchive(PROJECT_NAME, listArchive);
+
         configureExtensibleTables();
         setupHaplotypeAssay();
         verifyAssayUploadErrors();
@@ -77,8 +82,8 @@ public class HaplotypeAssayTest extends GenotypingTest
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
     private void verifyAribitraryHaplotypeAssay()
     {
-        setupHaplotypeAssay(DBR_ASSAY,  new String[][] {{"DRBHaplotype", "DRB Haplotype" }});
-        importRun(DRB_RUN, DBR_ASSAY, DRB_RUN_FILE);
+        setupHaplotypeAssay(DRB_ASSAY,  new String[][] {{"DRBHaplotype", "DRB Haplotype" }, {"STRHaplotype", "STR Haplotype"}});
+        importRun(DRB_RUN, DRB_ASSAY, DRB_RUN_FILE);
 
         clickAndWait(Locator.linkWithText(DRB_RUN));
         DataRegionTable drt = new DataRegionTable("Data", this);
@@ -87,6 +92,10 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023", "A025", "A001", "A023", "A002a");
         verifyColumnDataValues(drt, "DRB Haplotype 1", "D015c", "D012b", "D001c", "D012b", "D002");
         verifyColumnDataValues(drt, "DRB Haplotype 2", "D025a", "D017a", "D017a", "D012b", "D002");
+
+        importRun(STR_RUN, DRB_ASSAY, STR_RUN_FILE);
+
+        // TODO - verify STR data import and discrepancy report
     }
  
     @Override
