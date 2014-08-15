@@ -345,9 +345,9 @@ public class IlluminaTest extends GenotypingBaseTest
         DataRegionTable table = new DataRegionTable("Reads", this);
         table.setSort("DataId", SortDirection.ASC);
         xpath = xpath.replace("disabled", "labkey");
-        click(Locator.name(checkboxId, 2));
-        click(Locator.name(checkboxId, 3));
-        click(Locator.name(checkboxId, 9));
+        click(Locator.name(checkboxId).index(2));
+        click(Locator.name(checkboxId).index(3));
+        click(Locator.name(checkboxId).index(9));
         Locator exportButton = Locator.xpath(xpath);
 
         click(exportButton);

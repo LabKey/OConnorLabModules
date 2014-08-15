@@ -139,8 +139,8 @@ public class GenotypingTest extends GenotypingBaseTest
         String expectedNewAlleles = "Mafa-A1*063:03:01, Mafa-A1*063:01";
 
         //combine two samples
-        click(Locator.name(checkboxId, 0));
-        click(Locator.name(checkboxId, 1));
+        click(Locator.name(checkboxId).index(0));
+        click(Locator.name(checkboxId).index(1));
         clickButton("Combine", 0);
         _extHelper.waitForExt3Mask(WAIT_FOR_JAVASCRIPT);
 
