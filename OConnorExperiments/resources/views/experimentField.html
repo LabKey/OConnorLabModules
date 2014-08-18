@@ -67,7 +67,9 @@
                     }
                 },
                 filters: [
-                    {property: 'Enabled', value: true}
+                    function(item) {
+                        return item.data.RowId == experimentData.ExperimentTypeId || item.data.Enabled;
+                    }
                 ]
 
             });
