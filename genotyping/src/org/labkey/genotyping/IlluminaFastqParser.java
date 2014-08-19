@@ -15,8 +15,8 @@
  */
 package org.labkey.genotyping;
 
-import net.sf.picard.fastq.FastqReader;
-import net.sf.picard.fastq.FastqRecord;
+import htsjdk.samtools.fastq.FastqReader;
+import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
