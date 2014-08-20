@@ -26,7 +26,7 @@
     String extensions = StringUtils.join(SequenceManager.FASTQ_EXTENSIONS, "\", \"");
     SEQUENCE_PLATFORMS platform = bean.getPlatform();
 %>
-<form <%=formAction(GenotypingController.ImportReadsAction.class, Method.Post)%> name="importReads">
+<form <%=formAction(GenotypingController.ImportReadsAction.class, Method.Post)%> name="importReads"><labkey:csrf/>
 <%
     if (platform == SEQUENCE_PLATFORMS.LS454)
     {

@@ -102,7 +102,7 @@
     });
 </script>
 
-<form <%=formAction(GenotypingController.AdminAction.class, Method.Post)%>>
+<form <%=formAction(GenotypingController.AdminAction.class, Method.Post)%>><labkey:csrf/>
     <table>
         <%=formatMissedErrorsInTable("form", 3)%>
         <%

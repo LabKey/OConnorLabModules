@@ -23,6 +23,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="org.labkey.genotyping.HaplotypeColumnMappingProperty" %>
 <%@ page import="org.labkey.genotyping.HaplotypeProtocolBean" %>
+<%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     JspView<HaplotypeProtocolBean> me = (JspView<HaplotypeProtocolBean>) HttpView.currentView();
@@ -36,9 +37,9 @@
 
     final String copyPasteDivId = "copypasteDiv" + getRequestScopedUID();
 %>
-<form action="importHaplotypeAssignments.post" method="post">
+<labkey:form action="importHaplotypeAssignments.post" method="post">
     <div id="<%=h(copyPasteDivId)%>"></div>
-</form>
+</labkey:form>
 
 <script type="text/javascript">
     var expectedHeaders = [];

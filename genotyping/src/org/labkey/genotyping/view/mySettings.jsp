@@ -19,6 +19,7 @@
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.genotyping.galaxy.GalaxyFolderSettings" %>
 <%@ page import="org.labkey.genotyping.galaxy.GalaxyManager" %>
+<%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     GenotypingController.MySettingsForm form = (GenotypingController.MySettingsForm)getModelBean();
@@ -33,7 +34,7 @@
         preferencesHTML = "<a href=\"" + h(userURL.getURIString()) + "\" target=\"pref\">" + preferencesHTML + "</a>";
     }
 %>
-<form action="mySettings.post" method="post">
+<labkey:form action="mySettings.post" method="post">
     <table>
         <%=formatMissedErrorsInTable("form", 2)%>
         <tr>
@@ -48,4 +49,4 @@
         <tr><td>&nbsp;</td></tr>
         <tr><td><%= button("Submit").submit(true) %> <%= button("Cancel").href(form.getReturnURLHelper()) %><%=generateReturnUrlFormField(form)%></td></tr>
     </table>
-</form>
+</labkey:form>

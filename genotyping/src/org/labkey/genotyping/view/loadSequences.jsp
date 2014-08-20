@@ -33,7 +33,7 @@
     QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getSequencesQuery());
     SequenceDictionary dictionary = SequenceManager.get().getCurrentDictionary(c, user, false);
 %>
-<form <%=formAction(GenotypingController.LoadSequencesAction.class, Method.Post)%>>
+<form <%=formAction(GenotypingController.LoadSequencesAction.class, Method.Post)%>><labkey:csrf/>
     <table><tr><td>
         <p><%
             if (null == dictionary)
