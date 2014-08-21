@@ -8,14 +8,14 @@ view that is used on the mark_invoiced html page.
    <columns>
 	<column name="Key"/>
 	<column name="item"/>
-	<column name="itemNumber"/>
+	<column name="item_number"/>
 	<column name="quantity"/>
 	<column name="price"/>
-	<column name="vendor/vendor"/>
+	<column name="vendor"/>
 	<column name="status"/>
-	<column name="grant/id"/>
-	<column name="receivedBy"/>
-	<column name="receivedDate"/>
+	<column name="grant_number"/>
+	<column name="received_by"/>
+	<column name="received_date"/>
     <column name="comment"/>
    </columns>
    <filters>
@@ -23,4 +23,3 @@ view that is used on the mark_invoiced html page.
    </filters>
 </customView>
 
-										

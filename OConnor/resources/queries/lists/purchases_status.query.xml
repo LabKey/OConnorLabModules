@@ -13,14 +13,14 @@
                      <fk>
                          <fkColumnName>Key</fkColumnName>
                          <fkTable>vendors</fkTable>
-                         <fkDbSchema>lists</fkDbSchema>
+                         <fkDbSchema>oconnor</fkDbSchema>
                      </fk>
                  </column>
                  <column columnName="grant">
                      <fk>
                          <fkColumnName>id</fkColumnName>
                          <fkTable>grants</fkTable>
-                         <fkDbSchema>lists</fkDbSchema>
+                         <fkDbSchema>oconnor</fkDbSchema>
                      </fk>
                  </column>
              </columns>

@@ -6,7 +6,7 @@
 /* retreives all fields from purchases list */
 
 SELECT 
-purchases.Key as Key,
+purchases.Key as key,
 purchases.item,
 purchases.item_number,
 purchases.quantity,

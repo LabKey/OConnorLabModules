@@ -5,26 +5,23 @@ view for purchases_placeOrders.html page. uses this query so that the 'placedBy'
 
 -->
 
-   <columns>
-   <column name="Key"/>
-	<column name="item"/>
-	<column name="itemNumber"/>
-	<column name="quantity"/>
-	<column name="unit"/>
-	<column name="price"/>
-	<column name="vendor/vendor"/>
-	<column name="vendor/phone"/>
-	<column name="vendor/email"/>
-	<column name="vendor/po"/>
-	<column name="placedBy"/>
-	<column name="placeDate"/>
-	<column name="grant/id"/>
-	<column name="grant/department"/>
-	<column name="comment"/>
-   </columns>
-   <filters>
-       <filter column="status" operator="eq" value="1"/>
-   </filters>
+    <columns>
+        <column name="Key"/>
+        <column name="item"/>
+        <column name="item_number"/>
+        <column name="quantity"/>
+        <column name="item_unit"/>
+        <column name="item_price"/>
+        <column name="vendor/vendor"/>
+        <column name="vendor/phone"/>
+        <column name="vendor/email"/>
+        <column name="vendor/po"/>
+        <column name="placed_by"/>
+        <column name="place_date"/>
+        <column name="grant/id"/>
+        <column name="comment"/>
+    </columns>
+    <filters>
+        <filter column="status" operator="eq" value="1"/>
+    </filters>
 </customView>
-
-										
