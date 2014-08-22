@@ -6,7 +6,4 @@
         <column name="id"/>
         <column name="grant_description"/>
     </columns>
-    <filters>
-        <filter column="status" operator="eq" value="3"/>
-    </filters>
 </customView>
