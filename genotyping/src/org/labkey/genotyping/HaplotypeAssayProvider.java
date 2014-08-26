@@ -233,6 +233,9 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         ActionURL reportUrl = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(viewContext.getContainer(), protocol, GenotypingController.HaplotypeAssignmentReportAction.class);
         result.add(new NavTree("view haplotype assignment report", reportUrl));
 
+        ActionURL strUrl = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(viewContext.getContainer(), protocol, GenotypingController.STRDiscrepanciesAssignmentReportAction.class);
+        result.add(new NavTree("view STR disrepancies report", strUrl));
+
         return result;
     }
 

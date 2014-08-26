@@ -16,6 +16,7 @@
 
 package org.labkey.genotyping;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -41,9 +42,11 @@ import org.labkey.api.data.PanelButton;
 import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.RuntimeSQLException;
+import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.ShowRows;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
+import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.api.ExpData;
@@ -2266,6 +2269,187 @@ public class GenotypingController extends SpringActionController
             NavTree result = super.appendNavTrail(root);
             return result.addChild(_protocol.getName() + ": Duplicate Assignment Report");
         }
+    }
+
+    @RequiresPermissionClass(ReadPermission.class)
+    public class STRDiscrepanciesAssignmentReportAction extends SimpleViewAction<STRDiscrepancies>
+    {
+        private ExpProtocol _protocol;
+        private static final String _delim = ";";
+
+        @Override
+        public ModelAndView getView(STRDiscrepancies form, BindException errors) throws Exception
+        {
+            _protocol = form.getProtocol();
+            GenotypingSchema gs = GenotypingSchema.get();
+
+            // NOTE: need to narrow down based on protocl/assay/container
+
+            SQLFragment sql = new SQLFragment("SELECT a.labanimalid, h.name, h.type FROM ");
+            sql.append(gs.getAnimalHaplotypeAssignmentTable(), "aha");
+            sql.append(" JOIN ");
+            sql.append(gs.getHaplotypeTable(), "h");
+            sql.append(" ON aha.haplotypeid = h.rowid ");
+            sql.append(" JOIN ");
+            sql.append(gs.getAnimalAnalysisTable(), "aa");
+            sql.append(" ON aha.animalanalysisid = aa.rowid ");
+            sql.append(" JOIN ");
+            sql.append(gs.getAnimalTable(), "a");
+            sql.append(" ON aa.animalid = a.rowid ");
+            sql.append(" JOIN ");
+            sql.append(ExperimentService.get().getTinfoExperimentRun(), "er");
+            sql.append(" ON aa.RunId = er.RowId");
+            sql.append(" JOIN ");
+            sql.append(ExperimentService.get().getTinfoProtocol(), "p");
+            sql.append(" ON er.ProtocolLSID = p.LSID");
+            sql.append(" WHERE p.RowId = ?");
+            sql.add(_protocol.getRowId());
+
+            // NOTE: this has assignments already mixed in (site/key 'STR').
+            Map<String, Map<String, Set<String>>> animalHaplotypes = new TreeMap<>();
+
+            Map<String, Set<String>> haplotypeMap;
+            try (ResultSet rs = new SqlSelector(gs.getSchema(), sql).getResultSet())
+            {
+                String labAnimalId, type;
+                while(rs.next())
+                {
+                    labAnimalId = rs.getString("labanimalid");
+                    type = rs.getString("type");
+
+                    for (String name : rs.getString("name").split(_delim))
+                    {
+                        if (animalHaplotypes.get(labAnimalId) == null)
+                            animalHaplotypes.put(labAnimalId, new TreeMap<String, Set<String>>());
+                        haplotypeMap = animalHaplotypes.get(labAnimalId);
+
+                        if (haplotypeMap.get(type) == null)
+                            haplotypeMap.put(type, new HashSet<String>());
+
+                        haplotypeMap.get(type).add(name);
+                    }
+                }
+            }
+
+            // Next need to get STR haplotypes
+            Map <String, Set<Map<String, Set<String>>>> strHaplotypes = new TreeMap<>();
+            try (ResultSet rs = new TableSelector(QueryService.get().getUserSchema(getUser(), getContainer(), "lists").getTable("STRHaplotype")).getResultSet())
+            {
+                String[] mamuAs, mamuBs, mamuDRs;
+                Set<Map<String, Set<String>>> strGrouping;
+
+                while (rs.next())
+                {
+                    mamuAs = rs.getString("mamua").split(_delim);
+                    mamuBs = rs.getString("mamub").split(_delim);
+                    if (rs.getString("mamuDr") != null)
+                        mamuDRs = rs.getString("mamudr").split(_delim);
+                    else
+                        mamuDRs = null;
+                    strGrouping = new HashSet<>();
+
+                    for(String mamuA : mamuAs)
+                    {
+                        for(String mamuB : mamuBs)
+                        {
+                            if (mamuDRs != null)
+                            {
+                                for(String mamuDR : mamuDRs)
+                                {
+                                    haplotypeMap = new TreeMap<>();
+                                    haplotypeMap.put("mamuA", Sets.newHashSet(mamuA) );
+                                    haplotypeMap.put("mamuB", Sets.newHashSet(mamuB) );
+                                    haplotypeMap.put("DRB", Sets.newHashSet(mamuDR) );
+                                    strGrouping.add(haplotypeMap);
+                                }
+                            }
+                            else
+                            {
+                                haplotypeMap = new TreeMap<>();
+                                haplotypeMap.put("mamuA", Sets.newHashSet(mamuA) );
+                                haplotypeMap.put("mamuB", Sets.newHashSet(mamuB) );
+                                strGrouping.add(haplotypeMap);
+                            }
+                        }
+                    }
+                    strHaplotypes.put(rs.getString("strhaplotype"), strGrouping);
+                }
+            }
+
+            // now loop over STR assignments looking for discrepancies
+            Map<String, Set<String>> m;
+            Set<String> currentAssignments;
+            String currentAnimal, currentSite;
+            Set<String> s;
+
+            for (Map.Entry<String, Map<String, Set<String>>> entry : animalHaplotypes.entrySet() )
+            {
+                currentAnimal = entry.getKey();
+                m = entry.getValue();
+                currentAssignments = m.get("STR");
+
+                if (m.containsKey("STR"))
+                {
+                    for (String assignment : currentAssignments)
+                    {
+                        for(Map<String, Set<String>> strHaplotype : strHaplotypes.get(assignment))
+                        {
+                            for (Map.Entry<String, Set<String>> strDefinition : strHaplotype.entrySet() )
+                            {
+                                currentSite = strDefinition.getKey();
+                                if ((s = m.get(currentSite)) != null)
+                                {
+                                    if(!s.containsAll(strDefinition.getValue()))
+                                    {
+                                        form.insertDiscrepancy(currentAnimal, currentSite);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return new JspView<>("/org/labkey/genotyping/view/strDiscrepancies.jsp", form, errors);
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            NavTree navTree = root.addChild("Assay List", PageFlowUtil.urlProvider(AssayUrls.class).getAssayListURL(getContainer()));
+            navTree.addChild(_protocol.getName(), new ActionURL(AssayRunsAction.class, getContainer()).addParameter("rowId", _protocol.getRowId()));
+            navTree.addChild("STR Discrepancies Report");
+            return navTree;
+        }
+    }
+
+    public static class STRDiscrepancies extends ProtocolIdForm
+    {
+        private Map<String, Set<String>> discrepancies;
+
+        public STRDiscrepancies()
+        {
+            this.discrepancies = new TreeMap<>();
+        }
+
+        public void insertDiscrepancy(String name, String disrepancy)
+        {
+            if (!discrepancies.containsKey(name))
+                discrepancies.put(name, new TreeSet<String>());
+            //NOTE: this might be better as a set...
+            discrepancies.get(name).add(disrepancy);
+        }
+
+        public boolean isEmpty()
+        {
+            return discrepancies.isEmpty();
+        }
+
+        public Map<String, Set<String>> getDiscrepancies()
+        {
+            return discrepancies;
+        }
+
     }
 
     @RequiresPermissionClass(ReadPermission.class)
