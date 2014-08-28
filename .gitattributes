@@ -263,6 +263,7 @@ OConnorExperiments/src/org/labkey/oconnorexperiments/view/migrateData.jsp -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/view/workbookSearch.jsp -text
 OConnorExperiments/test/sampledata/OConnor_Test.folder.zip -text
 OConnorExperiments/test/src/org/labkey/test/tests/OConnorExperimentTest.java -text
+OConnorExperiments/test/src/org/labkey/test/tests/OConnorListTest.java -text
 OConnorExperiments/test/test_oconnorexperiments.iml -text
 OConnorRepository/module.properties -text
 OConnorRepository/resources/etls/PCRSSPtyping.xml -text
