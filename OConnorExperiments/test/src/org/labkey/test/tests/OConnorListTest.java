@@ -100,7 +100,7 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
             assert(!options.contains(d_option));
         }
         //check available specimen types
-        beginAt("/oconnor/OConnor Test Project/inventory_specimen_available.view?");
+        beginAt("/oconnor/OConnorTestProject/inventory_specimen_available.view?");
         waitForText("Inventory Specimen Available");
         shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan("Add new specimens").toBy()));
         click(Locator.linkWithSpan("Add new specimens"));
@@ -117,7 +117,7 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
         {
             //assert(!options.contains(d_option));
             //TODO: re-enable this test once bug is fixed
-            //assertTextNotPresent(d_option);
+            assertTextNotPresent(d_option);
             //assertElementNotPresent(Locator.xpath("//div[@class='x-combo-list-item'][.='" + d_option + "']"));
         }
     }
