@@ -17,7 +17,10 @@ Ext.QuickTips.init();
                 schemaName: dbSchemaName,
                 queryName: 'specimen_type',
                 autoLoad: true,
-                filter: [{property: 'Enabled', value: true}]
+                //filter: [{property: 'Enabled', value: true}]
+                filterArray: [
+                        LABKEY.Filter.create('Enabled', true)
+                ]
             });
 
             var listCellTypes = new LABKEY.ext.Store({
