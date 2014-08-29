@@ -22,6 +22,7 @@ OConnor/resources/assay/Lymphocyte/views/runs.html -text
 OConnor/resources/assay/Lymphocyte/views/upload.html -text
 OConnor/resources/folderTypes/OC[!!-~]Experiment[!!-~]Workbook.folderType.xml -text
 OConnor/resources/folderTypes/OC[!!-~]purchase.folderType.xml -text
+OConnor/resources/module.xml -text
 OConnor/resources/queries/exp/Datas/simple_experiment.qview.xml -text
 OConnor/resources/queries/lists/active_grants.query.xml -text
 OConnor/resources/queries/lists/active_grants.sql -text
