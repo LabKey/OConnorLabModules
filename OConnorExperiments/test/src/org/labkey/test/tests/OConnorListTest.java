@@ -11,6 +11,7 @@ import org.labkey.test.categories.CustomModules;
 import org.labkey.test.categories.OConnor;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PostgresOnlyTest;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +32,8 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
     private static String[] MODULES = {"OConnor", "OConnorExperiments"};
     private static String[] SAMPLE_TYPES = {"type1", "type2", "type3", "type4"};
     private static String[] EXPERIMENT_TYPES = {"name1", "name2", "name3", "name4"};
+    private static String[] DISABLED_SAMPLE_TYPES = {"disabledtype1", "disabledtype2"};
+    private static String[] DISABLED_EXPERIMENT_TYPES = {"disabledname1", "disabledname2"};
 
     @Nullable
     @Override
@@ -75,23 +78,48 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
         {
             assertElementPresent(Locator.linkWithText(type));
         }
+        //TODO: check that edit of imported experiment/specimen with disabled type still shows type
     }
 
     @Test
     public void testAvailableDDValues()
     {
         goToProjectHome();
-        //beginAt(getProjectUrl().replace("/begin.view", "/1/begin.view"));
+        //check available experiment types
         click(Locator.linkWithText("Insert New"));
         waitForElement(Locator.linkWithText("history"));
         List<String> options = _ext4Helper.getComboBoxOptions("Experiment Type:");
+        //enabled types are present
         for(String option : EXPERIMENT_TYPES)
         {
             assert(options.contains(option));
         }
+        //disabled types are not shown
+        for(String d_option : DISABLED_EXPERIMENT_TYPES)
+        {
+            assert(!options.contains(d_option));
+        }
+        //check available specimen types
         beginAt("/oconnor/OConnor Test Project/inventory_specimen_available.view?");
         waitForText("Inventory Specimen Available");
-        //TODO: return to this after the inventory_specimen_available view has been fixed and check available values
+        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan("Add new specimens").toBy()));
+        click(Locator.linkWithSpan("Add new specimens"));
+        waitForText("Specimen Details");
+        click(Locator.id("specimen_type"));
+        waitForText("type1");
+        for(String option : SAMPLE_TYPES)
+        {
+            //assert(options.contains(option));
+            assertTextPresent(option);
+        }
+        //disabled types are not shown
+        for(String d_option : DISABLED_SAMPLE_TYPES)
+        {
+            //assert(!options.contains(d_option));
+            //TODO: re-enable this test once bug is fixed
+            //assertTextNotPresent(d_option);
+            //assertElementNotPresent(Locator.xpath("//div[@class='x-combo-list-item'][.='" + d_option + "']"));
+        }
     }
 
     @Override
