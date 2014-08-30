@@ -43,9 +43,9 @@ public class HaplotypeAssayTest extends GenotypingTest
     private static final File ERROR_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/errorRunData.txt");
     private static final File DRB_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/drbRunData.txt");
     private static final File STR_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/strRunData.txt");
-    public static final String DRB_ASSAY = "DRB assay";
-    public static final String DRB_RUN = "drb run";
-    public static final String STR_RUN = "str run";
+    private static final String DRB_ASSAY = "DRB assay";
+    private static final String DRB_RUN = "drb run";
+    private static final String STR_RUN = "str run";
 
     @Override
     protected String getProjectName()
@@ -77,6 +77,25 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyAssignmentReport();
         verifyDuplicateRecords();
         verifyAribitraryHaplotypeAssay();
+        verifySTRDiscrepancies();
+    }
+
+    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
+    private void verifySTRDiscrepancies()
+    {
+        final String strDisrepanciesHeader = "view STR disrepancies report";
+
+        goToManageAssays();
+        clickAndWait(Locator.linkWithText(DRB_ASSAY));
+        clickAndWait(Locator.linkWithText(strDisrepanciesHeader));
+
+        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 0), "STR-ID-4-BAD");
+        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 1), "DRB");
+
+        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 0), "STR-ID-5-BAD");
+        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 1), "DRB");
+
+        assertTextNotPresent("STR-ID-1-GOOD", "STR-ID-2-GOOD", "STR-ID-3-GOOD");
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
