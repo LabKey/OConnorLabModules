@@ -71,7 +71,16 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     public static final String DATA_PROPERTY_NAME = "data";
     public static final String ENABLED_PROPERTY_NAME = "enabled";
 
-    public static final HaplotypeColumnMappingProperty LAB_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty("labAnimalId", "Lab Animal ID", true);
+    public static final String LAB_ANIMAL_ID = "labAnimalId";
+    public static final String MAMU_A = "MamuA";
+    public static final String MAMU_B = "MamuB";
+    public static final String STR = "STR";
+    public static final String DRB="DRB";
+
+    public static final String STR_HAPLOTYPE = "STRHaplotype";
+    public static final String MAMU_DR = "MamuDR";
+
+    public static final HaplotypeColumnMappingProperty LAB_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty(LAB_ANIMAL_ID, "Lab Animal ID", true);
     public static final HaplotypeColumnMappingProperty CLIENT_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty("clientAnimalId", "Client Animal ID", false);
     public static final HaplotypeColumnMappingProperty TOTAL_READS_COLUMN = new HaplotypeColumnMappingProperty("totalReads", "Total # Reads Evaluated", true);
     public static final HaplotypeColumnMappingProperty IDENTIFIED_READS_COLUMN = new HaplotypeColumnMappingProperty("identifiedReads","Total # Reads Identified", true);
@@ -97,7 +106,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
             @Override
             public FieldKey getParticipantIDFieldKey()
             {
-                return FieldKey.fromParts("AnimalId", "LabAnimalId");
+                return FieldKey.fromParts("AnimalId", LAB_ANIMAL_ID);
             }
 
             @Override
