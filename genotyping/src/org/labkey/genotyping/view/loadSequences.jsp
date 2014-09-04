@@ -25,6 +25,7 @@
 <%@ page import="org.labkey.genotyping.sequences.SequenceDictionary" %>
 <%@ page import="org.labkey.genotyping.sequences.SequenceManager" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
+<%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%
     ReturnUrlForm form = (ReturnUrlForm)getModelBean();
     Container c = getContainer();
