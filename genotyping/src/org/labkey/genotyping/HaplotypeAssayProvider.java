@@ -72,12 +72,13 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     public static final String ENABLED_PROPERTY_NAME = "enabled";
 
     public static final String LAB_ANIMAL_ID = "labAnimalId";
-    public static final String MAMU_A = "MamuA";
-    public static final String MAMU_B = "MamuB";
-    public static final String STR = "STR";
-    public static final String DRB="DRB";
+    public static final String MAMU_A = "mamuA";
+    public static final String MAMU_B = "mamuB";
+    public static final String MAMU_DRB="mamuDRB";
+    public static final String STR = "mhcSTR";
 
     public static final String STR_HAPLOTYPE = "STRHaplotype";
+    // NOTE: this shouldn't be needed... we have two different names for the same column...
     public static final String MAMU_DR = "MamuDR";
 
     public static final HaplotypeColumnMappingProperty LAB_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty(LAB_ANIMAL_ID, "Lab Animal ID", true);

@@ -90,10 +90,10 @@ public class HaplotypeAssayTest extends GenotypingTest
         clickAndWait(Locator.linkWithText(strDisrepanciesHeader));
 
         assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 0), "STR-ID-4-BAD");
-        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 1), "DRB");
+        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 1), "mamuDRB");
 
         assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 0), "STR-ID-5-BAD");
-        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 1), "DRB");
+        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 1), "mamuDRB");
 
         assertTextNotPresent("STR-ID-1-GOOD", "STR-ID-2-GOOD", "STR-ID-3-GOOD");
     }
@@ -101,7 +101,7 @@ public class HaplotypeAssayTest extends GenotypingTest
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
     private void verifyAribitraryHaplotypeAssay()
     {
-        setupHaplotypeAssay(DRB_ASSAY,  new String[][] {{"DRBHaplotype", "DRB Haplotype" }, {"STRHaplotype", "STR Haplotype"}});
+        setupHaplotypeAssay(DRB_ASSAY,  new String[][] {{"mamuDRBHaplotype", "Mamu-DRB Haplotype" }, {"mhcSTRHaplotype", "MHC-STR Haplotype"}});
         importRun(DRB_RUN, DRB_ASSAY, DRB_RUN_FILE);
 
         clickAndWait(Locator.linkWithText(DRB_RUN));
@@ -109,8 +109,8 @@ public class HaplotypeAssayTest extends GenotypingTest
 
         verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
         verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023", "A025", "A001", "A023", "A002a");
-        verifyColumnDataValues(drt, "DRB Haplotype 1", "D015c", "D012b", "D001c", "D012b", "D002");
-        verifyColumnDataValues(drt, "DRB Haplotype 2", "D025a", "D017a", "D017a", "D012b", "D002");
+        verifyColumnDataValues(drt, "Mamu-DRB Haplotype 1", "D015c", "D012b", "D001c", "D012b", "D002");
+        verifyColumnDataValues(drt, "Mamu-DRB Haplotype 2", "D025a", "D017a", "D017a", "D012b", "D002");
 
         importRun(STR_RUN, DRB_ASSAY, STR_RUN_FILE);
 

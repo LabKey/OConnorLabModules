@@ -2308,7 +2308,6 @@ public class GenotypingController extends SpringActionController
             // NOTE: this has assignments already mixed in (site/key 'STR').
             Map<String, Map<String, Set<String>>> animalHaplotypes = new TreeMap<>();
 
-            Map<String, Set<String>> haplotypeMap;
             try (ResultSet rs = new SqlSelector(gs.getSchema(), sql).getResultSet())
             {
                 String labAnimalId, type;
@@ -2321,7 +2320,7 @@ public class GenotypingController extends SpringActionController
                     {
                         if (animalHaplotypes.get(labAnimalId) == null)
                             animalHaplotypes.put(labAnimalId, new TreeMap<String, Set<String>>());
-                        haplotypeMap = animalHaplotypes.get(labAnimalId);
+                        Map<String, Set<String>> haplotypeMap = animalHaplotypes.get(labAnimalId);
 
                         if (haplotypeMap.get(type) == null)
                             haplotypeMap.put(type, new HashSet<String>());
@@ -2332,7 +2331,7 @@ public class GenotypingController extends SpringActionController
             }
 
             // Next need to get STR haplotypes
-            Map <String, Set<Map<String, Set<String>>>> strHaplotypes = new TreeMap<>();
+            Map <String, Set<Map<String, String>>> strHaplotypes = new TreeMap<>();
             try (ResultSet rs = new TableSelector(QueryService.get().getUserSchema(getUser(), getContainer(), "lists").getTable(HaplotypeAssayProvider.STR_HAPLOTYPE)).getResultSet())
             {
                 while (rs.next())
@@ -2340,7 +2339,7 @@ public class GenotypingController extends SpringActionController
                     String[] mamuAs = rs.getString(HaplotypeAssayProvider.MAMU_A).split(_delim);
                     String[] mamuBs = rs.getString(HaplotypeAssayProvider.MAMU_B).split(_delim);
                     String[] mamuDRs = (rs.getString(HaplotypeAssayProvider.MAMU_DR) != null) ? rs.getString(HaplotypeAssayProvider.MAMU_DR).split(_delim) : null;
-                    Set<Map<String, Set<String>>> strGrouping = new HashSet<>();
+                    Set<Map<String, String>> strGrouping = new HashSet<>();
 
                     for(String mamuA : mamuAs)
                     {
@@ -2350,18 +2349,18 @@ public class GenotypingController extends SpringActionController
                             {
                                 for(String mamuDR : mamuDRs)
                                 {
-                                    haplotypeMap = new TreeMap<>();
-                                    haplotypeMap.put(HaplotypeAssayProvider.MAMU_A, Sets.newHashSet(mamuA) );
-                                    haplotypeMap.put(HaplotypeAssayProvider.MAMU_B, Sets.newHashSet(mamuB) );
-                                    haplotypeMap.put(HaplotypeAssayProvider.DRB, Sets.newHashSet(mamuDR) );
+                                    Map<String, String> haplotypeMap = new TreeMap<>();
+                                    haplotypeMap.put(HaplotypeAssayProvider.MAMU_A, mamuA );
+                                    haplotypeMap.put(HaplotypeAssayProvider.MAMU_B, mamuB );
+                                    haplotypeMap.put(HaplotypeAssayProvider.MAMU_DRB, mamuDR );
                                     strGrouping.add(haplotypeMap);
                                 }
                             }
                             else
                             {
-                                haplotypeMap = new TreeMap<>();
-                                haplotypeMap.put(HaplotypeAssayProvider.MAMU_A, Sets.newHashSet(mamuA) );
-                                haplotypeMap.put(HaplotypeAssayProvider.MAMU_B, Sets.newHashSet(mamuB) );
+                                Map<String, String> haplotypeMap = new TreeMap<>();
+                                haplotypeMap.put(HaplotypeAssayProvider.MAMU_A, mamuA );
+                                haplotypeMap.put(HaplotypeAssayProvider.MAMU_B, mamuB );
                                 strGrouping.add(haplotypeMap);
                             }
                         }
@@ -2371,33 +2370,25 @@ public class GenotypingController extends SpringActionController
             }
 
             // now loop over STR assignments looking for discrepancies
-            Map<String, Set<String>> m;
-            Set<String> currentAssignments;
-            String currentAnimal, currentSite;
-            Set<String> s;
 
             for (Map.Entry<String, Map<String, Set<String>>> entry : animalHaplotypes.entrySet() )
             {
-                currentAnimal = entry.getKey();
-                m = entry.getValue();
-                currentAssignments = m.get(HaplotypeAssayProvider.STR);
+                String currentAnimal = entry.getKey();
+                // NOTE: consider better name of var...
+                Map<String, Set<String>> m = entry.getValue();
+                Set<String> currentAssignments = m.get(HaplotypeAssayProvider.STR);
 
                 if (m.containsKey(HaplotypeAssayProvider.STR))
                 {
                     for (String assignment : currentAssignments)
                     {
-                        for(Map<String, Set<String>> strHaplotype : strHaplotypes.get(assignment))
+                        for(Map<String, String> strHaplotype : strHaplotypes.get(assignment))
                         {
-                            for (Map.Entry<String, Set<String>> strDefinition : strHaplotype.entrySet() )
+                            for (Map.Entry<String, String> strDefinition : strHaplotype.entrySet() )
                             {
-                                currentSite = strDefinition.getKey();
-                                if ((s = m.get(currentSite)) != null)
-                                {
-                                    if(!s.containsAll(strDefinition.getValue()))
-                                    {
-                                        form.insertDiscrepancy(currentAnimal, currentSite);
-                                    }
-                                }
+                                String currentSite = strDefinition.getKey();
+                                if (m.get(currentSite) != null && !m.get(currentSite).contains(strDefinition.getValue()))
+                                    form.insertDiscrepancy(currentAnimal, currentSite);
                             }
                         }
                     }
