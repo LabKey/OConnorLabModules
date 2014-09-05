@@ -2310,11 +2310,10 @@ public class GenotypingController extends SpringActionController
 
             try (ResultSet rs = new SqlSelector(gs.getSchema(), sql).getResultSet())
             {
-                String labAnimalId, type;
                 while(rs.next())
                 {
-                    labAnimalId = rs.getString(HaplotypeAssayProvider.LAB_ANIMAL_ID);
-                    type = rs.getString("type");
+                    String labAnimalId = rs.getString(HaplotypeAssayProvider.LAB_ANIMAL_ID);
+                    String type = rs.getString("type");
 
                     for (String name : rs.getString("name").split(_delim))
                     {
