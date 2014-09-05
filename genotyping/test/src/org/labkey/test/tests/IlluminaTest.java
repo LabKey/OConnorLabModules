@@ -210,7 +210,7 @@ public class IlluminaTest extends GenotypingBaseTest
         clickAndWait(Locator.linkWithText("Samples"));
         DataRegionTable d = new DataRegionTable("query", this);
         String viewName = "Yellow Peas";
-        createCusomizedView(viewName, new String[]{"Created"}, new String[] {"fivemid"});
+        createCustomizedView(viewName, new String[]{"Created"}, new String[]{"fivemid"});
         d.checkAllOnPage();
         clickButton("Create Illumina Sample Sheet");
         waitForText("Reagent Cassette Id");
@@ -319,7 +319,7 @@ public class IlluminaTest extends GenotypingBaseTest
         goToProjectHome();
     }
 
-    private void createCusomizedView(String viewName, String[] columnsToAdd, String[] columnsToRemove )
+    private void createCustomizedView(String viewName, String[] columnsToAdd, String[] columnsToRemove)
     {
         _customizeViewsHelper.openCustomizeViewPanel();
 
