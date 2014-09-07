@@ -87,7 +87,6 @@ public class GenotypingQuerySchema extends UserSchema
 
     @Nullable private final Integer _analysisId;
 
-    @SuppressWarnings({"UnusedDeclaration"})
     public enum TableType
     {
         Runs() {

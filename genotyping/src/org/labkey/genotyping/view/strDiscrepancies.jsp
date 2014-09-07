@@ -45,7 +45,7 @@
             String url = animalLink.toString();
         %>
         <td><a href="<%= h(url) %>"><%= h(entry.getKey())%></a></td>
-        <td><%= h((entry.getValue() != null) ? StringUtils.join(new ArrayList(entry.getValue()), ", ") : "") %></td>
+        <td><%= h((entry.getValue() != null) ? StringUtils.join(new ArrayList<>(entry.getValue()), ", ") : "") %></td>
     </tr>
     <% } %>
 </table>
