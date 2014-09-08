@@ -45,8 +45,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.junit.Assert.assertEquals;
@@ -178,9 +180,9 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         assertTrue("Expected to find row for 'description3'", row3 != -1);
         assertEquals("3", q_table.getDataAsText(row3, "ExperimentNumber"));
         assertEquals("type3", q_table.getDataAsText(row3, "ExperimentType"));
-        String parentExperiments = q_table.getDataAsText(row3, "ParentExperiments");
-        assertTrue("Expected Parent Experiments to be '1, 2'; got '" + parentExperiments + "'",
-                "1, 2".equals(parentExperiments) || "2, 1".equals(parentExperiments));
+        Set<String> expectedParentExperiments = new HashSet<>(Arrays.asList("1", "2"));
+        Set<String> parentExperiments = new HashSet<>(Arrays.asList(q_table.getDataAsText(row3, "ParentExperiments").split(", *")));
+        assertEquals("Wrong Parent Experiments", expectedParentExperiments, parentExperiments);
 
         // Verify the Experiment is inserted, examine workbooks webpart
         DataRegionTable w_table = new DataRegionTable("query", this);
@@ -230,8 +232,9 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         DataRegionTable q_table = new DataRegionTable("query", this);
         int row = q_table.getRow("Description", description + " edited");
         assertTrue("Expected to find row for '" + description + " edited'", row != -1);
-        String parentExperiments = q_table.getDataAsText(row, "ParentExperiments");
-        assertEquals("Expected Parent Experiments to be '1, 3'; got '" + parentExperiments + "'", "1, 3", parentExperiments);
+        Set<String> expectedParentExperiments = new HashSet<>(Arrays.asList("1", "3"));
+        Set<String> parentExperiments = new HashSet<>(Arrays.asList(q_table.getDataAsText(row, "ParentExperiments").split(", *")));
+        assertEquals("Wrong Parent Experiments", expectedParentExperiments, parentExperiments);
 
         goToProjectHome();
         checkQueryAndWorkbook();
@@ -257,7 +260,9 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         waitForText("Experiment numbers not found: 100, 101");
 
         setEditInPlaceContent("Parent Experiments:", "1, 3");
-        assertEquals("1, 3", getText(getEditInPlaceDisplayField("Parent Experiments:")));
+        Set<String> expectedParentExperiments = new HashSet<>(Arrays.asList("1", "3"));
+        Set<String> parentExperiments = new HashSet<>(Arrays.asList(getText(getEditInPlaceDisplayField("Parent Experiments:")).split(", *")));
+        assertEquals("Wrong Parent Experiments", expectedParentExperiments, parentExperiments);
 
         goToProjectHome();
 
