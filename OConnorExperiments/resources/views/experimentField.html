@@ -25,29 +25,16 @@
             LABKEY.NavTrail.setTrail("<span>Experiment " + LABKEY.container.title + "</span>", parentLinks, "Experiment " + LABKEY.container.title);
             var experimentTypeId = experimentData.ExperimentTypeId;
             var changeCallback = function(name, newValue, oldValue, failureCb, scope){
-                if (!isNaN(newValue))
-                {
-                    experimentData[name] = newValue;
-                    LABKEY.ocexp.internal.Experiment.saveExperiment({
-                        experiment: experimentData,
-                        success: function(){
-                            document.getElementById('errorText').innerHTML = "";
-                        },
-                        invalid: function(msg) {
-                            document.getElementById('errorText').innerHTML = Ext4.util.Format.htmlEncode(msg);
-                        },
-                        failure: function(){
-                            if(failureCb) {
-                                if(!scope)
-                                    scope = this;
-
-                                failureCb.call(scope, '<span class="labkey-error">' + newValue + '</span>');
-                            } else {
-                                document.getElementById('errorText').innerHTML = "An unknown error occured and save failed. Please try again.";
-                            }
-                        }
-                    });
-                }
+                experimentData[name] = newValue;
+                LABKEY.ocexp.internal.Experiment.saveExperiment({
+                    experiment: experimentData,
+                    success: function(){
+                        document.getElementById('errorText').innerHTML = "";
+                    },
+                    invalid: function(msg) {
+                        document.getElementById('errorText').innerHTML = Ext4.util.Format.htmlEncode(msg);
+                    }
+                });
             };
 
             document.getElementById('createdSpan').textContent = createdString;
@@ -93,7 +80,7 @@
                 listeners: {
                     scope: this,
                     change: function(combo, newValue, oldValue) {
-                        changeCallback('ExperimentTypeId', newValue, oldValue);
+                        if (!isNaN(newValue)) changeCallback('ExperimentTypeId', newValue, oldValue);
                     }
                 }
             });
