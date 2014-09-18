@@ -16,7 +16,6 @@
 
 package org.labkey.genotyping;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -2275,7 +2274,7 @@ public class GenotypingController extends SpringActionController
     public class STRDiscrepanciesAssignmentReportAction extends SimpleViewAction<STRDiscrepancies>
     {
         private ExpProtocol _protocol;
-        private static final String _delim = ";";
+        private static final String _delim = "[;,/]";
 
         @Override
         public ModelAndView getView(STRDiscrepancies form, BindException errors) throws Exception
@@ -2302,8 +2301,9 @@ public class GenotypingController extends SpringActionController
             sql.append(" JOIN ");
             sql.append(ExperimentService.get().getTinfoProtocol(), "p");
             sql.append(" ON er.ProtocolLSID = p.LSID");
-            sql.append(" WHERE p.RowId = ?");
+            sql.append(" WHERE p.RowId = ? AND aa.enabled = ?");
             sql.add(_protocol.getRowId());
+            sql.add(true);
 
             // NOTE: this has assignments already mixed in (site/key 'STR').
             Map<String, Map<String, Set<String>>> animalHaplotypes = new TreeMap<>();
@@ -2317,6 +2317,8 @@ public class GenotypingController extends SpringActionController
 
                     for (String name : rs.getString("name").split(_delim))
                     {
+                        name = stripSubType(name, form);
+
                         if (animalHaplotypes.get(labAnimalId) == null)
                             animalHaplotypes.put(labAnimalId, new TreeMap<String, Set<String>>());
                         Map<String, Set<String>> haplotypeMap = animalHaplotypes.get(labAnimalId);
@@ -2342,12 +2344,15 @@ public class GenotypingController extends SpringActionController
 
                     for(String mamuA : mamuAs)
                     {
+                        mamuA = stripSubType(mamuA, form);
                         for(String mamuB : mamuBs)
                         {
+                            mamuB = stripSubType(mamuB, form);
                             if (mamuDRs != null)
                             {
                                 for(String mamuDR : mamuDRs)
                                 {
+                                    mamuDR = stripSubType(mamuDR, form);
                                     Map<String, String> haplotypeMap = new TreeMap<>();
                                     haplotypeMap.put(HaplotypeAssayProvider.MAMU_A, mamuA );
                                     haplotypeMap.put(HaplotypeAssayProvider.MAMU_B, mamuB );
@@ -2381,13 +2386,17 @@ public class GenotypingController extends SpringActionController
                 {
                     for (String assignment : currentAssignments)
                     {
-                        for(Map<String, String> strHaplotype : strHaplotypes.get(assignment))
+                        Set<Map<String, String>> haplotypeAssignments = strHaplotypes.get(assignment);
+                        if (haplotypeAssignments != null)
                         {
-                            for (Map.Entry<String, String> strDefinition : strHaplotype.entrySet() )
+                            for (Map<String, String> strHaplotype : haplotypeAssignments)
                             {
-                                String currentSite = strDefinition.getKey();
-                                if (m.get(currentSite) != null && !m.get(currentSite).contains(strDefinition.getValue()))
-                                    form.insertDiscrepancy(currentAnimal, currentSite);
+                                for (Map.Entry<String, String> strDefinition : strHaplotype.entrySet())
+                                {
+                                    String currentSite = strDefinition.getKey();
+                                    if (m.get(currentSite) != null && !m.get(currentSite).contains(strDefinition.getValue()))
+                                        form.insertDiscrepancy(currentAnimal, currentSite);
+                                }
                             }
                         }
                     }
@@ -2395,6 +2404,20 @@ public class GenotypingController extends SpringActionController
             }
 
             return new JspView<>("/org/labkey/genotyping/view/strDiscrepancies.jsp", form, errors);
+        }
+
+        private String stripSubType(String name, STRDiscrepancies form)
+        {
+            if (!form.isIgnoreSubtype())
+            {
+                return name;
+            }
+            // Strip off subtype suffix, if any
+            while (name.length() > 0 && !Character.isDigit(name.charAt(name.length() - 1)))
+            {
+                name = name.substring(0, name.length() - 1);
+            }
+            return name;
         }
 
         @Override
@@ -2409,6 +2432,7 @@ public class GenotypingController extends SpringActionController
 
     public static class STRDiscrepancies extends ProtocolIdForm
     {
+        private boolean ignoreSubtype;
         private Map<String, Set<String>> discrepancies;
 
         public STRDiscrepancies()
@@ -2434,6 +2458,15 @@ public class GenotypingController extends SpringActionController
             return discrepancies;
         }
 
+        public boolean isIgnoreSubtype()
+        {
+            return ignoreSubtype;
+        }
+
+        public void setIgnoreSubtype(boolean ignoreSubtype)
+        {
+            this.ignoreSubtype = ignoreSubtype;
+        }
     }
 
     @RequiresPermissionClass(ReadPermission.class)

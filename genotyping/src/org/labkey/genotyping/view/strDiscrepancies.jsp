@@ -26,11 +26,20 @@
 <%@ page import="org.labkey.api.data.CompareType" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 
 <%
     STRDiscrepancies model = (STRDiscrepancies)HttpView.currentModel();
+    ActionURL reportURL = new ActionURL(GenotypingController.STRDiscrepanciesAssignmentReportAction.class, model.getContainer());
 %>
+
+<p>
+    <form method="GET" action="<%= h(reportURL)%>">
+        <input type="hidden" name="rowId" value="<%= model.getRowId() %>" />
+        <input type="checkbox" name="ignoreSubtype" <%= text(model.isIgnoreSubtype() ? "checked" : "") %> onclick="this.form.submit();" /> Ignore haplotype subtype distinctions ('a', 'b', 'c', etc suffices on the haplotype names)
+    </form>
+</p>
 
 <table class="labkey-data-region labkey-show-borders">
     <tr>

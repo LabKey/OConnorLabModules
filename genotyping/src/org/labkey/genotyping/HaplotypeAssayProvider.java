@@ -229,13 +229,21 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     {
         List<NavTree> result = super.getHeaderLinks(viewContext, protocol, containerFilter);
 
-        for (NavTree nt : result)
+        boolean found = false;
+        for (int i = 0; i < result.size(); i++)
         {
+            NavTree nt = result.get(i);
             if(nt.getText().equals("view results"))
+            {
                 nt.setText("view data as uploaded");
+                ActionURL resultsReportUrl = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(viewContext.getContainer(), protocol, GenotypingController.AggregatedResultsReportAction.class);
+                result.add(i, new NavTree("view results", resultsReportUrl));
+                found = true;
+                break;
+            }
         }
-        ActionURL resultsReportUrl = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(viewContext.getContainer(), protocol, GenotypingController.AggregatedResultsReportAction.class);
-        result.add(0, new NavTree("view results", resultsReportUrl));
+
+        assert found : "Could not find existing 'view results' link to swap out";
 
         ActionURL url = PageFlowUtil.urlProvider(AssayUrls.class).getProtocolURL(viewContext.getContainer(), protocol, GenotypingController.DuplicateAssignmentReportAction.class);
         result.add(new NavTree("view duplicates", url));
