@@ -91,6 +91,9 @@
                 displayField: 'header',
                 valueField: 'header',
                 allowBlank: !header.required,
+                submitEmptyText: false,
+                emptyText: 'None',
+                tpl: new Ext4.XTemplate('<tpl for=".">' + '<li style="height:22px;" class="x4-boundlist-item" role="option">' + '{header}' + '</li></tpl>'),
                 editable: false,
                 store: Ext4.create('Ext.data.Store', {
                     fields: ['header'],
@@ -124,12 +127,17 @@
             {
                 // parse the textarea data to get the column headers
                 var lines = data.split('\n');
-                var colHeaders = [];
+                var colHeaders = [''];
                 if (lines.length > 0)
                 {
                     var tokens = lines[0].split('\t');
                     for (var i = 0; i < tokens.length; i++)
-                        colHeaders.push({header: tokens[i].trim()});
+                    {
+                        if (tokens[i].trim().length > 0)
+                        {
+                            colHeaders.push({header: tokens[i].trim()});
+                        }
+                    }
                 }
 
                 // load the column headers data into the combo boxes
