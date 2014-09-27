@@ -228,6 +228,7 @@
           <ns:isKeyField>true</ns:isKeyField>
         </ns:column>
         <ns:column columnName="Name"/>
+        <ns:column columnName="FullName"/>
       </ns:columns>
     </ns:table>
   <ns:table tableName="AnimalAnalysis" tableDbType="TABLE">
