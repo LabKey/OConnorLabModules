@@ -2333,7 +2333,12 @@ public class GenotypingController extends SpringActionController
 
             // Next need to get STR haplotypes
             Map <String, Set<Map<String, String>>> strHaplotypes = new TreeMap<>();
-            try (ResultSet rs = new TableSelector(QueryService.get().getUserSchema(getUser(), getContainer(), "lists").getTable(HaplotypeAssayProvider.STR_HAPLOTYPE)).getResultSet())
+            TableInfo tableInfo = QueryService.get().getUserSchema(getUser(), getContainer(), "lists").getTable(HaplotypeAssayProvider.STR_HAPLOTYPE);
+            if (tableInfo == null)
+            {
+                throw new NotFoundException("Could not find table '" + HaplotypeAssayProvider.STR_HAPLOTYPE + "' in schema 'lists'");
+            }
+            try (ResultSet rs = new TableSelector(tableInfo).getResultSet())
             {
                 while (rs.next())
                 {
