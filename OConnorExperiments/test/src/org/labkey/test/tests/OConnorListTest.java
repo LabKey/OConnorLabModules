@@ -15,6 +15,7 @@
  */
 package org.labkey.test.tests;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,6 +25,7 @@ import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.categories.OConnor;
+import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PortalHelper;
 import org.labkey.test.util.PostgresOnlyTest;
@@ -86,21 +88,8 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
         //TODO: turn query validation back on once query validation bugs are fixed
         importFolderFromZip(TestFileUtils.getSampleData(FOLDER_ZIP_FILE), false, 1);
         goToProjectHome();
-//        portalHelper.addQueryWebPart("experimentType", "oconnor", "experiment_types", null);
-//        portalHelper.addQueryWebPart("specimenType", "oconnor", "specimen_type", null);
-//        for(String enabledSpecimenType : SPECIMEN_TYPES)
-//        {insertSpecimenType(enabledSpecimenType, true);}
-//        for(String disabledSpecimenType : DISABLED_SPECIMEN_TYPES)
-//        {insertSpecimenType(disabledSpecimenType, false);}
-//        for(String enabledExperimentType : EXPERIMENT_TYPES)
-//        {insertExperimentType(enabledExperimentType, true);}
-//        for(String disabledExperimentType : DISABLED_EXPERIMENT_TYPES)
-//        {insertExperimentType(disabledExperimentType, false);}
         goToSchemaBrowser();
-        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.xpath("//span[.='OConnorExperiments']").toBy()));
-        click(Locator.xpath("//span[.='OConnorExperiments']"));
-        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan("ExperimentType").toBy()));
-        click(Locator.linkWithSpan("ExperimentType"));
+        selectQuery("OConnorExperiments", "ExperimentType");
         click(Locator.linkWithText("view data"));
         for(String type : EXPERIMENT_TYPES)
         {
@@ -115,6 +104,45 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
             click(Locator.linkWithSpan("Insert New"));
             setFormElement(Locator.name("quf_Name"), type);
             uncheckCheckbox(Locator.checkboxByName("quf_Enabled"));
+            click(Locator.linkWithSpan("Submit"));
+        }
+
+        goToSchemaBrowser();
+        selectQuery("oconnor", "specimen_type");
+        click(Locator.linkWithText("view data"));
+        DataRegionTable drt = new DataRegionTable("query", this);
+
+        // NOTE: clear old values (as they are not container scoped)
+        drt.setFilter("specimen_type", "Equals One Of (e.g. \"a;b;c\")", StringUtils.join(SPECIMEN_TYPES, ';'));
+        drt.checkAll();
+        try {
+            clickButton("Delete", 0);
+            assertAlert("Are you sure you want to delete the selected rows?");
+        }
+        catch (AssertionError e) {}
+
+        for(String type : SPECIMEN_TYPES)
+        {
+            waitForElement(Locator.linkWithSpan("Insert New"));
+            click(Locator.linkWithSpan("Insert New"));
+            setFormElement(Locator.name("quf_specimen_type"), type);
+            click(Locator.linkWithSpan("Submit"));
+        }
+
+        drt.setFilter("specimen_type", "Equals One Of (e.g. \"a;b;c\")", StringUtils.join(DISABLED_SPECIMEN_TYPES, ';'));
+        drt.checkAll();
+        try {
+            clickButton("Delete", 0);
+            assertAlert("Are you sure you want to delete the selected rows?");
+        }
+        catch (AssertionError e) {}
+
+        for(String type : DISABLED_SPECIMEN_TYPES)
+        {
+            waitForElement(Locator.linkWithSpan("Insert New"));
+            click(Locator.linkWithSpan("Insert New"));
+            setFormElement(Locator.name("quf_specimen_type"), type);
+            uncheckCheckbox(Locator.checkboxByName("quf_enabled"));
             click(Locator.linkWithSpan("Submit"));
         }
     }
