@@ -28,19 +28,23 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.property.DomainProperty;
+import org.labkey.api.query.DetailsURL;
 import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.LookupForeignKey;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.security.User;
+import org.labkey.api.study.actions.AssayResultsAction;
 import org.labkey.api.study.assay.AssayProtocolSchema;
 import org.labkey.api.study.query.ResultsQueryView;
+import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
 import org.labkey.api.view.ViewContext;
 import org.springframework.validation.BindException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -56,6 +60,20 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
     public HaplotypeProtocolSchema(User user, Container container, @NotNull HaplotypeAssayProvider provider, @NotNull ExpProtocol protocol, @Nullable Container targetStudy)
     {
         super(user, container, provider, protocol, targetStudy);
+    }
+
+    @Nullable
+    @Override
+    public TableInfo getTable(String name, boolean includeExtraMetadata)
+    {
+        TableInfo result = super.getTable(name, includeExtraMetadata);
+        if (result != null && name.equalsIgnoreCase(AGGREGATED_RESULTS_QUERY_NAME))
+        {
+            ActionURL baseURL = new ActionURL(AssayResultsAction.class, getContainer());
+            baseURL.addParameter("rowId", getProtocol().getRowId());
+            result.getColumn("AnimalId").setURL(new DetailsURL(baseURL, Collections.singletonMap("Data.AnimalId/LabAnimalId~eq", "AnimalId/LabAnimalId")));
+        }
+        return result;
     }
 
     @Override

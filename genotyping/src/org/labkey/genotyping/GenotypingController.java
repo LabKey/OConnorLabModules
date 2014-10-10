@@ -2408,7 +2408,9 @@ public class GenotypingController extends SpringActionController
                 }
             }
 
-            return new JspView<>("/org/labkey/genotyping/view/strDiscrepancies.jsp", form, errors);
+            AssayHeaderView header = new AssayHeaderView(_protocol, form.getProvider(), false, true, tableInfo.getContainerFilter());
+            JspView<STRDiscrepancies> view = new JspView<>("/org/labkey/genotyping/view/strDiscrepancies.jsp", form, errors);
+            return new VBox(header, view);
         }
 
         private String stripSubType(String name, STRDiscrepancies form)
@@ -2484,10 +2486,10 @@ public class GenotypingController extends SpringActionController
         {
             _protocol = form.getProtocol();
 
-            AssayView result = new AssayView();
             AssaySchema schema = form.getProvider().createProtocolSchema(getUser(), getContainer(), form.getProtocol(), null);
             QuerySettings settings = new QuerySettings(getViewContext(), "query", HaplotypeProtocolSchema.AGGREGATED_RESULTS_QUERY_NAME);
             QueryView view = new QueryView(schema, settings, errors);
+            AssayView result = new AssayView();
             result.setupViews(view, false, form.getProvider(), _protocol);
 
             return result;

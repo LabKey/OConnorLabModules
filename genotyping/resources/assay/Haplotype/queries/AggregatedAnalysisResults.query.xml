@@ -4,19 +4,29 @@
             <ns:column columnName="AnimalId">
                 <ns:columnTitle>Animal</ns:columnTitle>
             </ns:column>
-            <ns:column columnName="SumTotalReads">
+            <ns:column columnName="TotalReads">
                 <ns:columnTitle>Total Reads</ns:columnTitle>
             </ns:column>
-            <ns:column columnName="SumIdentifiedReads">
+            <ns:column columnName="TotalIdentifiedReads">
                 <ns:columnTitle>Total Identified Reads</ns:columnTitle>
             </ns:column>
-            <ns:column columnName="AvgPercentUnknown">
+            <ns:column columnName="TotalPercentUnknown">
                 <ns:columnTitle>Total % Unknown</ns:columnTitle>
+                <ns:formatString>0.0'%'</ns:formatString>
             </ns:column>
-            <ns:column columnName="ConcatentaedHaplotypes">
+            <ns:column columnName="ConcatenatedHaplotypes">
                 <ns:columnTitle>Concatenated Haplotypes</ns:columnTitle>
             </ns:column>
-            <ns:column columnName="Enabled"/>
+            <ns:column columnName="InconsistentAssignments">
+                <ns:conditionalFormats>
+                    <ns:conditionalFormat>
+                        <ns:filters>
+                            <ns:filter value="true" operator="eq"/>
+                        </ns:filters>
+                        <ns:backgroundColor>FF8080</ns:backgroundColor>
+                    </ns:conditionalFormat>
+                </ns:conditionalFormats>
+            </ns:column>
             <ns:column columnName="mamuAHaplotype1">
                 <ns:columnTitle>Mamu-A Haplotype 1</ns:columnTitle>
             </ns:column>
