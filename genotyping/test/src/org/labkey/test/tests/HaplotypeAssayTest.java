@@ -131,8 +131,8 @@ public class HaplotypeAssayTest extends GenotypingTest
         clickAndWait(Locator.id("adminSettings"));
         clickAndWait(Locator.id("configureAnimal"));
         waitForText("No fields have been defined.");
-        _listHelper.addField("Field Properties", 0, "animalStrTest", "Animal String Test", ListHelper.ListColumnType.String);
-        _listHelper.addField("Field Properties", 1, "animalIntTest", "Animal Integer Test", ListHelper.ListColumnType.Integer);
+        _listHelper.addField("Field Properties", "animalStrTest", "Animal String Test", ListHelper.ListColumnType.String);
+        _listHelper.addField("Field Properties", "animalIntTest", "Animal Integer Test", ListHelper.ListColumnType.Integer);
         clickButton("Save");
         clickAndWait(Locator.linkWithText("Animal"));
         _customizeViewsHelper.openCustomizeViewPanel();
@@ -144,8 +144,8 @@ public class HaplotypeAssayTest extends GenotypingTest
         clickAndWait(Locator.id("adminSettings"));
         clickAndWait(Locator.id("configureHaplotype"));
         waitForText("No fields have been defined.");
-        _listHelper.addField("Field Properties", 0, "haplotypeStrTest", "Haplotype String Test", ListHelper.ListColumnType.String);
-        _listHelper.addField("Field Properties", 1, "haplotypeIntTest", "Haplotype Integer Test", ListHelper.ListColumnType.Integer);
+        _listHelper.addField("Field Properties", "haplotypeStrTest", "Haplotype String Test", ListHelper.ListColumnType.String);
+        _listHelper.addField("Field Properties", "haplotypeIntTest", "Haplotype Integer Test", ListHelper.ListColumnType.Integer);
         clickButton("Save");
         clickAndWait(Locator.linkWithText("Haplotype"));
         _customizeViewsHelper.openCustomizeViewPanel(); //TODO:  should this be necessary?
@@ -174,11 +174,11 @@ public class HaplotypeAssayTest extends GenotypingTest
             int columnIndex = 9;
             for(String[] haplotype : extraHaplotypes)
             {
-                _listHelper.addField("Run Fields", columnIndex++, haplotype[0] + "1", haplotype[1] + " 1", ListHelper.ListColumnType.String);
+                _listHelper.addField("Run Fields", haplotype[0] + "1", haplotype[1] + " 1", ListHelper.ListColumnType.String);
                 click(Locator.xpath("(//span[@id='propertyShownInInsert']/input)[2]"));
                 click(Locator.xpath("(//span[@id='propertyShownInUpdate']/input)[2]"));
 
-                _listHelper.addField("Run Fields", columnIndex++, haplotype[0] + "2", haplotype[1]  + " 2", ListHelper.ListColumnType.String);
+                _listHelper.addField("Run Fields", haplotype[0] + "2", haplotype[1] + " 2", ListHelper.ListColumnType.String);
                 click(Locator.xpath("(//span[@id='propertyShownInInsert']/input)[2]"));
                 click(Locator.xpath("(//span[@id='propertyShownInUpdate']/input)[2]"));
             }
