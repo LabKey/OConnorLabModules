@@ -2342,9 +2342,9 @@ public class GenotypingController extends SpringActionController
             {
                 while (rs.next())
                 {
-                    String[] mamuAs = rs.getString(HaplotypeAssayProvider.MAMU_A).split(_delim);
-                    String[] mamuBs = rs.getString(HaplotypeAssayProvider.MAMU_B).split(_delim);
-                    String[] mamuDRs = (rs.getString(HaplotypeAssayProvider.MAMU_DR) != null) ? rs.getString(HaplotypeAssayProvider.MAMU_DR).split(_delim) : null;
+                    String[] mamuAs = rs.getString(HaplotypeAssayProvider.MHC_A).split(_delim);
+                    String[] mamuBs = rs.getString(HaplotypeAssayProvider.MHC_B).split(_delim);
+                    String[] mamuDRs = (rs.getString(HaplotypeAssayProvider.MHC_DR) != null) ? rs.getString(HaplotypeAssayProvider.MHC_DR).split(_delim) : null;
                     Set<Map<String, String>> strGrouping = new HashSet<>();
 
                     for(String mamuA : mamuAs)
@@ -2359,17 +2359,17 @@ public class GenotypingController extends SpringActionController
                                 {
                                     mamuDR = stripSubType(mamuDR, form);
                                     Map<String, String> haplotypeMap = new TreeMap<>();
-                                    haplotypeMap.put(HaplotypeAssayProvider.MAMU_A, mamuA );
-                                    haplotypeMap.put(HaplotypeAssayProvider.MAMU_B, mamuB );
-                                    haplotypeMap.put(HaplotypeAssayProvider.MAMU_DRB, mamuDR );
+                                    haplotypeMap.put(HaplotypeAssayProvider.MHC_A, mamuA );
+                                    haplotypeMap.put(HaplotypeAssayProvider.MHC_B, mamuB );
+                                    haplotypeMap.put(HaplotypeAssayProvider.MHC_DRB, mamuDR );
                                     strGrouping.add(haplotypeMap);
                                 }
                             }
                             else
                             {
                                 Map<String, String> haplotypeMap = new TreeMap<>();
-                                haplotypeMap.put(HaplotypeAssayProvider.MAMU_A, mamuA );
-                                haplotypeMap.put(HaplotypeAssayProvider.MAMU_B, mamuB );
+                                haplotypeMap.put(HaplotypeAssayProvider.MHC_A, mamuA );
+                                haplotypeMap.put(HaplotypeAssayProvider.MHC_B, mamuB );
                                 strGrouping.add(haplotypeMap);
                             }
                         }
@@ -2385,9 +2385,9 @@ public class GenotypingController extends SpringActionController
                 String currentAnimal = entry.getKey();
                 // NOTE: consider better name of var...
                 Map<String, Set<String>> m = entry.getValue();
-                Set<String> currentAssignments = m.get(HaplotypeAssayProvider.STR);
+                Set<String> currentAssignments = m.get(HaplotypeAssayProvider.MHC_STR);
 
-                if (m.containsKey(HaplotypeAssayProvider.STR))
+                if (m.containsKey(HaplotypeAssayProvider.MHC_STR))
                 {
                     for (String assignment : currentAssignments)
                     {

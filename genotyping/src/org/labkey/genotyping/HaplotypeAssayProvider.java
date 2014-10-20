@@ -20,12 +20,16 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerFilter;
+import org.labkey.api.data.SQLFragment;
+import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.exp.PropertyType;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.DomainProperty;
 import org.labkey.api.exp.property.Lookup;
+import org.labkey.api.gwt.client.model.GWTDomain;
+import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.pipeline.PipelineProvider;
 import org.labkey.api.query.FieldKey;
@@ -72,24 +76,27 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     public static final String ENABLED_PROPERTY_NAME = "enabled";
 
     public static final String LAB_ANIMAL_ID = "labAnimalId";
-    public static final String MAMU_A = "mamuA";
-    public static final String MAMU_B = "mamuB";
-    public static final String MAMU_DRB="mamuDRB";
-    public static final String STR = "mhcSTR";
+
+    // NOTE: these are the column names from the STRHaplotype list
+    public static final String MHC_A = "mhcA";
+    public static final String MHC_B = "mhcB";
+    public static final String MHC_DR = "mhcDR";
+
+    // NOTE: still not exactly sure why we need two names for the same data column...
+    public static final String MHC_DRB ="mhcDRB";
+    public static final String MHC_STR = "mhcSTR";
 
     public static final String STR_HAPLOTYPE = "STRHaplotype";
-    // NOTE: this shouldn't be needed... we have two different names for the same column...
-    public static final String MAMU_DR = "MamuDR";
 
     public static final HaplotypeColumnMappingProperty LAB_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty(LAB_ANIMAL_ID, "Lab Animal ID", true);
     public static final HaplotypeColumnMappingProperty CLIENT_ANIMAL_COLUMN = new HaplotypeColumnMappingProperty("clientAnimalId", "Client Animal ID", false);
-    public static final HaplotypeColumnMappingProperty TOTAL_READS_COLUMN = new HaplotypeColumnMappingProperty("totalReads", "Total # Reads Evaluated", true);
-    public static final HaplotypeColumnMappingProperty IDENTIFIED_READS_COLUMN = new HaplotypeColumnMappingProperty("identifiedReads","Total # Reads Identified", true);
+    public static final HaplotypeColumnMappingProperty TOTAL_READS_COLUMN = new HaplotypeColumnMappingProperty("totalReads", "Total # Reads Evaluated", false);
+    public static final HaplotypeColumnMappingProperty IDENTIFIED_READS_COLUMN = new HaplotypeColumnMappingProperty("identifiedReads","Total # Reads Identified", false);
     public static final HaplotypeColumnMappingProperty[] HAPLOTYPE_COLUMNS = {
-            new HaplotypeColumnMappingProperty("mamuAHaplotype1", "Mamu-A Haplotype 1", true),
-            new HaplotypeColumnMappingProperty("mamuAHaplotype2", "Mamu-A Haplotype 2", true),
-            new HaplotypeColumnMappingProperty("mamuBHaplotype1", "Mamu-B Haplotype 1", true),
-            new HaplotypeColumnMappingProperty("mamuBHaplotype2", "Mamu-B Haplotype 2", true)
+            new HaplotypeColumnMappingProperty("mhcAHaplotype1", "MHC-A Haplotype 1", false),
+            new HaplotypeColumnMappingProperty("mhcAHaplotype2", "MHC-A Haplotype 2", false),
+            new HaplotypeColumnMappingProperty("mhcBHaplotype1", "MHC-B Haplotype 1", false),
+            new HaplotypeColumnMappingProperty("mhcBHaplotype2", "MHC-B Haplotype 2", false)
     };
 
     public static final HaplotypeColumnMappingProperty SPECIES_COLUMN = new HaplotypeColumnMappingProperty("speciesId", "Species Name", true);
@@ -181,7 +188,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         addProperty(runDomain, ENABLED_PROPERTY_NAME, PropertyType.BOOLEAN).setLabel("Enabled");
 
         // add run properties (hidden from insert view) that will be used for the mapping of the column headers for the input data
-        for (Map.Entry<String, HaplotypeColumnMappingProperty> property : getColumnMappingProperties().entrySet())
+        for (Map.Entry<String, HaplotypeColumnMappingProperty> property : getColumnMappingProperties(false).entrySet())
         {
             DomainProperty dp = addProperty(runDomain, property.getKey(), PropertyType.STRING);
             dp.setLabel(property.getValue().getLabel());
@@ -209,7 +216,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
             domainMap.put(ExpProtocol.ASSAY_DOMAIN_RUN, runProperties);
         }
         runProperties.add(ENABLED_PROPERTY_NAME);
-        for (String propName : getColumnMappingProperties().keySet())
+        for (String propName : getColumnMappingProperties(true).keySet())
         {
             runProperties.add(propName);
         }
@@ -257,17 +264,45 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         return result;
     }
 
-    public static Map<String, HaplotypeColumnMappingProperty> getColumnMappingProperties()
+    @Override
+    public void changeDomain(User user, ExpProtocol protocol, GWTDomain<? extends GWTPropertyDescriptor> orig, GWTDomain<? extends GWTPropertyDescriptor> update)
+    {
+        GenotypingSchema gs = GenotypingSchema.get();
+        SqlExecutor executor = new SqlExecutor(gs.getSchema());
+
+        for (int i=0; i < orig.getFields().size(); i++)
+        {
+            String origFieldName = orig.getFields().get(i).getName();
+
+            if (origFieldName.contains("Haplotype"))
+            {
+                String updateFieldName = update.getFields().get(i).getName();
+
+                String origType = origFieldName.substring(0, origFieldName.length() - 1).replaceAll("Haplotype", "");
+                String updateType = updateFieldName.substring(0, updateFieldName.length() - 1).replaceAll("Haplotype", "");
+
+                if (!origFieldName.equals(updateFieldName))
+                {
+                    SQLFragment updateHaplotype = new SQLFragment("UPDATE " + gs.getHaplotypeTable() +
+                        " SET type = ? WHERE type = ? AND container = ?", updateType, origType, protocol.getContainer());
+                    executor.execute(updateHaplotype);
+                }
+            }
+        }
+    }
+
+    public static Map<String, HaplotypeColumnMappingProperty> getColumnMappingProperties(boolean mandatory)
     {
         Map<String, HaplotypeColumnMappingProperty> properties = new LinkedHashMap<>();
         properties.put(LAB_ANIMAL_COLUMN.getName(), LAB_ANIMAL_COLUMN);
         properties.put(CLIENT_ANIMAL_COLUMN.getName(), CLIENT_ANIMAL_COLUMN);
         properties.put(TOTAL_READS_COLUMN.getName(), TOTAL_READS_COLUMN);
         properties.put(IDENTIFIED_READS_COLUMN.getName(), IDENTIFIED_READS_COLUMN);
-        properties.put(HAPLOTYPE_COLUMNS[0].getName(), HAPLOTYPE_COLUMNS[0]);
-        properties.put(HAPLOTYPE_COLUMNS[1].getName(), HAPLOTYPE_COLUMNS[1]);
-        properties.put(HAPLOTYPE_COLUMNS[2].getName(), HAPLOTYPE_COLUMNS[2]);
-        properties.put(HAPLOTYPE_COLUMNS[3].getName(), HAPLOTYPE_COLUMNS[3]);
+
+        if (!mandatory)
+            for (HaplotypeColumnMappingProperty hcmp : HAPLOTYPE_COLUMNS )
+                properties.put(hcmp.getName(), hcmp);
+
         return properties;
     }
 
@@ -284,10 +319,10 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         String label;
         HashSet<String> defaults = getDefaultColumns();
 
+        // NOTE: consider using HAPLOTYPE_COLUMNS here...
         for (DomainProperty prop : domain.getProperties())
         {
-
-           label = prop.getLabel() != null ? prop.getLabel() : ColumnInfo.labelFromName(prop.getName());
+            label = prop.getLabel() != null ? prop.getLabel() : ColumnInfo.labelFromName(prop.getName());
 
             if(!prop.isShownInInsertView() && (label.contains(" ")) && (label.endsWith("1") || label.endsWith("2")) && !defaults.contains(prop.getName()))
                 properties.put(prop.getName(), new HaplotypeColumnMappingProperty(prop.getName(), label, false));

@@ -253,21 +253,21 @@
                 <datatype>varchar</datatype>
                 <columnTitle>Concatenated Haplotypes</columnTitle>
             </column>
-            <column columnName="mamuAHaplotype1">
+            <column columnName="mhcAHaplotype1">
                 <datatype>varchar</datatype>
-                <columnTitle>Mamu-A Haplotype 1</columnTitle>
+                <columnTitle>MHC-A Haplotype 1</columnTitle>
             </column>
-            <column columnName="mamuAHaplotype2">
+            <column columnName="mhcAHaplotype2">
                 <datatype>varchar</datatype>
-                <columnTitle>Mamu-A Haplotype 2</columnTitle>
+                <columnTitle>MHC-A Haplotype 2</columnTitle>
             </column>
-            <column columnName="mamuBHaplotype1">
+            <column columnName="mhcBHaplotype1">
                 <datatype>varchar</datatype>
-                <columnTitle>Mamu-B Haplotype 1</columnTitle>
+                <columnTitle>MHC-B Haplotype 1</columnTitle>
             </column>
-            <column columnName="mamuBHaplotype2">
+            <column columnName="mhcBHaplotype2">
                 <datatype>varchar</datatype>
-                <columnTitle>Mamu-B Haplotype 2</columnTitle>
+                <columnTitle>MHC-B Haplotype 2</columnTitle>
             </column>
         </columns>
     </table>

@@ -570,7 +570,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         {
             Map<String, Object> row = new HashMap<>();
             int index = 0;
-            for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties().entrySet())
+            for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties(true).entrySet())
             {
                 row.put(property.getValue().getLabel(), valuesArr[index]);
                 index++;

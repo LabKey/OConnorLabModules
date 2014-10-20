@@ -27,17 +27,17 @@
                     </ns:conditionalFormat>
                 </ns:conditionalFormats>
             </ns:column>
-            <ns:column columnName="mamuAHaplotype1">
-                <ns:columnTitle>Mamu-A Haplotype 1</ns:columnTitle>
+            <ns:column columnName="mhcAHaplotype1">
+                <ns:columnTitle>MHC-A Haplotype 1</ns:columnTitle>
             </ns:column>
-            <ns:column columnName="mamuAHaplotype2">
-                <ns:columnTitle>Mamu-A Haplotype 2</ns:columnTitle>
+            <ns:column columnName="mhcAHaplotype2">
+                <ns:columnTitle>MHC-A Haplotype 2</ns:columnTitle>
             </ns:column>
-            <ns:column columnName="mamuBHaplotype1">
-                <ns:columnTitle>Mamu-B Haplotype 1</ns:columnTitle>
+            <ns:column columnName="mhcBHaplotype1">
+                <ns:columnTitle>MHC-B Haplotype 1</ns:columnTitle>
             </ns:column>
-            <ns:column columnName="mamuBHaplotype2">
-                <ns:columnTitle>Mamu-B Haplotype 2</ns:columnTitle>
+            <ns:column columnName="mhcBHaplotype2">
+                <ns:columnTitle>MHC-B Haplotype 2</ns:columnTitle>
             </ns:column>
         </ns:columns>
     </ns:table>

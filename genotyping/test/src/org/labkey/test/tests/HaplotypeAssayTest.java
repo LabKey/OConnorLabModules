@@ -90,10 +90,10 @@ public class HaplotypeAssayTest extends GenotypingTest
         clickAndWait(Locator.linkWithText(strDisrepanciesHeader));
 
         assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 0), "STR-ID-4-BAD");
-        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 1), "mamuDRB");
+        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 1), "mhcDRB");
 
         assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 0), "STR-ID-5-BAD");
-        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 1), "mamuDRB");
+        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 1), "mhcDRB");
 
         assertTextNotPresent("STR-ID-1-GOOD", "STR-ID-2-GOOD", "STR-ID-3-GOOD");
     }
@@ -101,18 +101,18 @@ public class HaplotypeAssayTest extends GenotypingTest
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
     private void verifyAribitraryHaplotypeAssay()
     {
-        setupHaplotypeAssay(DRB_ASSAY,  new String[][] {{"mamuDRBHaplotype", "Mamu-DRB Haplotype" }, {"mhcSTRHaplotype", "MHC-STR Haplotype"}});
-        importRun(DRB_RUN, DRB_ASSAY, DRB_RUN_FILE);
+        setupHaplotypeAssay(DRB_ASSAY,  new String[][] {{"mhcDRBHaplotype", "MHC-DRB Haplotype" }, {"mhcSTRHaplotype", "MHC-STR Haplotype"}});
+        importRun(DRB_RUN, DRB_ASSAY, DRB_RUN_FILE, true);
 
         clickAndWait(Locator.linkWithText(DRB_RUN));
         DataRegionTable drt = new DataRegionTable("Data", this);
 
-        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023", "A025", "A001", "A023", "A002a");
-        verifyColumnDataValues(drt, "Mamu-DRB Haplotype 1", "D015c", "D012b", "D001c", "D012b", "D002");
-        verifyColumnDataValues(drt, "Mamu-DRB Haplotype 2", "D025a", "D017a", "D017a", "D012b", "D002");
+        verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
+        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", "A025", "A001", "A023", "A002a");
+        verifyColumnDataValues(drt, "MHC-DRB Haplotype 1", "D015c", "D012b", "D001c", "D012b", "D002");
+        verifyColumnDataValues(drt, "MHC-DRB Haplotype 2", "D025a", "D017a", "D017a", "D012b", "D002");
 
-        importRun(STR_RUN, DRB_ASSAY, STR_RUN_FILE);
+        importRun(STR_RUN, DRB_ASSAY, STR_RUN_FILE, true);
 
         // TODO - verify STR data import and discrepancy report
     }
@@ -210,14 +210,15 @@ public class HaplotypeAssayTest extends GenotypingTest
         sleep(1000); // give the form a second to reshow on error
         _ext4Helper.selectComboBoxItem("Lab Animal ID *:", "OC ID");
         clickButton("Save and Finish");
-        waitForText("Column header mapping missing for: Total # Reads Evaluated");
+//        waitForText("Column header mapping missing for: Total # Reads Evaluated");
+        waitForText("Duplicate value found in Lab Animal ID column: ID-1");
         clickButton("Cancel");
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
     private void verifyFirstRun()
     {
-        importRun("first run", ASSAY_NAME, FIRST_RUN_FILE);
+        importRun("first run", ASSAY_NAME, FIRST_RUN_FILE, false);
 
         log("Verify Haplotype Assignment data for the first run");
         goToAssayRun("first run");
@@ -232,10 +233,10 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "TotalReads", "1000", "2000", "3000", "4000", "5000");
         verifyColumnDataValues(drt, "IdentifiedReads", "300", "1000", "600", "2500", "3250");
         verifyColumnDataValues(drt, "%Unknown", "70.0", "50.0", "80.0", "37.5", "35.0");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023", "A025", "A001", "A023", "A002a");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype1", "B015c", "B012b", "B001c", "B012b", "B002");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype2", "B025a", "B017a", "B017a", "B012b", "B002");
+        verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
+        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", "A025", "A001", "A023", "A002a");
+        verifyColumnDataValues(drt, "MHC-BHaplotype1", "B015c", "B012b", "B001c", "B012b", "B002");
+        verifyColumnDataValues(drt, "MHC-BHaplotype2", "B025a", "B017a", "B017a", "B012b", "B002");
         verifyColumnDataValues(drt, "Enabled", "true", "true", "true", "true", "true");
         verifyColumnDataValues(drt, "ClientAnimalId", "x123", "x234", "x345", "x456", "x567");
 
@@ -269,7 +270,7 @@ public class HaplotypeAssayTest extends GenotypingTest
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
     private void verifySecondRun()
     {
-        importRun("second run", ASSAY_NAME, SECOND_RUN_FILE);
+        importRun("second run", ASSAY_NAME, SECOND_RUN_FILE, false);
 
         log("Verify Haplotype Assignment data for the second run");
         goToAssayRun("second run");
@@ -279,10 +280,10 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "TotalReads", "4000", "5000", "6000", "7000", " ", "0");
         verifyColumnDataValues(drt, "IdentifiedReads", "2500", "3250", "3000", "3500", " ", "1");
         verifyColumnDataValues(drt, "%Unknown", "37.5", "35.0", "50.0", "50.0", " ", " ");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001", " ", "A033", "A004", "A004", "A004");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A023", " ", "A033", "A004", "A004", "A004");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype1", "B015c", " ", "B012b", "B033", "B033", "B033");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype2", "B025a", " ", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001", " ", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", " ", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, "MHC-BHaplotype1", "B015c", " ", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, "MHC-BHaplotype2", "B025a", " ", "B012b", "B033", "B033", "B033");
         verifyColumnDataValues(drt, "Enabled", "true", "true", "true", "true", "true", "true");
         verifyColumnDataValues(drt, "ClientAnimalId", "x456", "x567", "x678", "x789", "x888", "x999");
 
@@ -317,10 +318,10 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "Total Identified Reads", "300", "1000", "600", "5000", "6500", "3000", "3500", " ", "1");
         verifyColumnDataValues(drt, "Total % Unknown", "70.0%", "50.0%", "80.0%", "37.5%", "35.0%", "50.0%", "50.0%", " ", " ");
         verifyColumnDataValues(drt, "Inconsistent Assignments", "false", "false", "false", "true", "false", "false", "false", "false", "false");
-        verifyColumnDataValues(drt, "mamuA Haplotype1", "A001", "A023", "A001", "A001", "A002a", "A033", "A004", "A004", "A004");
-        verifyColumnDataValues(drt, "mamuA Haplotype2", "A023", "A025", "A001", "A023", "A002a", "A033", "A004", "A004", "A004");
-        verifyColumnDataValues(drt, "mamuB Haplotype1", "B015c", "B012b", "B001c", "B012b", "B002", "B012b", "B033", "B033", "B033");
-        verifyColumnDataValues(drt, "mamuB Haplotype2", "B025a", "B017a", "B017a", "B025a", "B002", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, "mhcA Haplotype1", "A001", "A023", "A001", "A001", "A002a", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, "mhcA Haplotype2", "A023", "A025", "A001", "A023", "A002a", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, "mhcB Haplotype1", "B015c", "B012b", "B001c", "B012b", "B002", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, "mhcB Haplotype2", "B025a", "B017a", "B017a", "B025a", "B002", "B012b", "B033", "B033", "B033");
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
@@ -351,10 +352,10 @@ public class HaplotypeAssayTest extends GenotypingTest
         goToAssayRun("first run");
         drt = new DataRegionTable("Data", this);
         drt.setFilter("AnimalId", "Equals", "ID-5");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype1", "A001");
-        verifyColumnDataValues(drt, "Mamu-AHaplotype2", "A002a");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype1", "B002");
-        verifyColumnDataValues(drt, "Mamu-BHaplotype2", "B002");
+        verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001");
+        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A002a");
+        verifyColumnDataValues(drt, "MHC-BHaplotype1", "B002");
+        verifyColumnDataValues(drt, "MHC-BHaplotype2", "B002");
         drt.clearFilter("AnimalId");
     }
 
@@ -431,7 +432,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         drt = new DataRegionTable("Data", this);
         drt.setFilter("AnimalId", "Equals", "ID-4");
         clickAndWait(Locator.linkWithText("edit"));
-        waitForText("mamuB Haplotype", 2, WAIT_FOR_JAVASCRIPT);
+        waitForText("mhcB Haplotype", 2, WAIT_FOR_JAVASCRIPT);
         _ext4Helper.uncheckCheckbox("Enabled:");
         clickButton("Submit");
         drt = new DataRegionTable("Data", this);
@@ -488,10 +489,10 @@ public class HaplotypeAssayTest extends GenotypingTest
         goToQuery("Haplotype");
         drt = new DataRegionTable("query", this);
         assertEquals("Unexpected number of Haplotype records", total, drt.getDataRowCount());
-        drt.setFilter("Type", "Equals", "mamuA");
+        drt.setFilter("Type", "Equals", "mhcA");
         assertEquals("Unexpected number of filtered Haplotype records", typeACount, drt.getDataRowCount());
         drt.clearFilter("Type");
-        drt.setFilter("Type", "Equals", "mamuB");
+        drt.setFilter("Type", "Equals", "mhcB");
         assertEquals("Unexpected number of filtered Haplotype records", typeBCount, drt.getDataRowCount());
         drt.clearFilter("Type");
     }
@@ -502,24 +503,45 @@ public class HaplotypeAssayTest extends GenotypingTest
     }
 
     @LogMethod
-    private void importRun(String assayId, String assayName, File dataFile)
+    private void importRun(String assayId, String assayName, File dataFile, boolean isDRB)
     {
         log("Importing Haplotype Run: " + assayId);
         goToAssayImport(assayName);
         setFormElement(Locator.name("name"), assayId);
         checkCheckbox(Locator.name("enabled"));
         selectOptionByText(Locator.name("speciesId"), "mamu");
-        setDataAndColumnHeaderProperties(dataFile);
+        // NOTE: consider breaking these into seperate tests...
+        if (isDRB)
+            setDataAndColumnHeaderPropertiesForDRB(dataFile);
+        else
+            setDataAndColumnHeaderPropertiesForHaplotype(dataFile);
+
         clickButton("Save and Finish");
         waitForText(assayName + " Runs");
         assertElementPresent(Locator.linkWithText(assayId));
     }
 
     @LogMethod
+    private void setDataAndColumnHeaderPropertiesForHaplotype(File dataFile)
+    {
+        setDataAndColumnHeaderProperties(dataFile);
+        _ext4Helper.selectComboBoxItem("MHC-B Haplotype 1:", "Mamu-B Haplotype 1");
+        _ext4Helper.selectComboBoxItem("MHC-B Haplotype 2:", "Mamu-B Haplotype 2");
+    }
+
+    @LogMethod
+    private void setDataAndColumnHeaderPropertiesForDRB(File dataFile)
+    {
+        setDataAndColumnHeaderProperties(dataFile);
+        _ext4Helper.selectComboBoxItem("MHC-DRB Haplotype 1:", "Mamu-DRB Haplotype 1");
+        _ext4Helper.selectComboBoxItem("MHC-DRB Haplotype 2:", "Mamu-DRB Haplotype 2");
+    }
+
+    @LogMethod
     private void setDataAndColumnHeaderProperties(File dataFile)
     {
         // adding text to the data text area triggers the events to enable the comboboxes and load their stores
-        Locator cb = Locator.xpath("//table[contains(@class,'disabled')]//label[text() = 'Mamu-B Haplotype 2:']");
+        Locator cb = Locator.xpath("//table[contains(@class,'disabled')]//label[text() = 'Lab Animal ID *:']");
         if (!isElementPresent(cb))
             fail("The Haplotype column header mapping comboboxes should be disbabled until the data is pasted in.");
 
@@ -527,8 +549,10 @@ public class HaplotypeAssayTest extends GenotypingTest
         waitForElementToDisappear(cb, WAIT_FOR_JAVASCRIPT);
         _ext4Helper.selectComboBoxItem("Lab Animal ID *:", "OC ID");
         _ext4Helper.selectComboBoxItem("Client Animal ID:", "Animal ID");
-        _ext4Helper.selectComboBoxItem("Total # Reads Evaluated *:", "# Reads Merged");
-        _ext4Helper.selectComboBoxItem("Total # Reads Identified *:", "# Reads Identified");
+        _ext4Helper.selectComboBoxItem("Total # Reads Evaluated:", "# Reads Merged");
+        _ext4Helper.selectComboBoxItem("Total # Reads Identified:", "# Reads Identified");
+        _ext4Helper.selectComboBoxItem("MHC-A Haplotype 1:", "Mamu-A Haplotype 1");
+        _ext4Helper.selectComboBoxItem("MHC-A Haplotype 2:", "Mamu-A Haplotype 2");
     }
 
     private void goToAssayRun(String assayId)

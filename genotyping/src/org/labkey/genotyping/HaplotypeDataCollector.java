@@ -83,15 +83,10 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
 
         // verify that all of the column header mapping values are present
         List<String> errorColHeaders = new ArrayList<>();
-        HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
 
         for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties(protocol).entrySet())
         {
             String value = context.getRequest().getParameter(property.getKey());
-            String matchLabel = property.getValue().getLabel();
-            if(!matchLabel.split(" ")[0].equals(value.split(" ")[0]) && !defaults.contains(property.getValue().getName()) && !value.equals("")){
-                throw new ExperimentException("The haplotype " + matchLabel + " is not compatible with the column header: " + value + " (must have matching first word with assigned column).");
-            }
             if (property.getValue().isRequired() && (value == null || value.equals("")))
                 errorColHeaders.add(property.getValue().getLabel());
         }
