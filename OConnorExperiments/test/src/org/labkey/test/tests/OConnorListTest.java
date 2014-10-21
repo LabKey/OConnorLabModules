@@ -15,6 +15,7 @@
  */
 package org.labkey.test.tests;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.junit.BeforeClass;
@@ -82,69 +83,72 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
 
     private void setupOConnorProject()
     {
-        PortalHelper portalHelper = new PortalHelper(this);
         _containerHelper.createProject(getProjectName(), "OConnor Purchasing System");
         _containerHelper.enableModules(Arrays.asList(MODULES));
         //TODO: turn query validation back on once query validation bugs are fixed
         importFolderFromZip(TestFileUtils.getSampleData(FOLDER_ZIP_FILE), false, 1);
-        goToProjectHome();
+        importExperimentTypes();
+        importSpecimenTypes();
+    }
+
+    @LogMethod
+    private void importExperimentTypes()
+    {
         goToSchemaBrowser();
         selectQuery("OConnorExperiments", "ExperimentType");
         click(Locator.linkWithText("view data"));
+
+        StringBuilder expTsv = new StringBuilder();
+        expTsv.append("name\tenabled");
         for(String type : EXPERIMENT_TYPES)
         {
-            waitForElement(Locator.linkWithSpan("Insert New"));
-            click(Locator.linkWithSpan("Insert New"));
-            setFormElement(Locator.name("quf_Name"), type);
-            click(Locator.linkWithSpan("Submit"));
+            expTsv.append("\n");
+            expTsv.append(type);
+            expTsv.append("\ttrue");
         }
         for(String type : DISABLED_EXPERIMENT_TYPES)
         {
-            waitForElement(Locator.linkWithSpan("Insert New"));
-            click(Locator.linkWithSpan("Insert New"));
-            setFormElement(Locator.name("quf_Name"), type);
-            uncheckCheckbox(Locator.checkboxByName("quf_Enabled"));
-            click(Locator.linkWithSpan("Submit"));
+            expTsv.append("\n");
+            expTsv.append(type);
+            expTsv.append("\tfalse");
         }
+        _listHelper.uploadData(expTsv.toString());
+    }
 
+    @LogMethod
+    private void importSpecimenTypes()
+    {
         goToSchemaBrowser();
         selectQuery("oconnor", "specimen_type");
         click(Locator.linkWithText("view data"));
         DataRegionTable drt = new DataRegionTable("query", this);
 
         // NOTE: clear old values (as they are not container scoped)
-        drt.setFilter("specimen_type", "Equals One Of (e.g. \"a;b;c\")", StringUtils.join(SPECIMEN_TYPES, ';'));
-        drt.checkAll();
-        try {
+        drt.setFilter("specimen_type", "Equals One Of (e.g. \"a;b;c\")", StringUtils.join(ArrayUtils.addAll(SPECIMEN_TYPES, DISABLED_SPECIMEN_TYPES), ';'));
+        if (drt.getDataRowCount() > 0)
+        {
+            drt.checkAll();
+            prepForPageLoad();
             clickButton("Delete", 0);
             assertAlert("Are you sure you want to delete the selected rows?");
+            waitForPageToLoad();
         }
-        catch (AssertionError e) {}
 
+        StringBuilder specimenTsv = new StringBuilder();
+        specimenTsv.append("specimen_type\tenabled");
         for(String type : SPECIMEN_TYPES)
         {
-            waitForElement(Locator.linkWithSpan("Insert New"));
-            click(Locator.linkWithSpan("Insert New"));
-            setFormElement(Locator.name("quf_specimen_type"), type);
-            click(Locator.linkWithSpan("Submit"));
+            specimenTsv.append("\n");
+            specimenTsv.append(type);
+            specimenTsv.append("\ttrue");
         }
-
-        drt.setFilter("specimen_type", "Equals One Of (e.g. \"a;b;c\")", StringUtils.join(DISABLED_SPECIMEN_TYPES, ';'));
-        drt.checkAll();
-        try {
-            clickButton("Delete", 0);
-            assertAlert("Are you sure you want to delete the selected rows?");
-        }
-        catch (AssertionError e) {}
-
         for(String type : DISABLED_SPECIMEN_TYPES)
         {
-            waitForElement(Locator.linkWithSpan("Insert New"));
-            click(Locator.linkWithSpan("Insert New"));
-            setFormElement(Locator.name("quf_specimen_type"), type);
-            uncheckCheckbox(Locator.checkboxByName("quf_enabled"));
-            click(Locator.linkWithSpan("Submit"));
+            specimenTsv.append("\n");
+            specimenTsv.append(type);
+            specimenTsv.append("\tfalse");
         }
+        _listHelper.uploadData(specimenTsv.toString());
     }
 
     @Test
