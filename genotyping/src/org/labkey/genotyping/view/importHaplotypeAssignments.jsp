@@ -61,7 +61,7 @@
     Ext4.onReady(function(){
         var items = [{
             xtype: 'textarea',
-            fieldLabel: 'Copy/Paste the header rows into the text area below',
+            fieldLabel: 'Copy/Paste the rows, including the headers, into the text area below',
             labelAlign: 'top',
             itemId: <%=q(HaplotypeAssayProvider.DATA_PROPERTY_NAME)%>,
             name: <%=q(HaplotypeAssayProvider.DATA_PROPERTY_NAME)%>,
