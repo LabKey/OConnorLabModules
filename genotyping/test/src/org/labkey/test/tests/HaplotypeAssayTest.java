@@ -572,7 +572,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         goToManageAssays();
         clickAndWait(Locator.linkWithText(assayName));
         clickButton("Import Data");
-        waitForText("Copy/Paste the header rows into the text area below:");
+        waitForText("Copy/Paste the rows, including the headers, into the text area below:");
         waitForText("Match the column headers from the tab-delimited data with the key fields:");
     }
 }
