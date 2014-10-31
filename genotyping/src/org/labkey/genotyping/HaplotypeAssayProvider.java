@@ -270,22 +270,30 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         GenotypingSchema gs = GenotypingSchema.get();
         SqlExecutor executor = new SqlExecutor(gs.getSchema());
 
-        for (int i=0; i < orig.getFields().size(); i++)
+        for (GWTPropertyDescriptor updateField : update.getFields())
         {
-            String origFieldName = orig.getFields().get(i).getName();
+            int propId = updateField.getPropertyId();
 
-            if (origFieldName.contains("Haplotype"))
+            // first check that field isn't new (e.g. propId == 0)
+            if (propId != 0)
             {
-                String updateFieldName = update.getFields().get(i).getName();
-
-                String origType = origFieldName.substring(0, origFieldName.length() - 1).replaceAll("Haplotype", "");
-                String updateType = updateFieldName.substring(0, updateFieldName.length() - 1).replaceAll("Haplotype", "");
-
-                if (!origFieldName.equals(updateFieldName))
+                for (GWTPropertyDescriptor origField : orig.getFields() )
                 {
-                    SQLFragment updateHaplotype = new SQLFragment("UPDATE " + gs.getHaplotypeTable() +
-                        " SET type = ? WHERE type = ? AND container = ?", updateType, origType, protocol.getContainer());
-                    executor.execute(updateHaplotype);
+                    if (propId == origField.getPropertyId())
+                    {
+                        String updateFieldName = updateField.getName();
+                        String origFieldName = origField.getName();
+
+                        if (!origFieldName.equals(updateFieldName))
+                        {
+                            String updateType = updateFieldName.substring(0, updateFieldName.length() - 1).replaceAll("Haplotype", "");
+                            String origType = origFieldName.substring(0, origFieldName.length() - 1).replaceAll("Haplotype", "");
+                            SQLFragment updateHaplotype = new SQLFragment("UPDATE " + gs.getHaplotypeTable() +
+                                    " SET type = ? WHERE type = ? AND container = ?", updateType, origType, protocol.getContainer());
+                            executor.execute(updateHaplotype);
+                        }
+                        break;
+                    }
                 }
             }
         }
@@ -319,7 +327,6 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         String label;
         HashSet<String> defaults = getDefaultColumns();
 
-        // NOTE: consider using HAPLOTYPE_COLUMNS here...
         for (DomainProperty prop : domain.getProperties())
         {
             label = prop.getLabel() != null ? prop.getLabel() : ColumnInfo.labelFromName(prop.getName());
