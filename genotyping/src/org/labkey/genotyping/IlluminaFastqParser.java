@@ -20,6 +20,7 @@ import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.sequence.IlluminaReadHeader;
 import org.labkey.api.util.FileType;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -84,15 +86,19 @@ public class IlluminaFastqParser<SampleIdType>
 
     //this returns a map connecting samples with output FASTQ files.
     // the key of the map is a pair where the first item is the sampleId and the second item indicated whether this file is the forward (1) or reverse (2) reads
-    public Map<Pair<SampleIdType, Integer>, File> parseFastqFiles() throws PipelineJobException
+    public Map<Pair<SampleIdType, Integer>, File> parseFastqFiles(PipelineJob job) throws PipelineJobException
     {
         _fileMap = new HashMap<>();
         _sequenceTotals = new HashMap<>();
 
         FastqReader reader = null;
 
+        Map<File, File> filesToMove = new LinkedHashMap<>();
+
+        int index = 1;
         for (File f : _files)
         {
+            job.setStatus("PARSING FILE " + index + " OF " + _files.size());
             try
             {
                 _logger.info("Beginning to parse file: " + f.getName());
@@ -125,21 +131,33 @@ public class IlluminaFastqParser<SampleIdType>
 
                 if (!f.equals(newFile))
                 {
-                    FileUtils.moveFile(f, newFile);
-                    _logger.info("Move of file " + f.getName() + " to " + newFile.getName() );
+                    filesToMove.put(f, newFile);
                 }
                 _fileMap.put(Pair.of(sampleId, pairNumber), newFile);
                 _logger.info("Finished parsing file: " + f.getName());
-            }
-            catch (IOException e)
-            {
-                throw new PipelineJobException(e);
             }
             finally
             {
                 if (reader != null)
                     reader.close();
             }
+            index++;
+        }
+
+        // Rename the files to the preferred convention after we've finished processing all of the files
+        try
+        {
+            for (Map.Entry<File, File> entry : filesToMove.entrySet())
+            {
+                File oldFile = entry.getKey();
+                File newFile = entry.getValue();
+                FileUtils.moveFile(oldFile, newFile);
+                _logger.info("Moved file " + oldFile.getName() + " to " + newFile.getName() );
+            }
+        }
+        catch (IOException e)
+        {
+            throw new PipelineJobException(e);
         }
 
         Map<Pair<SampleIdType, Integer>, File> outputs = new HashMap<>();

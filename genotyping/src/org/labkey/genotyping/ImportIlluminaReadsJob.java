@@ -25,6 +25,7 @@ import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.api.DataType;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExperimentService;
+import org.labkey.api.pipeline.CancelledException;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
@@ -51,12 +52,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * This job processes all the reads for the run, but doesn't import them all into the database.
  * User: bbimber
  * Date: Apr 19, 2012
  * Time: 7:34:16 AM
  */
 
-// This job imports all the reads for the run.
 public class ImportIlluminaReadsJob extends PipelineJob
 {
     private final File _sampleFile;
@@ -64,14 +65,9 @@ public class ImportIlluminaReadsJob extends PipelineJob
     private String _fastqPrefix;
     private final GenotypingRun _run;
 
-    public ImportIlluminaReadsJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run)
-    {
-        this(info, root, reads, run, null);
-    }
-
     public ImportIlluminaReadsJob(ViewBackgroundInfo info, PipeRoot root, File sampleFile, GenotypingRun run, @Nullable String fastqPrefix)
     {
-        super("Import Illumina Reads", info, root);
+        super("Process Illumina Reads", info, root);
         _sampleFile = sampleFile;
         _run = run;
         _fastqPrefix = fastqPrefix;
@@ -88,7 +84,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
     @Override
     public String getDescription()
     {
-        return "Import Illumina reads for run " + _run.getRowId();
+        return "Process Illumina reads for run " + _run.getRowId();
     }
 
 
@@ -102,21 +98,26 @@ public class ImportIlluminaReadsJob extends PipelineJob
             importReads();
 
             updateRunStatus(Status.Complete);
-            info("Import Illumina reads complete");
+            info("Processing Illumina reads complete");
             setStatus(TaskStatus.complete);
 
             User user = UserManager.getUser(_run.getCreatedBy());
             if (user != null)
             {
                 MailHelper.ViewMessage m = MailHelper.createMessage(LookAndFeelProperties.getInstance(getContainer()).getSystemEmailAddress(), user.getEmail());
-                m.setSubject("Illumina Run " + _run.getRowId() + " Import Complete");
-                m.setText("Illumina run " + _run.getRowId() + " has finished importing. You can view it at " + getContainer().getStartURL(user));
+                m.setSubject("Illumina Run " + _run.getRowId() + " Processing Complete");
+                m.setText("Illumina run " + _run.getRowId() + " has finished processing. You can view it at " + getContainer().getStartURL(user));
                 MailHelper.send(m, getUser(), getContainer());
             }
         }
+        catch (CancelledException e)
+        {
+            setActiveTaskStatus(TaskStatus.cancelled);
+            // Don't need to do anything else, job has already been set to CANCELLED
+        }
         catch (Exception e)
         {
-            error("Import Illumina reads failed", e);
+            error("Processing Illumina reads failed", e);
             setStatus(TaskStatus.error);
 
             try
@@ -149,7 +150,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
             catch (SQLException e)
             {
                 if (RuntimeSQLException.isConstraintException(e))
-                    throw new PipelineJobException("Run " + _run.getMetaDataId() + " has already been imported");
+                    throw new PipelineJobException("Run " + _run.getMetaDataId() + " has already been processed");
                 else
                     throw e;
             }
@@ -164,8 +165,8 @@ public class ImportIlluminaReadsJob extends PipelineJob
     {
         try
         {
-            info("Importing Run From File: " + _sampleFile.getName());
-            setStatus("IMPORTING READS");
+            info("Processing Run From File: " + _sampleFile.getName());
+            setStatus("PROCESSING READS");
 
             try (CSVReader reader = new CSVReader(new FileReader(_sampleFile)))
             {
@@ -233,7 +234,7 @@ public class ImportIlluminaReadsJob extends PipelineJob
 
                 //now bin the FASTQ files into 2 per sample
                 IlluminaFastqParser<Integer> parser = new IlluminaFastqParser<>(FileUtil.getBaseName(_run.getFileName()), sampleMap, getLogger(), new ArrayList<>(_fastqFiles));
-                Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles();
+                Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles(this);
                 Map<Pair<Integer, Integer>, Integer> readcounts = parser.getReadCounts();
 
                 info("Recording records for each FASTQ file");
@@ -255,11 +256,10 @@ public class ImportIlluminaReadsJob extends PipelineJob
                     }
 
                     File input = fileMap.get(sampleKey);
-                    File output = input;
 
                     ExpData data = ExperimentService.get().createData(getContainer(), new DataType("Illumina FASTQ File " + sampleKey.getValue()));
-                    data.setDataFileURI(output.toURI());
-                    data.setName(output.getName());
+                    data.setDataFileURI(input.toURI());
+                    data.setName(input.getName());
                     data.save(getUser());
                     row.put("DataId", data.getRowId());
 
