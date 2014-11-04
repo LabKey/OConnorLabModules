@@ -237,11 +237,11 @@ OConnorExperiments/resources/schemas/dbscripts/sqlserver/obsolete/oconnorexperim
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/obsolete/oconnorexperiments-13.11-13.12.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/obsolete/oconnorexperiments-13.20-13.21.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/obsolete/oconnorexperiments-14.10-14.11.sql -text
+OConnorExperiments/resources/schemas/dbscripts/sqlserver/obsolete/oconnorexperiments-14.11-14.12.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-0.00-13.10.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-13.10-13.20.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-13.20-13.30.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-14.10-14.20.sql -text
-OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-14.11-14.12.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-14.20-14.21.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/oconnorexperiments-14.20-14.30.sql -text
 OConnorExperiments/resources/schemas/oconnorexperiments.xml -text
