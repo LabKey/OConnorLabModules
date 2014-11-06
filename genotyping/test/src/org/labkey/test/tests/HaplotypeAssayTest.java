@@ -24,6 +24,7 @@ import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.ListHelper;
 import org.labkey.test.util.LogMethod;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.File;
 import java.util.Arrays;
@@ -78,6 +79,51 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyDuplicateRecords();
         verifyAribitraryHaplotypeAssay();
         verifySTRDiscrepancies();
+        verifyColumnRenaming();
+    }
+
+    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
+    private void verifyColumnRenaming()
+    {
+        String assayId = "second run";
+
+        renameColumns("Mamu");
+        // at this point could check that titles have changed...
+
+        // reset view
+        clickAndWait(Locator.linkWithText(assayId));
+        waitForText(ASSAY_NAME + " Results");
+        _customizeViewsHelper.revertUnsavedViewGridClosed();
+
+        verifySecondRun("Mamu");
+
+        renameColumns("MHC");
+
+        clickAndWait(Locator.linkWithText(assayId));
+        waitForText(ASSAY_NAME + " Results");
+        //_customizeViewsHelper.revertUnsavedViewGridClosed();
+    }
+
+
+    private void renameColumns(String prefix)
+    {
+        String prefix2 = prefix.toLowerCase();
+
+        goToProjectHome();
+        goToManageAssays();
+        clickAndWait(Locator.linkWithText(ASSAY_NAME));
+        _assayHelper.clickEditAssayDesign();
+
+        setFormElement(Locator.name("ff_name5"), prefix2+"AHaplotype1");
+        setFormElement(Locator.name("ff_label5"), prefix+"-A Haplotype 1");
+        setFormElement(Locator.name("ff_name6"), prefix2+"AHaplotype2");
+        setFormElement(Locator.name("ff_label6"), prefix+"-A Haplotype 2");
+        setFormElement(Locator.name("ff_name7"), prefix2+"BHaplotype1");
+        setFormElement(Locator.name("ff_label7"), prefix+"-B Haplotype 1");
+        setFormElement(Locator.name("ff_name8"), prefix2+"BHaplotype2");
+        setFormElement(Locator.name("ff_label8"), prefix+"-B Haplotype 2");
+
+        clickButton("Save & Close");
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
@@ -275,24 +321,11 @@ public class HaplotypeAssayTest extends GenotypingTest
         log("Verify Haplotype Assignment data for the second run");
         goToAssayRun("second run");
 
-        DataRegionTable drt = new DataRegionTable("Data", this);
-        verifyColumnDataValues(drt, "Animal", "ID-4", "ID-5", "ID-6", "ID-7", "ID-8", "ID-9");
-        verifyColumnDataValues(drt, "TotalReads", "4000", "5000", "6000", "7000", " ", "0");
-        verifyColumnDataValues(drt, "IdentifiedReads", "2500", "3250", "3000", "3500", " ", "1");
-        verifyColumnDataValues(drt, "%Unknown", "37.5", "35.0", "50.0", "50.0", " ", " ");
-        verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001", " ", "A033", "A004", "A004", "A004");
-        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", " ", "A033", "A004", "A004", "A004");
-        verifyColumnDataValues(drt, "MHC-BHaplotype1", "B015c", " ", "B012b", "B033", "B033", "B033");
-        verifyColumnDataValues(drt, "MHC-BHaplotype2", "B025a", " ", "B012b", "B033", "B033", "B033");
-        verifyColumnDataValues(drt, "Enabled", "true", "true", "true", "true", "true", "true");
-        verifyColumnDataValues(drt, "ClientAnimalId", "x456", "x567", "x678", "x789", "x888", "x999");
+        verifySecondRun("MHC");
 
-        // verify concatenated haplotype strings
-        List<String> concatenated = drt.getColumnDataAsText("ConcatenatedHaplotypes");
-        assertEquals("Wrong number of data rows", 6, concatenated.size());
-        verifyStringContains(concatenated.get(0), "A001", "A023", "B015c", "B025a");
-        verifyStringContains(concatenated.get(2), "A033", "A033", "B012b", "B012b");
-        verifyStringContains(concatenated.get(3), "A004", "B033", "B033"); // Record with only 3 haplotypes
+        // validate extra column in view
+        DataRegionTable drt = new DataRegionTable("Data", this);
+        verifyColumnDataValues(drt, "ClientAnimalId", "x456", "x567", "x678", "x789", "x888", "x999");
 
         // verify that the animal and haplotype rows were properly inserted
         goToQuery("Animal");
@@ -302,6 +335,28 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "ClientAnimalId", "x123", "x234", "x345", "x456", "x567", "x678", "x789", "x888", "x999");
 
         verifyHaplotypeRecordsByType(13, 6, 7);
+    }
+
+
+    private void verifySecondRun(String prefix)
+    {
+        DataRegionTable drt = new DataRegionTable("Data", this);
+        verifyColumnDataValues(drt, "Animal", "ID-4", "ID-5", "ID-6", "ID-7", "ID-8", "ID-9");
+        verifyColumnDataValues(drt, "TotalReads", "4000", "5000", "6000", "7000", " ", "0");
+        verifyColumnDataValues(drt, "IdentifiedReads", "2500", "3250", "3000", "3500", " ", "1");
+        verifyColumnDataValues(drt, "%Unknown", "37.5", "35.0", "50.0", "50.0", " ", " ");
+        verifyColumnDataValues(drt, prefix+"-AHaplotype1", "A001", " ", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, prefix+"-AHaplotype2", "A023", " ", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, prefix+"-BHaplotype1", "B015c", " ", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, prefix+"-BHaplotype2", "B025a", " ", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, "Enabled", "true", "true", "true", "true", "true", "true");
+
+        // verify concatenated haplotype strings
+        List<String> concatenated = drt.getColumnDataAsText("ConcatenatedHaplotypes");
+        assertEquals("Wrong number of data rows", 6, concatenated.size());
+        verifyStringContains(concatenated.get(0), "A001", "A023", "B015c", "B025a");
+        verifyStringContains(concatenated.get(2), "A033", "A033", "B012b", "B012b");
+        verifyStringContains(concatenated.get(3), "A004", "B033", "B033"); // Record with only 3 haplotypes
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
@@ -337,16 +392,19 @@ public class HaplotypeAssayTest extends GenotypingTest
         String animalAnalysisId = drt.getDataAsText(4, "RowId"); // row index 4 is ID-5
         goToQuery("AnimalHaplotypeAssignment");
         waitForElement(Locator.paginationText(1, 39, 39));
+
         // ADD: animal ID-5, haplotype A001
         clickButton("Insert New");
         selectOptionByText(Locator.name("quf_HaplotypeId"), "A001");
         selectOptionByText(Locator.name("quf_AnimalAnalysisId"), animalAnalysisId);
         clickButton("Submit");
+
         // ADD: animal ID-5, haplotype B002
         clickButton("Insert New");
         selectOptionByText(Locator.name("quf_HaplotypeId"), "B002");
         selectOptionByText(Locator.name("quf_AnimalAnalysisId"), animalAnalysisId);
         clickButton("Submit");
+
         // verify the calculated columns in the assay results view for concatenated haplotype, etc.
         goToProjectHome();
         goToAssayRun("first run");
@@ -357,6 +415,9 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "MHC-BHaplotype1", "B002");
         verifyColumnDataValues(drt, "MHC-BHaplotype2", "B002");
         drt.clearFilter("AnimalId");
+
+        // NOTE: this should clean up what it has done in order to make the test more modular...
+
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
