@@ -28,6 +28,7 @@ import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.DomainProperty;
 import org.labkey.api.exp.property.Lookup;
+import org.labkey.api.gwt.client.DefaultValueType;
 import org.labkey.api.gwt.client.model.GWTDomain;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.module.ModuleLoader;
@@ -191,6 +192,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
         for (Map.Entry<String, HaplotypeColumnMappingProperty> property : getColumnMappingProperties(false).entrySet())
         {
             DomainProperty dp = addProperty(runDomain, property.getKey(), PropertyType.STRING);
+            dp.setDefaultValueTypeEnum(DefaultValueType.FIXED_EDITABLE);
             dp.setLabel(property.getValue().getLabel());
             dp.setDescription("Used for mapping the column headers in the tsv data with this key field.");
             dp.setShownInInsertView(false);
