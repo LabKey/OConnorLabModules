@@ -281,8 +281,7 @@ genotyping/resources/assay/Haplotype/queries/AggregatedAnalysisResults.query.xml
 genotyping/resources/assay/Haplotype/queries/AggregatedAnalysisResults.sql -text
 genotyping/resources/assay/Haplotype/queries/DuplicateAssignment.query.xml -text
 genotyping/resources/assay/Haplotype/queries/DuplicateAssignment.sql -text
-genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.00-12.20.sql -text
-genotyping/resources/schemas/dbscripts/postgresql/genotyping-12.20-12.30.sql -text
+genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.00-12.30.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-14.10-14.20.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-14.20-14.21.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-14.20-14.30.sql -text
@@ -294,6 +293,7 @@ genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-0.00-10.30
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-0.00-11.10.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-0.00-11.20.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-0.00-11.30.sql -text
+genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-0.00-12.20.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-0.01-0.02.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-0.02-0.03.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-0.03-0.04.sql -text
@@ -310,12 +310,12 @@ genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-12.11-12.1
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-12.12-12.13.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-12.13-12.14.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-12.20-12.21.sql -text
+genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-12.20-12.30.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-12.21-12.22.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-12.22-12.23.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-14.10-14.11.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-14.11-14.12.sql -text
-genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.00-12.20.sql -text
-genotyping/resources/schemas/dbscripts/sqlserver/genotyping-12.20-12.30.sql -text
+genotyping/resources/schemas/dbscripts/sqlserver/genotyping-0.00-12.30.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-14.10-14.20.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-14.20-14.21.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/genotyping-14.20-14.30.sql -text
@@ -327,6 +327,7 @@ genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-0.00-10.30.
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-0.00-11.10.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-0.00-11.20.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-0.00-11.30.sql -text
+genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-0.00-12.20.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-0.01-0.02.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-0.02-0.03.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-0.03-0.04.sql -text
@@ -344,6 +345,7 @@ genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-12.11-12.12
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-12.12-12.13.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-12.13-12.14.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-12.20-12.21.sql -text
+genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-12.20-12.30.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-12.21-12.22.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-12.22-12.23.sql -text
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-14.10-14.11.sql -text
