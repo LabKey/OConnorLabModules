@@ -88,9 +88,9 @@ OConnor/resources/queries/oconnor/simple_experiment/all_experiments.qview.xml -t
 OConnor/resources/queries/oconnor/status.query.xml -text
 OConnor/resources/queries/oconnor/vendors.query.xml -text
 OConnor/resources/queries/oconnor/vendors/dashboard_vendors.qview.xml -text
-OConnor/resources/schemas/dbscripts/postgresql/oconnor-0.00-1.07.sql -text
+OConnor/resources/schemas/dbscripts/postgresql/obsolete/oconnor-0.00-1.07.sql -text
+OConnor/resources/schemas/dbscripts/postgresql/obsolete/oconnor-1.07-14.23.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-0.00-14.30.sql -text
-OConnor/resources/schemas/dbscripts/postgresql/oconnor-1.07-14.23.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-1.07-14.30.sql -text
 OConnor/resources/schemas/oconnor.xml -text
 OConnor/resources/views/AnimalList.html -text
