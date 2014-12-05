@@ -98,7 +98,7 @@ public class ImportAnalysisJob extends PipelineJob
             {
                 setStatus("LOADING TEMP TABLES");
                 info("Loading matches temp table");
-                matches = createTempTable(sourceMatches, schema, null);
+                matches = createTempTable(sourceMatches, null);
 
                 QueryContext ctx = new QueryContext(schema, matches, gs.getReadsTable(), _analysis.getRun());
                 JspTemplate<QueryContext> jspQuery = new JspTemplate<>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
@@ -182,7 +182,7 @@ public class ImportAnalysisJob extends PipelineJob
 
 
     // columnNames: comma-separated list of column names to include; null means include all columns
-    private TempTableInfo createTempTable(File file, DbSchema schema, @Nullable String columnNames) throws IOException, SQLException
+    private TempTableInfo createTempTable(File file, @Nullable String columnNames) throws IOException, SQLException
     {
         try (TabLoader loader = new TabLoader(file, true))
         {
@@ -196,7 +196,7 @@ public class ImportAnalysisJob extends PipelineJob
             }
 
             TempTableWriter ttw = new TempTableWriter(loader);
-            return ttw.loadTempTable(schema);
+            return ttw.loadTempTable();
         }
     }
 
