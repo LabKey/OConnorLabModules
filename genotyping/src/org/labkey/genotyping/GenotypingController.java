@@ -42,6 +42,7 @@ import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SQLFragment;
+import org.labkey.api.data.Selector.ForEachBlock;
 import org.labkey.api.data.ShowRows;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
@@ -126,6 +127,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -2028,12 +2030,12 @@ public class GenotypingController extends SpringActionController
         @Override
         public boolean doAction(Object o, BindException errors) throws Exception
         {
-            Set<String> runs = DataRegionSelection.getSelected(getViewContext(), true);
             GenotypingManager gm = GenotypingManager.get();
+            Set<Integer> runs = DataRegionSelection.getSelectedIntegers(getViewContext(), true);
 
-            for (String runId : runs)
+            for (Integer runId : runs)
             {
-                GenotypingRun run = gm.getRun(getContainer(), Integer.parseInt(runId));
+                GenotypingRun run = gm.getRun(getContainer(), runId);
                 gm.deleteRun(run);
             }
 
@@ -2057,12 +2059,11 @@ public class GenotypingController extends SpringActionController
         @Override
         public boolean doAction(Object o, BindException errors) throws Exception
         {
-            Set<String> analyses = DataRegionSelection.getSelected(getViewContext(), true);
             GenotypingManager gm = GenotypingManager.get();
 
-            for (String analysisId : analyses)
+            for (Integer analysisId : DataRegionSelection.getSelectedIntegers(getViewContext(), true))
             {
-                GenotypingAnalysis analysis = gm.getAnalysis(getContainer(), Integer.parseInt(analysisId));
+                GenotypingAnalysis analysis = gm.getAnalysis(getContainer(), analysisId);
                 gm.deleteAnalysis(analysis);
             }
 
@@ -2153,25 +2154,20 @@ public class GenotypingController extends SpringActionController
 
     public class AssignmentReportBean
     {
-        private Integer[] _id;
-        private String _assayName;
-        private String _returnURL;
+        private final Collection<Integer> _ids;
+        private final String _assayName;
+        private final ActionURL _returnURL;
 
-        public AssignmentReportBean(Integer[] id, String assayName, String returnURL)
+        public AssignmentReportBean(Collection<Integer> ids, String assayName, ActionURL returnURL)
         {
-            _id = id;
+            _ids = ids;
             _assayName = assayName;
             _returnURL = returnURL;
         }
 
-        public Integer[] getId()
+        public Collection<Integer> getIds()
         {
-            return _id;
-        }
-
-        public void setId(Integer[] id)
-        {
-            _id = id;
+            return _ids;
         }
 
         public String getAssayName()
@@ -2179,19 +2175,9 @@ public class GenotypingController extends SpringActionController
             return _assayName;
         }
 
-        public void setAssayName(String assayName)
-        {
-            _assayName = assayName;
-        }
-
-        public String getReturnURL()
+        public ActionURL getReturnURL()
         {
             return _returnURL;
-        }
-
-        public void setReturnURL(String returnURL)
-        {
-            _returnURL = returnURL;
         }
     }
 
@@ -2206,27 +2192,15 @@ public class GenotypingController extends SpringActionController
             _protocol = form.getProtocol();
 
             // when coming from the results grid, we use the selected rows as the initial set of IDs for the report form
-            Set<String> selectedStrings = DataRegionSelection.getSelected(getViewContext(), false);
-            Integer[] selected;
-            if (selectedStrings.size() > 0)
-            {
-                selected = new Integer[selectedStrings.size()];
-                int index = 0;
-                for (String idStr : selectedStrings)
-                    selected[index++] = Integer.parseInt(idStr);
-            }
-            else
-                selected = new Integer[0];
+            Set<Integer> selected = DataRegionSelection.getSelectedIntegers(getViewContext(), false);
 
             VBox result = new VBox();
             AssayHeaderView header = new AssayHeaderView(form.getProtocol(), form.getProvider(), false, true, null);
             result.addView(header);
 
-            ActionURL returnURL = form.getReturnActionURL();
-            if (returnURL == null)
-                returnURL = PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
+            ActionURL returnURL = form.getReturnActionURL(PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer()));
 
-            AssignmentReportBean bean = new AssignmentReportBean(selected, _protocol.getName(), returnURL.getLocalURIString());
+            AssignmentReportBean bean = new AssignmentReportBean(selected, _protocol.getName(), returnURL);
             JspView report = new JspView<>("/org/labkey/genotyping/view/haplotypeAssignmentReport.jsp", bean);
             result.addView(report);
 
@@ -2277,12 +2251,12 @@ public class GenotypingController extends SpringActionController
         private static final String _delim = "[;,/]";
 
         @Override
-        public ModelAndView getView(STRDiscrepancies form, BindException errors) throws Exception
+        public ModelAndView getView(final STRDiscrepancies form, BindException errors)
         {
             _protocol = form.getProtocol();
             GenotypingSchema gs = GenotypingSchema.get();
 
-            // NOTE: need to narrow down based on protocl/assay/container
+            // NOTE: need to narrow down based on protocol/assay/container
 
             SQLFragment sql = new SQLFragment("SELECT a." + HaplotypeAssayProvider.LAB_ANIMAL_ID + ", h.name, h.type FROM ");
             sql.append(gs.getAnimalHaplotypeAssignmentTable(), "aha");
@@ -2306,11 +2280,12 @@ public class GenotypingController extends SpringActionController
             sql.add(true);
 
             // NOTE: this has assignments already mixed in (site/key 'STR').
-            Map<String, Map<String, Set<String>>> animalHaplotypes = new TreeMap<>();
+            final Map<String, Map<String, Set<String>>> animalHaplotypes = new TreeMap<>();
 
-            try (ResultSet rs = new SqlSelector(gs.getSchema(), sql).getResultSet())
+            new SqlSelector(gs.getSchema(), sql).forEach(new ForEachBlock<ResultSet>()
             {
-                while(rs.next())
+                @Override
+                public void exec(ResultSet rs) throws SQLException
                 {
                     String labAnimalId = rs.getString(HaplotypeAssayProvider.LAB_ANIMAL_ID);
                     String type = rs.getString("type");
@@ -2329,18 +2304,20 @@ public class GenotypingController extends SpringActionController
                         haplotypeMap.get(type).add(name);
                     }
                 }
-            }
+            });
 
             // Next need to get STR haplotypes
-            Map <String, Set<Map<String, String>>> strHaplotypes = new TreeMap<>();
+            final Map <String, Set<Map<String, String>>> strHaplotypes = new TreeMap<>();
             TableInfo tableInfo = QueryService.get().getUserSchema(getUser(), getContainer(), "lists").getTable(HaplotypeAssayProvider.STR_HAPLOTYPE);
             if (tableInfo == null)
             {
                 throw new NotFoundException("Could not find table '" + HaplotypeAssayProvider.STR_HAPLOTYPE + "' in schema 'lists'");
             }
-            try (ResultSet rs = new TableSelector(tableInfo).getResultSet())
+
+            new TableSelector(tableInfo).forEach(new ForEachBlock<ResultSet>()
             {
-                while (rs.next())
+                @Override
+                public void exec(ResultSet rs) throws SQLException
                 {
                     String[] mamuAs = rs.getString(HaplotypeAssayProvider.MHC_A).split(_delim);
                     String[] mamuBs = rs.getString(HaplotypeAssayProvider.MHC_B).split(_delim);
@@ -2376,7 +2353,7 @@ public class GenotypingController extends SpringActionController
                     }
                     strHaplotypes.put(rs.getString(HaplotypeAssayProvider.STR_HAPLOTYPE), strGrouping);
                 }
-            }
+            });
 
             // now loop over STR assignments looking for discrepancies
 

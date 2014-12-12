@@ -19,9 +19,8 @@
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.api.view.HttpView" %>
 <%@ page import="org.labkey.api.view.JspView" %>
-<%@ page import="org.labkey.genotyping.GenotypingController" %>
-<%@ page import="java.util.Arrays" %>
 <%@ page import="org.labkey.api.view.template.ClientDependency" %>
+<%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="java.util.LinkedHashSet" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
@@ -41,7 +40,7 @@
     final String queryWebPartDivId = "queryWebPart" + getRequestScopedUID();
     final String duplicatesDivId = "duplicates" + getRequestScopedUID();
     final String assayName = bean.getAssayName();
-    String initialIds = StringUtils.join(Arrays.asList(bean.getId()), ";");
+    String initialIds = StringUtils.join(bean.getIds(), ";");
 %>
 <div id='<%=h(idEntryFormDivId)%>'></div>
 <br/>
