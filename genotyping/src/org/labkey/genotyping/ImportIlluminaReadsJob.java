@@ -33,6 +33,7 @@ import org.labkey.api.query.FieldKey;
 import org.labkey.api.security.User;
 import org.labkey.api.security.UserManager;
 import org.labkey.api.settings.LookAndFeelProperties;
+import org.labkey.api.util.ConfigurationException;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.MailHelper;
 import org.labkey.api.util.Pair;
@@ -107,7 +108,14 @@ public class ImportIlluminaReadsJob extends PipelineJob
                 MailHelper.ViewMessage m = MailHelper.createMessage(LookAndFeelProperties.getInstance(getContainer()).getSystemEmailAddress(), user.getEmail());
                 m.setSubject("Illumina Run " + _run.getRowId() + " Processing Complete");
                 m.setText("Illumina run " + _run.getRowId() + " has finished processing. You can view it at " + getContainer().getStartURL(user));
-                MailHelper.send(m, getUser(), getContainer());
+                try
+                {
+                    MailHelper.send(m, getUser(), getContainer());
+                }
+                catch (ConfigurationException e)
+                {
+                    getLogger().error("Failed to send success notification, but job has completed successfully", e);
+                }
             }
         }
         catch (CancelledException e)
