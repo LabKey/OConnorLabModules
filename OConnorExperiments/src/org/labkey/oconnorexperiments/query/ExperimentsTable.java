@@ -45,7 +45,6 @@ import org.labkey.api.etl.DataIteratorUtil;
 import org.labkey.api.etl.ListofMapsDataIterator;
 import org.labkey.api.etl.LoggingDataIterator;
 import org.labkey.api.etl.SimpleTranslator;
-import org.labkey.api.etl.ValidatorIterator;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.AbstractQueryUpdateService;
 import org.labkey.api.query.BatchValidationException;
@@ -272,34 +271,34 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         }
 
         @Override
-        public List<Map<String, Object>> updateRows(User user, Container container, List<Map<String, Object>> rows, List<Map<String, Object>> oldKeys, Map<String, Object> extraScriptContext) throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
+        public List<Map<String, Object>> updateRows(User user, Container container, List<Map<String, Object>> rows, List<Map<String, Object>> oldKeys, @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
         {
             // TODO: Handle MultiValueFK junction entries in SimpleQueryUpdateService instead of here...
-            deleteParentExperiments(user, container, rows, extraScriptContext);
+            deleteParentExperiments(user, container, rows, configParameters, extraScriptContext);
             try
             {
-                insertParentExperiments(user, container, rows, extraScriptContext);
+                insertParentExperiments(user, container, rows, configParameters, extraScriptContext);
             }
             catch (DuplicateKeyException e)
             {
                 throw new QueryUpdateServiceException(e);
             }
-            return _wrapped.updateRows(user, container, rows, oldKeys, extraScriptContext);
+            return _wrapped.updateRows(user, container, rows, oldKeys, configParameters, extraScriptContext);
         }
 
         @Override
-        public List<Map<String, Object>> deleteRows(User user, Container container, List<Map<String, Object>> keys, Map<String, Object> extraScriptContext) throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
+        public List<Map<String, Object>> deleteRows(User user, Container container, List<Map<String, Object>> keys, @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext) throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
         {
             // TODO: Handle MultiValueFK junction entries in SimpleQueryUpdateService instead of here...
             // Delete all associated ParentExperiment rows before deleting experiment rows
             // so we don't get a constraint violation.
             // CONSIDER: Should we delete all ParentExperiments that refer to Containers being deleted?
-            deleteParentExperiments(user, container, keys, extraScriptContext);
+            deleteParentExperiments(user, container, keys, configParameters, extraScriptContext);
 
-            return _wrapped.deleteRows(user, container, keys, extraScriptContext);
+            return _wrapped.deleteRows(user, container, keys, configParameters, extraScriptContext);
         }
 
-        private void insertParentExperiments(User user, Container container, List<Map<String, Object>> rows, Map<String, Object> extraScriptContext) throws SQLException, QueryUpdateServiceException, BatchValidationException, DuplicateKeyException
+        private void insertParentExperiments(User user, Container container, List<Map<String, Object>> rows, Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException, QueryUpdateServiceException, BatchValidationException, DuplicateKeyException
         {
             TableInfo parentExperimentsTable = getUserSchema().getTable(OConnorExperimentsUserSchema.Table.ParentExperiments.name());
             QueryUpdateService parentExperimentsQUS = parentExperimentsTable.getUpdateService();
@@ -338,14 +337,14 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
                     }
 
                     BatchValidationException errors = new BatchValidationException();
-                    parentExperimentsQUS.insertRows(user, innerContainer, parentExperimentRows, errors, extraScriptContext);
+                    parentExperimentsQUS.insertRows(user, innerContainer, parentExperimentRows, errors, configParameters, extraScriptContext);
                     if (errors.hasErrors())
                         throw errors;
                 }
             }
         }
 
-        private void deleteParentExperiments(User user, Container container, List<Map<String, Object>> keys, Map<String, Object> extraScriptContext) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
+        private void deleteParentExperiments(User user, Container container, List<Map<String, Object>> keys, Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
         {
             TableInfo parentExperimentsTable = getUserSchema().getTable(OConnorExperimentsUserSchema.Table.ParentExperiments.name());
             QueryUpdateService parentExperimentsQUS = parentExperimentsTable.getUpdateService();
@@ -364,7 +363,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
                 Map<String, Object>[] rows = selector.getMapArray();
                 List<Map<String, Object>> rowIds = Arrays.asList(rows);
 
-                parentExperimentsQUS.deleteRows(user, container, rowIds, extraScriptContext);
+                parentExperimentsQUS.deleteRows(user, container, rowIds, configParameters, extraScriptContext);
             }
         }
     }

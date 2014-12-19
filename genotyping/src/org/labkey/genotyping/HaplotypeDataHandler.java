@@ -210,13 +210,13 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
 
                 mergeIncomingAnimalInfoIntoExisting(row, existingAnimal);
                 // Push the merged animal info back to the database
-                updateService.updateRows(user, container, Collections.singletonList(existingAnimal), Collections.singletonList(row), null);
+                updateService.updateRows(user, container, Collections.singletonList(existingAnimal), Collections.singletonList(row), null, null);
             }
             else
             {
                 // insert the new animal row
                 BatchValidationException errors = new BatchValidationException();
-                List<Map<String, Object>> insertedRow = updateService.insertRows(user, container, Collections.singletonList(row), errors, new HashMap<String, Object>());
+                List<Map<String, Object>> insertedRow = updateService.insertRows(user, container, Collections.singletonList(row), errors, null, new HashMap<String, Object>());
                 throwFirstError(errors);
                 if (insertedRow.size() != 1)
                 {
@@ -286,7 +286,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             {
                 // insert the new haplotype row
                 BatchValidationException errors = new BatchValidationException();
-                List<Map<String, Object>> insertedRow = updateService.insertRows(user, container, Collections.singletonList(row), errors, new HashMap<String, Object>());
+                List<Map<String, Object>> insertedRow = updateService.insertRows(user, container, Collections.singletonList(row), errors, null, new HashMap<String, Object>());
                 throwFirstError(errors);
                 if (insertedRow.size() != 1)
                 {
@@ -342,7 +342,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
 
         BatchValidationException errors = new BatchValidationException();
-        List<Map<String, Object>> insertedRows = updateService.insertRows(user, container, rows, errors, new HashMap<String, Object>());
+        List<Map<String, Object>> insertedRows = updateService.insertRows(user, container, rows, errors, null, new HashMap<String, Object>());
         throwFirstError(errors);
 
          // return a mapping from the AnimalId to the AnimalAnalysis RowId
@@ -379,7 +379,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
 
         BatchValidationException errors = new BatchValidationException();
-        List<Map<String, Object>> insertedRows = updateService.insertRows(user, container, rows, errors, new HashMap<String, Object>());
+        List<Map<String, Object>> insertedRows = updateService.insertRows(user, container, rows, errors, null, new HashMap<String, Object>());
         throwFirstError(errors);
     }
 

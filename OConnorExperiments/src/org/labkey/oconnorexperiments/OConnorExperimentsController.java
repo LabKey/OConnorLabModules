@@ -181,7 +181,7 @@ public class OConnorExperimentsController extends SpringActionController
                     List<Map<String, Object>> updateResult;
                     try
                     {
-                        updateResult = queryUpdateService.insertRows(getUser(), getContainer(), Collections.singletonList(map), batchErrors, null);
+                        updateResult = queryUpdateService.insertRows(getUser(), getContainer(), Collections.singletonList(map), batchErrors, null, null);
                     }
                     catch (Exception e)
                     {
@@ -261,7 +261,7 @@ public class OConnorExperimentsController extends SpringActionController
                             Logger.getLogger(OConnorExperimentsController.class).info("Update rows on experiment " + databaseMap.get("expnumber"));
                             try
                             {
-                                queryUpdateService.updateRows(getUser(), targetContainer, Collections.singletonList(map), null, null);
+                                queryUpdateService.updateRows(getUser(), targetContainer, Collections.singletonList(map), null, null, null);
                             }
                             catch (Exception e)
                             {
@@ -416,7 +416,7 @@ public class OConnorExperimentsController extends SpringActionController
             row.put("Container", getContainer().getEntityId());
 
             BatchValidationException batchErrors = new BatchValidationException();
-            List<Map<String, Object>> result = qus.insertRows(getUser(), getContainer(), Collections.singletonList(row), batchErrors, null);
+            List<Map<String, Object>> result = qus.insertRows(getUser(), getContainer(), Collections.singletonList(row), batchErrors, null, null);
             if (batchErrors.hasErrors())
                 throw batchErrors;
 
