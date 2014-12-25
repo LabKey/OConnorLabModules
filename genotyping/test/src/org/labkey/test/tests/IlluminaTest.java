@@ -33,6 +33,7 @@ import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
@@ -390,7 +391,7 @@ public class IlluminaTest extends GenotypingBaseTest
     }
 
     @Override
-    public java.util.List<String> getAssociatedModules()
+    public List<String> getAssociatedModules()
     {
         return Arrays.asList("genotyping");
     }

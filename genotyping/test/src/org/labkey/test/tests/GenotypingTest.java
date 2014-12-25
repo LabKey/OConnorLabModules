@@ -24,6 +24,7 @@ import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -261,7 +262,7 @@ public class GenotypingTest extends GenotypingBaseTest
     }
 
     @Override
-    public java.util.List<String> getAssociatedModules()
+    public List<String> getAssociatedModules()
     {
         return Arrays.asList("genotyping");
     }
