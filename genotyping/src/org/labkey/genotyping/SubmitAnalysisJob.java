@@ -17,7 +17,7 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.labkey.api.data.RuntimeSQLException;
+import org.labkey.api.data.Selector;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TSVWriter;
 import org.labkey.api.data.Table;
@@ -30,7 +30,6 @@ import org.labkey.api.settings.AppProps;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.MinorConfigurationException;
 import org.labkey.api.util.PageFlowUtil;
-import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.ViewBackgroundInfo;
@@ -39,7 +38,6 @@ import org.labkey.genotyping.galaxy.GalaxyUtils;
 import org.labkey.genotyping.galaxy.WorkflowCompletionMonitor;
 import org.labkey.genotyping.sequences.SequenceManager;
 
-import javax.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -156,42 +154,35 @@ public class SubmitAnalysisJob extends PipelineJob
     }
 
 
-    private void writeReads() throws IOException, SQLException, ServletException
+    private void writeReads() throws IOException
     {
         info("Writing reads file");
         setStatus("WRITING READS");
-        TableInfo ti = GenotypingSchema.get().getReadsTable();
-        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("run"), _analysis.getRun());
-        filter.addInClause(FieldKey.fromParts("SampleId"), _sampleIds);
-
-        final ResultSet rs = new TableSelector(ti, ti.getColumns("name,sampleid,sequence,quality"), filter, null).getResultSet();
 
         // Need a custom writer since TSVGridWriter does not work in background threads
-        TSVWriter writer = new TSVWriter() {
+        try (TSVWriter writer = new TSVWriter() {
             @Override
             protected void write()
             {
                 _pw.println("name\tsample\tsequence\tquality");
 
-                try
+                TableInfo ti = GenotypingSchema.get().getReadsTable();
+                SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("run"), _analysis.getRun());
+                filter.addInClause(FieldKey.fromParts("SampleId"), _sampleIds);
+
+                new TableSelector(ti, ti.getColumns("name,sampleid,sequence,quality"), filter, null).forEach(new Selector.ForEachBlock<ResultSet>()
                 {
-                    while (rs.next())
+                    @Override
+                    public void exec(ResultSet rs) throws SQLException
                     {
                         _pw.println(rs.getString(1) + "\t" + rs.getInt(2) + "\t" + rs.getString(3) + "\t" + rs.getString(4));
                     }
-                }
-                catch (SQLException e)
-                {
-                    throw new RuntimeSQLException(e);
-                }
-                finally
-                {
-                    ResultSetUtil.close(rs);
-                }
+                });
             }
-        };
-
-        writer.write(new File(_analysisDir, "reads.txt"));
+        })
+        {
+            writer.write(new File(_analysisDir, "reads.txt"));
+        }
     }
 
 
