@@ -15,6 +15,7 @@
  */
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
@@ -40,7 +41,7 @@ public class GenotypingRunsView extends QueryView
 
     public static final WebPartFactory FACTORY = new BaseWebPartFactory("Sequencing Runs")
     {
-        public WebPartView getWebPartView(ViewContext ctx, Portal.WebPart webPart) throws Exception
+        public WebPartView getWebPartView(@NotNull ViewContext ctx, @NotNull Portal.WebPart webPart)
         {
             WebPartView view = new GenotypingRunsView(ctx, null, "SequencingRuns", false);
             view.setTitle("Sequencing Runs");

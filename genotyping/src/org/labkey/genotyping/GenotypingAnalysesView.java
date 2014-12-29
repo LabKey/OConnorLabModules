@@ -15,6 +15,7 @@
  */
 package org.labkey.genotyping;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.SimpleFilter;
@@ -39,7 +40,7 @@ public class GenotypingAnalysesView extends QueryView
 
     public static final WebPartFactory FACTORY = new BaseWebPartFactory("Genotyping Analyses")
     {
-        public WebPartView getWebPartView(ViewContext ctx, Portal.WebPart webPart) throws Exception
+        public WebPartView getWebPartView(@NotNull ViewContext ctx, @NotNull Portal.WebPart webPart)
         {
             WebPartView view = new GenotypingAnalysesView(ctx, null, "GenotypingAnalyses");
             view.setTitle("Genotyping Analyses");
