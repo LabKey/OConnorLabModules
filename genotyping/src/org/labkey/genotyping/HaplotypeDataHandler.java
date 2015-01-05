@@ -24,7 +24,6 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlExecutor;
-import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.ExperimentException;
@@ -198,7 +197,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             String animalKey = row.get(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()).toString();
 
             // first check if the animal row exists
-            Map<String, Object> existingAnimal = new TableSelector(tinfo, Table.ALL_COLUMNS, new SimpleFilter(FieldKey.fromParts(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()), animalKey), null).getObject(Map.class);
+            Map<String, Object> existingAnimal = new TableSelector(tinfo, new SimpleFilter(FieldKey.fromParts(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()), animalKey), null).getMap();
             if (existingAnimal != null)
             {
                 Object rowId = existingAnimal.get("RowId");

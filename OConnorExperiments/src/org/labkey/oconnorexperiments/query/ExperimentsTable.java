@@ -358,8 +358,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
                     containers.add(c);
                 }
                 Filter filter = new SimpleFilter(FieldKey.fromParts("Container"), containers, CompareType.IN);
-                TableSelector selector = new TableSelector(
-                        parentExperimentsTable, Arrays.asList(parentExperimentsTable.getColumn("RowId")), filter, null);
+                TableSelector selector = new TableSelector(parentExperimentsTable.getColumn("RowId"), filter, null);
                 Map<String, Object>[] rows = selector.getMapArray();
                 List<Map<String, Object>> rowIds = Arrays.asList(rows);
 
