@@ -122,7 +122,7 @@ public class GenotypingManager
         map.put(Setting.ReferenceSequencesQuery.getKey(), settings.getSequencesQuery());
         map.put(Setting.RunsQuery.getKey(), settings.getRunsQuery());
         map.put(Setting.SamplesQuery.getKey(), settings.getSamplesQuery());
-        PropertyManager.saveProperties(map);
+        map.save();
     }
 
     public GenotypingRun createRun(Container c, User user, Integer metaDataId, File readsFile, String platform) throws SQLException

@@ -51,7 +51,7 @@ public class GalaxyManager
     {
         PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(c, FOLDER_CATEGORY, true);
         map.put(GALAXY_URL, settings.getGalaxyURL());
-        PropertyManager.saveProperties(map);
+        map.save();
     }
 
     public GalaxyFolderSettings getSettings(final Container c)
@@ -74,7 +74,7 @@ public class GalaxyManager
     {
         PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(user, c, USER_CATEGORY, true);
         map.put(GALAXY_KEY, userSettings.getGalaxyKey());
-        PropertyManager.saveProperties(map);
+        map.save();
     }
 
     public GalaxyUserSettings getUserSettings(final Container c, final User user)
