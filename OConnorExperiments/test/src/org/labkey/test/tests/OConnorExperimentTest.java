@@ -37,18 +37,14 @@ import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.PortalHelper;
 import org.labkey.test.util.PostgresOnlyTest;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.junit.Assert.assertEquals;
@@ -60,10 +56,8 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     private static final String PROJECT_NAME = "OConnor Experiment Project";
     private static final String MODULE_NAME = "OConnorExperiments";
     private static final String SCHEMA_NAME = MODULE_NAME;
-    private static final String QUERY_NAME = "Experiments";
     private static final String TABLE_NAME = "Experiments";
     private static final String EXPERIMENT_TYPE_TABLE_NAME = "ExperimentType";
-    private ArrayList<String> workbookids = new ArrayList<String>();
     private ArrayList<String> pkeys = new ArrayList<>();
 
     @Nullable
@@ -85,29 +79,10 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         _containerHelper.createProject(PROJECT_NAME, null);
         _containerHelper.enableModule(PROJECT_NAME, MODULE_NAME);
 
-        // Customize the default view for the Experiments table
-        beginAt("/query/" + getProjectName() + "/executeQuery.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + QUERY_NAME);
-        _customizeViewsHelper.openCustomizeViewPanel();
-        _customizeViewsHelper.showHiddenItems();
-        _customizeViewsHelper.addCustomizeViewColumn("Created");
-        _customizeViewsHelper.addCustomizeViewColumn("Modified");
-        _customizeViewsHelper.addCustomizeViewColumn("FolderType");
-        _customizeViewsHelper.addCustomizeViewColumn(new String[] { "Container", "EntityId" });
-        _customizeViewsHelper.saveDefaultView();
-
-        // Customize the default view for the Workbooks table
-        beginAt("/query/" + getProjectName() + "/executeQuery.view?schemaName=core&query.queryName=Workbooks");
-        _customizeViewsHelper.openCustomizeViewPanel();
-        _customizeViewsHelper.showHiddenItems();
-        _customizeViewsHelper.addCustomizeViewColumn("FolderType");
-        _customizeViewsHelper.addCustomizeViewColumn("EntityId");
-        _customizeViewsHelper.saveDefaultView();
-
-        // Add the webparts to the portal page
+        // Add the experiment webpart to the portal page
         goToProjectHome();
         PortalHelper portalHelper = new PortalHelper(this);
-        portalHelper.addQueryWebPart("Query", SCHEMA_NAME, QUERY_NAME, null);
-        portalHelper.addWebPart("Workbooks");
+        portalHelper.addWebPart("OConnorExperiments");
 
         log("setup complete");
     }
@@ -117,26 +92,66 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     {
         doSetup();
 
-        String entityId3 = insertViaGenericQueryForm();
-        // update the thrid Experiment (Experiment Number is a container scoped sequence in the current project)
-        updateViaGenericQueryForm(entityId3, "3");
-        deleteViaQueryWebPart();
+        createExperimentTypes();
+        goToProjectHome();
+        insertViaExperimentsWebpart("description1", "type1", null);
+        insertViaExperimentsWebpart("description2", "type2", "1");
+        insertViaExperimentsWebpart("description3", "type3", "1,2");
 
-        insertViaQueryWebPart();
-        // TODO: write these functions
-        //uploadFileUpdatesModified();
-        //editWikiUpdatesModified();
+        verifyExperimentWebpart(2, "description1", "type1");
+        verifyExperimentWebpart(1, "description2", "type2", 1);
+        verifyExperimentWebpart(0, "description3", "type3", 1,2);
 
-        insertViaWorkbook();
-        updateViaWorkbook();
-        deleteViaWorkbook();
+        // update a single row
+        updateViaExperimentWebpart(0, "updated description 3", "type2", "1");
+        verifyExperimentWebpart(0, "updated description 3", "type2", 1);
+        updateViaExperimentWebpart(0, "updated description 3", "type3", "1,2");
+        verifyExperimentWebpart(0, "updated description 3", "type3", 1,2);
+
+        testBulkUpdate();
+
+        // delete via the webpart
+        DataRegionTable table = new DataRegionTable("query", this);
+        table.uncheckAll();
+        table.checkCheckbox(0);
+        waitForElement(Locator.lkButton("Delete"));
+        click(Locator.lkButton("Delete"));
+        getAlert();
+
+        assertTrue(table.getDataRowCount() == 2);
+
+        // test via api's
         insertViaJavaApi();
+        verifyExperimentWebpart(0, "API Description", null);
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
-    protected String insertViaGenericQueryForm()
+    protected void verifyExperimentWebpart(int row, String description, @Nullable String type, int... parentExperiments)
     {
-        log("starting insertViaGenericQueryForm test");
+        // Verify the Experiment is inserted, examine OConnorExperiment webpart
+        DataRegionTable table = new DataRegionTable("query", this);
+        assertEquals(description, table.getDataAsText(row, "Description"));
+        if (type != null)
+        {
+            assertEquals(type, table.getDataAsText(row, "ExperimentType"));
+        }
+
+        // Make sure each component of the ParentExperiments column is rendered with a link to the begin page for that experiment
+        Locator.XPathLocator l = table.xpath(row, table.getColumn("ParentExperiments"));
+        for (int i : parentExperiments)
+        {
+            Locator.XPathLocator link = l.child("a[" + i + "]");
+            String parentExpText = getText(link);
+            String parentExpHref = getAttribute(link, "href");
+            assertTrue("Expected link to go to project begin for " + parentExpText + ", got: " + parentExpHref,
+                    parentExpHref.contains("/" + parentExpText + "/begin.view") || parentExpHref.contains("/" + parentExpText + "/project-begin.view"));
+        }
+    }
+
+    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
+    protected void createExperimentTypes()
+    {
+        log("creating the experiment type lookups");
 
         beginAt("/query/" + getProjectName() + "/insertQueryRow.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + EXPERIMENT_TYPE_TABLE_NAME);
         waitForElement(Locator.name("quf_Name"));
@@ -150,236 +165,57 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         waitForElement(Locator.name("quf_Name"));
         setFormElement(Locator.name("quf_Name"), "type3");
         clickButton("Submit");
-
-        beginAt("/query/" + getProjectName() + "/insertQueryRow.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + QUERY_NAME);
-        waitForElement(Locator.name("quf_Description"));
-        setFormElement(Locator.name("quf_Description"), "description1");
-        selectOptionByText(Locator.name("quf_ExperimentTypeId"), "type1");
-        clickButton("Submit");
-
-        beginAt("/query/" + getProjectName() + "/insertQueryRow.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + QUERY_NAME);
-        waitForElement(Locator.name("quf_Description"));
-        setFormElement(Locator.name("quf_Description"), "description2");
-        selectOptionByText(Locator.name("quf_ExperimentTypeId"), "type2");
-        selectOptionByText(Locator.name("quf_ParentExperiments"), "1");
-        clickButton("Submit");
-
-        beginAt("/query/" + getProjectName() + "/insertQueryRow.view?schemaName=" + SCHEMA_NAME + "&query.queryName=" + QUERY_NAME);
-        waitForElement(Locator.name("quf_Description"));
-        setFormElement(Locator.name("quf_Description"), "description3");
-        selectOptionByText(Locator.name("quf_ExperimentTypeId"), "type3");
-        selectOptionByText(Locator.name("quf_ParentExperiments"), "1");
-        selectOptionByText(Locator.name("quf_ParentExperiments"), "2");
-        clickButton("Submit");
-
-        goToProjectHome();
-
-        // Verify the Experiment is inserted, examine query webpart
-        DataRegionTable q_table = new DataRegionTable("qwp1", this);
-        int row3 = q_table.getRow("Description", "description3");
-        assertTrue("Expected to find row for 'description3'", row3 != -1);
-        assertEquals("3", q_table.getDataAsText(row3, "ExperimentNumber"));
-        assertEquals("type3", q_table.getDataAsText(row3, "ExperimentType"));
-        Set<String> expectedParentExperiments = new HashSet<>(Arrays.asList("1", "2"));
-        Set<String> parentExperiments = new HashSet<>(Arrays.asList(q_table.getDataAsText(row3, "ParentExperiments").split(", *")));
-        assertEquals("Wrong Parent Experiments", expectedParentExperiments, parentExperiments);
-
-        // Verify the Experiment is inserted, examine workbooks webpart
-        DataRegionTable w_table = new DataRegionTable("query", this);
-        int workbookrow3 = w_table.getRow("Description", "description3");
-        assertEquals("OConnorExperiment", w_table.getDataAsText(workbookrow3, "FolderType"));
-        String entityId = w_table.getDataAsText(workbookrow3, "EntityId");
-
-        // Make sure each component of the ParentExperiments column is rendered with a link to the begin page for that experiment
-        Locator.XPathLocator l = q_table.xpath(row3, q_table.getColumn("ParentExperiments"));
-        for (int i = 1; i < 3; i++)
-        {
-            Locator.XPathLocator link = l.child("a[" + i + "]");
-            String parentExpText = getText(link);
-            String parentExpHref = getAttribute(link, "href");
-            assertTrue("Expected link to go to project begin for " + parentExpText + ", got: " + parentExpHref,
-                    parentExpHref.contains("/" + parentExpText + "/begin.view") || parentExpHref.contains("/" + parentExpText + "/project-begin.view"));
-        }
-
-        checkQueryAndWorkbook();
-
-        return entityId;
     }
 
+    /**
+     * Insert a new experiment using the OConnorExperiment webpart
+     */
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
-    protected void updateViaGenericQueryForm(String entityId, String experimentNumber)
+    protected void insertViaExperimentsWebpart(String description, String type, @Nullable String parentExperiment)
     {
+        waitForElement(Locator.lkButton("Insert New"));
+        click(Locator.lkButton("Insert New"));
 
-
-        beginAt("/query/" + getProjectName() + "/" + experimentNumber + "/updateQueryRow.view?" +
-                "schemaName=" + SCHEMA_NAME + "&query.queryName=" + QUERY_NAME + "&Container=" + entityId);
-
-        waitForElement(Locator.name("quf_Description"));
-        String description = getFormElement(Locator.name("quf_Description"));
-        setFormElement(Locator.name("quf_Description"), description + " edited");
-
-        // UNDONE: verify ParentExperiments are selected correctly
-        // Issue 17985: MultiValueFK update form doesn't select/highlight junction key values
-        //List<String> selectedValues = getSelectedOptionValues(Locator.name("quf_ParentExperiments"));
-        //assertEquals(2, selectedValues.size());
-
-        selectOptionByText(Locator.name("quf_ParentExperiments"), "1");
-        selectOptionByText(Locator.name("quf_ParentExperiments"), "3");
-
-        clickButton("Submit");
-
-        // Verify the Experiment is updated
-        DataRegionTable q_table = new DataRegionTable("query", this);
-        int row = q_table.getRow("Description", description + " edited");
-        assertTrue("Expected to find row for '" + description + " edited'", row != -1);
-        Set<String> expectedParentExperiments = new HashSet<>(Arrays.asList("1", "3"));
-        Set<String> parentExperiments = new HashSet<>(Arrays.asList(q_table.getDataAsText(row, "ParentExperiments").split(", *")));
-        assertEquals("Wrong Parent Experiments", expectedParentExperiments, parentExperiments);
-
+        editExperiment(description, type, parentExperiment);
         goToProjectHome();
-        checkQueryAndWorkbook();
     }
 
-    // Pre-condition: ExperimentNumber 1 and 3 have already been inserted.
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
-    protected void insertViaQueryWebPart()
+    protected void updateViaExperimentWebpart(int row, String description, String type, @Nullable String parentExperiment)
     {
-        log("starting insertViaQueryWebPart test");
-        goToProjectHome();
-
-        clickButtonByIndex("Insert New", 0);
-        waitForElement(getEditInPlaceDisplayField("Description:"));
-        assertEquals("Click to edit", getText(getEditInPlaceDisplayField("Description:")));
-
-        setEditInPlaceContent("Description:", "description4");
-        assertEquals("description4", getText(getEditInPlaceDisplayField("Description:")));
-
-        _ext4Helper.selectComboBoxItem(Ext4Helper.Locators.formItemWithLabel("Experiment Type:"), Ext4Helper.TextMatchTechnique.CONTAINS, "type3");
-
-        setEditInPlaceContent("Parent Experiments:", "1,100,101");
-        waitForText("Experiment numbers not found: 100, 101");
-
-        setEditInPlaceContent("Parent Experiments:", "1, 3");
-        Set<String> expectedParentExperiments = new HashSet<>(Arrays.asList("1", "3"));
-        Set<String> parentExperiments = new HashSet<>(Arrays.asList(getText(getEditInPlaceDisplayField("Parent Experiments:")).split(", *")));
-        assertEquals("Wrong Parent Experiments", expectedParentExperiments, parentExperiments);
-
-        goToProjectHome();
-
-        DataRegionTable q_table = new DataRegionTable("qwp1", this);
-        int row = q_table.getRow("Description", "description4");
-        assertEquals("type3", q_table.getDataAsText(row, "ExperimentType"));
-        String parentExps = q_table.getDataAsText(row, "ParentExperiments");
-        assertTrue(parentExps.equals("1, 3") || parentExps.equals("3, 1"));
-    }
-
-    protected Locator.XPathLocator getEditInPlaceLocator(String label)
-    {
-        Locator.XPathLocator l = Locator.tagContainingText("label", label);
-        Locator.XPathLocator cmp = Locator.tagWithClass("div", "ocexp-edit-in-place-text").withDescendant(l);
-        return cmp;
-    }
-
-    protected Locator.XPathLocator getEditInPlaceDisplayField(String label)
-    {
-        Locator.XPathLocator cmp = getEditInPlaceLocator(label);
-        Locator.XPathLocator displayField = cmp.append(Locator.tagWithClass("div", "x4-form-display-field"));
-        return displayField;
-    }
-
-    protected void setEditInPlaceContent(String label, String text)
-    {
-        // Click display field to start editing
-        Locator.XPathLocator displayField = getEditInPlaceDisplayField(label);
-        waitForElement(displayField);
-        click(displayField);
-
-        // Edit field may be either a textarea or an input text element
-        Locator.XPathLocator cmp = getEditInPlaceLocator(label);
-        Locator input = cmp.append(Locator.xpath("//textarea"));
-        if (!isElementPresent(input))
-            input = cmp.append(Locator.xpath("//input"));
-
-        waitForElement(input);
-
-        WebElement el = input.findElement(getDriver());
-        el.sendKeys(text);
-        fireEvent(el, SeleniumEvent.blur);
-        shortWait().until(ExpectedConditions.not(ExpectedConditions.visibilityOf(el)));
-    }
-
-    protected void setEditInPlaceContent(Locator.XPathLocator l, String text)
-    {
+        DataRegionTable table = new DataRegionTable("query", this);
+        Locator.XPathLocator l = table.xpath(row, 0);
         waitForElement(l);
         click(l);
 
-        Locator.XPathLocator input = l.parent().child("textarea");
-        if (!isElementPresent(input))
-            input = l.parent().child("input");
-
-        WebElement el = input.findElement(getDriver());
-        el.sendKeys(text);
-        fireEvent(el, SeleniumEvent.blur);
-        waitForElement(l);
+        editExperiment(description, type, parentExperiment);
+        goToProjectHome();
     }
 
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
-    protected void deleteViaQueryWebPart()
+    protected void editExperiment(String description, String type, @Nullable String parentExperiment)
     {
-        goToProjectHome();
+        // set the description field
+        Locator desc = Locator.tagWithClass("div", "ocexp-edit-in-place-text").withDescendant(Locator.tagContainingText("label", "Description:"));
+        waitForElement(desc);
+        click(desc);
 
-        DataRegionTable q_table = new DataRegionTable("qwp1", this);
-        q_table.checkCheckbox(1);
-        prepForPageLoad();
-        q_table.clickHeaderButtonByText("Delete");
-        assertAlertContains("Are you sure you want to delete the selected row?");
-        waitForPageToLoad();
-        checkQueryAndWorkbook();
-    }
+        desc = Locator.tagContainingText("label", "Description:").parent().parent().append(Locator.tagWithClass("textarea", "x4-field-form-focus"));
+        waitForElement(desc);
+        setFormElement(desc, description);
 
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
-    protected void insertViaWorkbook()
-    {
-        log("starting insertViaWorkbook test") ;
-        goToProjectHome();
-        clickButtonByIndex("Insert New", 1);
-        waitForElement(Locator.id("workbookTitle"));
-        setFormElement(Locator.id("workbookTitle"), "title");
-        setFormElement(Locator.id("workbookDescription"),"description");
-        selectOptionByText(Locator.id("workbookFolderType"), "Default Workbook");
-        clickButton("Create Workbook");
-        goToProjectHome();
-        checkQueryAndWorkbook();
-    }
+        // parent experiments field
+        if (parentExperiment != null)
+        {
+            Locator experiments = Locator.tagWithClass("div", "ocexp-edit-in-place-text").withDescendant(Locator.tagContainingText("label", "Parent Experiments:"));
+            if (isElementPresent(experiments))
+            click(experiments);
 
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
-    protected void updateViaWorkbook()
-    {
-        goToProjectHome();
-        waitForExtOnReady();
+            experiments = Locator.tagContainingText("label", "Parent Experiments:").parent().parent().append(Locator.tagWithClass("input", "x4-field-form-focus"));
+            waitForElement(experiments);
+            setFormElement(experiments, parentExperiment);
+        }
 
-        Locator editLink = Locator.xpath("//table[@id='dataregion_query']/tbody/tr/td/a[contains(text(), \"edit\")]");
-        waitForElement(editLink);
-        clickAndWait(editLink);
-
-        waitForElement(Locator.name("quf_Description"));
-        setFormElement(Locator.name("quf_Description"), "description1 edited again");
-        clickButton("Submit");
-        goToProjectHome();
-        checkQueryAndWorkbook();
-    }
-
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
-    protected void deleteViaWorkbook()
-    {
-        goToProjectHome();
-        DataRegionTable w_table = new DataRegionTable("query", this);
-        w_table.checkCheckbox(0);
-        prepForPageLoad();
-        w_table.clickHeaderButtonByText("Delete");
-        assertAlertContains("Are you sure you want to delete the selected row?");
-        waitForPageToLoad();
-        checkQueryAndWorkbook();
+        // the type combobox
+        _ext4Helper.selectComboBoxItem("Experiment Type:", Ext4Helper.TextMatchTechnique.CONTAINS, type);
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
@@ -414,7 +250,6 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
             throw new RuntimeException(e);
         }
         goToProjectHome();
-        checkQueryAndWorkbook();
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
@@ -432,7 +267,6 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
             SaveRowsResponse resp = cmd.execute(cn, getProjectName());
             assertEquals("Expected to update " + rowMap.size() + " rows", rowMap.size(), resp.getRowsAffected().intValue());
             goToProjectHome();
-            checkQueryAndWorkbook();
         }
         catch (CommandException e)
         {
@@ -445,7 +279,6 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
             throw new RuntimeException(e);
         }
         goToProjectHome();
-        checkQueryAndWorkbook();
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
@@ -478,33 +311,56 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
             throw new RuntimeException(e);
         }
         goToProjectHome();
-        checkQueryAndWorkbook();
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
-    protected void checkQueryAndWorkbook()
+    protected void testBulkUpdate()
     {
-        //since we have started with a clean o'connor project, both the workbook and query webparts should remain synchronized
-        List<List<String>> wb_vals = getColumnValues("query", "Description", "Created", "Created By");
-        List<String> wb_descriptions = wb_vals.get(0);
-        List<String> wb_createds = wb_vals.get(1);
-        List<String> wb_createdbys = wb_vals.get(2);
+        DataRegionTable table = new DataRegionTable("query", this);
+        table.checkAll();
+        waitForElement(Locator.lkButton("Bulk Edit"));
+        click(Locator.lkButton("Bulk Edit"));
 
-        List<List<String>> q_vals = getColumnValues("qwp1", "Description", "Created", "Created By");
-        List<String> q_descriptions = q_vals.get(0);
-        List<String> q_createds = q_vals.get(1);
-        List<String> q_createdbys = q_vals.get(2);
+        editMultipleExperiments("bulk edit description", "type2", "1", null, null);
+        verifyExperimentWebpart(0, "bulk edit description", "type2", 1);
+        verifyExperimentWebpart(1, "bulk edit description", "type2", 1);
+        verifyExperimentWebpart(2, "bulk edit description", "type2", 1);
 
-        assert(wb_descriptions.size() == q_descriptions.size());
-        assert(wb_createdbys.size() == q_createdbys.size());
-        assert(wb_createds.size() == q_createds.size());
+        table = new DataRegionTable("query", this);
+        table.uncheckAll();
+        table.checkCheckbox(0);
+        table.checkCheckbox(2);
+        waitForElement(Locator.lkButton("Bulk Edit"));
+        click(Locator.lkButton("Bulk Edit"));
 
-        for(int i=0; i < wb_descriptions.size(); i++)
+        editMultipleExperiments("multiple edit description", "type3", "1", "bulk edit description", "type2");
+        verifyExperimentWebpart(0, "multiple edit description", "type3", 1);
+        verifyExperimentWebpart(1, "bulk edit description", "type2", 1);
+        verifyExperimentWebpart(2, "multiple edit description", "type3", 1);
+    }
+
+    protected void editMultipleExperiments(String description, String type, String parentExperiment,
+                                           @Nullable String oldDescription, @Nullable String oldType)
+    {
+        waitForElement(Locator.name("quf_Description"));
+        if (oldDescription != null)
         {
-            assert(wb_descriptions.contains(q_descriptions.get(i)));
-            assert(wb_createdbys.contains(q_descriptions.get(i)));
-            assert(wb_createds.contains(q_createds.get(i)));
+            assertEquals(oldDescription, getText(Locator.name("quf_Description")));
         }
+        setFormElement(Locator.name("quf_Description"), description);
+
+        waitForElement(Locator.name("quf_ExperimentTypeId"));
+        if (oldType != null)
+        {
+            assertEquals(oldType, getSelectedOptionText(Locator.name("quf_ExperimentTypeId")));
+        }
+        selectOptionByText(Locator.name("quf_ExperimentTypeId"), type);
+
+        waitForElement(Locator.name("quf_ParentExperiments"));
+        selectOptionByText(Locator.name("quf_ParentExperiments"), parentExperiment);
+
+        clickButton("Submit");
+        goToProjectHome();
     }
 
     @Override
