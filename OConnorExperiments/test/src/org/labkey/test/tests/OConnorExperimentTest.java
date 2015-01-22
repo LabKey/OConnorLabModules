@@ -37,6 +37,8 @@ import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.PortalHelper;
 import org.labkey.test.util.PostgresOnlyTest;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -185,7 +187,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         DataRegionTable table = new DataRegionTable("query", this);
         Locator.XPathLocator l = table.xpath(row, 0);
         waitForElement(l);
-        click(l);
+        clickAndWait(table.detailsLink(row));
 
         editExperiment(description, type, parentExperiment);
         goToProjectHome();
@@ -194,28 +196,36 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     protected void editExperiment(String description, String type, @Nullable String parentExperiment)
     {
         // set the description field
-        Locator desc = Locator.tagWithClass("div", "ocexp-edit-in-place-text").withDescendant(Locator.tagContainingText("label", "Description:"));
-        waitForElement(desc);
-        click(desc);
-
-        desc = Locator.tagContainingText("label", "Description:").parent().parent().append(Locator.tagWithClass("textarea", "x4-field-form-focus"));
-        waitForElement(desc);
-        setFormElement(desc, description);
+        setEditInPlaceContent("Description:", description);
 
         // parent experiments field
         if (parentExperiment != null)
         {
-            Locator experiments = Locator.tagWithClass("div", "ocexp-edit-in-place-text").withDescendant(Locator.tagContainingText("label", "Parent Experiments:"));
-            if (isElementPresent(experiments))
-            click(experiments);
-
-            experiments = Locator.tagContainingText("label", "Parent Experiments:").parent().parent().append(Locator.tagWithClass("input", "x4-field-form-focus"));
-            waitForElement(experiments);
-            setFormElement(experiments, parentExperiment);
+            setEditInPlaceContent("Parent Experiments:", parentExperiment);
         }
 
         // the type combobox
         _ext4Helper.selectComboBoxItem("Experiment Type:", Ext4Helper.TextMatchTechnique.CONTAINS, type);
+    }
+
+    protected void setEditInPlaceContent(String label, String text)
+    {
+        Locator.XPathLocator cmp = Locator.tagWithClass("div", "ocexp-edit-in-place-text").withDescendant(Locator.tagContainingText("label", label));
+        cmp = cmp.append(Locator.tagWithClass("div", "x4-form-display-field"));
+        waitForElement(cmp);
+        click(cmp);
+
+        Locator.XPathLocator input = Locator.tagWithClass("div", "ocexp-edit-in-place-text").withDescendant(Locator.tagContainingText("label", label));
+        cmp = input.append(Locator.xpath("//textarea"));
+        if (!isElementPresent(cmp))
+            cmp = input.append(Locator.xpath("//input"));
+
+        waitForElement(cmp);
+        setFormElement(cmp, text);
+
+        WebElement el = cmp.findElement(getDriver());
+        fireEvent(el, SeleniumEvent.blur);
+        shortWait().until(ExpectedConditions.not(ExpectedConditions.visibilityOf(el)));
     }
 
     @LogMethod(category = LogMethod.MethodType.VERIFICATION)
