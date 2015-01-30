@@ -32,6 +32,7 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -149,7 +150,7 @@ public class IlluminaTest extends GenotypingBaseTest
         try (
                 InputStream is = new FileInputStream(export);
                 GZIPInputStream gz = new GZIPInputStream(is);
-                BufferedReader br = new BufferedReader(new InputStreamReader(gz)))
+                BufferedReader br = new BufferedReader(new InputStreamReader(gz, StandardCharsets.UTF_8)))
         {
             int count = 0;
             while (br.readLine() != null)
