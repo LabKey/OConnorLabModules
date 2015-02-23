@@ -24,7 +24,6 @@ import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.ListHelper;
 import org.labkey.test.util.LogMethod;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.File;
 import java.util.Arrays;
@@ -235,7 +234,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         checkCheckbox(Locator.name("editableRunProperties"));
 
         clickButton("Save", 0);
-        waitForText("Save successful.", WAIT_FOR_JAVASCRIPT);
+        waitForText(WAIT_FOR_JAVASCRIPT, "Save successful.");
 
     }
 
