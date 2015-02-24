@@ -104,7 +104,7 @@ public class IlluminaTest extends GenotypingBaseTest
     @LogMethod
     private void verifyZipExport() throws Exception
     {
-        final File export = exportAllFiles(ExportType.ZIP, "genotypingExport.zip");
+        final File export = exportAllFiles(ExportType.ZIP, "genotypingExport");
 
         final int expectedLength = 30;
         doesElementAppear(new Checker()
@@ -183,7 +183,7 @@ public class IlluminaTest extends GenotypingBaseTest
 
     private enum ExportType
     {
-        ZIP("ZIP Archive of Individual Files", ""), //TODO: ZIP export doesn't currently append the correct file extension
+        ZIP("ZIP Archive of Individual Files", ".zip"),
         FASTQ("Merge into Single FASTQ File", ".fastq.gz");
 
         private String _radioLabel;

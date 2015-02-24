@@ -137,7 +137,7 @@ Ext4.define('LABKEY.Genotyping.RunExportWindow', {
         var fileName = fileNameField.getValue();
         var url;
         if(exportType == 'zip'){
-            url = LABKEY.ActionURL.buildURL('experiment', 'exportFiles', null, {dataIds: this.dataIds, zipFileName: fileName});
+            url = LABKEY.ActionURL.buildURL('experiment', 'exportFiles', null, {dataIds: this.dataIds, zipFileName: fileName + ".zip"});
         }
         else {
             url = LABKEY.ActionURL.buildURL('genotyping', 'mergeFastqFiles', null, {dataIds: this.dataIds, zipFileName: fileName});

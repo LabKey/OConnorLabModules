@@ -19,24 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.collections.Sets;
-import org.labkey.api.data.AbstractTableInfo;
-import org.labkey.api.data.ActionButton;
-import org.labkey.api.data.ButtonBar;
-import org.labkey.api.data.ColumnInfo;
-import org.labkey.api.data.CompareType;
-import org.labkey.api.data.Container;
-import org.labkey.api.data.ContainerFilter;
-import org.labkey.api.data.DatabaseTableType;
-import org.labkey.api.data.DisplayColumn;
-import org.labkey.api.data.DisplayColumnFactory;
-import org.labkey.api.data.ForeignKey;
-import org.labkey.api.data.HighlightingDisplayColumn;
-import org.labkey.api.data.JdbcType;
-import org.labkey.api.data.MultiValuedForeignKey;
-import org.labkey.api.data.MultiValuedLookupColumn;
-import org.labkey.api.data.SQLFragment;
-import org.labkey.api.data.SimpleFilter;
-import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.*;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.query.ExpSchema;
 import org.labkey.api.module.Module;
@@ -63,10 +46,14 @@ import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.util.StringExpression;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
+import org.labkey.api.view.HttpView;
+import org.labkey.api.view.JspView;
 import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.ViewContext;
 import org.springframework.validation.BindException;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -203,7 +190,27 @@ public class GenotypingQuerySchema extends UserSchema
                 table.setDescription("Contains one row per sequencing read");
 
                 return table;
-            }},
+            }
+
+            @Override
+            QueryView createQueryView(ViewContext context, QuerySettings settings, BindException errors, GenotypingQuerySchema schema)
+            {
+                return new QueryView(schema, settings, errors)
+                {
+                    @Override
+                    public PanelButton createExportButton(boolean exportAsWebPage)
+                    {
+                        PanelButton result = super.createExportButton(exportAsWebPage);
+                        ActionURL url = getViewContext().cloneActionURL();
+                        url.addParameter("exportType", GenotypingController.FASTQ_FORMAT);
+
+                        HttpView filesView = new JspView<>("/org/labkey/genotyping/view/fastqExportOptions.jsp", url);
+                        result.addSubPanel("FASTQ", filesView);
+                        return result;
+                    }
+                };
+            }
+        },
 
         MatchReads() {
             @Override
@@ -408,7 +415,40 @@ public class GenotypingQuerySchema extends UserSchema
                 table.setDescription("Contains one row per sequence file imported with runs");
 
                 return table;
-            }},
+            }
+
+            @Override
+            QueryView createQueryView(ViewContext context, QuerySettings settings, BindException errors, GenotypingQuerySchema schema)
+            {
+                return new QueryView(schema, settings, errors)
+                {
+                    @Override
+                    protected void populateButtonBar(DataView view, ButtonBar bar)
+                    {
+                        //add custom button to download files
+                        ActionButton btn = new ActionButton("Download Selected")
+                        {
+                            public void render(RenderContext ctx, Writer
+                                    out) throws IOException
+                            {
+                                out.write("<script type=\"text/javascript\">\n");
+                                out.write("LABKEY.requiresExt4ClientAPI()\n");
+                                out.write("LABKEY.requiresScript('genotyping/RunExportWindow.js')\n");
+                                out.write("</script>\n");
+                                super.render(ctx, out);
+                            }
+                        };
+
+                        btn.setScript("LABKEY.Genotyping.exportFilesBtnHandler('" + view.getDataRegion().getName() + "');");
+
+                        btn.setRequiresSelection(true);
+                        bar.add(btn);
+
+                        super.populateButtonBar(view, bar, false);
+                    }
+                };
+            }
+        },
 
         Samples() {
             @Override
@@ -427,7 +467,36 @@ public class GenotypingQuerySchema extends UserSchema
                 }
 
                 return null;
-            }},
+            }
+
+            @Override
+            QueryView createQueryView(ViewContext context, QuerySettings settings, BindException errors, GenotypingQuerySchema schema)
+            {
+                return new QueryView(schema, settings, errors)
+                {
+                    @Override
+                    protected void populateButtonBar(DataView view, ButtonBar bar)
+                    {
+                        populateButtonBar(view, bar, false);
+
+                        ActionButton btn = new ActionButton("Create Illumina Sample Sheet");
+                        btn.setActionType(ActionButton.Action.SCRIPT);
+                        btn.setRequiresSelection(true);
+                        btn.setScript("var dataRegion = LABKEY.DataRegions['" + view.getDataRegion().getName() + "'];\n" +
+                                        "var checked = dataRegion.getChecked();\n" +
+                                        "if(!checked.length){\n" +
+                                        "    alert('Must select one or more rows');\n" +
+                                        "    return;\n" +
+                                        "}\n" +
+                                        "window.location = LABKEY.ActionURL.buildURL('genotyping', 'illuminaSampleSheetExport', null, {\n" +
+                                        "    pks: checked,\n" +
+                                        "})\n"
+                        );
+                        bar.add(btn);
+                    }
+                };
+            }
+        },
 
         RunMetadata() {
             @Override
@@ -606,6 +675,12 @@ public class GenotypingQuerySchema extends UserSchema
         };
 
         abstract FilteredTable createTable(GenotypingQuerySchema schema);
+
+        QueryView createQueryView(ViewContext context, QuerySettings settings, BindException errors, GenotypingQuerySchema schema)
+        {
+            return schema.createDefaultQueryView(context, settings, errors);
+        }
+
         boolean isAvailable(GenotypingQuerySchema schema)
         {
             return true;
@@ -645,6 +720,12 @@ public class GenotypingQuerySchema extends UserSchema
 
             return table; // For convenience
         }
+    }
+
+    /** Do the default thing provided by the superclass */
+    private QueryView createDefaultQueryView(ViewContext context, QuerySettings settings, BindException errors)
+    {
+        return super.createView(context, settings, errors);
     }
 
     static
@@ -709,6 +790,14 @@ public class GenotypingQuerySchema extends UserSchema
             return TableType.Matches.createTable(this, analysisId);
         }
 
+        TableType type = findTableType(name);
+
+        return type == null ? null : type.createTable(this);
+    }
+
+    @Nullable
+    private TableType findTableType(String name)
+    {
         if (TABLE_NAMES.contains(name))
         {
             // Can't just use TableType.valueOf() because we need to be case-insensitive
@@ -716,11 +805,10 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 if (name.equalsIgnoreCase(tableType.name()))
                 {
-                    return tableType.createTable(this);
+                    return tableType;
                 }
             }
         }
-
         return null;
     }
 
@@ -742,35 +830,8 @@ public class GenotypingQuerySchema extends UserSchema
     @Override
     public QueryView createView(ViewContext context, QuerySettings settings, BindException errors)
     {
-        if(TableType.Samples.name().equalsIgnoreCase(settings.getQueryName()))
-        {
-            return new QueryView(this, settings, errors)
-            {
-                @Override
-                protected void populateButtonBar(DataView view, ButtonBar bar)
-                {
-                    populateButtonBar(view, bar, false);
-
-
-                    ActionButton btn = new ActionButton("Create Illumina Sample Sheet");
-                    btn.setActionType(ActionButton.Action.SCRIPT);
-                    btn.setRequiresSelection(true);
-                    btn.setScript("var dataRegion = LABKEY.DataRegions['" + view.getDataRegion().getName() + "'];\n" +
-                        "var checked = dataRegion.getChecked();\n" +
-                        "if(!checked.length){\n" +
-                        "    alert('Must select one or more rows');\n" +
-                        "    return;\n" +
-                        "}\n" +
-                        "window.location = LABKEY.ActionURL.buildURL('genotyping', 'illuminaSampleSheetExport', null, {\n" +
-                        "    pks: checked,\n" +
-                        "})\n"
-                    );
-                    bar.add(btn);
-                }
-            };
-        }
-
-        return new QueryView(this, settings, errors);
+        TableType type = findTableType(settings.getQueryName());
+        return type == null ? super.createView(context, settings, errors) : type.createQueryView(context, settings, errors, this);
     }
 
     @Override

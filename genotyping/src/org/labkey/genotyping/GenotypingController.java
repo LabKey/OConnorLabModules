@@ -37,7 +37,6 @@ import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
 import org.labkey.api.data.DataRegionSelection;
-import org.labkey.api.data.PanelButton;
 import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.RuntimeSQLException;
@@ -121,7 +120,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -1790,12 +1788,12 @@ public class GenotypingController extends SpringActionController
         return url;
     }
 
+    public static final String FASTQ_FILE_FORMAT = "FASTQ_FILE";
+    public static final String FASTQ_FORMAT = "FASTQ";
 
     private abstract class ReadsAction<FORM extends RunForm> extends QueryViewAction<FORM, QueryView>
     {
         private static final String DATA_REGION_NAME = "Reads";
-        private static final String FASTQ_FORMAT = "FASTQ";
-        private static final String FASTQ_FILE_FORMAT = "FASTQ_FILE";
 
         private ReadsAction(Class<? extends FORM> formClass)
         {
@@ -1882,53 +1880,7 @@ public class GenotypingController extends SpringActionController
             }
             handleSettings(settings);
 
-
-            QueryView qv = new QueryView(new GenotypingQuerySchema(getUser(), getContainer()), settings, errors)
-            {
-                @Override
-                public PanelButton createExportButton(boolean exportAsWebPage)
-                {
-                    PanelButton result = super.createExportButton(exportAsWebPage);
-
-                    if(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString().equals(platform))
-                    {
-                        ActionURL url = getViewContext().cloneActionURL();
-                        url.addParameter("exportType", FASTQ_FORMAT);
-
-                        HttpView filesView = new JspView<>("/org/labkey/genotyping/view/fastqExportOptions.jsp", url);
-                        result.addSubPanel("FASTQ", filesView);
-                    }
-                    return result;
-                }
-
-                @Override
-                protected void populateButtonBar(DataView view, ButtonBar bar)
-                {
-                    //add custom button to download files
-                    if(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString().equals(platform))
-                    {
-                        ActionButton btn = new ActionButton("Download Selected"){
-                            public void render(RenderContext ctx, Writer
-                                    out) throws IOException
-                            {
-                                out.write("<script type=\"text/javascript\">\n");
-                                out.write("LABKEY.requiresExt4ClientAPI()\n");
-                                out.write("LABKEY.requiresScript('genotyping/RunExportWindow.js')\n");
-                                out.write("</script>\n");
-                                super.render(ctx, out);
-                            }
-                        };
-
-                        btn.setScript("LABKEY.Genotyping.exportFilesBtnHandler('" + view.getDataRegion().getName() + "');");
-
-                        btn.setRequiresSelection(true);
-                        bar.add(btn);
-                    }
-
-                    super.populateButtonBar(view, bar, false);
-                }
-            };
-
+            QueryView qv = new GenotypingQuerySchema(getUser(), getContainer()).createView(getViewContext(), settings, errors);
             qv.setShadeAlternatingRows(true);
             return qv;
         }
