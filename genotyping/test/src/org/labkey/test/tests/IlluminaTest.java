@@ -107,7 +107,7 @@ public class IlluminaTest extends GenotypingBaseTest
         final File export = exportAllFiles(ExportType.ZIP, "genotypingExport");
 
         final int expectedLength = 30;
-        doesElementAppear(new Checker()
+        waitFor(new Checker()
         {
             @Override
             public boolean check()
