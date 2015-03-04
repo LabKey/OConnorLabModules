@@ -94,16 +94,14 @@ public class GenotypingTest extends GenotypingBaseTest
 
     private void verifyAnalysis()
     {
-        if(!WebTestHelper.isGroupConcatSupported())
+        if (!WebTestHelper.isGroupConcatSupported())
             return;
         goToProjectHome();
 
         clickAndWait(Locator.linkWithText("View Analyses"));
         clickAndWait(Locator.linkWithText("" + getRunNumber()));  // TODO: This is probably still too permissive... need a more specific way to get the run link
 
-        assertTextPresent("Reads", "Sample Id", "Percent");
-
-        assertTextPresent("TEST09");
+        assertTextPresent("Reads", "Sample Id", "Percent", "TEST09");
 //        assertTextPresent("TEST14", 2);
         assertElementPresent(Locator.paginationText(1, 100, 1410));
         startAlterMatches();

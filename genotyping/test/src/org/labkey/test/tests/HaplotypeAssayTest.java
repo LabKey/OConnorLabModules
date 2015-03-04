@@ -194,8 +194,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         clickButton("Save");
         clickAndWait(Locator.linkWithText("Haplotype"));
         _customizeViewsHelper.openCustomizeViewPanel(); //TODO:  should this be necessary?
-        assertTextPresent("Haplotype String Test");
-        assertTextPresent("Haplotype Integer Test");
+        assertTextPresent("Haplotype String Test", "Haplotype Integer Test");
     }
 
     private void setupHaplotypeAssay()
@@ -427,8 +426,8 @@ public class HaplotypeAssayTest extends GenotypingTest
         goToAssayRun("first run");
         clickButton("Produce Report");
         waitForText("Search for animal IDs by:");
-        assertTextPresent("Show report column headers as:");
-        assertTextPresent("Enter the animal IDs separated by whitespace, comma, or semicolon:");
+        assertTextPresent("Show report column headers as:",
+                "Enter the animal IDs separated by whitespace, comma, or semicolon:");
 
         // test a single ID
         Locator dr = Locator.id("dataregion_report");
@@ -443,7 +442,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         clickButton("Submit", 0);
         waitForText("x345");
         drt = new DataRegionTable("report", this);
-        assertTextPresentInThisOrder("A001","B001c","B017a");
+        assertTextPresentInThisOrder("A001", "B001c", "B017a");
         verifyColumnDataValues(drt, "x345", "2", "1", "1");
 
         // test with IDs that only have one result
@@ -456,12 +455,12 @@ public class HaplotypeAssayTest extends GenotypingTest
         drt = new DataRegionTable("report", this);
         drt.setFilter("ID-1::Counts", "Equals", "1", 0);
         waitForText("ID-1::Counts = 1");
-        assertTextPresentInThisOrder("A001","A023","B015c","B025a");
+        assertTextPresentInThisOrder("A001", "A023", "B015c", "B025a");
         assertTextNotPresent("A004");
         drt.clearFilter("ID-1::Counts", 0);
         drt.setFilter("ID-6::Counts", "Equals", "2", 0);
         waitForText("ID-6::Counts = 2");
-        assertTextPresentInThisOrder("A033","B012b");
+        assertTextPresentInThisOrder("A033", "B012b");
         assertTextNotPresent("A001");
         drt.clearFilter("ID-6::Counts", 0);
 
@@ -473,7 +472,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         waitForElement(Locator.paginationText(1, 8, 8));
         waitForText("Warning: multiple enabled assay results were found for the following IDs: ID-4 (2), ID-5 (2)");
         drt = new DataRegionTable("report", this);
-        verifyColumnDataValues(drt, "ID-4", "1", " ", "1", "2", " ", "2", "1" ,"1");
+        verifyColumnDataValues(drt, "ID-4", "1", " ", "1", "2", " ", "2", "1", "1");
         verifyColumnDataValues(drt, "ID-5", "1", "2", " ", " ", "3", " ", " ", " ");
     }
 
