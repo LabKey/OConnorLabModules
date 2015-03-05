@@ -102,13 +102,13 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
 
         verifyExperimentWebpart(2, "description1", "type1");
         verifyExperimentWebpart(1, "description2", "type2", 1);
-        verifyExperimentWebpart(0, "description3", "type3", 1,2);
+        verifyExperimentWebpart(0, "description3", "type3", 1, 2);
 
         // update a single row
         updateViaExperimentWebpart(0, "updated description 3", "type2", "1");
         verifyExperimentWebpart(0, "updated description 3", "type2", 1);
         updateViaExperimentWebpart(0, "updated description 3", "type3", "1,2");
-        verifyExperimentWebpart(0, "updated description 3", "type3", 1,2);
+        verifyExperimentWebpart(0, "updated description 3", "type3", 1, 2);
 
         testBulkUpdate();
 
@@ -120,7 +120,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         click(Locator.lkButton("Delete"));
         getAlert();
 
-        assertTrue(table.getDataRowCount() == 2);
+        assertEquals("Wrong number of rows after deletion", 2, table.getDataRowCount());
 
         // test via api's
         insertViaJavaApi();
