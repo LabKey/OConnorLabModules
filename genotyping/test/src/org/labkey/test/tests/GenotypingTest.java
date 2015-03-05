@@ -71,13 +71,12 @@ public class GenotypingTest extends GenotypingBaseTest
     }
 
     //importing the same thing again should fail
-    //Issue 13695
     private void importRunAgainTest()
     {
-//        log("verify we can't import the same run twice");
-//        goToProjectHome();
-//        startImportRun("/reads.txt", "Import Reads");
-//        waitForText("ERROR");
+        log("verify we can't import the same run twice");
+        goToProjectHome();
+        startImportRun("/reads.txt", "Import Reads", first454importNum);
+        waitForText("ERROR");
     }
 
     private void runAnalysisTest()
