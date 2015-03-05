@@ -63,8 +63,6 @@ public class GenotypingTest extends GenotypingBaseTest
 
     private void importSecondRunTest()
     {
-        if(!WebTestHelper.isGroupConcatSupported())
-            return;
         goToProjectHome();
         startImportRun("secondRead/reads.txt", "Import 454 Reads", second454importNum);
         waitForPipelineJobsToComplete(++pipelineJobCount, "Import 454 reads for run", false);
@@ -84,9 +82,6 @@ public class GenotypingTest extends GenotypingBaseTest
 
     private void runAnalysisTest()
     {
-
-        if(!WebTestHelper.isGroupConcatSupported())
-            return;
 //        getToRunScreen();
         sendDataToGalaxyServer();
         receiveDataFromGalaxyServer();
@@ -94,8 +89,6 @@ public class GenotypingTest extends GenotypingBaseTest
 
     private void verifyAnalysis()
     {
-        if (!WebTestHelper.isGroupConcatSupported())
-            return;
         goToProjectHome();
 
         clickAndWait(Locator.linkWithText("View Analyses"));
