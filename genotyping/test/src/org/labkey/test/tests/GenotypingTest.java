@@ -75,7 +75,7 @@ public class GenotypingTest extends GenotypingBaseTest
     {
         log("verify we can't import the same run twice");
         goToProjectHome();
-        startImportRun("/reads.txt", "Import Reads", first454importNum);
+        startImportRun("/reads.txt", "Import 454 Reads", first454importNum);
         waitForText("ERROR");
     }
 
