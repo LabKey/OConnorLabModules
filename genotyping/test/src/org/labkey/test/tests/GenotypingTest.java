@@ -19,9 +19,9 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
-import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
+import org.openqa.selenium.NoSuchElementException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,7 +55,6 @@ public class GenotypingTest extends GenotypingBaseTest
 
         //TODO: need to fix 454/genotyping tests
         importRunTest();
-        importRunAgainTest(); //Issue 13695
         runAnalysisTest();
         importSecondRunTest();
         verifyAnalysis();
@@ -75,13 +74,19 @@ public class GenotypingTest extends GenotypingBaseTest
     {
         log("verify we can't import the same run twice");
         goToProjectHome();
-        startImportRun("/reads.txt", "Import 454 Reads", first454importNum);
-        waitForText("ERROR");
+        try
+        {
+            startImportRun("/reads.txt", "Import 454 Reads", first454importNum);
+        }
+        catch (NoSuchElementException expected)
+        {
+            if (!expected.getMessage().startsWith("Cannot locate element with text: " + first454importNum))
+                throw expected;
+        }
     }
 
     private void runAnalysisTest()
     {
-//        getToRunScreen();
         sendDataToGalaxyServer();
         receiveDataFromGalaxyServer();
     }
@@ -234,6 +239,10 @@ public class GenotypingTest extends GenotypingBaseTest
         clickRunLink(first454importNum);
 
         verifySamples();
+
+        pushLocation();
+        importRunAgainTest(); //Issue 13695
+        popLocation();
     }
 
     private void verifySamples()
