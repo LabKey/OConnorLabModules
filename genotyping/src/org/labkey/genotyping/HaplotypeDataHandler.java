@@ -16,6 +16,7 @@
 package org.labkey.genotyping;
 
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
@@ -43,7 +44,6 @@ import org.labkey.api.reader.TabLoader;
 import org.labkey.api.security.User;
 import org.labkey.api.study.assay.AssayProvider;
 import org.labkey.api.study.assay.AssayService;
-import org.labkey.api.util.Pair;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
 
@@ -97,7 +97,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
 
             // parse the haplotype assignment data to get a list of data rows, animals, and haplotypes
             Map<String, String> animalIds = new CaseInsensitiveTreeMap<>();
-            List<Pair<String, String>> haplotypes = new ArrayList<>();
+            List<HaplotypeIdentifier> haplotypes = new ArrayList<>();
             List<HaplotypeAssignmentDataRow> dataRows = new ArrayList<>();
             TabLoader tabLoader = new TabLoader(dataFile, true);
             List<Map<String, Object>> rowsMap = tabLoader.load();
@@ -105,7 +105,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
 
             // insert the new animal and haplotype records
             Map<String, Integer> animalRowIdMap = ensureAnimalIds(animalIds, runPropertyValues, info.getUser(), info.getContainer());
-            Map<String, Integer> haplotypeRowIdMap = ensureHaplotypeNames(haplotypes, runPropertyValues.get("speciesId"), info.getUser(), info.getContainer());
+            Map<HaplotypeIdentifier, Integer> haplotypeRowIdMap = ensureHaplotypeNames(haplotypes, runPropertyValues.get("speciesId"), info.getUser(), info.getContainer());
 
             // insert the animal specific information for this run
             Map<Integer, Integer> animalAnalysisRowIdMap = insertAnimalAnalysis(expRun, dataRows, info.getUser(), info.getContainer(), animalRowIdMap, runPropertyValues);
@@ -140,7 +140,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
     }
 
     private List<HaplotypeAssignmentDataRow> parseHaplotypeData(ExpProtocol protocol, List<Map<String, Object>> tabLoaderData, Map<String, String> colHeaderMap,
-                Map<String, String> animals, List<Pair<String, String>> haplotypes, List<HaplotypeAssignmentDataRow> dataRows) throws ExperimentException
+                Map<String, String> animals, List<HaplotypeIdentifier> haplotypes, List<HaplotypeAssignmentDataRow> dataRows) throws ExperimentException
     {
         int rowIndex = 0;
         for (Map<String, Object> rowMap : tabLoaderData)
@@ -249,7 +249,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
     }
 
-    private Map<String, Integer> ensureHaplotypeNames(List<Pair<String, String>> haplotypes, String speciesId, User user, Container container) throws Exception
+    private Map<HaplotypeIdentifier, Integer> ensureHaplotypeNames(List<HaplotypeIdentifier> haplotypes, String speciesId, User user, Container container) throws Exception
     {
         // get the updateService for the Haplotype table
         TableInfo tinfo = GenotypingQuerySchema.TableType.Haplotype.createTable(new GenotypingQuerySchema(user, container));
@@ -261,11 +261,11 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
 
         // put the haplotype names into the proper list format for the updateService
         List<Map<String, Object>> rows = new ArrayList<>();
-        for (Pair<String, String> entry : haplotypes)
+        for (HaplotypeIdentifier entry : haplotypes)
         {
             Map<String, Object> keys = new CaseInsensitiveHashMap<>();
-            keys.put("name", entry.first);
-            keys.put("type", entry.second);
+            keys.put("name", entry._name);
+            keys.put("type", entry._type);
             keys.put("speciesId", speciesId);
             rows.add(keys);
         }
@@ -274,9 +274,12 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         for (Map<String, Object> row : rows)
         {
             String haplotypeName = row.get("name").toString();
+            String haplotypeType = row.get("type").toString();
 
             // first check if the haplotype row exists
-            Integer rowId = new TableSelector(tinfo, Collections.singleton("RowID"), new SimpleFilter(FieldKey.fromParts("name"), haplotypeName), null).getObject(Integer.class);
+            SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("name"), haplotypeName);
+            filter.addCondition(FieldKey.fromParts("type"), haplotypeType);
+            Integer rowId = new TableSelector(tinfo, Collections.singleton("RowID"), filter, null).getObject(Integer.class);
             if (rowId != null)
             {
                 row.put("RowId", rowId);
@@ -296,7 +299,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
 
         // return a mapping from the Haplotype name to the RowId
-        Map<String, Integer> map = new CaseInsensitiveHashMap<>();
+        Map<HaplotypeIdentifier, Integer> map = new HashMap<>();
         for (Map<String, Object> row : rows)
         {
             Object name = row.get("name");
@@ -304,12 +307,17 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             {
                 throw new NullPointerException("No value from 'name' in the Haplotypes table");
             }
+            Object type = row.get("type");
+            if (type == null)
+            {
+                throw new NullPointerException("No value from 'type' in the Haplotypes table");
+            }
             Object rowId = row.get("RowId");
             if (rowId == null)
             {
                 throw new NullPointerException("No value from 'RowId' in the Haplotypes table");
             }
-            map.put(name.toString(), Integer.parseInt(rowId.toString()));
+            map.put(new HaplotypeIdentifier(name.toString(), type.toString()), Integer.parseInt(rowId.toString()));
         }
         return map;
     }
@@ -353,8 +361,44 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
          return map;
     }
 
+    private static class HaplotypeIdentifier
+    {
+        @NotNull
+        private final String _name;
+        @NotNull
+        private final String _type;
+
+        public HaplotypeIdentifier(@NotNull String name, @NotNull String type)
+        {
+            _name = name;
+            _type = type;
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            HaplotypeIdentifier that = (HaplotypeIdentifier) o;
+
+            if (!_name.equalsIgnoreCase(that._name)) return false;
+            if (!_type.equalsIgnoreCase(that._type)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            int result = _name.toLowerCase().hashCode();
+            result = 31 * result + _type.toLowerCase().hashCode();
+            return result;
+        }
+    }
+
     private void insertHaplotypeAssignments(ExpProtocol protocol, List<HaplotypeAssignmentDataRow> dataRows, ExpRun run, User user, Container container,
-           Map<String, Integer> animalRowIdMap, Map<String, Integer> haplotypeRowIdMap, Map<Integer, Integer> animalAnalysisRowIdMap) throws Exception
+           Map<String, Integer> animalRowIdMap, Map<HaplotypeIdentifier, Integer> haplotypeRowIdMap, Map<Integer, Integer> animalAnalysisRowIdMap) throws Exception
     {
         // get the updateService for the AnimalHaplotypeAssignment table
         TableInfo tinfo = GenotypingQuerySchema.TableType.AnimalHaplotypeAssignment.createTable(new GenotypingQuerySchema(user, container));
@@ -368,11 +412,11 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         List<Map<String, Object>> rows = new ArrayList<>();
         for (HaplotypeAssignmentDataRow dataRow : dataRows)
         {
-            for (Pair<String, String> haplotype : dataRow.getHaplotypeList(protocol))
+            for (HaplotypeIdentifier haplotype : dataRow.getHaplotypeList(protocol))
             {
                 Map<String, Object> values = new CaseInsensitiveHashMap<>();
                 values.put("animalanalysisid", animalAnalysisRowIdMap.get(animalRowIdMap.get(dataRow.getMapValue(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()))));
-                values.put("haplotypeid", haplotypeRowIdMap.get(haplotype.first));
+                values.put("haplotypeid", haplotypeRowIdMap.get(haplotype));
                 rows.add(values);
             }
         }
@@ -482,9 +526,9 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             }
         }
 
-        public List<Pair<String, String>> getHaplotypeList(ExpProtocol protocol)
+        public List<HaplotypeIdentifier> getHaplotypeList(ExpProtocol protocol)
         {
-            List<Pair<String, String>> rowHaplotypes = new ArrayList<>();
+            List<HaplotypeIdentifier> rowHaplotypes = new ArrayList<>();
             String name;
 
             List<? extends DomainProperty> props = HaplotypeAssayProvider.getDomainProps(protocol);
@@ -499,7 +543,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
                     String type = name.substring(0, name.length()-1).replaceAll("Haplotype", "");
 
                     if(!column.isShownInInsertView() && !defaults.contains(name))
-                        rowHaplotypes.add(new Pair<>(_dataMap.get(name), type));
+                        rowHaplotypes.add(new HaplotypeIdentifier(_dataMap.get(name), type));
                 }
             }
             return rowHaplotypes;
