@@ -125,7 +125,7 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 FilteredTable table = new FilteredTable<>(GS.getSequencesTable(), schema);
                 table.wrapAllColumns(true);
-                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getDictionariesTable().getFromSQL("d") + " WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
+                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM ").append(GS.getDictionariesTable().getFromSQL("d")).append(" WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
                 containerCondition.add(schema.getContainer().getId());
                 table.addCondition(containerCondition);
                 removeFromDefaultVisibleColumns(table, "Dictionary");
@@ -156,7 +156,7 @@ public class GenotypingQuerySchema extends UserSchema
                 table.setContainerFilter(table.getContainerFilter());
 
                 table.wrapAllColumns(true);
-                SQLFragment containerCondition = new SQLFragment("Run IN (SELECT Run FROM " + GS.getRunsTable().getFromSQL("r") + " WHERE Container = ?)");
+                SQLFragment containerCondition = new SQLFragment("Run IN (SELECT Run FROM ").append(GS.getRunsTable().getFromSQL("r")).append(" WHERE Container = ?)");
                 containerCondition.add(schema.getContainer().getId());
                 table.addCondition(containerCondition);
                 setDefaultVisibleColumns(table, "Name, SampleId, Sequence, Quality");
@@ -326,7 +326,7 @@ public class GenotypingQuerySchema extends UserSchema
                     alleles.setFk(fk);
                 }
 
-                SQLFragment containerCondition = new SQLFragment("Analysis IN (SELECT a.RowId FROM " + GS.getAnalysesTable().getFromSQL("a") + " INNER JOIN " + GS.getRunsTable().getFromSQL("r") + " ON a.Run = r.RowId WHERE Container = ?)");
+                SQLFragment containerCondition = new SQLFragment("Analysis IN (SELECT a.RowId FROM ").append(GS.getAnalysesTable().getFromSQL("a")).append(" INNER JOIN ").append(GS.getRunsTable().getFromSQL("r")).append(" ON a.Run = r.RowId WHERE Container = ?)");
                 containerCondition.add(schema.getContainer().getId());
                 table.addCondition(containerCondition);
 

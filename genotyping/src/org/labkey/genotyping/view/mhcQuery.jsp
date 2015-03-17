@@ -32,7 +32,7 @@ SELECT  reads.sampleid,
         CAST(SUM(neg_reads) AS INT) AS neg_reads,
         CAST(SUM(pos_ext_reads) AS INT) AS pos_ext_reads,
         CAST(SUM(neg_ext_reads) AS INT) AS neg_ext_reads,
-        <%=dialect.getGroupConcat(new SQLFragment("rowid"), true, false)%> AS ReadIds
+        <%=dialect.getGroupConcat(new SQLFragment("rowid"), true, false).getSQL()%> AS ReadIds
     FROM <%=ctx.reads%> reads
     INNER JOIN
     (
@@ -43,7 +43,7 @@ SELECT  reads.sampleid,
     ) read_count ON read_count.sampleid = reads.sampleid
     INNER JOIN
     (
-        SELECT read_name, <%=dialect.getGroupConcat(new SQLFragment("match"), false, true)%> AS Alleles, AVG(length) AS Avg_Length,
+        SELECT read_name, <%=dialect.getGroupConcat(new SQLFragment("match"), false, true).getSQL()%> AS Alleles, AVG(length) AS Avg_Length,
             CASE WHEN direction = '+' THEN 1 ELSE 0 END AS pos_reads,
             CASE WHEN direction = '-' THEN 1 ELSE 0 END AS neg_reads,
             CASE WHEN direction = '+ext' THEN 1 ELSE 0 END AS pos_ext_reads,
