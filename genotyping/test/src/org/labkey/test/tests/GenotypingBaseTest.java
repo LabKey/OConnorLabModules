@@ -79,7 +79,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
         for(File file: files)
         {
             if(file.isDirectory() && file.getName().startsWith("analysis_"))
-                deleteDir(file);
+                TestFileUtils.deleteDir(file);
             if(file.getName().startsWith("import_reads_"))
                 file.delete();
         }
