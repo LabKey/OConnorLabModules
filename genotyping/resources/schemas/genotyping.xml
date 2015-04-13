@@ -266,6 +266,8 @@
       <ns:column columnName="Created"/>
       <ns:column columnName="ModifiedBy"/>
       <ns:column columnName="Modified"/>
+      <ns:column columnName="DiploidNumber"/>
+      <ns:column columnName="DiploidNumberInferred"/>
     </ns:columns>
   </ns:table>
 </ns:tables>

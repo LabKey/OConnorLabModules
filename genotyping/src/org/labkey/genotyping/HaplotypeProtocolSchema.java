@@ -84,13 +84,11 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
         List<? extends DomainProperty> props = HaplotypeAssayProvider.getDomainProps(getProtocol());
 
-        SQLFragment haplotypeSubselectSql = new SQLFragment("SELECT aha.AnimalAnalysisId, h.Name AS Haplotype, h.Type FROM ");
+        SQLFragment haplotypeSubselectSql = new SQLFragment("SELECT aha.AnimalAnalysisId, aha.DiploidNumber, h.Name AS Haplotype, h.Type FROM ");
         haplotypeSubselectSql.append(GenotypingSchema.get().getAnimalHaplotypeAssignmentTable(), "aha");
         haplotypeSubselectSql.append(" JOIN ");
         haplotypeSubselectSql.append(GenotypingSchema.get().getHaplotypeTable(), "h");
         haplotypeSubselectSql.append(" ON aha.HaplotypeId = h.RowId");
-        ExprColumn col;
-        String label;
 
         SQLFragment runConditionSQL = new SQLFragment("RunId IN (SELECT RowId FROM " +
                 ExperimentService.get().getTinfoExperimentRun() + " WHERE ProtocolLSID = ?)");
@@ -99,10 +97,10 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
 
         for(DomainProperty prop : props)
         {
-            label = prop.getLabel() != null ? prop.getLabel() : ColumnInfo.labelFromName(prop.getName());
+            String label = prop.getLabel() != null ? prop.getLabel() : ColumnInfo.labelFromName(prop.getName());
             if(!defaults.contains(prop.getName()) && !prop.isShownInInsertView() && (label.contains(" ")) && (label.endsWith("1") || label.endsWith("2")))
             {
-                col = makeColumnFromRunField(prop, prop.getName().endsWith("2"), haplotypeSubselectSql, table);
+                ExprColumn col = makeColumnFromRunField(prop, prop.getName().endsWith("2"), haplotypeSubselectSql, table);
                 keys.add(FieldKey.fromParts(prop.getName()));
                 if(table.getColumn(prop.getName()) == null)
                     table.addColumn(col);
@@ -129,11 +127,11 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         String type = field.substring(0, prop.getName().length()-1).replaceAll("Haplotype", ""); //ColumnInfo.labelFromName(prop.getName()).split(" ")[0];
 
         SQLFragment sql = new SQLFragment("(SELECT ");
-        if(max) sql.append("max");
-        else sql.append("min");
+        sql.append("min");
         sql.append("(x.Haplotype) FROM (");
         sql.append(selectStatement);
-        sql.append(") AS x WHERE x.Type = '" + type + "' AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+        sql.append(") AS x WHERE x.DiploidNumber = ? AND x.Type = '" + type + "' AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+        sql.add(max ? 2 : 1);
         ExprColumn column = new ExprColumn(table, field, sql, JdbcType.VARCHAR);
         column.setLabel(label);
         return column;

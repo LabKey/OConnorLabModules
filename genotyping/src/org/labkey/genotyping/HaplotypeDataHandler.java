@@ -165,7 +165,10 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             }
             animals.put(animalId, dataRow.getMapValue(HaplotypeAssayProvider.CLIENT_ANIMAL_COLUMN.getName()));
 
-            haplotypes.addAll(dataRow.getHaplotypeList(protocol));
+            for (HaplotypeAssignment haplotypeAssignment : dataRow.getHaplotypeList(protocol))
+            {
+                haplotypes.add(haplotypeAssignment.getHaplotype());
+            }
         }
         return dataRows;
     }
@@ -361,6 +364,31 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
          return map;
     }
 
+    /** Used to bind a specific haplotype (mhcA, A004) to an animal */
+    private static class HaplotypeAssignment
+    {
+        private final int _diploidNumber;
+        @NotNull
+        private final HaplotypeIdentifier _identifier;
+
+        public HaplotypeAssignment(@NotNull HaplotypeIdentifier identifier, int diploidNumber)
+        {
+            _diploidNumber = diploidNumber;
+            _identifier = identifier;
+        }
+
+        public int getDiploidNumber()
+        {
+            return _diploidNumber;
+        }
+
+        public HaplotypeIdentifier getHaplotype()
+        {
+            return _identifier;
+        }
+    }
+
+    /** A type and specific value combination. mhcA and A004, for example */
     private static class HaplotypeIdentifier
     {
         @NotNull
@@ -412,11 +440,13 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         List<Map<String, Object>> rows = new ArrayList<>();
         for (HaplotypeAssignmentDataRow dataRow : dataRows)
         {
-            for (HaplotypeIdentifier haplotype : dataRow.getHaplotypeList(protocol))
+            for (HaplotypeAssignment haplotype : dataRow.getHaplotypeList(protocol))
             {
                 Map<String, Object> values = new CaseInsensitiveHashMap<>();
                 values.put("animalanalysisid", animalAnalysisRowIdMap.get(animalRowIdMap.get(dataRow.getMapValue(HaplotypeAssayProvider.LAB_ANIMAL_COLUMN.getName()))));
-                values.put("haplotypeid", haplotypeRowIdMap.get(haplotype));
+                values.put("diploidnumber", haplotype.getDiploidNumber());
+                values.put("diploidnumberinferred", false);
+                values.put("haplotypeid", haplotypeRowIdMap.get(haplotype.getHaplotype()));
                 rows.add(values);
             }
         }
@@ -491,6 +521,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         }
     }
 
+    /** Correponds to a single animal's row in the incoming TSV */
     public class HaplotypeAssignmentDataRow
     {
         private Map<String, String> _dataMap = new HashMap<>();
@@ -526,9 +557,9 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             }
         }
 
-        public List<HaplotypeIdentifier> getHaplotypeList(ExpProtocol protocol)
+        public List<HaplotypeAssignment> getHaplotypeList(ExpProtocol protocol)
         {
-            List<HaplotypeIdentifier> rowHaplotypes = new ArrayList<>();
+            List<HaplotypeAssignment> rowHaplotypes = new ArrayList<>();
             String name;
 
             List<? extends DomainProperty> props = HaplotypeAssayProvider.getDomainProps(protocol);
@@ -540,10 +571,15 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
                 if (_dataMap.get(column.getName()) != null)
                 {
                     name = column.getName();
-                    String type = name.substring(0, name.length()-1).replaceAll("Haplotype", "");
+                    if (name.endsWith("1") || name.endsWith("2"))
+                    {
+                        String type = name.substring(0, name.length() - 1).replaceAll("Haplotype", "");
 
-                    if(!column.isShownInInsertView() && !defaults.contains(name))
-                        rowHaplotypes.add(new HaplotypeIdentifier(_dataMap.get(name), type));
+                        int diploidNumber = name.endsWith("1") ? 1 : 2;
+
+                        if (!column.isShownInInsertView() && !defaults.contains(name))
+                            rowHaplotypes.add(new HaplotypeAssignment(new HaplotypeIdentifier(_dataMap.get(name), type), diploidNumber));
+                    }
                 }
             }
             return rowHaplotypes;

@@ -154,8 +154,8 @@ public class HaplotypeAssayTest extends GenotypingTest
 
         verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
         verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", "A025", "A001", "A023", "A002a");
-        verifyColumnDataValues(drt, "MHC-DRB Haplotype 1", "D015c", "D012b", "D001c", "D012b", "D002");
-        verifyColumnDataValues(drt, "MHC-DRB Haplotype 2", "D025a", "D017a", "D017a", "D012b", "D002");
+        verifyColumnDataValues(drt, "MHC-DRB Haplotype 1", "D025a", "D012b", "D001c", "D012b", "D002");
+        verifyColumnDataValues(drt, "MHC-DRB Haplotype 2", "D015c", "D017a", "D017a", "D012b", "D002");
 
         importRun(STR_RUN, DRB_ASSAY, STR_RUN_FILE, true);
 
@@ -344,7 +344,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "IdentifiedReads", "2500", "3250", "3000", "3500", " ", "1");
         verifyColumnDataValues(drt, "%Unknown", "37.5", "35.0", "50.0", "50.0", " ", " ");
         verifyColumnDataValues(drt, prefix+"-AHaplotype1", "A001", " ", "A033", "A004", "A004", "A004");
-        verifyColumnDataValues(drt, prefix+"-AHaplotype2", "A023", " ", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, prefix+"-AHaplotype2", "A023", " ", "A033", " ", "A004", "A004");
         verifyColumnDataValues(drt, prefix+"-BHaplotype1", "B015c", " ", "B012b", "B033", "B033", "B033");
         verifyColumnDataValues(drt, prefix+"-BHaplotype2", "B025a", " ", "B012b", "B033", "B033", "B033");
         verifyColumnDataValues(drt, "Enabled", "true", "true", "true", "true", "true", "true");
@@ -395,12 +395,14 @@ public class HaplotypeAssayTest extends GenotypingTest
         clickButton("Insert New");
         selectOptionByText(Locator.name("quf_HaplotypeId"), "A001");
         selectOptionByText(Locator.name("quf_AnimalAnalysisId"), animalAnalysisId);
+        setFormElement(Locator.name("quf_DiploidNumber"), "1");
         clickButton("Submit");
 
         // ADD: animal ID-5, haplotype B002
         clickButton("Insert New");
         selectOptionByText(Locator.name("quf_HaplotypeId"), "B002");
         selectOptionByText(Locator.name("quf_AnimalAnalysisId"), animalAnalysisId);
+        setFormElement(Locator.name("quf_DiploidNumber"), "1");
         clickButton("Submit");
 
         // verify the calculated columns in the assay results view for concatenated haplotype, etc.
