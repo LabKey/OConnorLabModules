@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+-- Added in modules15.1 branch - needs special handling if being rolled up into consolidated upgrade script
+
 ALTER TABLE genotyping.AnimalHaplotypeAssignment ADD DiploidNumber INT;
 ALTER TABLE genotyping.AnimalHaplotypeAssignment ADD DiploidNumberInferred BOOLEAN;
 
