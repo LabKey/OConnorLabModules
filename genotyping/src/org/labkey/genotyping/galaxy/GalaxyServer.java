@@ -36,6 +36,7 @@ import org.labkey.api.util.URLHelper;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +101,7 @@ public class GalaxyServer
     {
         HttpResponse response = _client.execute(request);
         HttpEntity entity = response.getEntity();
-        String contents = PageFlowUtil.getStreamContentsAsString(entity.getContent());
+        String contents = PageFlowUtil.getStreamContentsAsString(entity.getContent(), StandardCharsets.UTF_8);
 
         if (HttpStatus.SC_OK != response.getStatusLine().getStatusCode())
             throw new IOException("HTTP " + request.getMethod() + " Failed: " + response);
