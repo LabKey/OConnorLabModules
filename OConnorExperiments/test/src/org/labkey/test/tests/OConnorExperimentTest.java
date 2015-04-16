@@ -75,7 +75,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         super.doCleanup(afterTest);
     }
 
-    @LogMethod(category = LogMethod.MethodType.SETUP)
+    @LogMethod
     protected void doSetup()
     {
         _containerHelper.createProject(PROJECT_NAME, null);
@@ -127,7 +127,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         verifyExperimentWebpart(0, "API Description", null);
     }
 
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
+    @LogMethod
     protected void verifyExperimentWebpart(int row, String description, @Nullable String type, int... parentExperiments)
     {
         // Verify the Experiment is inserted, examine OConnorExperiment webpart
@@ -150,7 +150,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         }
     }
 
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
+    @LogMethod
     protected void createExperimentTypes()
     {
         log("creating the experiment type lookups");
@@ -172,7 +172,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     /**
      * Insert a new experiment using the OConnorExperiment webpart
      */
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
+    @LogMethod
     protected void insertViaExperimentsWebpart(String description, String type, @Nullable String parentExperiment)
     {
         waitForElement(Locator.lkButton("Insert New"));
@@ -228,7 +228,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         shortWait().until(ExpectedConditions.not(ExpectedConditions.visibilityOf(el)));
     }
 
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
+    @LogMethod
     protected void insertViaJavaApi()
     {
         log("** Inserting via api...");
@@ -262,7 +262,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         goToProjectHome();
     }
 
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
+    @LogMethod
     protected void updateViaJavaApi()
     {
         log("** Updating via api...");
@@ -291,7 +291,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         goToProjectHome();
     }
 
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
+    @LogMethod
     protected void deleteViaJavaApi()
     {
         log("** Deleting via api: pks=" + join(",", pkeys) + "...");
@@ -323,7 +323,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         goToProjectHome();
     }
 
-    @LogMethod(category = LogMethod.MethodType.VERIFICATION)
+    @LogMethod
     protected void testBulkUpdate()
     {
         DataRegionTable table = new DataRegionTable("query", this);

@@ -159,7 +159,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
         clickAndWait(Locator.linkWithText(rowId));
     }
 
-    @LogMethod(category = LogMethod.MethodType.SETUP)
+    @LogMethod
     public void setUp2()
     {
         _containerHelper.createProject(getProjectName(), "Genotyping");
