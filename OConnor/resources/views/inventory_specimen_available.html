@@ -223,7 +223,7 @@
         createGrid(dbSchemaName, 'inventory', 'specimen_available', 'Inventory', 'a', 'b', pageButtons);
     };
 
-    LABKEY.requiresExt3ClientAPI(function() {
+    LABKEY.requiresExt3ClientAPI(true, function() {
         LABKEY.requiresScript([
             "oconnor/oconnorAlabrityConfig.js",
             "oconnor/oconnorFreezerCommon.js",
