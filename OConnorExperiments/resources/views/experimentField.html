@@ -176,7 +176,7 @@
         }
     };
 
-    LABKEY.requiresExt4ClientAPI(true, function(){
+    LABKEY.requiresExt4ClientAPI(function(){
         LABKEY.ocexp.internal.Experiment.getExperiment({
             requiredVersion: 8.3,
             success: initPanel
