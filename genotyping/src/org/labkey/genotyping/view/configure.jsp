@@ -73,13 +73,18 @@
         update(query, 'samplesQuery', 'samplesQueryDiv');
     }
 
+    function updateHaplotypesQuery(query)
+    {
+        update(query, 'haplotypesQuery', 'haplotypesQueryDiv');
+    }
+
     function getDisplayValue(query)
     {
         var html;
 
         if (query)
         {
-            var parts = query.split('<%=GenotypingFolderSettings.SEPARATOR%>');
+            var parts = query.split('<%=h(GenotypingFolderSettings.SEPARATOR)%>');
             html = parts[0] + '.' + parts[1] + ((parts[2] && parts[2].length() > 0) ? ('.' + parts[2]) : '');
         }
         else
@@ -100,6 +105,7 @@
         updateSequencesQuery(<%=q(form.getSequencesQuery())%>);
         updateRunsQuery(<%=q(form.getRunsQuery())%>);
         updateSamplesQuery(<%=q(form.getSamplesQuery())%>);
+        updateHaplotypesQuery(<%=q(form.getHaplotypesQuery())%>);
     });
 </script>
 
@@ -141,15 +147,23 @@
                 <input type="hidden" name="samplesQuery" id="samplesQuery">
             </td>
         </tr>
+        <tr>
+            <td>Haplotype Definitions</td>
+            <td><div id="haplotypesQueryDiv"></div></td>
+            <td>
+                <%=textLink("configure", "#", "chooseView('Choose haplotype definition query', 'Select a query that provides a list of haplotype definitions. ', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateHaplotypesQuery(query);}, queries['haplotypesQuery'], includeSchema);return false;", "id")%>
+                <input type="hidden" name="haplotypesQuery" id="haplotypesQuery">
+            </td>
+        </tr>
         <tr><td>&nbsp;</td></tr>
         <tr>
-            <td><a href="<%=animalQueryURL.getLocalURIString()%>">Animal</a></td>
+            <td><a href="<%=h(animalQueryURL.getLocalURIString())%>">Animal</a></td>
             <td>
                 <%=textLink("configure", animalEditDomainURL, "configureAnimal")%>
             </td>
         </tr>
         <tr>
-            <td><a href="<%=haplotypeQueryURL.getLocalURIString()%>">Haplotype</a></td>
+            <td><a href="<%=h(haplotypeQueryURL.getLocalURIString())%>">Haplotype</a></td>
             <td>
                 <%=textLink("configure", haplotypeEditDomainURL, "configureHaplotype")%>
             </td>

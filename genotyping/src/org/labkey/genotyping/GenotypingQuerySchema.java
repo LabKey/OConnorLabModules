@@ -18,12 +18,12 @@ package org.labkey.genotyping;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
+import org.labkey.api.collections.CaseInsensitiveTreeSet;
 import org.labkey.api.collections.Sets;
 import org.labkey.api.data.*;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.query.ExpSchema;
 import org.labkey.api.module.Module;
-import org.labkey.api.query.AliasedColumn;
 import org.labkey.api.query.DefaultQueryUpdateService;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.DetailsURL;
@@ -31,7 +31,6 @@ import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.LookupForeignKey;
-import org.labkey.api.query.QueryForeignKey;
 import org.labkey.api.query.QueryHelper;
 import org.labkey.api.query.QuerySchema;
 import org.labkey.api.query.QuerySettings;
@@ -71,6 +70,10 @@ public class GenotypingQuerySchema extends UserSchema
     private static final GenotypingSchema GS = GenotypingSchema.get();
     public static final String NAME = GS.getSchemaName();
     private static final Set<String> TABLE_NAMES;
+    /** When building up concatenated haplotypes, a placeholder for NULL values */
+    private static final String NULL_HAPLOTYPE_MARKER = "~";
+
+    private Set<String> _allHaplotypes;
 
     @Nullable private final Integer _analysisId;
 
@@ -562,6 +565,9 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalTable()).init();
                 table.setDescription("Contains one row per animal");
+
+                table.addColumn(schema.createConcatenatedHaplotypeColumn(table, true));
+
                 return table;
             }
         },
@@ -608,15 +614,9 @@ public class GenotypingQuerySchema extends UserSchema
                 table.init();
                 table.setContainerFilter(table.getContainerFilter());
 
-                ColumnInfo haplotypeConcatCol = new AliasedColumn(table, "ConcatenatedHaplotypes", table.getColumn("RowId"));
-                haplotypeConcatCol.setKeyField(false);
-                haplotypeConcatCol.setRequired(false);
-                haplotypeConcatCol.setAutoIncrement(false);
-                haplotypeConcatCol.setRequired(false);
-                haplotypeConcatCol.setNullable(true);
-                haplotypeConcatCol.setCalculated(true);
-                haplotypeConcatCol.setFk(new MultiValuedForeignKey(new QueryForeignKey(schema, null, TableType.AnimalHaplotypeAssignment.name(), "AnimalAnalysisId", null), "HaplotypeId"));
-                table.addColumn(haplotypeConcatCol);
+                ExprColumn concatCol = schema.createConcatenatedHaplotypeColumn(table, false);
+                table.addColumn(concatCol);
+
 
                 // calculated field for % Unknown = (Total Reads - Identified Reads) / Total Reads
                 SQLFragment percUnknownSql = new SQLFragment("(CASE WHEN (IdentifiedReads IS NULL OR TotalReads IS NULL OR TotalReads = 0) THEN NULL "
@@ -722,6 +722,21 @@ public class GenotypingQuerySchema extends UserSchema
         }
     }
 
+    /** All of the haplotype types, such as mhcA, mhcB, etc (not specific assignments like A001, A002a, etc) used in this container */
+    private Set<String> getAllHaplotypes()
+    {
+        if (_allHaplotypes == null)
+        {
+            SQLFragment sql = new SQLFragment("SELECT DISTINCT Type FROM ");
+            sql.append(getDbSchema().getTable("Haplotype"), "h");
+            sql.append(" WHERE Container = ?");
+            sql.add(getContainer());
+
+            _allHaplotypes = Collections.unmodifiableSet(new CaseInsensitiveTreeSet(new SqlSelector(getDbSchema(), sql).getArrayList(String.class)));
+        }
+        return _allHaplotypes;
+    }
+
     /** Do the default thing provided by the superclass */
     private QueryView createDefaultQueryView(ViewContext context, QuerySettings settings, BindException errors)
     {
@@ -738,6 +753,78 @@ public class GenotypingQuerySchema extends UserSchema
         }
 
         TABLE_NAMES = Collections.unmodifiableSet(new CaseInsensitiveHashSet(names));
+    }
+
+    private ExprColumn createConcatenatedHaplotypeColumn(SimpleUserSchema.SimpleTable table, boolean fromAnimal)
+    {
+        List<SQLFragment> haplotypeSQLs = new ArrayList<>();
+        // Build up an ordered list of haplotype assignments. We want mhcA1, mhcA2, mhcB1, mhcB2, etc, which means
+        // that we can't use a simple GROUP_CONCAT
+        for (String haplotype : getAllHaplotypes())
+        {
+            haplotypeSQLs.add(getHaplotypeSelect(haplotype, 1, fromAnimal));
+            haplotypeSQLs.add(new SQLFragment("', '"));
+            haplotypeSQLs.add(getHaplotypeSelect(haplotype, 2, fromAnimal));
+            haplotypeSQLs.add(new SQLFragment("', '"));
+        }
+        // Add a final marker to make replacement simpler
+        haplotypeSQLs.add(new SQLFragment("'" + NULL_HAPLOTYPE_MARKER + "'"));
+
+        // We need to strip out the unassigned, empty markers
+        // Example concatenated values, pre-replacement, are '~, A001, ~, B004, B023, ~'; '~, ~, ~, ~, ~, ~'
+        SQLFragment concatSQL = new SQLFragment("REPLACE(REPLACE(REPLACE(");
+        concatSQL.append(table.getSqlDialect().concatenate(haplotypeSQLs.toArray(new SQLFragment[haplotypeSQLs.size()])));
+        concatSQL.append(", '" + NULL_HAPLOTYPE_MARKER + ", ', ''), ', " + NULL_HAPLOTYPE_MARKER + "', ''), '" + NULL_HAPLOTYPE_MARKER + "', '')");
+
+        ExprColumn result = new ExprColumn(table, "ConcatenatedHaplotypes", concatSQL, JdbcType.VARCHAR);
+        // Ignore meta data if not configured
+        String haplotypesQuery = new NonValidatingGenotypingFolderSettings(getContainer()).getHaplotypesQuery();
+
+        if (haplotypesQuery != null)
+        {
+            final QueryHelper qHelper = new GenotypingQueryHelper(getContainer(), getUser(), haplotypesQuery);
+            final TableInfo haplotypeTableInfo = qHelper.getTableInfo();
+            if (haplotypeTableInfo != null)
+            {
+                result.setDisplayColumnFactory(new DisplayColumnFactory()
+                {
+                    @Override
+                    public DisplayColumn createRenderer(ColumnInfo colInfo)
+                    {
+                        return new ConcatenatedHaplotypesDisplayColumn(colInfo, getContainer(), haplotypeTableInfo);
+                    }
+                });
+            }
+        }
+        return result;
+    }
+
+    /** Generate SQL that pulls the specific haplotype assignment for a given type (mhcA, for example) and number (1 or 2) */
+    private SQLFragment getHaplotypeSelect(String haplotype, int diploidNumber, boolean fromAnimal)
+    {
+        SQLFragment sql = new SQLFragment();
+        sql.append("(SELECT COALESCE(MIN(h.Name), '" + NULL_HAPLOTYPE_MARKER + "') FROM ");
+        sql.append(getDbSchema().getTable("Haplotype"), "h");
+        sql.append(", ");
+        sql.append(getDbSchema().getTable("AnimalHaplotypeAssignment"), "aha");
+        if (fromAnimal)
+        {
+            sql.append(", ");
+            sql.append(getDbSchema().getTable("AnimalAnalysis"), "aa");
+            sql.append(" WHERE h.RowId = aha.HaplotypeId AND aha.AnimalAnalysisId = aa.RowId AND aa.Enabled = ? AND aa.AnimalId = ");
+            sql.add(true);
+        }
+        else
+        {
+            sql.append(" WHERE h.RowId = aha.HaplotypeId AND aha.AnimalAnalysisId = ");
+        }
+        sql.append(ExprColumn.STR_TABLE_ALIAS);
+        sql.append(".RowId AND h.Type = ?");
+        sql.add(haplotype);
+        sql.append(" AND aha.DiploidNumber = ");
+        sql.append(Integer.toString(diploidNumber));
+        sql.append(")");
+        return sql;
     }
 
     public static void register(final GenotypingModule module)

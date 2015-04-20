@@ -544,6 +544,7 @@ public class GenotypingController extends SpringActionController
         private String _sequencesQuery;
         private String _runsQuery;
         private String _samplesQuery;
+        private String _haplotypesQuery;
         private String _message;
 
         @Override
@@ -555,6 +556,7 @@ public class GenotypingController extends SpringActionController
             _sequencesQuery = genotypingSettings.getSequencesQuery();
             _runsQuery = genotypingSettings.getRunsQuery();
             _samplesQuery = genotypingSettings.getSamplesQuery();
+            _haplotypesQuery = genotypingSettings.getHaplotypesQuery();
 
             GalaxyFolderSettings galaxySettings = GalaxyManager.get().getSettings(c);
             _galaxyURL = galaxySettings.getGalaxyURL();
@@ -606,6 +608,18 @@ public class GenotypingController extends SpringActionController
         public @Nullable String getSamplesQuery()
         {
             return _samplesQuery;
+        }
+
+        @Override
+        public @Nullable String getHaplotypesQuery()
+        {
+            return _haplotypesQuery;
+        }
+
+        @SuppressWarnings({"UnusedDeclaration"})
+        public void setHaplotypesQuery(String haplotypesQuery)
+        {
+            _haplotypesQuery = haplotypesQuery;
         }
 
         @SuppressWarnings({"UnusedDeclaration"})

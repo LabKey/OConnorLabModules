@@ -287,11 +287,11 @@ public class HaplotypeAssayTest extends GenotypingTest
         // verify concatenated haplotype strings
         List<String> concatenated = drt.getColumnDataAsText("ConcatenatedHaplotypes");
         assertEquals("Wrong number of data rows", 5, concatenated.size());
-        verifyStringContains(concatenated.get(0), "A001", "A023", "B015c", "B025a");
-        verifyStringContains(concatenated.get(1), "A023", "A025", "B012b", "B017a");
-        verifyStringContains(concatenated.get(2), "A001", "A001", "B001c", "B017a");
-        verifyStringContains(concatenated.get(3), "A004", "A023", "B012b", "B012b");
-        verifyStringContains(concatenated.get(4), "A002a", "A002a", "B002", "B002");
+        assertEquals("Wrong ID-1 concatenated haplotypes", "A001, A023, B015c, B025a", concatenated.get(0));
+        assertEquals("Wrong ID-2 concatenated haplotypes", "A023, A025, B012b, B017a", concatenated.get(1));
+        assertEquals("Wrong ID-3 concatenated haplotypes", "A001, A001, B001c, B017a", concatenated.get(2));
+        assertEquals("Wrong ID-4 concatenated haplotypes", "A004, A023, B012b, B012b", concatenated.get(3));
+        assertEquals("Wrong ID-5 concatenated haplotypes", "A002a, A002a, B002, B002", concatenated.get(4));
 
         // verify that the animal and haplotype rows were properly inserted
         goToQuery("Animal");
@@ -352,9 +352,10 @@ public class HaplotypeAssayTest extends GenotypingTest
         // verify concatenated haplotype strings
         List<String> concatenated = drt.getColumnDataAsText("ConcatenatedHaplotypes");
         assertEquals("Wrong number of data rows", 6, concatenated.size());
-        verifyStringContains(concatenated.get(0), "A001", "A023", "B015c", "B025a");
-        verifyStringContains(concatenated.get(2), "A033", "A033", "B012b", "B012b");
-        verifyStringContains(concatenated.get(3), "A004", "B033", "B033"); // Record with only 3 haplotypes
+        assertEquals("Wrong ID-4 concatenated haplotypes", "A001, A023, B015c, B025a", concatenated.get(0));
+        assertEquals("Wrong ID-5 concatenated haplotypes", " ", concatenated.get(1));
+        assertEquals("Wrong ID-6 concatenated haplotypes", "A033, A033, B012b, B012b", concatenated.get(2));
+        assertEquals("Wrong ID-7 concatenated haplotypes", "A004, B033, B033", concatenated.get(3)); // Record with only 3 haplotypes
     }
 
     @LogMethod
@@ -372,9 +373,9 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "Total % Unknown", "70.0%", "50.0%", "80.0%", "37.5%", "35.0%", "50.0%", "50.0%", " ", " ");
         verifyColumnDataValues(drt, "Inconsistent Assignments", "false", "false", "false", "true", "false", "false", "false", "false", "false");
         verifyColumnDataValues(drt, "mhcA Haplotype1", "A001", "A023", "A001", "A001", "A002a", "A033", "A004", "A004", "A004");
-        verifyColumnDataValues(drt, "mhcA Haplotype2", "A023", "A025", "A001", "A023", "A002a", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, "mhcA Haplotype2", "A023", "A025", "A001", "A023", "A002a", "A033", " ", "A004", "A004");
         verifyColumnDataValues(drt, "mhcB Haplotype1", "B015c", "B012b", "B001c", "B012b", "B002", "B012b", "B033", "B033", "B033");
-        verifyColumnDataValues(drt, "mhcB Haplotype2", "B025a", "B017a", "B017a", "B025a", "B002", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, "mhcB Haplotype2", "B025a", "B017a", "B017a", "B012b", "B002", "B012b", "B033", "B033", "B033");
     }
 
     @LogMethod

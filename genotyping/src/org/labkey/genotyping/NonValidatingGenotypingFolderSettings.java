@@ -55,6 +55,12 @@ class NonValidatingGenotypingFolderSettings implements GenotypingFolderSettings
         return getQuery(GenotypingManager.Setting.SamplesQuery);
     }
 
+    @Override
+    public String getHaplotypesQuery()
+    {
+        return getQuery(GenotypingManager.Setting.HaplotypesQuery);
+    }
+
     protected @Nullable String getQuery(GenotypingManager.Setting setting)
     {
         return _map.get(setting.getKey());

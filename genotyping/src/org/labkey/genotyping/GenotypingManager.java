@@ -94,7 +94,8 @@ public class GenotypingManager
     {
         ReferenceSequencesQuery("SequencesQuery", "the source of DNA reference sequences"),
         RunsQuery("RunsQuery", "run meta data"),
-        SamplesQuery("SamplesQuery", "sample information");
+        SamplesQuery("SamplesQuery", "sample information"),
+        HaplotypesQuery("HaplotypesQuery", "haplotype definitions");
 
         private final String _key;
         private final String _description;
@@ -122,6 +123,7 @@ public class GenotypingManager
         map.put(Setting.ReferenceSequencesQuery.getKey(), settings.getSequencesQuery());
         map.put(Setting.RunsQuery.getKey(), settings.getRunsQuery());
         map.put(Setting.SamplesQuery.getKey(), settings.getSamplesQuery());
+        map.put(Setting.HaplotypesQuery.getKey(), settings.getHaplotypesQuery());
         map.save();
     }
 

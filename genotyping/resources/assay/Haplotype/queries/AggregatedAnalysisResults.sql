@@ -20,7 +20,7 @@ SELECT
   Summary.TotalReads,
   Summary.TotalIdentifiedReads,
   Summary.TotalPercentUnknown,
-  cht.ConcatenatedHaplotypes,
+  a.ConcatenatedHaplotypes,
   CASE WHEN iht.AssignmentCount > 2 THEN TRUE ELSE FALSE END AS InconsistentAssignments,
   -- We don't know the names of all of the haplotype types (A, B, DR, STR, etc), so we have to select *
   iht.*
@@ -36,26 +36,14 @@ FROM (
   WHERE Data.Enabled = TRUE
   GROUP BY Data.AnimalId
 ) Summary
-JOIN (
-  -- Get all of the enabled haplotype concatenated togther
-  SELECT
-    Data.AnimalId,
-    GROUP_CONCAT(DISTINCT h.Name, ',') AS ConcatenatedHaplotypes
-  FROM
-    Data
-    JOIN genotyping.AnimalAnalysis AS aa ON aa.AnimalId = Data.AnimalId
-    JOIN genotyping.AnimalHaplotypeAssignment AS aha ON aha.AnimalAnalysisId = aa.RowId
-    JOIN genotyping.Haplotype AS h ON aha.HaplotypeId = h.RowId
-  WHERE Data.Enabled = TRUE AND aa.Enabled = TRUE
-  GROUP BY Data.AnimalId
-) cht ON Summary.AnimalId = cht.AnimalId
+JOIN genotyping.Animal AS a ON a.RowId = Summary.AnimalId
 JOIN (
   -- Get all the haplotype assignments, pivoted by type (A, B, DR, STR, etc)
   SELECT
     aa.AnimalId AS HiddenAnimalId @Hidden, -- Hide so that we only get a single AnimalId column
     COUNT (DISTINCT h.Name) AS AssignmentCount @Hidden,
-    MIN(h.Name) AS Haplotype1,
-    MAX(h.Name) AS Haplotype2,
+    MIN(CASE WHEN aha.DiploidNumber = 1 THEN h.Name ELSE NULL END) AS Haplotype1,
+    MIN(CASE WHEN aha.DiploidNumber = 2 THEN h.Name ELSE NULL END) AS Haplotype2,
     h.Type AS Type
   FROM genotyping.AnimalHaplotypeAssignment AS aha
   JOIN genotyping.Haplotype AS h ON aha.HaplotypeId = h.RowId

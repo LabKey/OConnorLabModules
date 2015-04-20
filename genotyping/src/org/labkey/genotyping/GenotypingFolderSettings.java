@@ -15,8 +15,6 @@
  */
 package org.labkey.genotyping;
 
-import org.jetbrains.annotations.Nullable;
-
 /**
  * User: adam
  * Date: Sep 10, 2010
@@ -31,4 +29,6 @@ public interface GenotypingFolderSettings
     String getRunsQuery();
 
     String getSamplesQuery();
+
+    String getHaplotypesQuery();
 }
