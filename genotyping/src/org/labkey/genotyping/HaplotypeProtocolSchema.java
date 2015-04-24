@@ -33,6 +33,7 @@ import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.LookupForeignKey;
+import org.labkey.api.query.QueryHelper;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.security.User;
 import org.labkey.api.study.actions.AssayResultsAction;
@@ -56,10 +57,28 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
 {
     public static final String DUPLICATE_ASSIGNMENT_QUERY_NAME = "DuplicateAssignment";
     public static final String AGGREGATED_RESULTS_QUERY_NAME = "AggregatedAnalysisResults";
+    private boolean _haplotypeDetailsTableInfoLoaded = false;
+    private TableInfo _haplotypeDetailsTableInfo;
 
     public HaplotypeProtocolSchema(User user, Container container, @NotNull HaplotypeAssayProvider provider, @NotNull ExpProtocol protocol, @Nullable Container targetStudy)
     {
         super(user, container, provider, protocol, targetStudy);
+    }
+
+    private TableInfo getHaplotypeDetailsTableInfo()
+    {
+        if (!_haplotypeDetailsTableInfoLoaded)
+        {
+            String haplotypesQuery = new NonValidatingGenotypingFolderSettings(getContainer()).getHaplotypesQuery();
+
+            if (haplotypesQuery != null)
+            {
+                final QueryHelper qHelper = new GenotypingQueryHelper(getContainer(), getUser(), haplotypesQuery);
+                _haplotypeDetailsTableInfo = qHelper.getTableInfo();
+            }
+            _haplotypeDetailsTableInfoLoaded = true;
+        }
+        return _haplotypeDetailsTableInfo;
     }
 
     @Nullable
@@ -133,6 +152,12 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         sql.append(") AS x WHERE x.DiploidNumber = ? AND x.Type = '" + type + "' AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
         sql.add(max ? 2 : 1);
         ExprColumn column = new ExprColumn(table, field, sql, JdbcType.VARCHAR);
+        TableInfo haplotypeDetailsTableInfo = getHaplotypeDetailsTableInfo();
+        if (haplotypeDetailsTableInfo != null && haplotypeDetailsTableInfo.getGridURL(getContainer()) != null)
+        {
+            DetailsURL url = new DetailsURL(haplotypeDetailsTableInfo.getGridURL(getContainer()), Collections.singletonMap("query.haplotype~eq", column.getFieldKey()));
+            column.setURL(url);
+        }
         column.setLabel(label);
         return column;
     }

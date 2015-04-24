@@ -27,18 +27,6 @@
                     </ns:conditionalFormat>
                 </ns:conditionalFormats>
             </ns:column>
-            <ns:column columnName="mhcAHaplotype1">
-                <ns:columnTitle>MHC-A Haplotype 1</ns:columnTitle>
-            </ns:column>
-            <ns:column columnName="mhcAHaplotype2">
-                <ns:columnTitle>MHC-A Haplotype 2</ns:columnTitle>
-            </ns:column>
-            <ns:column columnName="mhcBHaplotype1">
-                <ns:columnTitle>MHC-B Haplotype 1</ns:columnTitle>
-            </ns:column>
-            <ns:column columnName="mhcBHaplotype2">
-                <ns:columnTitle>MHC-B Haplotype 2</ns:columnTitle>
-            </ns:column>
         </ns:columns>
     </ns:table>
 </ns:tables>
