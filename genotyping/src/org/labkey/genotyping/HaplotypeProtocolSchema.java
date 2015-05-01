@@ -46,8 +46,10 @@ import org.springframework.validation.BindException;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: jeckels
@@ -155,7 +157,10 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         TableInfo haplotypeDetailsTableInfo = getHaplotypeDetailsTableInfo();
         if (haplotypeDetailsTableInfo != null && haplotypeDetailsTableInfo.getGridURL(getContainer()) != null)
         {
-            DetailsURL url = new DetailsURL(haplotypeDetailsTableInfo.getGridURL(getContainer()), Collections.singletonMap("query.haplotype~eq", column.getFieldKey()));
+            Map<String, FieldKey> params = new HashMap<>();
+            params.put("query.haplotype~eq", column.getFieldKey());
+            params.put("query.species~eq", new FieldKey(new FieldKey(new FieldKey(column.getFieldKey().getParent(), "AnimalId"), "SpeciesId"), "Name"));
+            DetailsURL url = new DetailsURL(haplotypeDetailsTableInfo.getGridURL(getContainer()), params);
             column.setURL(url);
         }
         column.setLabel(label);

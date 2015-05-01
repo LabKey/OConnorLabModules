@@ -28,6 +28,7 @@ import org.labkey.api.view.ActionURL;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Set;
 
 /**
  * Render the concatenated haplotypes with each value linking to the haplotype definition list, if configured
@@ -46,6 +47,18 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
         super(col);
         _container = container;
         _haplotypeTableInfo = haplotypeTableInfo;
+    }
+
+    @Override
+    public void addQueryFieldKeys(Set<FieldKey> keys)
+    {
+        super.addQueryFieldKeys(keys);
+        keys.add(getSpeciesFieldKey());
+    }
+
+    private FieldKey getSpeciesFieldKey()
+    {
+        return new FieldKey(new FieldKey(new FieldKey(getBoundColumn().getFieldKey().getParent(), "AnimalId"), "SpeciesId"), "Name");
     }
 
     @Override
@@ -68,6 +81,11 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
                 ActionURL url = _haplotypeTableInfo.getGridURL(_container).clone();
                 // Filter the default grid URL to just show matches for this haplotype
                 SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("Haplotype"), haplotype);
+                String speciesValue = ctx.get(getSpeciesFieldKey(), String.class);
+                if (speciesValue != null)
+                {
+                    filter.addCondition(FieldKey.fromParts("Species"), speciesValue);
+                }
                 filter.applyToURL(url, "query");
                 String evaluatedURL = url.getURIString();
                 out.write("<a href=\"");
@@ -78,4 +96,6 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
             }
         }
     }
+
+
 }
