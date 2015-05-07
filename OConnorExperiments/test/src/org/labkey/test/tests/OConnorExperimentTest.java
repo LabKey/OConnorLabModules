@@ -249,14 +249,8 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
                 pkeys.add(row.get("container").toString());
             }
         }
-        catch (CommandException e)
+        catch (CommandException | IOException e)
         {
-            log("CommandException: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-        catch (IOException e)
-        {
-            log("IOException: " + e.getMessage());
             throw new RuntimeException(e);
         }
         goToProjectHome();
