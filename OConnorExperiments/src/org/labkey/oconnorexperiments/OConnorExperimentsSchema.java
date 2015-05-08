@@ -17,6 +17,7 @@
 package org.labkey.oconnorexperiments;
 
 import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.DbSchemaType;
 import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.dialect.SqlDialect;
 
@@ -38,7 +39,7 @@ public class OConnorExperimentsSchema
 
     public DbSchema getSchema()
     {
-        return DbSchema.get(NAME);
+        return DbSchema.get(NAME, DbSchemaType.Module);
     }
 
     public SqlDialect getSqlDialect()

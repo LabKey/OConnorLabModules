@@ -17,6 +17,7 @@
 package org.labkey.genotyping;
 
 import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.DbSchemaType;
 import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.data.TableInfo;
@@ -44,7 +45,7 @@ public class GenotypingSchema
 
     public DbSchema getSchema()
     {
-        return DbSchema.get(getSchemaName());
+        return DbSchema.get(getSchemaName(), DbSchemaType.Module);
     }
 
     public SqlDialect getSqlDialect()
