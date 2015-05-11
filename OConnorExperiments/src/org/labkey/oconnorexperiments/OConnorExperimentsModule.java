@@ -24,8 +24,8 @@ import org.labkey.api.data.SQLFragment;
 import org.labkey.api.files.FileContentService;
 import org.labkey.api.files.FileListener;
 import org.labkey.api.module.DefaultModule;
+import org.labkey.api.module.FolderTypeManager;
 import org.labkey.api.module.ModuleContext;
-import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.SchemaKey;
 import org.labkey.api.query.UserSchema;
@@ -122,7 +122,7 @@ public class OConnorExperimentsModule extends DefaultModule
         fileListener = new OConnorFileChangeListener();
         ServiceRegistry.get(FileContentService.class).addFileListener(fileListener);
 
-        ModuleLoader.getInstance().registerFolderType(this, new OConnorExperimentFolderType());
+        FolderTypeManager.get().registerFolderType(this, new OConnorExperimentFolderType());
     }
 
     @NotNull

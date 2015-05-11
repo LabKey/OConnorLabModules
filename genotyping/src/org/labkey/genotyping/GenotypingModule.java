@@ -24,8 +24,8 @@ import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.files.FileContentService;
 import org.labkey.api.files.TableUpdaterFileListener;
 import org.labkey.api.module.DefaultModule;
+import org.labkey.api.module.FolderTypeManager;
 import org.labkey.api.module.ModuleContext;
-import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.study.assay.AssayService;
@@ -77,7 +77,7 @@ public class GenotypingModule extends DefaultModule
         PipelineService.get().registerPipelineProvider(new SubmitAnalysisPipelineProvider(this));
         PipelineService.get().registerPipelineProvider(new ImportAnalysisPipelineProvider(this));
         GenotypingQuerySchema.register(this);
-        ModuleLoader.getInstance().registerFolderType(this, new GenotypingFolderType(this));
+        FolderTypeManager.get().registerFolderType(this, new GenotypingFolderType(this));
         AssayService.get().registerAssayProvider(new HaplotypeAssayProvider());
         ExperimentService.get().registerExperimentDataHandler(new HaplotypeDataHandler());
 
