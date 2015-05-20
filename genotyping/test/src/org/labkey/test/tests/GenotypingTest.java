@@ -122,7 +122,7 @@ public class GenotypingTest extends GenotypingBaseTest
         //delete some rows
         prepForPageLoad();
         clickButton("Delete", 0);
-        getAlert();
+        acceptAlert();
         waitForPageToLoad();
 
         waitForText("1 match was deleted.");

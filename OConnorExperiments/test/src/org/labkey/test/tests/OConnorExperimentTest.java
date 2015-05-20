@@ -118,7 +118,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         table.checkCheckbox(0);
         waitForElement(Locator.lkButton("Delete"));
         click(Locator.lkButton("Delete"));
-        getAlert();
+        acceptAlert();
 
         assertEquals("Wrong number of rows after deletion", 2, table.getDataRowCount());
 
