@@ -15,6 +15,7 @@
  */
 package org.labkey.test.tests;
 
+import org.labkey.remoteapi.CommandException;
 import org.labkey.remoteapi.Connection;
 import org.labkey.remoteapi.query.DeleteRowsCommand;
 import org.labkey.remoteapi.query.SaveRowsResponse;
@@ -27,6 +28,7 @@ import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
 abstract public class GenotypingBaseTest extends BaseWebDriverTest
@@ -109,7 +111,11 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
         {
             resp = cmd.execute(cn, getProjectName());
         }
-        catch (Exception ex)
+        catch (IOException fail)
+        {
+            throw new RuntimeException(fail);
+        }
+        catch (CommandException ex)
         {
             if (failOnError)
                 throw new RuntimeException(ex);

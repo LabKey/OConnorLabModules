@@ -30,6 +30,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -102,7 +103,7 @@ public class IlluminaTest extends GenotypingBaseTest
     }
 
     @LogMethod
-    private void verifyZipExport() throws Exception
+    private void verifyZipExport()
     {
         final File export = exportAllFiles(ExportType.ZIP, "genotypingExport");
 
@@ -117,7 +118,7 @@ public class IlluminaTest extends GenotypingBaseTest
                 {
                     fileCount = getFileCountInZip(export);
                 }
-                catch (Exception e)
+                catch (IOException e)
                 {
                     return false;
                 }
@@ -125,10 +126,17 @@ public class IlluminaTest extends GenotypingBaseTest
             }
         }, WAIT_FOR_JAVASCRIPT);
 
-        assertEquals("Wrong number of zipped files", expectedLength, getFileCountInZip(export));
+        try
+        {
+            assertEquals("Wrong number of zipped files", expectedLength, getFileCountInZip(export));
+        }
+        catch (IOException fail)
+        {
+            throw new AssertionError("Unable to determine size of exported zip file", fail);
+        }
     }
 
-    private int getFileCountInZip(File file) throws Exception
+    private int getFileCountInZip(File file) throws IOException
     {
         int count = 0;
         try (
