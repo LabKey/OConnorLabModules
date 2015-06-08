@@ -77,7 +77,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyAssignmentReport();
         verifyDuplicateRecords();
         verifyAribitraryHaplotypeAssay();
-        verifySTRDiscrepancies();
+        verifySTRDisrepancies();
         verifyColumnRenaming();
     }
 
@@ -126,7 +126,7 @@ public class HaplotypeAssayTest extends GenotypingTest
     }
 
     @LogMethod
-    private void verifySTRDiscrepancies()
+    private void verifySTRDisrepancies()
     {
         final String strDisrepanciesHeader = "view STR disrepancies report";
 
@@ -153,7 +153,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         DataRegionTable drt = new DataRegionTable("Data", this);
 
         verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
-        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", "A025", "A001", "A023", "A002a");
+        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", "A021", "A001", "A023", "A002a");
         verifyColumnDataValues(drt, "MHC-DRB Haplotype 1", "D025a", "D012b", "D001c", "D012b", "D002");
         verifyColumnDataValues(drt, "MHC-DRB Haplotype 2", "D015c", "D017a", "D017a", "D012b", "D002");
 
@@ -278,7 +278,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "IdentifiedReads", "300", "1000", "600", "2500", "3250");
         verifyColumnDataValues(drt, "%Unknown", "70.0", "50.0", "80.0", "37.5", "35.0");
         verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
-        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", "A025", "A001", "A023", "A002a");
+        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", "A021", "A001", "A023", "A002a");
         verifyColumnDataValues(drt, "MHC-BHaplotype1", "B015c", "B012b", "B001c", "B012b", "B002");
         verifyColumnDataValues(drt, "MHC-BHaplotype2", "B025a", "B017a", "B017a", "B012b", "B002");
         verifyColumnDataValues(drt, "Enabled", "true", "true", "true", "true", "true");
@@ -288,7 +288,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         List<String> concatenated = drt.getColumnDataAsText("ConcatenatedHaplotypes");
         assertEquals("Wrong number of data rows", 5, concatenated.size());
         assertEquals("Wrong ID-1 concatenated haplotypes", "A001, A023, B015c, B025a", concatenated.get(0));
-        assertEquals("Wrong ID-2 concatenated haplotypes", "A023, A025, B012b, B017a", concatenated.get(1));
+        assertEquals("Wrong ID-2 concatenated haplotypes", "A023, A021, B012b, B017a", concatenated.get(1));
         assertEquals("Wrong ID-3 concatenated haplotypes", "A001, A001, B001c, B017a", concatenated.get(2));
         assertEquals("Wrong ID-4 concatenated haplotypes", "A004, A023, B012b, B012b", concatenated.get(3));
         assertEquals("Wrong ID-5 concatenated haplotypes", "A002a, A002a, B002, B002", concatenated.get(4));
@@ -373,7 +373,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         verifyColumnDataValues(drt, "Total % Unknown", "70.0%", "50.0%", "80.0%", "37.5%", "35.0%", "50.0%", "50.0%", " ", " ");
         verifyColumnDataValues(drt, "Inconsistent Assignments", "false", "false", "false", "true", "false", "false", "false", "false", "false");
         verifyColumnDataValues(drt, "mhcA Haplotype1", "A001", "A023", "A001", "A001", "A002a", "A033", "A004", "A004", "A004");
-        verifyColumnDataValues(drt, "mhcA Haplotype2", "A023", "A025", "A001", "A023", "A002a", "A033", " ", "A004", "A004");
+        verifyColumnDataValues(drt, "mhcA Haplotype2", "A023", "A021", "A001", "A023", "A002a", "A033", " ", "A004", "A004");
         verifyColumnDataValues(drt, "mhcB Haplotype1", "B015c", "B012b", "B001c", "B012b", "B002", "B012b", "B033", "B033", "B033");
         verifyColumnDataValues(drt, "mhcB Haplotype2", "B025a", "B017a", "B017a", "B012b", "B002", "B012b", "B033", "B033", "B033");
     }
