@@ -140,9 +140,9 @@ public class Import454ReadsJob extends PipelineJob
                 GenotypingRun newRun = GenotypingManager.get().createRun(getContainer(), getUser(), _run.getMetaDataId(), file, _run.getPlatform());
                 _run.setRowId(newRun.getRowId());
             }
-            catch (SQLException e)
+            catch (RuntimeSQLException e)
             {
-                if (RuntimeSQLException.isConstraintException(e))
+                if (RuntimeSQLException.isConstraintException(e.getSQLException()))
                     throw new PipelineJobException("Run " + _run.getMetaDataId() + " has already been imported");
                 else
                     throw e;

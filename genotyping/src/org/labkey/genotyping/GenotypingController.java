@@ -1125,9 +1125,9 @@ public class GenotypingController extends SpringActionController
                 {
                     run = GenotypingManager.get().createRun(getContainer(), getUser(), form.getMetaDataRun(), readsFile, form.getPlatform());
                 }
-                catch (SQLException e)
+                catch (RuntimeSQLException e)
                 {
-                    if (RuntimeSQLException.isConstraintException(e))
+                    if (RuntimeSQLException.isConstraintException(e.getSQLException()))
                         return "Run " + form.getRun() + " has already been imported";
                     else
                         throw e;

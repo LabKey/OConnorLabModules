@@ -127,7 +127,7 @@ public class GenotypingManager
         map.save();
     }
 
-    public GenotypingRun createRun(Container c, User user, Integer metaDataId, File readsFile, String platform) throws SQLException
+    public GenotypingRun createRun(Container c, User user, Integer metaDataId, File readsFile, String platform)
     {
         MetaDataRun mdRun = null;
 
