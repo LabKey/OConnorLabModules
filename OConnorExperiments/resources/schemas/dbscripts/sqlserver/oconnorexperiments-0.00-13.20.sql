@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* oconnorexperiments-0.00-13.10.sql */
+
 CREATE SCHEMA oconnorexperiments;
 GO
 
@@ -42,4 +44,19 @@ CREATE TABLE OConnorExperiments.ParentExperiments
   CONSTRAINT FK_ParentExperiments_Container FOREIGN KEY (ParentExperiment) REFERENCES OConnorExperiments.Experiments (Container)
 );
 
+/* oconnorexperiments-13.10-13.20.sql */
 
+-- Modified column was mistakenly created as TIMESTAMP
+ALTER TABLE oconnorexperiments.Experiments
+    DROP COLUMN Modified;
+GO
+ALTER TABLE oconnorexperiments.Experiments
+    ADD Modified DATETIME;
+GO
+
+UPDATE oconnorexperiments.Experiments SET Modified = CURRENT_TIMESTAMP;
+GO
+
+-- drop ParentExperiments.Container FK to allow bulk folder delete
+EXEC core.fn_dropifexists 'ParentExperiments', 'OConnorExperiments', 'constraint', 'FK_ParentExperiments_Container';
+GO

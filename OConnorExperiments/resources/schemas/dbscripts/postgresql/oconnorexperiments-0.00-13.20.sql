@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* oconnorexperiments-0.00-13.10.sql */
+
 CREATE SCHEMA OConnorExperiments;
 
 -- Experiments table has 1 row per workbook container
@@ -41,5 +43,7 @@ CREATE TABLE OConnorExperiments.ParentExperiments
     CONSTRAINT FK_ParentExperiments_Container FOREIGN KEY (ParentExperiment) REFERENCES OConnorExperiments.Experiments (Container)
 );
 
+/* oconnorexperiments-13.10-13.20.sql */
 
-
+-- drop ParentExperiments.Container FK to allow bulk folder delete
+SELECT core.fn_dropifexists('ParentExperiments', 'OConnorExperiments', 'constraint', 'FK_ParentExperiments_Container');
