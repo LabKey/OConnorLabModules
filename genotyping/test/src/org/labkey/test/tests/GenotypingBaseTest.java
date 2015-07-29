@@ -33,17 +33,7 @@ import java.util.Collections;
 
 abstract public class GenotypingBaseTest extends BaseWebDriverTest
 {
-    public static final String first454importNum = "207";
-    public static final String second454importNum = "208";
-    public static final String illuminaImportNum = "206";
-    protected int pipelineJobCount = 0;
-
     String pipelineLoc = TestFileUtils.getLabKeyRoot() + "/sampledata/genotyping";
-    protected int runNum = 0; //this is globally unique, so we need to retrieve it every time.
-    protected String checkboxId = ".select";
-    //    private String expectedAnalysisCount = "1 - 61 of 61";
-
-    DataRegionTable drt = null;
     protected String samples = "samples";
     protected String TEMPLATE_NAME = "GenotypingTest Saved Template";
 

@@ -49,8 +49,6 @@ public class IlluminaTest extends GenotypingBaseTest
     protected int pipelineJobCount = 0;
 
     File pipelineLoc = new File(TestFileUtils.getLabKeyRoot(), "/sampledata/genotyping");
-    protected String checkboxId = ".select";
-//    private String expectedAnalysisCount = "1 - 61 of 61";
 
     private static final String TEMPLATE_NAME = "GenotypingTest Saved Template";
 
@@ -355,9 +353,9 @@ public class IlluminaTest extends GenotypingBaseTest
         DataRegionTable table = new DataRegionTable("Reads", this);
         table.setSort("DataId", SortDirection.ASC);
         xpath = xpath.replace("disabled", "labkey");
-        click(Locator.name(checkboxId).index(2));
-        click(Locator.name(checkboxId).index(3));
-        click(Locator.name(checkboxId).index(9));
+        table.checkCheckbox(2);
+        table.checkCheckbox(3);
+        table.checkCheckbox(9);
         Locator exportButton = Locator.xpath(xpath);
 
         click(exportButton);

@@ -39,8 +39,6 @@ public class GenotypingTest extends GenotypingBaseTest
     protected int runNum = 0; //this is globally unique, so we need to retrieve it every time.
     protected String checkboxId = ".select";
 
-    DataRegionTable drt = null;
-
     @Override
     protected String getProjectName()
     {
@@ -101,13 +99,13 @@ public class GenotypingTest extends GenotypingBaseTest
         assertTextPresent("Reads", "Sample Id", "Percent", "TEST09");
 //        assertTextPresent("TEST14", 2);
         assertElementPresent(Locator.paginationText(1, 100, 1410));
-        startAlterMatches();
-        deleteMatchesTest();
-        alterMatchesTest();
+        DataRegionTable drt = startAlterMatches();
+        deleteMatchesTest(drt);
+        alterMatchesTest(drt);
 
     }
 
-    private void deleteMatchesTest()
+    private void deleteMatchesTest(DataRegionTable drt)
     {
 
         String[] alleleContentsBeforeDeletion = drt.getColumnDataAsText("Allele Name").toArray(new String[] {"a"});
@@ -120,16 +118,16 @@ public class GenotypingTest extends GenotypingBaseTest
         assertElementPresent(Locator.paginationText(1, 100, 1410));
 
         //delete some rows
-        prepForPageLoad();
-        clickButton("Delete", 0);
-        acceptAlert();
-        waitForPageToLoad();
+        doAndWaitForPageToLoad(() -> {
+            clickButton("Delete", 0);
+            acceptAlert();
+        });
 
         waitForText("1 match was deleted.");
         assertElementPresent(Locator.paginationText(1, 100, 1409));
     }
 
-    private void alterMatchesTest()
+    private void alterMatchesTest(DataRegionTable drt)
     {
         sleep(5000);
         String expectedNewAlleles = "Mafa-A1*063:03:01, Mafa-A1*063:01";
@@ -147,14 +145,12 @@ public class GenotypingTest extends GenotypingBaseTest
         for(String allele: alleles)
         {
             Locator.XPathLocator l =  Locator.tagWithText("div", allele);
-            isElementPresent(l);
-            assertEquals(1, getElementCount(l));
+            assertElementPresent(l, 1);
         }
 
         //combine some but not all of the matches
         _extHelper.clickXGridPanelCheckbox(0, true);
-        clickButtonContainingText("Combine", WAIT_FOR_EXT_MASK_TO_DISSAPEAR);
-        refresh();
+        clickAndWait(Locator.extButton("Combine"));
 
         int newIdIndex = getCombinedSampleRowIndex();
         assertEquals("19", drt.getDataAsText(newIdIndex, "Reads") );
@@ -173,7 +169,7 @@ public class GenotypingTest extends GenotypingBaseTest
      * enable altering of matches and verify expected changes
      * precondition:  already at analysis page
      */
-    private void startAlterMatches()
+    private DataRegionTable startAlterMatches()
     {
        clickButton("Alter Matches");
 
@@ -182,7 +178,7 @@ public class GenotypingTest extends GenotypingBaseTest
             assertElementPresent(Locator.xpath("//a[contains(@class,'button')]/span[text()='" + buttonText + "']"));
         }
 
-        drt = new DataRegionTable( "Analysis", this);
+        return new DataRegionTable( "Analysis", this);
     }
 
     private void receiveDataFromGalaxyServer()

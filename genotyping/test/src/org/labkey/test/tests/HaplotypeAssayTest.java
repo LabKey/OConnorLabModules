@@ -491,7 +491,7 @@ public class HaplotypeAssayTest extends GenotypingTest
 
         // test editing a run/animal record to clear a duplicate for ID-4
         goToAssayRun("first run");
-        drt = new DataRegionTable("Data", this);
+        DataRegionTable drt = new DataRegionTable("Data", this);
         drt.setFilter("AnimalId", "Equals", "ID-4");
         clickAndWait(Locator.linkWithText("edit"));
         waitForText("mhcB Haplotype", 2, WAIT_FOR_JAVASCRIPT);
@@ -528,7 +528,7 @@ public class HaplotypeAssayTest extends GenotypingTest
     private void setReportId(String id)
     {
         // this method assumes that we are already viewing the Assay results grid
-        drt = new DataRegionTable("Data", this);
+        DataRegionTable drt = new DataRegionTable("Data", this);
         drt.setFilter("AnimalId", "Equals", id);
         checkCheckbox(Locator.checkboxByName(".select"));
         clickButton("Produce Report");
@@ -549,7 +549,7 @@ public class HaplotypeAssayTest extends GenotypingTest
     private void verifyHaplotypeRecordsByType(int total, int typeACount, int typeBCount)
     {
         goToQuery("Haplotype");
-        drt = new DataRegionTable("query", this);
+        DataRegionTable drt = new DataRegionTable("query", this);
         assertEquals("Unexpected number of Haplotype records", total, drt.getDataRowCount());
         drt.setFilter("Type", "Equals", "mhcA");
         assertEquals("Unexpected number of filtered Haplotype records", typeACount, drt.getDataRowCount());
