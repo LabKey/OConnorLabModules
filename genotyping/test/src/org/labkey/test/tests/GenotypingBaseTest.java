@@ -45,7 +45,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
         String[] listVals = {"sequences", "runs", samples};
         for(int i=0; i<3; i++)
         {
-            click(Locator.linkContainingText("configure",i));
+            click(Locator.linkContainingText("configure").index(i));
             _extHelper.waitForExt3Mask(WAIT_FOR_JAVASCRIPT);
             _extHelper.selectComboBoxItem("Schema:", "lists");
             _extHelper.selectComboBoxItem("Query:", listVals[i]);
