@@ -204,6 +204,7 @@ OConnor/resources/web/oconnor/users.png -text
 OConnor/resources/web/purchases_definitions.lists.zip -text
 OConnorExperiments/OConnorExperiments.iml -text
 OConnorExperiments/module.properties -text
+OConnorExperiments/resources/queries/ExperimentNumbers.sql -text
 OConnorExperiments/resources/queries/OConnorExperiments/Experiments.query.xml -text
 OConnorExperiments/resources/queries/OConnorExperiments/Experiments/.qview.xml -text
 OConnorExperiments/resources/queries/OConnorExperiments/Experiments/BlankExperiments.qview.xml -text

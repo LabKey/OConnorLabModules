@@ -46,9 +46,10 @@ create foreign key lookup to experiment_db - allows users to link to experiment
 -->
            <column columnName="experiment">
                       <fk>
-                         <fkColumnName>experiment_number</fkColumnName>
-                         <fkTable>experiment_db</fkTable>
-                         <fkDbSchema>oconnor</fkDbSchema>
+                         <fkColumnName>ExperimentNumber</fkColumnName>
+                         <fkTable>ExperimentNumbers</fkTable>
+                         <fkDbSchema>OConnorExperiments</fkDbSchema>
+                         <fkDbSchema>/dho/experiments</fkDbSchema>
                      </fk>
             </column>	
 <!-- rename fields where display name does not equal postgresSQL field name	 -->											
