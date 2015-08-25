@@ -66,7 +66,7 @@ import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.IgnoresTermsOfUse;
 import org.labkey.api.security.RequiresNoPermission;
-import org.labkey.api.security.RequiresPermissionClass;
+import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
 import org.labkey.api.security.UserManager;
 import org.labkey.api.security.ValidEmail;
@@ -150,7 +150,7 @@ public class GenotypingController extends SpringActionController
         setActionResolver(_actionResolver);
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class BeginAction extends SimpleRedirectAction
     {
         @Override
@@ -230,7 +230,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class AnalysisAction extends QueryViewAction<AnalysisForm, QueryView>
     {
         private GenotypingAnalysis _analysis = null;
@@ -409,7 +409,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(UpdatePermission.class)
+    @RequiresPermission(UpdatePermission.class)
     public class CombineMatchesAction extends RedirectAction<CombineForm>
     {
         private Integer _newId = null;
@@ -458,7 +458,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(DeletePermission.class)
+    @RequiresPermission(DeletePermission.class)
     public class DeleteMatchesAction extends RedirectAction<MatchesForm>
     {
         private int _count = 0;
@@ -505,7 +505,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(AdminPermission.class)
+    @RequiresPermission(AdminPermission.class)
     public class LoadSequencesAction extends SimpleRedirectAction<ReturnUrlForm>
     {
         @Override
@@ -657,7 +657,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(AdminPermission.class)
+    @RequiresPermission(AdminPermission.class)
     public class AdminAction extends FormViewAction<AdminForm>
     {
         @Override
@@ -721,7 +721,7 @@ public class GenotypingController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     @IgnoresTermsOfUse
     public class MergeFastqFilesAction extends ExportAction<MergeFastqFilesForm>
     {
@@ -838,7 +838,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class MySettingsAction extends FormViewAction<MySettingsForm>
     {
         @Override
@@ -1048,7 +1048,7 @@ public class GenotypingController extends SpringActionController
     // NULL view name means use default view; need a placeholder string to display and post from the form
     public static final String DEFAULT_VIEW_PLACEHOLDER = "[default]";
 
-    @RequiresPermissionClass(InsertPermission.class)
+    @RequiresPermission(InsertPermission.class)
     public class ImportReadsAction extends FormViewAction<ImportReadsForm>
     {
         private ActionURL _successURL = null;
@@ -1237,7 +1237,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(InsertPermission.class)
+    @RequiresPermission(InsertPermission.class)
     public class AnalyzeAction extends FormViewAction<AnalyzeForm>
     {
         @Override
@@ -1492,7 +1492,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(InsertPermission.class)
+    @RequiresPermission(InsertPermission.class)
     public class ImportAnalysisAction extends SimpleRedirectAction<PipelinePathForm>
     {
         @Override
@@ -1603,7 +1603,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class SequencesAction extends QueryViewAction<SequencesForm, QueryView>
     {
         public SequencesAction()
@@ -1665,7 +1665,7 @@ public class GenotypingController extends SpringActionController
 
 
     @SuppressWarnings({"UnusedDeclaration"})  // URL defined on sequences.rowId column in genotyping.xml
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class SequenceAction extends SimpleViewAction<SequenceForm>
     {
         public SequenceAction()
@@ -1714,7 +1714,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class RunsAction extends QueryViewAction<QueryExportForm, QueryView>
     {
         public RunsAction()
@@ -1743,7 +1743,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class AnalysesAction extends QueryViewAction<QueryExportForm, QueryView>
     {
         public AnalysesAction()
@@ -1905,7 +1905,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class RunAction extends ReadsAction<RunForm>
     {
         private GenotypingRun _run;
@@ -1990,7 +1990,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(AdminPermission.class)
+    @RequiresPermission(AdminPermission.class)
     public class DeleteRunsAction extends RedirectAction
     {
         @Override
@@ -2019,7 +2019,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    @RequiresPermissionClass(DeletePermission.class)
+    @RequiresPermission(DeletePermission.class)
     public class DeleteAnalysesAction extends RedirectAction
     {
         @Override
@@ -2077,7 +2077,7 @@ public class GenotypingController extends SpringActionController
 
 
     @SuppressWarnings({"UnusedDeclaration"})  // URL defined on matches.reads column in genotyping.xml
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class MatchReadsAction extends ReadsAction<MatchReadsForm>
     {
         private GenotypingAnalysis _analysis;
@@ -2147,7 +2147,7 @@ public class GenotypingController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class HaplotypeAssignmentReportAction extends SimpleViewAction<ProtocolIdForm>
     {
         private ExpProtocol _protocol;
@@ -2183,7 +2183,7 @@ public class GenotypingController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class DuplicateAssignmentReportAction extends BaseAssayAction<ProtocolIdForm>
     {
         private ExpProtocol _protocol;
@@ -2210,7 +2210,7 @@ public class GenotypingController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class STRDiscrepanciesAssignmentReportAction extends SimpleViewAction<STRDiscrepancies>
     {
         private ExpProtocol _protocol;
@@ -2419,7 +2419,7 @@ public class GenotypingController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class AggregatedResultsReportAction extends BaseAssayAction<ProtocolIdForm>
     {
         private ExpProtocol _protocol;
@@ -2446,7 +2446,7 @@ public class GenotypingController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(UpdatePermission.class)
+    @RequiresPermission(UpdatePermission.class)
     public class EditHaplotypeAssignmentAction extends SimpleViewAction<AssignmentForm>
     {
         @Override

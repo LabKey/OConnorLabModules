@@ -44,7 +44,7 @@ import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.CSRF;
 import org.labkey.api.security.RequiresLogin;
-import org.labkey.api.security.RequiresPermissionClass;
+import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
 import org.labkey.api.security.UserManager;
 import org.labkey.api.security.permissions.AdminPermission;
@@ -89,7 +89,7 @@ public class OConnorExperimentsController extends SpringActionController
         setActionResolver(_actionResolver);
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class BeginAction extends SimpleViewAction
     {
         public ModelAndView getView(Object o, BindException errors) throws Exception
@@ -103,7 +103,7 @@ public class OConnorExperimentsController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(AdminPermission.class)
+    @RequiresPermission(AdminPermission.class)
     public class MigrateDataAction extends FormViewAction<UserForm>
     {
         public void validateCommand(UserForm target, Errors errors)
@@ -394,7 +394,7 @@ public class OConnorExperimentsController extends SpringActionController
      * then redirect to the newly created experiment begin page.
      */
     @RequiresLogin @CSRF
-    @RequiresPermissionClass(InsertPermission.class)
+    @RequiresPermission(InsertPermission.class)
     public class InsertExperimentAction extends RedirectAction
     {
         private Container newExperiment;
@@ -437,7 +437,7 @@ public class OConnorExperimentsController extends SpringActionController
     }
 
     @RequiresLogin @CSRF
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class GetExperimentAction extends ApiAction
     {
         @Override
@@ -467,7 +467,7 @@ public class OConnorExperimentsController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(UpdatePermission.class)
+    @RequiresPermission(UpdatePermission.class)
     public class HistoryAction extends SimpleViewAction
     {
         @Override
@@ -500,7 +500,7 @@ public class OConnorExperimentsController extends SpringActionController
         }
     }
 
-    @RequiresPermissionClass(ReadPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class LookupWorkbookAction extends SimpleViewAction<LookupWorkbookForm>
     {
         public ModelAndView getView(LookupWorkbookForm form, BindException errors) throws Exception
