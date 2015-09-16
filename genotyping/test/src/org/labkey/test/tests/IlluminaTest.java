@@ -106,23 +106,20 @@ public class IlluminaTest extends GenotypingBaseTest
         final File export = exportAllFiles(ExportType.ZIP, "genotypingExport");
 
         final int expectedLength = 30;
-        waitFor(new Checker()
-        {
-            @Override
-            public boolean check()
-            {
-                int fileCount;
-                try
+        waitFor(() ->
                 {
-                    fileCount = getFileCountInZip(export);
-                }
-                catch (IOException e)
-                {
-                    return false;
-                }
-                return expectedLength == fileCount;
-            }
-        }, WAIT_FOR_JAVASCRIPT);
+                    int fileCount;
+                    try
+                    {
+                        fileCount = getFileCountInZip(export);
+                    }
+                    catch (IOException e)
+                    {
+                        return false;
+                    }
+                    return expectedLength == fileCount;
+                },
+                WAIT_FOR_JAVASCRIPT);
 
         try
         {
