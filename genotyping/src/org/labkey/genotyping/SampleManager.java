@@ -29,6 +29,7 @@ import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.NotFoundException;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,19 +63,8 @@ public class SampleManager
 
     public Results selectSamples(Container c, User user, GenotypingRun run, String columnNames, String action) throws SQLException
     {
-        ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, action);
-        QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getSamplesQuery());
-
-        TableInfo ti = qHelper.getTableInfo();
-        GenotypingQueryHelper.validateSamplesQuery(ti);
-
-        //Issue 15663: Avoid NullPointerException if the metadataRun is not found
-        if (null == run)
-            throw new NotFoundException("No run was provided");
-
-        MetaDataRun metaDataRun = run.getMetaDataRun(user, action);
-        if (null == metaDataRun)
-            throw new NotFoundException("Could not find run with MetaDataId: " + run.getMetaDataId());
+        QueryHelper qHelper = validateSamplesQuery(c, user, run, action);
+        MetaDataRun metaDataRun = validateRun(user, run, action);
 
         SimpleFilter extraFilter = new SimpleFilter(FieldKey.fromParts(GenotypingQueryHelper.LIBRARY_NUMBER), metaDataRun.getSampleLibrary());
 
@@ -86,12 +76,62 @@ public class SampleManager
         return qHelper.select(fieldKeys, extraFilter);
     }
 
+    public Results selectSamples(Container c, User user, GenotypingRun run, String action) throws SQLException
+    {
+        QueryHelper qHelper = validateSamplesQuery(c, user, run, action);
+        MetaDataRun metaDataRun = validateRun(user, run, action);
+        return qHelper.select(qHelper.getTableInfo().getDefaultVisibleColumns(), null);
+    }
+
+    public Map<Integer, Object> getSampleIdsFromSamplesList(Container c, User user, GenotypingRun run, String action) throws SQLException
+    {
+        QueryHelper qHelper = validateSamplesQuery(c, user, run, action);
+        MetaDataRun metaDataRun = validateRun(user, run, action);
+        Map<Integer, Object> sampleIds = new HashMap<>();
+
+        Results results = qHelper.select(qHelper.getTableInfo().getDefaultVisibleColumns(), null);
+
+        while(results.next())
+        {
+            Map<FieldKey, Object> fieldKeyRowMap = results.getFieldKeyRowMap();
+            Integer sampleIdFromSamplesList = (Integer) fieldKeyRowMap.get(FieldKey.decode("Key"));
+            sampleIds.put(sampleIdFromSamplesList, null);
+        }
+        results.close();
+        return sampleIds;
+    }
+
+
+    private QueryHelper validateSamplesQuery(Container c, User user, GenotypingRun run, String action)
+    {
+        ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, action);
+        QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getSamplesQuery());
+
+        TableInfo ti = qHelper.getTableInfo();
+        GenotypingQueryHelper.validateSamplesQuery(ti);
+
+        return qHelper;
+    }
+
+    private MetaDataRun validateRun(User user, GenotypingRun run, String action)
+    {
+        //Issue 15663: Avoid NullPointerException if the metadataRun is not found
+        if (null == run)
+            throw new NotFoundException("No run was provided");
+
+        MetaDataRun metaDataRun = run.getMetaDataRun(user, action);
+        if (null == metaDataRun)
+            throw new NotFoundException("Could not find run with MetaDataId: " + run.getMetaDataId());
+
+        return metaDataRun;
+    }
 
     public static class SampleIdFinder
     {
         private final Set<String> _sampleKeyColumns;
         private final Map<SampleKey, Integer> _map;
         private static final String SELECT_COLUMNS = MID5_COLUMN_NAME + "/mid_name, " + MID3_COLUMN_NAME + "/mid_name, " + AMPLICON_COLUMN_NAME + ", " + KEY_COLUMN_NAME;
+        private static final String SELECT_COLUMNS_WITHOUT_LOOKUP = MID5_COLUMN_NAME + ", " + MID3_COLUMN_NAME + ", " + AMPLICON_COLUMN_NAME + ", " + KEY_COLUMN_NAME;
         private static final int SELECT_COLUMN_COUNT = 4;
 
         public SampleIdFinder(GenotypingRun run, User user, Set<String> sampleKeyColumns, String action) throws SQLException
@@ -121,10 +161,26 @@ public class SampleManager
                 // Check that samples query includes all the necessary columns... fail with a decent error message if it doesn't
                 if (map.size() < SELECT_COLUMN_COUNT)
                 {
-                    String actual = StringUtils.join(map.keySet(), ", ").toLowerCase();
-                    int diff = SELECT_COLUMN_COUNT - map.size();
-                    String message = "Samples query returned " + map.size() + " columns instead of " + SELECT_COLUMN_COUNT + ". Expected \"" + SELECT_COLUMNS + "\" but \"" + actual + "\" was returned. You need to add or rename " + (1 == diff ? "a column." : diff + " columns.");
-                    throw new IllegalStateException(message);
+                    //Do not require fivemid and threemid fields be a valid barcode identifiers. If it is, link it. Else, import as text.
+                    try
+                    {
+                        rs = SampleManager.get().selectSamples(run.getContainer(), user, run, SELECT_COLUMNS_WITHOUT_LOOKUP, action);
+                    }
+                    catch (NullPointerException e)
+                    {
+                        _map.clear();
+                        return;
+                    }
+
+                    map = rs.getFieldMap();
+
+                    if (map.size() < SELECT_COLUMN_COUNT)
+                    {
+                        String actual = StringUtils.join(map.keySet(), ", ").toLowerCase();
+                        int diff = SELECT_COLUMN_COUNT - map.size();
+                        String message = "Samples query returned " + map.size() + " columns instead of " + SELECT_COLUMN_COUNT + ". Expected \"" + SELECT_COLUMNS + "\" but \"" + actual + "\" was returned. You need to add or rename " + (1 == diff ? "a column." : diff + " columns.");
+                        throw new IllegalStateException(message);
+                    }
                 }
 
                 while (rs.next())

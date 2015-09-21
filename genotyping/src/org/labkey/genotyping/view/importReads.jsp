@@ -56,7 +56,7 @@
             }
         %></select></td></tr>
 <%
-    if (platform == SEQUENCE_PLATFORMS.ILLUMINA)
+    if (platform == SEQUENCE_PLATFORMS.ILLUMINA || platform == SEQUENCE_PLATFORMS.PACBIO)
     {
 %>
         <tr><td>FASTQ Prefix (Optional):</td>

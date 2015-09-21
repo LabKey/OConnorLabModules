@@ -16,49 +16,16 @@
 package org.labkey.genotyping;
 
 import org.labkey.api.module.Module;
-import org.labkey.api.pipeline.PipeRoot;
-import org.labkey.api.pipeline.PipelineDirectory;
-import org.labkey.api.pipeline.PipelineProvider;
-import org.labkey.api.security.permissions.InsertPermission;
-import org.labkey.api.view.ActionURL;
-import org.labkey.api.view.ViewContext;
-import org.labkey.genotyping.GenotypingController.ImportReadsAction;
-
-import java.io.File;
-import java.io.FileFilter;
 
 /**
  * User: adam
  * Date: Sep 10, 2010
  * Time: 8:42:36 PM
  */
-public class Import454ReadsPipelineProvider extends PipelineProvider
+public class Import454ReadsPipelineProvider extends ReadsPipelineProvider
 {
     public Import454ReadsPipelineProvider(Module owningModule)
     {
-        super("Import 454 Reads", owningModule);
-    }
-
-    @Override
-    public void updateFileProperties(ViewContext context, PipeRoot pr, PipelineDirectory directory, boolean includeAll)
-    {
-        if (!context.getContainer().hasPermission(context.getUser(), InsertPermission.class))
-            return;
-
-        ActionURL importURL = directory.cloneHref();
-        importURL.setAction(ImportReadsAction.class);
-        importURL.addParameter("pipeline", true);    // Distinguish between manual pipeline submission and automated scripts
-        importURL.addParameter("platform", "LS454");
-
-        String actionId = createActionId(ImportReadsAction.class, "454");
-        addAction(actionId, importURL, "Import 454 Reads", directory, directory.listFiles(new ReadsFilter()), false, false, includeAll);
-    }
-
-    private static class ReadsFilter implements FileFilter
-    {
-        public boolean accept(File file)
-        {
-            return file.getName().equalsIgnoreCase(GenotypingManager.READS_FILE_NAME);
-        }
+        super("Import 454 Reads", owningModule, "LS454");
     }
 }

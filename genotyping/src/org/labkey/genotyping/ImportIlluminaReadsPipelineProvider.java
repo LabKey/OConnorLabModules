@@ -16,50 +16,16 @@
 package org.labkey.genotyping;
 
 import org.labkey.api.module.Module;
-import org.labkey.api.pipeline.PipeRoot;
-import org.labkey.api.pipeline.PipelineDirectory;
-import org.labkey.api.pipeline.PipelineProvider;
-import org.labkey.api.security.permissions.InsertPermission;
-import org.labkey.api.util.FileUtil;
-import org.labkey.api.view.ActionURL;
-import org.labkey.api.view.ViewContext;
-import org.labkey.genotyping.GenotypingController.ImportReadsAction;
-
-import java.io.File;
-import java.io.FileFilter;
 
 /**
  * User: bbimber
  * Date: Apr 19, 2012
  * Time: 8:42:36 PM
  */
-public class ImportIlluminaReadsPipelineProvider extends PipelineProvider
+public class ImportIlluminaReadsPipelineProvider extends ReadsPipelineProvider
 {
     public ImportIlluminaReadsPipelineProvider(Module owningModule)
     {
-        super("Import Illumina Reads", owningModule);
-    }
-
-    @Override
-    public void updateFileProperties(ViewContext context, PipeRoot pr, PipelineDirectory directory, boolean includeAll)
-    {
-        if (!context.getContainer().hasPermission(context.getUser(), InsertPermission.class))
-            return;
-
-        ActionURL importURL = directory.cloneHref();
-        importURL.setAction(ImportReadsAction.class);
-        importURL.addParameter("pipeline", true);    // Distinguish between manual pipeline submission and automated scripts
-        importURL.addParameter("platform", "ILLUMINA");
-
-        String actionId = createActionId(ImportReadsAction.class, "Illumina");
-        addAction(actionId, importURL, "Import Illumina Reads", directory, directory.listFiles(new SampleCSVFilter()), false, false, includeAll);
-    }
-
-    private static class SampleCSVFilter implements FileFilter
-    {
-        public boolean accept(File file)
-        {
-            return "csv".equalsIgnoreCase(FileUtil.getExtension(file));
-        }
+        super("Import Illumina Reads", owningModule, GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.name());
     }
 }

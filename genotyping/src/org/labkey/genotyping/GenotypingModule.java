@@ -49,7 +49,7 @@ public class GenotypingModule extends DefaultModule
 
     public double getVersion()
     {
-        return 15.20;
+        return 15.22;
     }
 
     public boolean hasScripts()
@@ -76,6 +76,8 @@ public class GenotypingModule extends DefaultModule
         PipelineService.get().registerPipelineProvider(new ImportIlluminaReadsPipelineProvider(this));
         PipelineService.get().registerPipelineProvider(new SubmitAnalysisPipelineProvider(this));
         PipelineService.get().registerPipelineProvider(new ImportAnalysisPipelineProvider(this));
+        PipelineService.get().registerPipelineProvider(new ImportPacBioReadsPipelineProvider(this));
+
         GenotypingQuerySchema.register(this);
         FolderTypeManager.get().registerFolderType(this, new GenotypingFolderType(this));
         AssayService.get().registerAssayProvider(new HaplotypeAssayProvider());

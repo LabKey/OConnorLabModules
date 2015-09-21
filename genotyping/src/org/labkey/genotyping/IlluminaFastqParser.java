@@ -99,6 +99,12 @@ public class IlluminaFastqParser<SampleIdType>
         for (File f : _files)
         {
             job.setStatus("PARSING FILE " + index + " OF " + _files.size());
+
+            if(f.length() == 0)
+            {
+                _logger.info("File " + f.getName() + " has no content to parse.");
+                continue;
+            }
             try
             {
                 _logger.info("Beginning to parse file: " + f.getName());
@@ -123,7 +129,6 @@ public class IlluminaFastqParser<SampleIdType>
                 reader.close();
                 Pair<SampleIdType, Integer> key = Pair.of(_sampleMap.get(sampleIdx), pairNumber);
                 _sequenceTotals.put(key, totalReads);
-
 
                 SampleIdType sampleId = _sampleMap.get(sampleIdx);
                 String name = (_outputPrefix == null ? "Reads" : _outputPrefix) + "-R" + pairNumber + "-" + (sampleIdx == 0 ? "Control" : sampleId) + ".fastq.gz";

@@ -18,14 +18,10 @@ package org.labkey.genotyping;
 import org.apache.commons.lang3.StringUtils;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.RuntimeSQLException;
-import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
-import org.labkey.api.data.TableSelector;
 import org.labkey.api.pipeline.PipeRoot;
-import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
-import org.labkey.api.query.FieldKey;
 import org.labkey.api.reader.ColumnDescriptor;
 import org.labkey.api.reader.TabLoader;
 import org.labkey.api.util.Compress;
@@ -39,8 +35,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +50,7 @@ import java.util.zip.DataFormatException;
 
 // This job imports all the reads for the run.  Once imported, users can (optionally) submit an analysis
 // of this run to Galaxy (see GalaxySubmitJob).
-public class Import454ReadsJob extends PipelineJob
+public class Import454ReadsJob extends ReadsJob
 {
     private final File _reads;
     private final GenotypingRun _run;
@@ -90,7 +84,7 @@ public class Import454ReadsJob extends PipelineJob
     {
         try
         {
-            updateRunStatus(Status.Importing);
+            updateRunStatus(Status.Importing, _run);
 
             try
             {
@@ -104,7 +98,7 @@ public class Import454ReadsJob extends PipelineJob
                     throw se;
             }
 
-            updateRunStatus(Status.Complete);
+            updateRunStatus(Status.Complete, _run);
             info("Import 454 reads complete");
             setStatus(TaskStatus.complete);
         }
@@ -123,35 +117,6 @@ public class Import454ReadsJob extends PipelineJob
                 error("Failed to delete run " + _run.getRowId(), se);
             }
         }
-    }
-
-
-    private void updateRunStatus(Status status) throws PipelineJobException, SQLException
-    {
-        // Issue 14880: if a job has run and failed, we will have deleted the run.  trying to update the status of this non-existant row
-        // causes an OptimisticConflictException.  therefore we first test whether the runs exists
-        SimpleFilter f = new SimpleFilter(FieldKey.fromParts("rowid"), _run.getRowId());
-
-        if (!new TableSelector(GenotypingSchema.get().getRunsTable(), Collections.singleton("RowId"), f, null).exists())
-        {
-            try
-            {
-                File file = new File(_run.getPath(), _run.getFileName());
-                GenotypingRun newRun = GenotypingManager.get().createRun(getContainer(), getUser(), _run.getMetaDataId(), file, _run.getPlatform());
-                _run.setRowId(newRun.getRowId());
-            }
-            catch (RuntimeSQLException e)
-            {
-                if (RuntimeSQLException.isConstraintException(e.getSQLException()))
-                    throw new PipelineJobException("Run " + _run.getMetaDataId() + " has already been imported");
-                else
-                    throw e;
-            }
-        }
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("Status", status.getStatusId());
-        Table.update(getUser(), GenotypingSchema.get().getRunsTable(), map, _run.getRowId());
     }
 
     AtomicLong totalSequence = new AtomicLong(0);

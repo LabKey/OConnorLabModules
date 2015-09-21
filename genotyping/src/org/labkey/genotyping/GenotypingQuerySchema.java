@@ -390,6 +390,9 @@ public class GenotypingQuerySchema extends UserSchema
                 table.setContainerFilter(table.getContainerFilter());
 
                 table.wrapAllColumns(true);
+
+                table.getColumn("PoolNum").setLabel("Pool Num");
+
                 table.getColumn("DataId").setLabel("Filename");
                 table.getColumn("DataId").setFk(new LookupForeignKey("RowId")
                 {
@@ -414,7 +417,7 @@ public class GenotypingQuerySchema extends UserSchema
                 //SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getSequenceFilesTable() + ".Run) = ?");
                 //containerCondition.add(c.getId());
                 //table.addCondition(containerCondition);
-                setDefaultVisibleColumns(table, "Run, DataId, SampleId, ReadCount");
+                setDefaultVisibleColumns(table, "Run, DataId, SampleId, ReadCount, PoolNum");
                 table.setDescription("Contains one row per sequence file imported with runs");
 
                 return table;

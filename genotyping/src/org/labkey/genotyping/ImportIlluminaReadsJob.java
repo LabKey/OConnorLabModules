@@ -18,24 +18,14 @@ package org.labkey.genotyping;
 import au.com.bytecode.opencsv.CSVReader;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
-import org.labkey.api.data.RuntimeSQLException;
-import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Table;
-import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.api.DataType;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.pipeline.CancelledException;
 import org.labkey.api.pipeline.PipeRoot;
-import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
-import org.labkey.api.query.FieldKey;
-import org.labkey.api.security.User;
-import org.labkey.api.security.UserManager;
-import org.labkey.api.settings.LookAndFeelProperties;
-import org.labkey.api.util.ConfigurationException;
 import org.labkey.api.util.FileUtil;
-import org.labkey.api.util.MailHelper;
 import org.labkey.api.util.Pair;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
@@ -45,7 +35,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,7 +48,7 @@ import java.util.Set;
  * Time: 7:34:16 AM
  */
 
-public class ImportIlluminaReadsJob extends PipelineJob
+public class ImportIlluminaReadsJob extends ReadsJob
 {
     private final File _sampleFile;
     private List<File> _fastqFiles;
@@ -94,29 +83,15 @@ public class ImportIlluminaReadsJob extends PipelineJob
     {
         try
         {
-            updateRunStatus(Status.Importing);
+            updateRunStatus(Status.Importing, _run);
 
             importReads();
 
-            updateRunStatus(Status.Complete);
+            updateRunStatus(Status.Complete, _run);
             info("Processing Illumina reads complete");
             setStatus(TaskStatus.complete);
+            sendMessageToUser(_run, GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.name());
 
-            User user = UserManager.getUser(_run.getCreatedBy());
-            if (user != null)
-            {
-                MailHelper.ViewMessage m = MailHelper.createMessage(LookAndFeelProperties.getInstance(getContainer()).getSystemEmailAddress(), user.getEmail());
-                m.setSubject("Illumina Run " + _run.getRowId() + " Processing Complete");
-                m.setText("Illumina run " + _run.getRowId() + " has finished processing. You can view it at " + getContainer().getStartURL(user));
-                try
-                {
-                    MailHelper.send(m, getUser(), getContainer());
-                }
-                catch (ConfigurationException e)
-                {
-                    getLogger().error("Failed to send success notification, but job has completed successfully", e);
-                }
-            }
         }
         catch (CancelledException e)
         {
@@ -140,41 +115,23 @@ public class ImportIlluminaReadsJob extends PipelineJob
         }
     }
 
-
-    private void updateRunStatus(Status status) throws PipelineJobException, SQLException
-    {
-        // Issue 14880: if a job has run and failed, we will have deleted the run.  trying to update the status of this non-existant row
-        // causes an OptimisticConflictException.  therefore we first test whether the runs exists
-        SimpleFilter f = new SimpleFilter(FieldKey.fromParts("rowid"), _run.getRowId());
-
-        if (!new TableSelector(GenotypingSchema.get().getRunsTable(), Collections.singleton("RowId"), f, null).exists())
-        {
-            try
-            {
-                File file = new File(_run.getPath(), _run.getFileName());
-                GenotypingRun newRun = GenotypingManager.get().createRun(getContainer(), getUser(), _run.getMetaDataId(), file, _run.getPlatform());
-                _run.setRowId(newRun.getRowId());
-            }
-            catch (RuntimeSQLException e)
-            {
-                if (RuntimeSQLException.isConstraintException(e.getSQLException()))
-                    throw new PipelineJobException("Run " + _run.getMetaDataId() + " has already been processed");
-                else
-                    throw e;
-            }
-        }
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("Status", status.getStatusId());
-        Table.update(getUser(), GenotypingSchema.get().getRunsTable(), map, _run.getRowId());
-    }
-
     private void importReads() throws PipelineJobException
     {
         try
         {
             info("Processing Run From File: " + _sampleFile.getName());
             setStatus("PROCESSING READS");
+
+            Map<Integer, Object> sampleIdsFromSamplesList = null;
+
+            try
+            {
+                sampleIdsFromSamplesList = SampleManager.get().getSampleIdsFromSamplesList(getContainer(), getUser(), _run, "importing reads");
+            }
+            catch (SQLException e)
+            {
+                e.printStackTrace();
+            }
 
             try (CSVReader reader = new CSVReader(new FileReader(_sampleFile)))
             {
@@ -216,6 +173,10 @@ public class ImportIlluminaReadsJob extends PipelineJob
                     try
                     {
                         sampleId = Integer.parseInt(nextLine[0].trim());
+
+                        //identify whether Sample ID in sample sheet matches Sample ID in samples list
+                        if(!sampleIdsFromSamplesList.containsKey(sampleId))
+                            throw new PipelineJobException("Sample ID " + sampleId + " does not match Sample ID in samples list.");
 
                         if (!finder.isValidSampleKey(sampleId))
                             throw new PipelineJobException("Invalid sample Id for this run: " + nextLine[0]);

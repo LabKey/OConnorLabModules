@@ -69,12 +69,17 @@ public class GenotypingManager
 
     public enum SEQUENCE_PLATFORMS
     {
-        LS454, ILLUMINA;
+        LS454, ILLUMINA, PACBIO;
 
         // Default to ILLUMINA platform (null or unrecognized)
         public static @NotNull SEQUENCE_PLATFORMS getPlatform(@Nullable String platform)
         {
-            return (LS454.name().equals(platform) ? LS454 : ILLUMINA);
+            if(LS454.name().equals(platform))
+                return LS454;
+            else if(PACBIO.name().equals(platform))
+                return PACBIO;
+
+            return ILLUMINA;
         }
     }
 

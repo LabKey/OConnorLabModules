@@ -1069,7 +1069,9 @@ public class GenotypingController extends SpringActionController
 
             // Issue 14278: segregate genotyping runs by container
             SimpleFilter filter = SimpleFilter.createContainerFilter(getContainer());
-            allRuns.removeAll(new TableSelector(GenotypingSchema.get().getRunsTable(), PageFlowUtil.set("MetaDataId"), filter, null).getCollection(Integer.class));
+
+            if(!form.getPlatform().equalsIgnoreCase(String.valueOf(SEQUENCE_PLATFORMS.PACBIO)))//for PacBio allow association with a run multiple times
+                allRuns.removeAll(new TableSelector(GenotypingSchema.get().getRunsTable(), PageFlowUtil.set("MetaDataId"), filter, null).getCollection(Integer.class));
 
             return new JspView<>("/org/labkey/genotyping/view/importReads.jsp", new ImportReadsBean(allRuns, form.getReadsPath(), form.getPath(), form.getPlatform(), form.getPrefix()), errors);
         }
@@ -1144,6 +1146,11 @@ public class GenotypingController extends SpringActionController
                 else if (form.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString()))
                 {
                     PipelineJob prepareRunJob = new ImportIlluminaReadsJob(vbi, root, new File(form.getReadsPath()), run, form.getPrefix());
+                    PipelineService.get().queueJob(prepareRunJob);
+                }
+                else if (form.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.PACBIO.toString()))
+                {
+                    PipelineJob prepareRunJob = new ImportPacBioReadsJob(vbi, root, new File(form.getReadsPath()), run, form.getPrefix());
                     PipelineService.get().queueJob(prepareRunJob);
                 }
                 else{
@@ -1978,7 +1985,8 @@ public class GenotypingController extends SpringActionController
         @Override
         protected String getTableName()
         {
-            return GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString().equals(_run.getPlatform())
+            return (GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString().equals(_run.getPlatform()) ||
+                    GenotypingManager.SEQUENCE_PLATFORMS.PACBIO.toString().equals(_run.getPlatform()))
                 ? TableType.SequenceFiles.toString() : TableType.Reads.toString();
         }
 
