@@ -27,19 +27,17 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
-import org.labkey.api.data.Results;
-import org.labkey.api.data.RuntimeSQLException;
+import org.labkey.api.data.DbScope;
 import org.labkey.api.data.Table;
+import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.api.DataType;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.pipeline.CancelledException;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJobException;
-import org.labkey.api.query.FieldKey;
 import org.labkey.api.util.FileType;
 import org.labkey.api.util.FileUtil;
-import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ViewBackgroundInfo;
 
 import java.io.File;
@@ -62,31 +60,23 @@ public class ImportPacBioReadsJob extends ReadsJob
     private Map<File, List<File>> _dirFastqMap;//size of this map == num of pools in a run.
     private List<File> _fastqFiles;
     private String _fastqPrefix;
-    private GenotypingRun _run;
     private List<PacBioPool> _pools = new LinkedList<>();
     private String _dirSubstring = "pool";
     private String[] _extensions = {"fastq.gz", "fastq"};
 
     public ImportPacBioReadsJob(ViewBackgroundInfo info, PipeRoot root, File sampleFile, GenotypingRun run, @Nullable String fastqPrefix)
     {
-        super("Process PacBio Reads", info, root);
+        super("Process PacBio Reads", info, root, run);
         _sampleFile = sampleFile;
-        _run = run;
         _fastqPrefix = fastqPrefix;
         setLogFile(new File(_sampleFile.getParentFile(), FileUtil.makeFileNameWithTimestamp("import_pacbio_reads", "log")));
         _dirFastqMap = new HashMap<>();
     }
 
     @Override
-    public URLHelper getStatusHref()
-    {
-        return null;
-    }
-
-    @Override
     public String getDescription()
     {
-        return null;
+        return "Process PacBio reads for run " + _run.getRowId();
     }
 
     @Override
@@ -94,11 +84,11 @@ public class ImportPacBioReadsJob extends ReadsJob
     {
         try
         {
-            updateRunStatus(Status.Importing, _run);
+            updateRunStatus(Status.Importing);
 
             importReads();
 
-            updateRunStatus(Status.Complete, _run);
+            updateRunStatus(Status.Complete);
             info("Processing PacBio reads complete");
             setStatus(TaskStatus.complete);
 
@@ -125,20 +115,13 @@ public class ImportPacBioReadsJob extends ReadsJob
         }
     }
 
-    private void importReads() throws PipelineJobException
+    private void importReads() throws PipelineJobException, SQLException
     {
 
         Map<String, Integer> sampleNameSampleIdMap = new HashMap<>();
         Map<Integer, Object> sampleIdsFromSamplesList = null;
 
-        try
-        {
-            sampleIdsFromSamplesList = SampleManager.get().getSampleIdsFromSamplesList(getContainer(), getUser(), _run, "importing reads");
-        }
-        catch (SQLException e)
-        {
-            e.printStackTrace();
-        }
+        sampleIdsFromSamplesList = SampleManager.get().getSampleIdsFromSamplesList(getContainer(), getUser(), _run, "importing reads");
 
         readFromSampleSheetFile(sampleNameSampleIdMap, sampleIdsFromSamplesList);
 
@@ -146,16 +129,7 @@ public class ImportPacBioReadsJob extends ReadsJob
 
         //error if no pools were found and no fastq files were found to parse
         if (_pools.size() == 0)
-        {
-            try
-            {
-                throw new PipelineJobException("No FASTQ files" + (_fastqPrefix == null ? "" : " matching the prefix '" + _fastqPrefix) + "' were found.");
-            }
-            catch (PipelineJobException e)
-            {
-                e.printStackTrace();
-            }
-        }
+            getLogger().warn("No FASTQ files" + (_fastqPrefix == null ? "" : " matching the prefix '" + _fastqPrefix) + "' were found.");
 
         persistPacBioPoolRecords(sampleNameSampleIdMap);
     }
@@ -206,12 +180,12 @@ public class ImportPacBioReadsJob extends ReadsJob
             }
             catch (IOException e)
             {
-                e.printStackTrace();
+                throw new PipelineJobException(e);
             }
         }
         catch (FileNotFoundException e)
         {
-            e.printStackTrace();
+            throw new PipelineJobException(e);
         }
     }
 
@@ -254,8 +228,10 @@ public class ImportPacBioReadsJob extends ReadsJob
         }
     }
 
-    private void persistPacBioPoolRecords(Map<String, Integer> sampleNameSampleIdMap)
+    private void persistPacBioPoolRecords(Map<String, Integer> sampleNameSampleIdMap) throws PipelineJobException, SQLException
     {
+        List<Map<String, Object>> listOfRows = new LinkedList<>();
+
         for(PacBioPool pool : _pools)
         {
             Map<String, Object> row;
@@ -278,22 +254,20 @@ public class ImportPacBioReadsJob extends ReadsJob
                 data.save(getUser());
                 row.put("DataId", data.getRowId());
 
-                try
-                {
-                    Table.insert(getUser(), GenotypingSchema.get().getSequenceFilesTable(), row);
-                }
-                catch (RuntimeSQLException rse)
-                {
-                    rse.printStackTrace();
-                }
-
+                listOfRows.add(row);
             }
         }
-    }
 
-    private void validateSampleID(int sampleId, Results results)
-    {
-        Map<FieldKey, Integer> key = results.getFieldIndexMap();
+        TableInfo sequenceFilesTable = GenotypingSchema.get().getSequenceFilesTable();
+        DbScope scope = sequenceFilesTable.getSchema().getScope();
+
+        try (DbScope.Transaction transaction = scope.ensureTransaction())
+        {
+            for (Map<String, Object> rowToInsert : listOfRows)
+                Table.insert(getUser(), sequenceFilesTable, rowToInsert);
+
+            transaction.commit();
+        }
     }
 
     private int extractPoolNumFromDirectoryName(String dirName)

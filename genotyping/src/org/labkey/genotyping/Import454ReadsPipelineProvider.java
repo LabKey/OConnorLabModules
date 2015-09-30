@@ -17,6 +17,9 @@ package org.labkey.genotyping;
 
 import org.labkey.api.module.Module;
 
+import java.io.File;
+import java.io.FileFilter;
+
 /**
  * User: adam
  * Date: Sep 10, 2010
@@ -26,6 +29,14 @@ public class Import454ReadsPipelineProvider extends ReadsPipelineProvider
 {
     public Import454ReadsPipelineProvider(Module owningModule)
     {
-        super("Import 454 Reads", owningModule, "LS454");
+        super("Import 454 Reads", owningModule, "LS454", new ReadsFilter());
+    }
+
+    private static class ReadsFilter implements FileFilter
+    {
+        public boolean accept(File file)
+        {
+            return file.getName().equalsIgnoreCase(GenotypingManager.READS_FILE_NAME);
+        }
     }
 }

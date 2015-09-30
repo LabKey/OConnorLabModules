@@ -18,7 +18,9 @@ package org.labkey.genotyping;
 import au.com.bytecode.opencsv.CSVReader;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
+import org.labkey.api.data.DbScope;
 import org.labkey.api.data.Table;
+import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.api.DataType;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExperimentService;
@@ -27,7 +29,6 @@ import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.Pair;
-import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
 
 import java.io.File;
@@ -37,6 +38,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,23 +55,14 @@ public class ImportIlluminaReadsJob extends ReadsJob
     private final File _sampleFile;
     private List<File> _fastqFiles;
     private String _fastqPrefix;
-    private final GenotypingRun _run;
 
     public ImportIlluminaReadsJob(ViewBackgroundInfo info, PipeRoot root, File sampleFile, GenotypingRun run, @Nullable String fastqPrefix)
     {
-        super("Process Illumina Reads", info, root);
+        super("Process Illumina Reads", info, root, run);
         _sampleFile = sampleFile;
-        _run = run;
         _fastqPrefix = fastqPrefix;
         setLogFile(new File(_sampleFile.getParentFile(), FileUtil.makeFileNameWithTimestamp("import_reads", "log")));
     }
-
-    @Override
-    public ActionURL getStatusHref()
-    {
-        return GenotypingController.getRunURL(getContainer(), _run);
-    }
-
 
     @Override
     public String getDescription()
@@ -77,17 +70,16 @@ public class ImportIlluminaReadsJob extends ReadsJob
         return "Process Illumina reads for run " + _run.getRowId();
     }
 
-
     @Override
     public void run()
     {
         try
         {
-            updateRunStatus(Status.Importing, _run);
+            updateRunStatus(Status.Importing);
 
             importReads();
 
-            updateRunStatus(Status.Complete, _run);
+            updateRunStatus(Status.Complete);
             info("Processing Illumina reads complete");
             setStatus(TaskStatus.complete);
             sendMessageToUser(_run, GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.name());
@@ -115,7 +107,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
         }
     }
 
-    private void importReads() throws PipelineJobException
+    private void importReads() throws PipelineJobException, SQLException
     {
         try
         {
@@ -124,14 +116,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
 
             Map<Integer, Object> sampleIdsFromSamplesList = null;
 
-            try
-            {
-                sampleIdsFromSamplesList = SampleManager.get().getSampleIdsFromSamplesList(getContainer(), getUser(), _run, "importing reads");
-            }
-            catch (SQLException e)
-            {
-                e.printStackTrace();
-            }
+            sampleIdsFromSamplesList = SampleManager.get().getSampleIdsFromSamplesList(getContainer(), getUser(), _run, "importing reads");
 
             try (CSVReader reader = new CSVReader(new FileReader(_sampleFile)))
             {
@@ -208,6 +193,8 @@ public class ImportIlluminaReadsJob extends ReadsJob
 
                 info("Recording records for each FASTQ file");
 
+                List<Map<String, Object>> listOfRows = new LinkedList<>();
+
                 //GZIP and create record for each file
                 Map<String, Object> row;
 
@@ -232,7 +219,18 @@ public class ImportIlluminaReadsJob extends ReadsJob
                     data.save(getUser());
                     row.put("DataId", data.getRowId());
 
-                    Table.insert(getUser(), GenotypingSchema.get().getSequenceFilesTable(), row);
+                    listOfRows.add(row);
+                }
+
+                TableInfo sequenceFilesTable = GenotypingSchema.get().getSequenceFilesTable();
+                DbScope scope = sequenceFilesTable.getSchema().getScope();
+
+                try (DbScope.Transaction transaction = scope.ensureTransaction())
+                {
+                    for (Map<String, Object> rowToInsert : listOfRows)
+                        Table.insert(getUser(), sequenceFilesTable, rowToInsert);
+
+                    transaction.commit();
                 }
             }
             catch (SQLException e)

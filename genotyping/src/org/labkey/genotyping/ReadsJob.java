@@ -17,9 +17,11 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.data.DbScope;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Table;
+import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
@@ -40,59 +42,61 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ReadsJob extends PipelineJob
+public abstract class ReadsJob extends PipelineJob
 {
+    GenotypingRun _run;
 
-    public ReadsJob(PipelineJob job)
+    public ReadsJob(PipelineJob job, GenotypingRun run)
     {
         super(job);
+        _run = run;
     }
 
-    public ReadsJob(@Nullable String provider, ViewBackgroundInfo info, @NotNull PipeRoot root)
+    public ReadsJob(@Nullable String provider, ViewBackgroundInfo info, @NotNull PipeRoot root,  GenotypingRun run)
     {
         super(provider, info, root);
+        _run = run;
     }
 
     @Override
     public URLHelper getStatusHref()
     {
-        return null;
+        return GenotypingController.getRunURL(getContainer(), _run);
     }
 
-    @Override
-    public String getDescription()
-    {
-        return null;
-    }
-
-    public void updateRunStatus(Status status, GenotypingRun genotypingRun) throws PipelineJobException, SQLException
+    public void updateRunStatus(Status status) throws PipelineJobException, SQLException
     {
         // Issue 14880: if a job has run and failed, we will have deleted the run.  trying to update the status of this non-existent row
         // causes an OptimisticConflictException.  therefore we first test whether the runs exists
-        SimpleFilter f = new SimpleFilter(FieldKey.fromParts("rowid"), genotypingRun.getRowId());
+        SimpleFilter f = new SimpleFilter(FieldKey.fromParts("rowid"), _run.getRowId());
 
         if (!new TableSelector(GenotypingSchema.get().getRunsTable(), Collections.singleton("RowId"), f, null).exists())
         {
             try
             {
-                File file = new File(genotypingRun.getPath(), genotypingRun.getFileName());
-                GenotypingRun newRun = GenotypingManager.get().createRun(getContainer(), getUser(), genotypingRun.getMetaDataId(), file, genotypingRun.getPlatform());
-                genotypingRun.setRowId(newRun.getRowId());
+                File file = new File(_run.getPath(), _run.getFileName());
+                GenotypingRun newRun = GenotypingManager.get().createRun(getContainer(), getUser(), _run.getMetaDataId(), file, _run.getPlatform());
+                _run.setRowId(newRun.getRowId());
             }
             catch (RuntimeSQLException e)
             {
-                if (RuntimeSQLException.isConstraintException(e.getSQLException()))
-                    throw new PipelineJobException("Run " + genotypingRun.getMetaDataId() + " has already been processed");
-                else
-                    throw e;
+                getLogger().error("Run " + _run.getMetaDataId() + " has already been processed");
+                return;
             }
         }
 
         Map<String, Object> map = new HashMap<>();
         map.put("Status", status.getStatusId());
-        Table.update(getUser(), GenotypingSchema.get().getRunsTable(), map, genotypingRun.getRowId());
-    }
 
+        TableInfo runsTable = GenotypingSchema.get().getRunsTable();
+        DbScope scope = runsTable.getSchema().getScope();
+
+        try (DbScope.Transaction transaction = scope.ensureTransaction())
+        {
+            Table.update(getUser(), runsTable, map, _run.getRowId());
+            transaction.commit();
+        }
+    }
 
     public void sendMessageToUser(GenotypingRun genotypingRun, String sequencerName)
     {
@@ -108,7 +112,7 @@ public class ReadsJob extends PipelineJob
             }
             catch (MessagingException e)
             {
-                e.printStackTrace();
+                getLogger().error("Error creating message", e);
             }
 
             try

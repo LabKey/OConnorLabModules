@@ -30,11 +30,20 @@ import java.io.FileFilter;
 public class ReadsPipelineProvider extends PipelineProvider
 {
     String _platform;
+    FileFilter _readsFilter = null;
 
     public ReadsPipelineProvider(String name, Module owningModule, String platform)
     {
         super(name, owningModule);
         _platform = platform;
+        _readsFilter = new SampleCSVFilter();
+    }
+
+    public ReadsPipelineProvider(String name, Module owningModule, String platform, FileFilter filter)
+    {
+        super(name, owningModule);
+        _platform = platform;
+        _readsFilter = filter;
     }
 
     @Override
@@ -49,7 +58,7 @@ public class ReadsPipelineProvider extends PipelineProvider
         importURL.addParameter("platform", _platform);
 
         String actionId = createActionId(GenotypingController.ImportReadsAction.class, _platform);
-        addAction(actionId, importURL, getName(), directory, directory.listFiles(new SampleCSVFilter()), false, false, includeAll);
+        addAction(actionId, importURL, getName(), directory, directory.listFiles(_readsFilter), false, false, includeAll);
     }
 
     private static class SampleCSVFilter implements FileFilter

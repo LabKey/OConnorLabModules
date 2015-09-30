@@ -27,7 +27,6 @@ import org.labkey.api.reader.TabLoader;
 import org.labkey.api.util.Compress;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.Formats;
-import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
 
 import java.io.File;
@@ -53,24 +52,14 @@ import java.util.zip.DataFormatException;
 public class Import454ReadsJob extends ReadsJob
 {
     private final File _reads;
-    private final GenotypingRun _run;
     private final static boolean TEST_COMRESSION = false;
 
     public Import454ReadsJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run)
     {
-        super("Import 454 Reads", info, root);
+        super("Import 454 Reads", info, root, run);
         _reads = reads;
-        _run = run;
         setLogFile(new File(_reads.getParentFile(), FileUtil.makeFileNameWithTimestamp("import_reads", "log")));
     }
-
-
-    @Override
-    public ActionURL getStatusHref()
-    {
-        return GenotypingController.getRunURL(getContainer(), _run);
-    }
-
 
     @Override
     public String getDescription()
@@ -78,13 +67,12 @@ public class Import454ReadsJob extends ReadsJob
         return "Import 454 reads for run " + _run.getRowId();
     }
 
-
     @Override
     public void run()
     {
         try
         {
-            updateRunStatus(Status.Importing, _run);
+            updateRunStatus(Status.Importing);
 
             try
             {
@@ -98,7 +86,7 @@ public class Import454ReadsJob extends ReadsJob
                     throw se;
             }
 
-            updateRunStatus(Status.Complete, _run);
+            updateRunStatus(Status.Complete);
             info("Import 454 reads complete");
             setStatus(TaskStatus.complete);
         }
@@ -173,6 +161,8 @@ public class Import454ReadsJob extends ReadsJob
             {
                 for (Map<String, Object> map : loader)
                 {
+                    Integer key = (Integer) map.get(SampleManager.KEY_COLUMN_NAME);
+
                     Integer mid5 = (Integer) map.get(SampleManager.MID5_COLUMN_NAME);
 
                     // mid5 == 0 means null
@@ -191,7 +181,7 @@ public class Import454ReadsJob extends ReadsJob
                         map.put(SampleManager.MID3_COLUMN_NAME, null);
                     }
 
-                    map.put("sampleid", finder.getSampleId(mid5, mid3, (String) map.get(SampleManager.AMPLICON_COLUMN_NAME)));
+                    map.put("sampleid", finder.getSampleId(key, mid5, mid3, (String) map.get(SampleManager.AMPLICON_COLUMN_NAME)));
 
                     String sequence = (String) map.get("sequence");
                     String quality = (String) map.get("quality");

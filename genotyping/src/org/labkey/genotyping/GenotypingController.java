@@ -919,6 +919,39 @@ public class GenotypingController extends SpringActionController
         private String _platform;
         private String _prefix;
 
+        public enum Platforms{
+            LS454{
+
+                @Override
+                public void prepareAndQueueRunJob(ViewBackgroundInfo vbi, PipeRoot root, File readsFile, GenotypingRun run, @Nullable String prefix) throws PipelineValidationException
+                {
+                    PipelineJob prepareRunJob = new Import454ReadsJob(vbi, root, readsFile, run);
+                    PipelineService.get().queueJob(prepareRunJob);
+                }
+            },
+            ILLUMINA{
+
+                @Override
+                public void prepareAndQueueRunJob(ViewBackgroundInfo vbi, PipeRoot root, File readsFile, GenotypingRun run, @Nullable String prefix) throws PipelineValidationException
+                {
+                    PipelineJob prepareRunJob = new ImportIlluminaReadsJob(vbi, root, readsFile, run, prefix);
+                    PipelineService.get().queueJob(prepareRunJob);
+                }
+            },
+            PACBIO{
+
+                @Override
+                public void prepareAndQueueRunJob(ViewBackgroundInfo vbi, PipeRoot root, File readsFile, GenotypingRun run, @Nullable String prefix) throws PipelineValidationException
+                {
+                    PipelineJob prepareRunJob = new ImportPacBioReadsJob(vbi, root, readsFile, run, prefix);
+                    PipelineService.get().queueJob(prepareRunJob);
+                }
+            };
+
+            abstract public void prepareAndQueueRunJob(ViewBackgroundInfo vbi, PipeRoot root, File readsFile, GenotypingRun run, @Nullable String prefix) throws PipelineValidationException;
+
+        }
+
         public String getReadsPath()
         {
             return _readsPath;
@@ -1137,25 +1170,13 @@ public class GenotypingController extends SpringActionController
 
                 ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
                 PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
+                ImportReadsForm.Platforms platform = ImportReadsForm.Platforms.valueOf(form.getPlatform());
 
-                if (form.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString()))
-                {
-                    PipelineJob prepareRunJob = new Import454ReadsJob(vbi, root, new File(form.getReadsPath()), run);
-                    PipelineService.get().queueJob(prepareRunJob);
-                }
-                else if (form.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString()))
-                {
-                    PipelineJob prepareRunJob = new ImportIlluminaReadsJob(vbi, root, new File(form.getReadsPath()), run, form.getPrefix());
-                    PipelineService.get().queueJob(prepareRunJob);
-                }
-                else if (form.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.PACBIO.toString()))
-                {
-                    PipelineJob prepareRunJob = new ImportPacBioReadsJob(vbi, root, new File(form.getReadsPath()), run, form.getPrefix());
-                    PipelineService.get().queueJob(prepareRunJob);
-                }
-                else{
+                if(platform == null)
                     throw new IllegalArgumentException("Unknown sequence platform: " + form.getPlatform());
-                }
+                else
+                    platform.prepareAndQueueRunJob(vbi, root, new File(form.getReadsPath()), run, form.getPrefix());
+
             }
             catch (Exception e)
             {
@@ -1778,6 +1799,36 @@ public class GenotypingController extends SpringActionController
         private int _run = 0;
         private boolean _filterLowQualityBases = false;
 
+        public enum Platforms{
+
+            LS454 {
+                @Override
+                public String getTableName()
+                {
+                    return TableType.SequenceFiles.toString();
+                }
+            },
+            ILLUMINA {
+                @Override
+                public String getTableName()
+                {
+                    return TableType.SequenceFiles.toString();
+                }
+            },
+            PACBIO {
+                @Override
+                public String getTableName()
+                {
+                    return TableType.SequenceFiles.toString();
+                }
+            };
+
+            public String getTableName()
+            {
+                return TableType.Reads.toString();
+            }
+        }
+
         public int getRun()
         {
             return _run;
@@ -1985,9 +2036,7 @@ public class GenotypingController extends SpringActionController
         @Override
         protected String getTableName()
         {
-            return (GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString().equals(_run.getPlatform()) ||
-                    GenotypingManager.SEQUENCE_PLATFORMS.PACBIO.toString().equals(_run.getPlatform()))
-                ? TableType.SequenceFiles.toString() : TableType.Reads.toString();
+            return RunForm.Platforms.valueOf(_run.getPlatform()).getTableName();
         }
 
         @Override
