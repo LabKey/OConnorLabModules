@@ -151,7 +151,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
     {
         DataRegionTable dr = new DataRegionTable("Runs", this);
         int rowNum = dr.getRow("runs", runId);
-        String rowId = dr.getColumnDataAsText("Run").get(rowNum);
+        String rowId = dr.getColumnDataAsText("runs").get(rowNum);
         clickAndWait(Locator.linkWithText(rowId));
     }
 
