@@ -273,7 +273,7 @@ public class HaplotypeAssayTest extends GenotypingTest
         _customizeViewsHelper.saveCustomView();
 
         DataRegionTable drt = new DataRegionTable("Data", this);
-        verifyColumnDataValues(drt, "AnimalId", "ID-1", "ID-2", "ID-3", "ID-4", "ID-5");
+        verifyColumnDataValues(drt, "Animal", "ID-1", "ID-2", "ID-3", "ID-4", "ID-5");
         verifyColumnDataValues(drt, "TotalReads", "1000", "2000", "3000", "4000", "5000");
         verifyColumnDataValues(drt, "IdentifiedReads", "300", "1000", "600", "2500", "3250");
         verifyColumnDataValues(drt, "%Unknown", "70.0", "50.0", "80.0", "37.5", "35.0");
@@ -339,7 +339,7 @@ public class HaplotypeAssayTest extends GenotypingTest
     private void verifySecondRun(String prefix)
     {
         DataRegionTable drt = new DataRegionTable("Data", this);
-        verifyColumnDataValues(drt, "AnimalId", "ID-4", "ID-5", "ID-6", "ID-7", "ID-8", "ID-9");
+        verifyColumnDataValues(drt, "Animal", "ID-4", "ID-5", "ID-6", "ID-7", "ID-8", "ID-9");
         verifyColumnDataValues(drt, "TotalReads", "4000", "5000", "6000", "7000", " ", "0");
         verifyColumnDataValues(drt, "IdentifiedReads", "2500", "3250", "3000", "3500", " ", "1");
         verifyColumnDataValues(drt, "%Unknown", "37.5", "35.0", "50.0", "50.0", " ", " ");
