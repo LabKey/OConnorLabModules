@@ -130,6 +130,7 @@ public class SampleManager
     {
         private final Set<String> _sampleKeyColumns;
         private final Map<SampleKey, Integer> _map;
+        private final Map<Integer, SampleKey> _sampleIdMap;
         private static final String SELECT_COLUMNS = MID5_COLUMN_NAME + "/mid_name, " + MID3_COLUMN_NAME + "/mid_name, " + AMPLICON_COLUMN_NAME + ", " + KEY_COLUMN_NAME;
         private static final String SELECT_COLUMNS_WITHOUT_LOOKUP = MID5_COLUMN_NAME + ", " + MID3_COLUMN_NAME + ", " + AMPLICON_COLUMN_NAME + ", " + KEY_COLUMN_NAME;
         private static final int SELECT_COLUMN_COUNT = 4;
@@ -138,6 +139,7 @@ public class SampleManager
         {
             _sampleKeyColumns = sampleKeyColumns;
             _map = new LinkedHashMap<>();
+            _sampleIdMap = new LinkedHashMap<>();
 
             Results rs = null;
 
@@ -171,10 +173,16 @@ public class SampleManager
                 while (rs.next())
                 {
                     // Use getObject() to allow null values
-                    //Modified SampleKey Object to include Key (aka Sample ID) or rs.getInt(4) in order to resolve
-                    //'Issue 24392: MiSeq error occurs during import of run'. This solution was chosen to allow for
-                    //a unique key if rs.getObjects() are all null.
-                    SampleKey key = getSampleKey(rs.getInt(4), rs.getObject(1), rs.getObject(2), rs.getObject(3));
+                    SampleKey key = getSampleKey(rs.getObject(1), rs.getObject(2), rs.getObject(3));
+
+                    //Resolve the sampleId for non-unique key where one or all three values are null.
+                    if(run.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA)
+                            && (key._mid3 == null || key._mid5 == null || key._amplicon == null))
+                    {
+                        _sampleIdMap.put(rs.getInt(4), key);
+                        continue;
+                    }
+
                     Integer previousId = _map.put(key, rs.getInt(4));
 
                     if (null != previousId)
@@ -188,9 +196,9 @@ public class SampleManager
         }
 
 
-        private SampleKey getSampleKey(Integer key, Object mid5, Object mid3, Object amplicon)
+        private SampleKey getSampleKey(Object mid5, Object mid3, Object amplicon)
         {
-            return new SampleKey(key,
+            return new SampleKey(
                 _sampleKeyColumns.contains(MID5_COLUMN_NAME) ? mid5 : null,
                 _sampleKeyColumns.contains(MID3_COLUMN_NAME) ? mid3 : null,
                 _sampleKeyColumns.contains(AMPLICON_COLUMN_NAME) ? amplicon : null
@@ -198,27 +206,25 @@ public class SampleManager
         }
 
 
-        public Integer getSampleId(Integer key, Integer mid5, Integer mid3, String amplicon)
+        public Integer getSampleId(Integer mid5, Integer mid3, String amplicon)
         {
-            return _map.get(getSampleKey(key, mid5, mid3, amplicon));
+            return _map.get(getSampleKey(mid5, mid3, amplicon));
         }
 
         public boolean isValidSampleKey(int key)
         {
-            return _map.containsValue(key);
+            return (_map.containsValue(key) || _sampleIdMap.containsKey(key));
         }
     }
 
     private static class SampleKey
     {
-        private final Integer _key;
         private final Object _mid5;
         private final Object _mid3;
         private final Object _amplicon;
 
-        private SampleKey(Integer key, Object mid5, Object mid3, Object amplicon)
+        private SampleKey(Object mid5, Object mid3, Object amplicon)
         {
-            _key = key;
             _mid5 = mid5;
             _mid3 = mid3;
             _amplicon = amplicon;
@@ -232,7 +238,6 @@ public class SampleManager
 
             SampleKey that = (SampleKey) o;
 
-            if (_key != null ? _key != that._key : that._key != null) return false;
             if (_amplicon != null ? !_amplicon.equals(that._amplicon) : that._amplicon != null) return false;
             if (_mid3 != null ? !_mid3.equals(that._mid3) : that._mid3 != null) return false;
             if (_mid5 != null ? !_mid5.equals(that._mid5) : that._mid5 != null) return false;
@@ -253,7 +258,6 @@ public class SampleManager
         public String toString()
         {
             return "SampleKey{" +
-                    "key=" + _key +
                     "mid5=" + _mid5 +
                     ", mid3=" + _mid3 +
                     ", amplicon=" + (null != _amplicon ? "'" + _amplicon + "'" : null) +

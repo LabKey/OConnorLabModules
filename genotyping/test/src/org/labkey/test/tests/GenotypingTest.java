@@ -48,7 +48,7 @@ public class GenotypingTest extends GenotypingBaseTest
     @Test
     public void testSteps() throws Exception
     {
-        setUp2();
+        setUp2(null);
         goToProjectHome();
 
         //TODO: need to fix 454/genotyping tests

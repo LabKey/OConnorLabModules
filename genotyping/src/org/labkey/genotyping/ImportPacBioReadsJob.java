@@ -286,7 +286,16 @@ public class ImportPacBioReadsJob extends ReadsJob
     private int getSampleId(File file, Map<String, Integer> sampleNameSampleIdMap)
     {
         String fileName = FileUtil.getBaseName(file).trim().toLowerCase();
-        return sampleNameSampleIdMap.get(fileName);
+        Integer result = sampleNameSampleIdMap.get(fileName);
+        if (result == null)
+        {
+            result = sampleNameSampleIdMap.get(file.getName().toLowerCase());
+        }
+        if (result == null)
+        {
+            throw new IllegalArgumentException("No sample found for file " + file.getName() + ", expected files are: " + sampleNameSampleIdMap.keySet());
+        }
+        return result;
     }
 
     public Integer getNumReads(File fastqFile, int fileNum, int poolNum)

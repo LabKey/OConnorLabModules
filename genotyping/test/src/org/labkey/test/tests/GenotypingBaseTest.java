@@ -15,6 +15,7 @@
  */
 package org.labkey.test.tests;
 
+import org.jetbrains.annotations.Nullable;
 import org.labkey.remoteapi.CommandException;
 import org.labkey.remoteapi.Connection;
 import org.labkey.remoteapi.query.DeleteRowsCommand;
@@ -134,11 +135,11 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
     }
 
     //pre-
-    protected void setUpLists()
+    protected void setUpLists(@Nullable String listArchive)
     {
         log("Import genotyping list");
         clickProject(getProjectName());
-        _listHelper.importListArchive(getProjectName(), new File(pipelineLoc, "sequencing.lists.zip"));
+        _listHelper.importListArchive(getProjectName(), new File(pipelineLoc, (listArchive == null ? "sequencing.lists.zip" : listArchive)));
         assertTextPresent(
                 samples,
                 "mids",
@@ -156,10 +157,10 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
     }
 
     @LogMethod
-    public void setUp2()
+    public void setUp2(@Nullable String listArchive)
     {
         _containerHelper.createProject(getProjectName(), "Genotyping");
-        setUpLists();
+        setUpLists(listArchive);
         configureAdmin();
         clickProject(getProjectName());
         setPipelineRoot(pipelineLoc);

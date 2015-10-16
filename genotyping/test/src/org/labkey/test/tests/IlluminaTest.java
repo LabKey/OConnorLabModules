@@ -61,7 +61,7 @@ public class IlluminaTest extends GenotypingBaseTest
     @Test
     public void testSteps() throws Exception
     {
-        setUp2();
+        setUp2("illumina-sequencing.lists.zip");
         goToProjectHome();
 
         verifyIlluminaSampleSheet();
@@ -214,9 +214,36 @@ public class IlluminaTest extends GenotypingBaseTest
         goToProjectHome();
         clickAndWait(Locator.linkWithText("Samples"));
         DataRegionTable d = new DataRegionTable("query", this);
+
+        d.checkAllOnPage();
+
+        d.uncheckCheckbox(46);
+        d.uncheckCheckbox(47);
+        clickButton("Create Illumina Sample Sheet");
+        waitForText("Row(s) with null 'fivemid' value(s) selected. Unable to create 'Illumina Sample Sheet.'");
+        clickButton("Back");
+
+        d.uncheckCheckbox(45);
+        d.checkCheckbox(46);
+        clickButton("Create Illumina Sample Sheet");
+        waitForText("Row(s) with null 'threemid' value(s) selected. Unable to create 'Illumina Sample Sheet.'");
+        clickButton("Back");
+
+        d.uncheckCheckbox(46);
+        d.checkCheckbox(47);
+        clickButton("Create Illumina Sample Sheet");
+        waitForText("Row(s) with null 'fivemid' and 'threemid' value(s) selected. Unable to create 'Illumina Sample Sheet.");
+        clickButton("Back");
+
+        d.uncheckCheckbox(47);
+
         String viewName = "Yellow Peas";
         createCustomizedView(viewName, new String[]{"Created"}, new String[]{"fivemid"});
         d.checkAllOnPage();
+        d.uncheckCheckbox(45);
+        d.uncheckCheckbox(46);
+        d.uncheckCheckbox(47);
+
         clickButton("Create Illumina Sample Sheet");
         waitForText("Reagent Cassette Id");
         Ext4FieldRef.getForLabel(this, "Reagent Cassette Id").setValue("FlowCell");

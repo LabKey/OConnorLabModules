@@ -164,6 +164,7 @@
       </ns:column>
       <ns:column columnName="SampleId"/>
       <ns:column columnName="ReadCount"/>
+      <ns:column columnName="PoolNum"/>
     </ns:columns>
   </ns:table>
   <ns:table tableName="IlluminaTemplates" tableDbType="TABLE">

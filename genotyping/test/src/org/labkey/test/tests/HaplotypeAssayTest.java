@@ -62,7 +62,7 @@ public class HaplotypeAssayTest extends GenotypingTest
     @Test
     public void testSteps()
     {
-        setUp2();  // from GenotypingTest
+        setUp2(null);  // from GenotypingTest
 
         File listArchive = new File(TestFileUtils.getLabKeyRoot() + "/sampledata/genotyping/haplotypeAssay/STRHaplotype.lists.zip");
         new ListHelper(this).importListArchive(PROJECT_NAME, listArchive);

@@ -10,6 +10,7 @@
 
 var defaultView = '[Library QC]';
 var exportRows = null;
+var currentURL = LABKEY.ActionURL;
 
 var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
     extend: 'Ext.panel.Panel',
@@ -41,174 +42,227 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             hidden : true
         });
 
-        Ext4.apply(this, {
-            title: 'Create Illumina Sample Sheet',
-            itemId: 'illuminaPanel',
-            width: '100%',
-            validSequences: true,
-            defaults: {
-                border: false
-            },
-            items: [{
-                html: 'You have chosen to export ' + this.rows.length + ' samples',
-                border: false,
-                bodyStyle: 'padding: 5px;',
-                style: 'padding-bottom: 5px;'
-            }, this.sequenceWarning, {
-                xtype: 'tabpanel',
-                defaults: {
-                    border: false
-                },
-                listeners: {
-                    scope: this,
-                    beforetabchange: this.onBeforeTabChange,
-                    tabchange: this.onTabChange
-                },
-                items: [{
-                    xtype: 'form',
-                    title: 'General Info',
-                    itemId: 'defaultTab',
-                    bodyStyle: 'padding: 5px;',
-                    defaults: {
-                        width: 400,
-                        labelWidth: 150,
-                        maskRe: /[^,]/
-                    },
-                    items: [{
-                        xtype: 'textfield',
-                        allowBlank: false,
-                        fieldLabel: 'Reagent Cassette Id',
-                        helpPopup: 'This should match the ID of the Reagent cassette.  It will be used as the filename of the sample sheet.  If you do not have this value, you can always rename the file later',
-                        itemId: 'fileName',
-                        value: 'Illumina',
-                        maskRe: /[0-9A-Za-z_-]/,
-                        maxLength: 100
-                    },{
-                        xtype: 'textfield',
-                        itemId: 'investigator',
-                        fieldLabel: 'Investigator Name',
-                        value: LABKEY.Security.currentUser.displayName,
-                        section: 'Header'
-                    },{
-                        xtype: 'textfield',
-                        itemId: 'experimentName',
-                        fieldLabel: 'Experiment Number',
-                        section: 'Header'
-                    },{
-                        xtype: 'textfield',
-                        itemId: 'projectName',
-                        fieldLabel: 'Project Name',
-                        section: 'Header'
-                    },{
-                        xtype: 'datefield',
-                        itemId: 'dateField',
-                        fieldLabel: 'Date',
-                        value: new Date(),
-                        section: 'Header'
-                    },{
-                        xtype: 'textfield',
-                        itemId: 'description',
-                        fieldLabel: 'Description',
-                        section: 'Header'
-                    },{
-                        xtype: 'combo',
-                        itemId: 'customView',
-                        fieldLabel: 'Custom View',
-                        queryMode: 'local',
-                        displayField: 'name',
-                        valueField: 'name',
-                        editable : false,
-                        allowBlank: false,
-                        section: 'Header',
-                        store: viewStore,
-                        value: defaultView,
-                        listConfig:{
-                            getInnerTpl:function (dfield)
-                            {
-                                return '{' + dfield + ':htmlEncode}'; // 15202
-                            }
-                        }
-                     },{
-                        xtype: 'combo',
-                        itemId: 'template',
-                        fieldLabel: 'Template',
-                        queryMode: 'local',
-                        allowBlank: false,
-                        displayField: 'Name',
-                        valueField: 'Name',
-                        value: 'Default',
-                        store: Ext4.create('LABKEY.ext4.Store', {
-                            schemaName: 'genotyping',
-                            queryName: 'IlluminaTemplates',
-                            columns: 'Name,Json,Editable',
-                            autoLoad: true,
-                            supressErrorAlert: true,
-                            exception: function(error){
-                                console.log('There was an error loading templates');
-                                console.log(error)
-                            }
-                        })
-                    }],
-                    listeners: {render: {fn: function() {
-                        LABKEY.Query.getQueryViews({
-                            scope : this,
-                            schemaName : 'genotyping',
-                            queryName : 'Samples',
-                            successCallback : function(details){
-                                var filteredViews = [];
-                                filteredViews.push({name: defaultView});
-                                for (var i = 0; i < details.views.length; i++){
-                                    if (!details.views[i].hidden)
-                                    {
-                                        // Skip default view, #16848
-                                        if (details.views[i].name === "" || details.views[i].default)
-                                            continue;
-
-                                        filteredViews.push(details.views[i]);
-                                    }
-                                }
-                                viewStore.loadData(filteredViews);
-                            }
-                        });
-                    }}}
-                },{
-                    title: 'Preview Header',
-                    itemId: 'previewTab',
-                    bodyStyle: 'padding: 5px;'
-                },{
-                    title: 'Preview Samples',
-                    itemId: 'previewSamplesTab',
-                    bodyStyle: 'padding: 5px;'
-                }]
-            }],
-            buttons: [{
-                text: 'Download',
-                handler: this.onDownload,
-                scope: this
-            },{
-                text: 'Save As Template',
-                handler: this.onSaveTemplate,
-                hidden: !LABKEY.Security.currentUser.canUpdate,
-                scope: this
-            },{
-                text: 'Cancel',
-                handler: function(btn){
-                    var url = LABKEY.ActionURL.getParameter('srcURL');
-                    if(url)
-                        window.location = decodeURIComponent(url);
-                    else
-                        window.location = LABKEY.ActionURL.buildURL('project', 'start');
-                }
-            }]
-        });
-
         // Use the hard-coded fields to validate; do this at init time since it won't change based on selected view
         var validationRows = this.getStandardDataSectionRows();
         this.validI7Rows = this.validateDataSectionRows(validationRows, 5);
+
+
         if ((validationRows.length < 8 && this.validI7Rows.indexOf(true) != -1 ) || (validationRows.length > 7))
         {
             this.validI5Rows = this.validateDataSectionRows(validationRows, 7);
         }
+
+        if(this.validI7Rows == null && this.validI5Rows == null)
+        {
+            Ext4.apply(this, {
+                title: 'Error',
+                html: "<h4 style='color:red'> Row(s) with null 'fivemid' and 'threemid' value(s) selected. Unable to create 'Illumina Sample Sheet.'</h4>",
+                buttons: [{
+                    text: 'Back',
+                    handler: function(btn){
+                        window.history.back();
+                    }
+                }]
+            });
+        }
+        else if(this.validI7Rows == null) {
+            Ext4.apply(this, {
+                title: 'Error',
+                html: "<h4 style='color:red'> Row(s) with null 'fivemid' value(s) selected. Unable to create 'Illumina Sample Sheet.'</h4>",
+                buttons: [{
+                    text: 'Back',
+                    handler: function(btn){
+                        window.history.back();
+                    }
+                }]
+            });
+        }
+        else if(this.validI5Rows == null && validationRows.length > 7) {
+            Ext4.apply(this, {
+                title: 'Error',
+                html: "<h4 style='color:red'> Row(s) with null 'threemid' value(s) selected. Unable to create 'Illumina Sample Sheet.'</h4>",
+                buttons: [{
+                    text: 'Back',
+                    handler: function(btn){
+                        window.history.back();
+                    }
+                }]
+            });
+        }
+        else
+        {
+
+            Ext4.apply(this, {
+                title: 'Create Illumina Sample Sheet',
+                itemId: 'illuminaPanel',
+                width: '100%',
+                validSequences: true,
+                defaults: {
+                    border: false
+                },
+                items: [{
+                    html: 'You have chosen to export ' + this.rows.length + ' samples',
+                    border: false,
+                    bodyStyle: 'padding: 5px;',
+                    style: 'padding-bottom: 5px;'
+                }, this.sequenceWarning, {
+                    xtype: 'tabpanel',
+                    defaults: {
+                        border: false
+                    },
+                    listeners: {
+                        scope: this,
+                        beforetabchange: this.onBeforeTabChange,
+                        tabchange: this.onTabChange
+                    },
+                    items: [{
+                        xtype: 'form',
+                        title: 'General Info',
+                        itemId: 'defaultTab',
+                        bodyStyle: 'padding: 5px;',
+                        defaults: {
+                            width: 400,
+                            labelWidth: 150,
+                            maskRe: /[^,]/
+                        },
+                        items: [{
+                            xtype: 'textfield',
+                            allowBlank: false,
+                            fieldLabel: 'Reagent Cassette Id',
+                            helpPopup: 'This should match the ID of the Reagent cassette.  It will be used as the filename of the sample sheet.  If you do not have this value, you can always rename the file later',
+                            itemId: 'fileName',
+                            value: 'Illumina',
+                            maskRe: /[0-9A-Za-z_-]/,
+                            maxLength: 100
+                        }, {
+                            xtype: 'textfield',
+                            itemId: 'investigator',
+                            fieldLabel: 'Investigator Name',
+                            value: LABKEY.Security.currentUser.displayName,
+                            section: 'Header'
+                        }, {
+                            xtype: 'textfield',
+                            itemId: 'experimentName',
+                            fieldLabel: 'Experiment Number',
+                            section: 'Header'
+                        }, {
+                            xtype: 'textfield',
+                            itemId: 'projectName',
+                            fieldLabel: 'Project Name',
+                            section: 'Header'
+                        }, {
+                            xtype: 'datefield',
+                            itemId: 'dateField',
+                            fieldLabel: 'Date',
+                            value: new Date(),
+                            section: 'Header'
+                        }, {
+                            xtype: 'textfield',
+                            itemId: 'description',
+                            fieldLabel: 'Description',
+                            section: 'Header'
+                        }, {
+                            xtype: 'combo',
+                            itemId: 'customView',
+                            fieldLabel: 'Custom View',
+                            queryMode: 'local',
+                            displayField: 'name',
+                            valueField: 'name',
+                            editable: false,
+                            allowBlank: false,
+                            section: 'Header',
+                            store: viewStore,
+                            value: defaultView,
+                            listConfig: {
+                                getInnerTpl: function (dfield)
+                                {
+                                    return '{' + dfield + ':htmlEncode}'; // 15202
+                                }
+                            }
+                        }, {
+                            xtype: 'combo',
+                            itemId: 'template',
+                            fieldLabel: 'Template',
+                            queryMode: 'local',
+                            allowBlank: false,
+                            displayField: 'Name',
+                            valueField: 'Name',
+                            value: 'Default',
+                            store: Ext4.create('LABKEY.ext4.Store', {
+                                schemaName: 'genotyping',
+                                queryName: 'IlluminaTemplates',
+                                columns: 'Name,Json,Editable',
+                                autoLoad: true,
+                                supressErrorAlert: true,
+                                exception: function (error)
+                                {
+                                    console.log('There was an error loading templates');
+                                    console.log(error)
+                                }
+                            })
+                        }],
+                        listeners: {
+                            render: {
+                                fn: function ()
+                                {
+                                    LABKEY.Query.getQueryViews({
+                                        scope: this,
+                                        schemaName: 'genotyping',
+                                        queryName: 'Samples',
+                                        successCallback: function (details)
+                                        {
+                                            var filteredViews = [];
+                                            filteredViews.push({name: defaultView});
+                                            for (var i = 0; i < details.views.length; i++)
+                                            {
+                                                if (!details.views[i].hidden)
+                                                {
+                                                    // Skip default view, #16848
+                                                    if (details.views[i].name === "" || details.views[i].default)
+                                                        continue;
+
+                                                    filteredViews.push(details.views[i]);
+                                                }
+                                            }
+                                            viewStore.loadData(filteredViews);
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }, {
+                        title: 'Preview Header',
+                        itemId: 'previewTab',
+                        bodyStyle: 'padding: 5px;'
+                    }, {
+                        title: 'Preview Samples',
+                        itemId: 'previewSamplesTab',
+                        bodyStyle: 'padding: 5px;'
+                    }]
+                }],
+                buttons: [{
+                    text: 'Download',
+                    handler: this.onDownload,
+                    scope: this
+                }, {
+                    text: 'Save As Template',
+                    handler: this.onSaveTemplate,
+                    hidden: !LABKEY.Security.currentUser.canUpdate,
+                    scope: this
+                }, {
+                    text: 'Cancel',
+                    handler: function (btn)
+                    {
+                        var url = LABKEY.ActionURL.getParameter('srcURL');
+                        if (url)
+                            window.location = decodeURIComponent(url);
+                        else
+                            window.location = LABKEY.ActionURL.buildURL('project', 'start');
+                    }
+                }]
+            });
+        }
+
         this.callParent();
 
         //button should require selection, so this should never happen...
@@ -499,6 +553,9 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             }
 
             for(var i = 2; i < rows.length; i++){
+                if(rows[i][col] == null) {
+                    return null;
+                }
                 if(target == 'RED' && (rows[i][col].charAt(pos) == 'A' || rows[i][col].charAt(pos) == 'C')){
                     continue;
                 }

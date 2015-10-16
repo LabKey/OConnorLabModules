@@ -161,8 +161,6 @@ public class Import454ReadsJob extends ReadsJob
             {
                 for (Map<String, Object> map : loader)
                 {
-                    Integer key = (Integer) map.get(SampleManager.KEY_COLUMN_NAME);
-
                     Integer mid5 = (Integer) map.get(SampleManager.MID5_COLUMN_NAME);
 
                     // mid5 == 0 means null
@@ -181,7 +179,7 @@ public class Import454ReadsJob extends ReadsJob
                         map.put(SampleManager.MID3_COLUMN_NAME, null);
                     }
 
-                    map.put("sampleid", finder.getSampleId(key, mid5, mid3, (String) map.get(SampleManager.AMPLICON_COLUMN_NAME)));
+                    map.put("sampleid", finder.getSampleId(mid5, mid3, (String) map.get(SampleManager.AMPLICON_COLUMN_NAME)));
 
                     String sequence = (String) map.get("sequence");
                     String quality = (String) map.get("quality");

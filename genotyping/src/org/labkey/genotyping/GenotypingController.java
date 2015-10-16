@@ -1805,7 +1805,7 @@ public class GenotypingController extends SpringActionController
                 @Override
                 public String getTableName()
                 {
-                    return TableType.SequenceFiles.toString();
+                    return TableType.Reads.toString();
                 }
             },
             ILLUMINA {
