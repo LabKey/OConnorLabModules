@@ -46,10 +46,14 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
         String[] listVals = {"sequences", "runs", samples};
         for(int i=0; i<3; i++)
         {
-            click(Locator.linkContainingText("configure").index(i));
-            _extHelper.waitForExt3Mask(WAIT_FOR_JAVASCRIPT);
-            _extHelper.selectComboBoxItem("Schema:", "lists");
-            _extHelper.selectComboBoxItem("Query:", listVals[i]);
+            Locator link = Locator.linkContainingText("configure").index(i);
+            String list = listVals[i];
+            doAndWaitForPageSignal(() -> click(link),
+                    "schemaCombo-loaded");
+            doAndWaitForPageSignal(() -> _extHelper.selectComboBoxItem("Schema:", "lists"),
+                    "queryCombo-loaded");
+            doAndWaitForPageSignal(() -> _extHelper.selectComboBoxItem("Query:", list),
+                    "viewCombo-loaded");
             _extHelper.selectComboBoxItem("View:", "[default view]");
             _extHelper.clickExtButton("Submit", 0);
             _extHelper.waitForExt3MaskToDisappear(WAIT_FOR_JAVASCRIPT);
