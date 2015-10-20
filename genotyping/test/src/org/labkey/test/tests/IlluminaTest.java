@@ -15,6 +15,8 @@
  */
 package org.labkey.test.tests;
 
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.Locator;
@@ -34,8 +36,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
@@ -55,15 +55,30 @@ public class IlluminaTest extends GenotypingBaseTest
     @Override
     protected String getProjectName()
     {
-        return "GenotypingVerifyProject";
+        return "IlluminaTest Project";
+    }
+
+    @BeforeClass
+    public static void setupProject()
+    {
+        IlluminaTest init = (IlluminaTest)getCurrentTest();
+        init.doSetup();
+    }
+
+    private void doSetup()
+    {
+        setUp2("illumina-sequencing.lists.zip");
+    }
+
+    @Before
+    public void preTest()
+    {
+        goToProjectHome();
     }
 
     @Test
     public void testSteps() throws Exception
     {
-        setUp2("illumina-sequencing.lists.zip");
-        goToProjectHome();
-
         verifyIlluminaSampleSheet();
         goToProjectHome();
         importIlluminaRunTest();
@@ -420,11 +435,4 @@ public class IlluminaTest extends GenotypingBaseTest
         clickButton("Import Reads");
 
     }
-
-    @Override
-    public List<String> getAssociatedModules()
-    {
-        return Arrays.asList("genotyping");
-    }
-
 }

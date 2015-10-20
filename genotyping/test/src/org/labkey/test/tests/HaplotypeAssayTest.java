@@ -15,6 +15,7 @@
  */
 package org.labkey.test.tests;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.Locator;
@@ -34,9 +35,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @Category({CustomModules.class})
-public class HaplotypeAssayTest extends GenotypingTest
+public class HaplotypeAssayTest extends GenotypingBaseTest
 {
-    private static final String PROJECT_NAME = "HaplotypeAssayVerifyProject";
     private static final String ASSAY_NAME = "HaplotypeAssay";// + TRICKY_CHARACTERS_NO_QUOTES;
     private static final File FIRST_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/firstRunData.txt");
     private static final File SECOND_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/secondRunData.txt");
@@ -50,7 +50,7 @@ public class HaplotypeAssayTest extends GenotypingTest
     @Override
     protected String getProjectName()
     {
-        return PROJECT_NAME;
+        return "HaplotypeAssayTest Project";
     }
 
     @Override
@@ -59,14 +59,23 @@ public class HaplotypeAssayTest extends GenotypingTest
         return BrowserType.CHROME;
     }
 
+    @BeforeClass
+    public static void setupProject()
+    {
+        HaplotypeAssayTest init = (HaplotypeAssayTest)getCurrentTest();
+        init.doSetup();
+    }
+
+    private void doSetup()
+    {
+        setUp2(null);
+        File listArchive = new File(TestFileUtils.getLabKeyRoot() + "/sampledata/genotyping/haplotypeAssay/STRHaplotype.lists.zip");
+        new ListHelper(this).importListArchive(getProjectName(), listArchive);
+    }
+
     @Test
     public void testSteps()
     {
-        setUp2(null);  // from GenotypingTest
-
-        File listArchive = new File(TestFileUtils.getLabKeyRoot() + "/sampledata/genotyping/haplotypeAssay/STRHaplotype.lists.zip");
-        new ListHelper(this).importListArchive(PROJECT_NAME, listArchive);
-
         configureExtensibleTables();
         setupHaplotypeAssay();
         verifyAssayUploadErrors();
@@ -161,7 +170,7 @@ public class HaplotypeAssayTest extends GenotypingTest
 
         // TODO - verify STR data import and discrepancy report
     }
- 
+
     @Override
     protected void doCleanup(boolean afterTest) throws TestTimeoutException
     {

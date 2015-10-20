@@ -15,6 +15,8 @@
  */
 package org.labkey.test.tests;
 
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.Locator;
@@ -22,9 +24,6 @@ import org.labkey.test.TestFileUtils;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.openqa.selenium.NoSuchElementException;
-
-import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -42,15 +41,30 @@ public class GenotypingTest extends GenotypingBaseTest
     @Override
     protected String getProjectName()
     {
-        return "GenotypingVerifyProject";
+        return "GenotypingTest Project";
+    }
+
+    @BeforeClass
+    public static void setupProject()
+    {
+        GenotypingTest init = (GenotypingTest)getCurrentTest();
+        init.doSetup();
+    }
+
+    private void doSetup()
+    {
+        setUp2(null);
+    }
+
+    @Before
+    public void preTest()
+    {
+        goToProjectHome();
     }
 
     @Test
     public void testSteps() throws Exception
     {
-        setUp2(null);
-        goToProjectHome();
-
         //TODO: need to fix 454/genotyping tests
         importRunTest();
         runAnalysisTest();
@@ -255,11 +269,4 @@ public class GenotypingTest extends GenotypingBaseTest
         clickButton("Import Reads");
 
     }
-
-    @Override
-    public List<String> getAssociatedModules()
-    {
-        return Arrays.asList("genotyping");
-    }
-
 }

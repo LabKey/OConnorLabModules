@@ -30,13 +30,21 @@ import org.labkey.test.util.PasswordUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 abstract public class GenotypingBaseTest extends BaseWebDriverTest
 {
     String pipelineLoc = TestFileUtils.getLabKeyRoot() + "/sampledata/genotyping";
     protected String samples = "samples";
     protected String TEMPLATE_NAME = "GenotypingTest Saved Template";
+
+    @Override
+    public List<String> getAssociatedModules()
+    {
+        return Arrays.asList("genotyping");
+    }
 
     protected void configureAdmin()
     {
