@@ -36,9 +36,22 @@ import java.util.List;
 
 abstract public class GenotypingBaseTest extends BaseWebDriverTest
 {
-    String pipelineLoc = TestFileUtils.getLabKeyRoot() + "/sampledata/genotyping";
+    protected static String pipelineLoc = TestFileUtils.getSampledataPath() + "/genotyping";
+    protected int pipelineJobCount = 0;
     protected String samples = "samples";
     protected String TEMPLATE_NAME = "GenotypingTest Saved Template";
+
+    @Override
+    protected BrowserType bestBrowser()
+    {
+        return BrowserType.CHROME;
+    }
+
+    @Override
+    protected String getProjectName()
+    {
+        return "GenotypingVerifyProject";
+    }
 
     @Override
     public List<String> getAssociatedModules()
@@ -46,7 +59,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
         return Arrays.asList("genotyping");
     }
 
-    protected void configureAdmin()
+    protected void configureAdmin(boolean configureSequences)
     {
         clickProject(getProjectName());
         clickAndWait(Locator.id("adminSettings"));
@@ -54,31 +67,38 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
         String[] listVals = {"sequences", "runs", samples};
         for(int i=0; i<3; i++)
         {
-            Locator link = Locator.linkContainingText("configure").index(i);
-            String list = listVals[i];
-            doAndWaitForPageSignal(() -> click(link),
-                    "schemaCombo-loaded");
-            doAndWaitForPageSignal(() -> _extHelper.selectComboBoxItem("Schema:", "lists"),
-                    "queryCombo-loaded");
-            doAndWaitForPageSignal(() -> _extHelper.selectComboBoxItem("Query:", list),
-                    "viewCombo-loaded");
-            _extHelper.selectComboBoxItem("View:", "[default view]");
-            _extHelper.clickExtButton("Submit", 0);
-            _extHelper.waitForExt3MaskToDisappear(WAIT_FOR_JAVASCRIPT);
+            if (configureSequences || i > 0)
+            {
+                Locator link = Locator.linkContainingText("configure").index(i);
+                String list = listVals[i];
+                doAndWaitForPageSignal(() -> click(link),
+                        "schemaCombo-loaded");
+                doAndWaitForPageSignal(() -> _extHelper.selectComboBoxItem("Schema:", "lists"),
+                        "queryCombo-loaded");
+                doAndWaitForPageSignal(() -> _extHelper.selectComboBoxItem("Query:", list),
+                        "viewCombo-loaded");
+                _extHelper.selectComboBoxItem("View:", "[default view]");
+                _extHelper.clickExtButton("Submit", 0);
+                _extHelper.waitForExt3MaskToDisappear(WAIT_FOR_JAVASCRIPT);
+            }
         }
-        setFormElement(Locator.name("galaxyURL"), "http://galaxy.labkey.org:8080");
-        clickButton("Submit");
-        clickButton("Load Sequences");
+        if (configureSequences)
+        {
+            setFormElement(Locator.name("galaxyURL"), "http://galaxy.labkey.org:8080");
+            clickButton("Submit");
+            clickButton("Load Sequences");
 
-        log("Configure Galaxy Server Key");
-        clickAndWait(Locator.linkWithText("My Settings"));
-        setFormElement(Locator.name("galaxyKey"), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+            log("Configure Galaxy Server Key");
+            clickAndWait(Locator.linkWithText("My Settings"));
+            setFormElement(Locator.name("galaxyKey"), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        }
         clickButton("Submit");
     }
 
     @Override
     protected void doCleanup(boolean afterTest) throws TestTimeoutException
     {
+        String pipelineLoc = getPipelineLoc();
         File dir = new File(pipelineLoc);
         File[] files = dir.listFiles();
         for(File file: files)
@@ -147,17 +167,18 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
     }
 
     //pre-
-    protected void setUpLists(@Nullable String listArchive)
+    protected void setUpLists(@Nullable String listArchive, boolean hasSequencesList)
     {
         log("Import genotyping list");
         clickProject(getProjectName());
-        _listHelper.importListArchive(getProjectName(), new File(pipelineLoc, (listArchive == null ? "sequencing.lists.zip" : listArchive)));
+        _listHelper.importListArchive(getProjectName(), new File(getPipelineLoc(), (listArchive == null ? "sequencing.lists.zip" : listArchive)));
         assertTextPresent(
                 samples,
                 "mids",
-                "sequences",
                 "runs"
         );
+        if (hasSequencesList)
+            assertTextPresent("sequences");
     }
 
     protected void clickRunLink(String runId)
@@ -169,13 +190,27 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
     }
 
     @LogMethod
-    public void setUp2(@Nullable String listArchive)
+    public void setUp2(@Nullable String listArchive, boolean hasSequencesList)
     {
         _containerHelper.createProject(getProjectName(), "Genotyping");
-        setUpLists(listArchive);
-        configureAdmin();
+        setUpLists(listArchive, hasSequencesList);
+        configureAdmin(hasSequencesList);
         clickProject(getProjectName());
-        setPipelineRoot(pipelineLoc);
+        setPipelineRoot(getPipelineLoc());
     }
 
+    protected String getPipelineLoc()
+    {
+        return pipelineLoc;
+    }
+
+    /**
+     *
+     * @param row 0 based
+     */
+    protected void clickRunLink(int row)
+    {
+        DataRegionTable runs = new DataRegionTable("Runs", this);
+        clickAndWait(runs.link(row, "Run"));
+    }
 }

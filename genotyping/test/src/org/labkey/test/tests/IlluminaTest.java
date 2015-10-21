@@ -21,7 +21,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.test.Locator;
 import org.labkey.test.SortDirection;
-import org.labkey.test.TestFileUtils;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
@@ -46,10 +45,6 @@ import static org.junit.Assert.assertTrue;
 public class IlluminaTest extends GenotypingBaseTest
 {
     public static final String illuminaImportNum = "206";
-    protected int pipelineJobCount = 0;
-
-    File pipelineLoc = new File(TestFileUtils.getLabKeyRoot(), "/sampledata/genotyping");
-
     private static final String TEMPLATE_NAME = "GenotypingTest Saved Template";
 
     @Override
@@ -67,7 +62,7 @@ public class IlluminaTest extends GenotypingBaseTest
 
     private void doSetup()
     {
-        setUp2("illumina-sequencing.lists.zip");
+        setUp2("illumina-sequencing.lists.zip", true);
     }
 
     @Before
@@ -80,7 +75,7 @@ public class IlluminaTest extends GenotypingBaseTest
     public void testSteps() throws Exception
     {
         verifyIlluminaSampleSheet();
-        goToProjectHome();
+        importBadIlluminaRunTest();
         importIlluminaRunTest();
         verifyFASTQExport();
         verifyZipExport();
@@ -108,11 +103,27 @@ public class IlluminaTest extends GenotypingBaseTest
         startImportIlluminaRun("IlluminaSamples.csv", "Import Illumina Reads");
         waitForPipelineJobsToComplete(++pipelineJobCount, "Import Run", false);
 
+        goToRun();
+        verifyIlluminaSamples();
+    }
+
+    private void goToRun()
+    {
         goToProjectHome();
         clickAndWait(Locator.linkWithText("View Runs"));
         clickRunLink(illuminaImportNum);
+    }
 
-        verifyIlluminaSamples();
+    @LogMethod
+    private void importBadIlluminaRunTest()
+    {
+        startImportIlluminaRun("IlluminaSamples_badSample.csv", "Import Illumina Reads");
+        waitForPipelineJobsToComplete(++pipelineJobCount, "Import Run", true);
+        clickAndWait(Locator.linkWithText("ERROR"));
+        assertTextPresent("Sample ID 1111 does not match");
+        checkExpectedErrors(1);
+        deletePipelineJob("Process Illumina reads for run", false, true);
+        pipelineJobCount--;
     }
 
     @LogMethod
@@ -164,6 +175,7 @@ public class IlluminaTest extends GenotypingBaseTest
     @LogMethod
     private void verifyFASTQExport() throws Exception
     {
+        goToRun();
         File export = exportAllFiles(ExportType.FASTQ, "genotypingExport");
         try (
                 InputStream is = new FileInputStream(export);
@@ -207,7 +219,7 @@ public class IlluminaTest extends GenotypingBaseTest
         private String _radioLabel;
         private String _fileSuffix;
 
-        private ExportType(String radioLabel, String fileSuffix)
+        ExportType(String radioLabel, String fileSuffix)
         {
             _radioLabel = radioLabel;
             _fileSuffix = fileSuffix;
@@ -416,7 +428,7 @@ public class IlluminaTest extends GenotypingBaseTest
     {
         assertExportButtonPresent();
         FilenameFilter filter = new OutputFilter();
-        File[] files = pipelineLoc.listFiles(filter);
+        File[] files = new File(pipelineLoc).listFiles(filter);
 
         assertEquals(30, files.length);
         DataRegionTable d = new DataRegionTable("Reads", this);
@@ -427,12 +439,12 @@ public class IlluminaTest extends GenotypingBaseTest
 
     private void startImportIlluminaRun(String file, String importAction)
     {
+        goToProjectHome();
         clickAndWait(Locator.linkContainingText("Import Run"));
         _fileBrowserHelper.expandFileBrowserRootNode();
         _fileBrowserHelper.importFile(file, importAction);
         selectOptionByText(Locator.name("run"), illuminaImportNum);
         setFormElement(Locator.name("prefix"), "IlluminaSamples-");
         clickButton("Import Reads");
-
     }
 }

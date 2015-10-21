@@ -370,6 +370,7 @@ genotyping/test/src/org/labkey/test/tests/GenotypingBaseTest.java -text
 genotyping/test/src/org/labkey/test/tests/GenotypingTest.java -text
 genotyping/test/src/org/labkey/test/tests/HaplotypeAssayTest.java -text
 genotyping/test/src/org/labkey/test/tests/IlluminaTest.java -text
+genotyping/test/src/org/labkey/test/tests/PacBioTest.java -text
 genotyping/test/test_genotyping.iml -text
 genotyping/tools/Illumina.pl -text
 genotyping/webapp/genotyping/IlluminaExportPanel.js -text
