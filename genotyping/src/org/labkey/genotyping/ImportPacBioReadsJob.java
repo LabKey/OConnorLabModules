@@ -45,8 +45,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -340,56 +342,22 @@ public class ImportPacBioReadsJob extends ReadsJob
     class PacBioPool
     {
         int poolNum;
-        Collection <File> fastqFiles;
-        Map <File, Integer> fileNumReadsMap;
-        Map <File, Integer> fileSampleIdMap;
+        List<File> fastqFiles = new ArrayList<>();
 
-        public PacBioPool(int poolNum, Collection <File> fastqFiles)
+        public PacBioPool(int poolNum, Collection<File> fastqFiles)
         {
             this.poolNum = poolNum;
-            this.fastqFiles = fastqFiles;
-            fileNumReadsMap = new HashMap<>();
-            fileSampleIdMap = new HashMap<>();
-//            removeEmptyFastqFiles();
+            this.fastqFiles.addAll(fastqFiles);
+            Collections.sort(this.fastqFiles);
         }
 
         public int getPoolNum()
         {
             return poolNum;
         }
-
-        public void setPoolNum(int poolNum)
-        {
-            this.poolNum = poolNum;
-        }
-
         public Collection<File> getFastqFiles()
         {
             return fastqFiles;
         }
-
-        public void setFastqFiles(Collection<File> fastqFiles)
-        {
-            this.fastqFiles = fastqFiles;
-        }
-
-        public Map <File, Integer> getFileNumReadsMap()
-        {
-            return fileNumReadsMap;
-        }
-
-        public Map <File, Integer> getFileSampleIdMap()
-        {
-            return fileSampleIdMap;
-        }
-
-        private void removeEmptyFastqFiles()
-        {
-            for(File f : fastqFiles)
-            {
-                if(f.length() == 0)
-                    fastqFiles.remove(f);
-            }
-        }
     }
-}//end class
+}
