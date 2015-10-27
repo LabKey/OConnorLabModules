@@ -1,5 +1,6 @@
 package org.labkey.test.tests;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -18,10 +19,6 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * User: tgaluhn
- * Date: 10/19/2015
- */
 @Category({CustomModules.class})
 public class PacBioTest extends GenotypingBaseTest
 {
@@ -62,16 +59,14 @@ public class PacBioTest extends GenotypingBaseTest
         return this.pipelineLoc;
     }
 
-    @Test
-    public void testSteps() throws Exception
+    @Before
+    public void preTest()
     {
         goToProjectHome();
-        verifyFailOnBadSample();
-        verifyAllImports();
     }
 
-    @LogMethod
-    private void verifyAllImports()
+    @Test
+    public void verifyAllImports()
     {
         int importCount = 0;
         verifyRun("pool1_barcoded_fastqs", POOL1_DATA, importCount++);
@@ -79,7 +74,12 @@ public class PacBioTest extends GenotypingBaseTest
 
         goToProjectHome();
         assertTextPresent(importCount + " runs");
+    }
 
+    @Test
+    public void verifyFailOnBadSample()
+    {
+        importPacBioRun("badsample_fastqs", CSV_NAME, true);
     }
 
     @LogMethod
@@ -99,12 +99,6 @@ public class PacBioTest extends GenotypingBaseTest
         correctRow.addAll(poolMap.get(importCount));
         correctRow.add(null); // not sure why, but there's a null cell at the end dataregion data
         assertEquals("Imported data doesn't match expected for (0-based count) import " + importCount, correctRow, realRow);
-    }
-
-    @LogMethod
-    private void verifyFailOnBadSample()
-    {
-        importPacBioRun("badsample_fastqs", CSV_NAME, true);
     }
 
     private void importPacBioRun(String runDir, String file, boolean expectError)

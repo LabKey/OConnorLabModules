@@ -16,6 +16,7 @@
 package org.labkey.test.tests;
 
 import org.jetbrains.annotations.Nullable;
+import org.junit.BeforeClass;
 import org.labkey.remoteapi.CommandException;
 import org.labkey.remoteapi.Connection;
 import org.labkey.remoteapi.query.DeleteRowsCommand;
@@ -37,7 +38,7 @@ import java.util.List;
 abstract public class GenotypingBaseTest extends BaseWebDriverTest
 {
     protected static String pipelineLoc = TestFileUtils.getSampledataPath() + "/genotyping";
-    protected int pipelineJobCount = 0;
+    protected static int pipelineJobCount = 0;
     protected String samples = "samples";
     protected String TEMPLATE_NAME = "GenotypingTest Saved Template";
 
@@ -57,6 +58,12 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
     public List<String> getAssociatedModules()
     {
         return Arrays.asList("genotyping");
+    }
+
+    @BeforeClass
+    public static void resetPipelineCount()
+    {
+        pipelineJobCount = 0;
     }
 
     protected void configureAdmin(boolean configureSequences)
