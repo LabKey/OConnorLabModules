@@ -17,7 +17,7 @@
 /* genotyping-15.20-15.21.sql */
 
 ALTER TABLE Genotyping.SequenceFiles
-    ADD column PoolNum INT NULL;
+    ADD COLUMN PoolNum INT NULL;
 
 /* genotyping-15.21-15.22.sql */
 

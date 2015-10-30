@@ -16,17 +16,13 @@
 
 /* genotyping-15.20-15.21.sql */
 
-/* genotyping-15.20-15.21.sql */
-
 ALTER TABLE genotyping.SequenceFiles
-ADD PoolNum INT NULL;
-
-/* genotyping-15.21-15.22.sql */
+    ADD PoolNum INT NULL;
 
 /* genotyping-15.21-15.22.sql */
 
 ALTER TABLE genotyping.runs
-DROP CONSTRAINT UNIQUE_Runs;
+    DROP CONSTRAINT UNIQUE_Runs;
 
 ALTER TABLE genotyping.runs
-ADD CONSTRAINT UNIQUE_Runs UNIQUE (rowid, container, metadataid);
+    ADD CONSTRAINT UNIQUE_Runs UNIQUE (rowid, container, metadataid);
