@@ -94,6 +94,7 @@ public class IlluminaFastqParser<SampleIdType>
         FastqReader reader = null;
 
         Map<File, File> filesToMove = new LinkedHashMap<>();
+        Map<String, String> fileNameWithoutPairingInfoMap = new LinkedHashMap<>();//ex. if file name is SampleSheet-R1-1234.fastq, this map contains SampleSheet-1234
 
         int index = 1;
         for (File f : _files)
@@ -109,6 +110,7 @@ public class IlluminaFastqParser<SampleIdType>
             {
                 _logger.info("Beginning to parse file: " + f.getName());
                 File targetDir = f.getParentFile();
+                String fileName = f.getName();
 
                 reader = new FastqReader(f);
                 int sampleIdx = Integer.MIN_VALUE;
@@ -126,20 +128,37 @@ public class IlluminaFastqParser<SampleIdType>
                     pairNumber = parsedHeader.getPairNumber();
                     totalReads++;
                 }
-                reader.close();
-                Pair<SampleIdType, Integer> key = Pair.of(_sampleMap.get(sampleIdx), pairNumber);
-                _sequenceTotals.put(key, totalReads);
 
-                SampleIdType sampleId = _sampleMap.get(sampleIdx);
-                String name = (_outputPrefix == null ? "Reads" : _outputPrefix) + "-R" + pairNumber + "-" + (sampleIdx == 0 ? "Control" : sampleId) + ".fastq.gz";
-                File newFile = new File(targetDir, name);
-
-                if (!f.equals(newFile))
+                String error = addToPairingInfoMap(fileName, fileNameWithoutPairingInfoMap, totalReads);
+                if(null != error)
                 {
-                    filesToMove.put(f, newFile);
+                    _logger.error(error);
+                    reader.close();
+                    throw new PipelineJobException();
                 }
-                _fileMap.put(Pair.of(sampleId, pairNumber), newFile);
-                _logger.info("Finished parsing file: " + f.getName());
+                else if(reader.getLineNumber() == 1 && totalReads == 0 && !f.getName().contains("null"))//empty file
+                {
+                    _logger.warn("File " + fileName + " has no content to parse.");
+                    reader.close();
+                    continue;
+                }
+                else
+                {
+                    reader.close();
+                    Pair<SampleIdType, Integer> key = Pair.of(_sampleMap.get(sampleIdx), pairNumber);
+                    _sequenceTotals.put(key, totalReads);
+
+                    SampleIdType sampleId = _sampleMap.get(sampleIdx);
+                    String name = (_outputPrefix == null ? "Reads" : _outputPrefix) + "-R" + pairNumber + "-" + (sampleIdx == 0 ? "Control" : sampleId) + ".fastq.gz";
+                    File newFile = new File(targetDir, name);
+
+                    if (!f.equals(newFile))
+                    {
+                        filesToMove.put(f, newFile);
+                    }
+                    _fileMap.put(Pair.of(sampleId, pairNumber), newFile);
+                    _logger.info("Finished parsing file: " + f.getName());
+                }
             }
             finally
             {
@@ -172,6 +191,37 @@ public class IlluminaFastqParser<SampleIdType>
         }
 
         return outputs;
+    }
+
+    private String addToPairingInfoMap(String fileName, Map m, int readCount)
+    {
+        String fileNameWithoutPairingInfo = "";
+        if(fileName.contains("-R1"))
+        {
+            String[] splitStr = fileName.split("R1");
+            for(String s : splitStr)
+                fileNameWithoutPairingInfo += s;
+        }
+        else if(fileName.contains("-R2"))
+        {
+            String[] splitStr = fileName.split("R2");
+            for (String s : splitStr)
+                fileNameWithoutPairingInfo += s;
+        }
+
+        if(m.containsKey(fileNameWithoutPairingInfo))
+        {
+            Integer rc = (Integer) m.get(fileNameWithoutPairingInfo);
+            if(readCount == 0 && rc != 0)
+                return fileName + " is empty and has 0 reads, while its pair file is not empty and has " + rc + " reads.";
+            else if(rc == 0 && readCount != 0)
+                return fileName + " has " + readCount + " reads, while its pair file is empty and has 0 reads.";
+        }
+        else
+            m.put(fileNameWithoutPairingInfo, new Integer(readCount));
+
+        return null;
+
     }
 
     public Map<Pair<SampleIdType, Integer>, Integer> getReadCounts()
