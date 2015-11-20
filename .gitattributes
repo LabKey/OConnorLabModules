@@ -209,12 +209,13 @@ OConnorExperiments/resources/queries/OConnorExperiments/Experiments.query.xml -t
 OConnorExperiments/resources/queries/OConnorExperiments/Experiments/.qview.xml -text
 OConnorExperiments/resources/queries/OConnorExperiments/Experiments/BlankExperiments.qview.xml -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/obsolete/oconnorexperiments-0.00-13.10.sql -text
+OConnorExperiments/resources/schemas/dbscripts/postgresql/obsolete/oconnorexperiments-0.00-13.20.sql -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/obsolete/oconnorexperiments-13.10-13.20.sql -text
+OConnorExperiments/resources/schemas/dbscripts/postgresql/obsolete/oconnorexperiments-13.20-13.30.sql -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/obsolete/oconnorexperiments-14.10-14.11.sql -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/obsolete/oconnorexperiments-14.11-14.12.sql -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/obsolete/oconnorexperiments-14.20-14.21.sql -text
-OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-0.00-13.20.sql -text
-OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-13.20-13.30.sql -text
+OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-0.00-13.30.sql -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-14.10-14.20.sql -text
 OConnorExperiments/resources/schemas/dbscripts/postgresql/oconnorexperiments-14.20-14.30.sql -text
 OConnorExperiments/resources/schemas/dbscripts/sqlserver/obsolete/oconnorexperiments-0.00-13.10.sql -text
