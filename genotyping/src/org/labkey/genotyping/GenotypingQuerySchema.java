@@ -128,7 +128,7 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 FilteredTable table = new FilteredTable<>(GS.getSequencesTable(), schema);
                 table.wrapAllColumns(true);
-                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM ").append(GS.getDictionariesTable().getFromSQL("d")).append(" WHERE d.RowId = " + GS.getSequencesTable() + ".Dictionary) = ?");
+                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM ").append(GS.getDictionariesTable().getFromSQL("d")).append(" WHERE d.RowId = ").append(GS.getSequencesTable()).append(".Dictionary) = ?");
                 containerCondition.add(schema.getContainer().getId());
                 table.addCondition(containerCondition);
                 removeFromDefaultVisibleColumns(table, "Dictionary");
@@ -312,15 +312,9 @@ public class GenotypingQuerySchema extends UserSchema
                         protected MultiValuedLookupColumn createMultiValuedLookupColumn(ColumnInfo alleleName, ColumnInfo parent, ColumnInfo childKey, ColumnInfo junctionKey, ForeignKey fk)
                         {
                             final DisplayColumnFactory factory = alleleName.getDisplayColumnFactory();
-                            alleleName.setDisplayColumnFactory(new DisplayColumnFactory() {
-                                    @Override
-                                    public DisplayColumn createRenderer(ColumnInfo colInfo)
-                                    {
-                                        return new HighlightingDisplayColumn(factory.createRenderer(colInfo),
-                                                FieldKey.fromString("SampleId"),
-                                                FieldKey.fromString("Alleles/AlleleName"));
-                                    }
-                                });
+                            alleleName.setDisplayColumnFactory(colInfo -> new HighlightingDisplayColumn(factory.createRenderer(colInfo),
+                                    FieldKey.fromString("SampleId"),
+                                    FieldKey.fromString("Alleles/AlleleName")));
 
                             return super.createMultiValuedLookupColumn(alleleName, parent, childKey, junctionKey, fk);
                         }
