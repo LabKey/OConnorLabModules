@@ -41,6 +41,7 @@
 <%  } %>
     var expectedCount;
     var grid;
+    var combineWin;
     var submitButton;
     var formPanel;
     var analysisId;
@@ -188,7 +189,7 @@
             padding: 6,
             items: [instructionsLabel, grid, returnUrlText, analysisText, matchIdsText, alleleIdsText]});
 
-        var win = new Ext.Window({
+        combineWin = new Ext.Window({
             title: title,
             layout: 'fit',
             border: false,
@@ -204,13 +205,13 @@
                     id: 'btn_cancel',
                     handler: function()
                         {
-                            win.close();
+                            combineWin.close();
                         }
             }],
             bbar: [{ xtype: 'tbtext', text: '', id: 'statusTxt'}]
         });
 
-        win.show();
+        combineWin.show();
     }
 
     function updateCombineButton()
@@ -253,6 +254,6 @@
         form.method = 'POST';
 
         form.submit();
-        win.close();
+        combineWin.close();
     }
 </script>
