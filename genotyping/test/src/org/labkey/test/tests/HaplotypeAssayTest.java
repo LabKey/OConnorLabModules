@@ -439,13 +439,13 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         Locator dr = Locator.id("dataregion_report");
         setFormElement(Locator.name("idsTextArea"), "ID-3");
         sleep(500); // entering text enables the submit button
-        clickButton("Submit", WAIT_FOR_JAVASCRIPT);
+        clickButton("Submit", 0);
         waitForElement(dr);
         DataRegionTable drt = new DataRegionTable("report", this);
         assertTextPresentInThisOrder("A001", "B001c", "B017a");
         verifyColumnDataValues(drt, "ID-3", "2", "1", "1");
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Client Animal ID");
-        clickButton("Submit", WAIT_FOR_JAVASCRIPT);
+        clickButton("Submit", 0);
         waitForText("x345");
         drt = new DataRegionTable("report", this);
         assertTextPresentInThisOrder("A001", "B001c", "B017a");
@@ -455,26 +455,26 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         _ext4Helper.selectComboBoxItem("Search for animal IDs by:", "Client Animal ID");
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Lab Animal ID");
         setFormElement(Locator.name("idsTextArea"), "x123,x234;x345 x678 x789");
-        clickButton("Submit", WAIT_FOR_JAVASCRIPT);
+        clickButton("Submit", 0);
         waitForElement(Locator.paginationText(11));
         assertTextPresentInThisOrder("ID-1", "ID-2", "ID-3", "ID-6", "ID-7");
         drt = new DataRegionTable("report", this);
-        drt.setFilter("ID-1::Counts", "Equals", "1", WAIT_FOR_JAVASCRIPT);
+        drt.setFilter("ID-1::Counts", "Equals", "1", 0);
         waitForText("ID-1::Counts = 1");
         assertTextPresentInThisOrder("A001", "A023", "B015c", "B025a");
         assertTextNotPresent("A004");
-        drt.clearFilter("ID-1::Counts", WAIT_FOR_JAVASCRIPT);
-        drt.setFilter("ID-6::Counts", "Equals", "2", WAIT_FOR_JAVASCRIPT);
+        drt.clearFilter("ID-1::Counts", 0);
+        drt.setFilter("ID-6::Counts", "Equals", "2", 0);
         waitForText("ID-6::Counts = 2");
         assertTextPresentInThisOrder("A033", "B012b");
         assertTextNotPresent("A001");
-        drt.clearFilter("ID-6::Counts", WAIT_FOR_JAVASCRIPT);
+        drt.clearFilter("ID-6::Counts", 0);
 
         // test with IDs that have duplicate reocrds
         _ext4Helper.selectComboBoxItem("Search for animal IDs by:", "Lab Animal ID");
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Lab Animal ID");
         setFormElement(Locator.name("idsTextArea"), "ID-4,ID-5");
-        clickButton("Submit", WAIT_FOR_JAVASCRIPT);
+        clickButton("Submit", 0);
         waitForElement(Locator.paginationText(1, 8, 8));
         waitForText("Warning: multiple enabled assay results were found for the following IDs: ID-4 (2), ID-5 (2)");
         drt = new DataRegionTable("report", this);
