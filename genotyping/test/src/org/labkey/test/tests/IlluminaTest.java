@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.labkey.api.reader.Readers;
 import org.labkey.test.Locator;
 import org.labkey.test.SortDirection;
 import org.labkey.test.categories.CustomModules;
@@ -33,8 +34,6 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
@@ -180,7 +179,7 @@ public class IlluminaTest extends GenotypingBaseTest
         try (
                 InputStream is = new FileInputStream(export);
                 GZIPInputStream gz = new GZIPInputStream(is);
-                BufferedReader br = new BufferedReader(new InputStreamReader(gz, StandardCharsets.UTF_8)))
+                BufferedReader br = Readers.getReader(gz))
         {
             int count = 0;
             while (br.readLine() != null)
@@ -189,7 +188,7 @@ public class IlluminaTest extends GenotypingBaseTest
             }
 
             int expectedLength = 1088;
-            assertTrue("Length of file doesnt match expected value of " + expectedLength + ", was: " + count, count == expectedLength);
+            assertTrue("Length of file doesn't match expected value of " + expectedLength + ", was: " + count, count == expectedLength);
         }
     }
 

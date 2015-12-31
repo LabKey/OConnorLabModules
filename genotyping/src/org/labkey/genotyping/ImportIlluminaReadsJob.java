@@ -27,6 +27,7 @@ import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.pipeline.CancelledException;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJobException;
+import org.labkey.api.reader.Readers;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.Pair;
 import org.labkey.api.view.ViewBackgroundInfo;
@@ -118,7 +119,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
 
             sampleIdsFromSamplesList = SampleManager.get().getSampleIdsFromSamplesList(getContainer(), getUser(), _run, "importing reads");
 
-            try (CSVReader reader = new CSVReader(new FileReader(_sampleFile)))
+            try (CSVReader reader = new CSVReader(Readers.getReader(_sampleFile)))
             {
                 Set<String> columns = new HashSet<String>()
                 {{

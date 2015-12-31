@@ -36,6 +36,7 @@ import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.pipeline.CancelledException;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJobException;
+import org.labkey.api.reader.Readers;
 import org.labkey.api.util.FileType;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.view.ViewBackgroundInfo;
@@ -140,7 +141,7 @@ public class ImportPacBioReadsJob extends ReadsJob
     {
         try
         {
-            CSVReader reader = new CSVReader(new FileReader(_sampleFile));
+            CSVReader reader = new CSVReader(Readers.getReader(_sampleFile));
             String[] nextLine;
             boolean inSamples = false;
 

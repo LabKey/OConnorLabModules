@@ -101,7 +101,7 @@ public class GalaxyServer
     {
         HttpResponse response = _client.execute(request);
         HttpEntity entity = response.getEntity();
-        String contents = PageFlowUtil.getStreamContentsAsString(entity.getContent(), StandardCharsets.UTF_8);
+        String contents = PageFlowUtil.getStreamContentsAsString(entity.getContent());
 
         if (HttpStatus.SC_OK != response.getStatusLine().getStatusCode())
             throw new IOException("HTTP " + request.getMethod() + " Failed: " + response);
