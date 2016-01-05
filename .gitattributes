@@ -131,7 +131,6 @@ OConnor/resources/views/enabled_vendors.view.xml -text
 OConnor/resources/views/experimentInsert.html -text
 OConnor/resources/views/experimentUpdate.html -text
 OConnor/resources/views/experiments.html -text
-OConnor/resources/views/experiments_files.html -text
 OConnor/resources/views/grant_summary.html -text
 OConnor/resources/views/inventory.html -text
 OConnor/resources/views/inventory.view.xml -text
