@@ -21,7 +21,6 @@ import org.labkey.api.util.ContextListener;
 import org.labkey.api.util.ShutdownListener;
 import org.labkey.genotyping.GenotypingManager;
 
-import javax.servlet.ServletContextEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -102,13 +101,13 @@ public class WorkflowCompletionMonitor implements ShutdownListener
     }
 
     @Override
-    public void shutdownPre(ServletContextEvent servletContextEvent)
+    public void shutdownPre()
     {
     }
 
 
     @Override
-    public void shutdownStarted(ServletContextEvent servletContextEvent)
+    public void shutdownStarted()
     {
         _executor.shutdown();
     }
