@@ -250,7 +250,7 @@
         alleleIdsText.setValue(value);
 
         var form = formPanel.getForm();
-        form.url = 'combineMatches.post';
+        form.url = LABKEY.ActionURL.buildURL("genotyping", "combineMatches");
         form.method = 'POST';
 
         form.submit();
