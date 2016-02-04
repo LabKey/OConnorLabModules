@@ -132,7 +132,7 @@ public class ImportPacBioReadsJob extends ReadsJob
 
         //error if no pools were found and no fastq files were found to parse
         if (_pools.size() == 0)
-            getLogger().warn("No FASTQ files" + (_fastqPrefix == null ? "" : " matching the prefix '" + _fastqPrefix) + "' were found.");
+            getLogger().warn("No pools/FASTQ files" + (_fastqPrefix == null ? "" : " matching the prefix '" + _fastqPrefix + "'") + " were found. Check that files are under a 'poolX' directory");
 
         persistPacBioPoolRecords(sampleNameSampleIdMap);
     }
@@ -194,8 +194,7 @@ public class ImportPacBioReadsJob extends ReadsJob
 
     private void collectFastqFilesAsPools()
     {
-        String path = _sampleFile.getParent();
-        File sampleSheetRootFolder = new File(path);
+        File sampleSheetRootFolder = _sampleFile.getParentFile();
 
         //gather and store fastq files
         if (sampleSheetRootFolder.isDirectory())
@@ -227,6 +226,10 @@ public class ImportPacBioReadsJob extends ReadsJob
                 }
                 else
                     _pools.add(new PacBioPool(extractedPoolNumFromDirName, allFastqFiles)); //add all fastq files
+            }
+            else
+            {
+                getLogger().warn("Directory name '" + sampleSheetRootFolder.getName() + "' did not contain '" + _dirSubstring + "', skipping");
             }
         }
     }
