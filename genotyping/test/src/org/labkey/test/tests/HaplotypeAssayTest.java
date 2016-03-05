@@ -306,14 +306,6 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         verifyHaplotypeRecordsByType(11, 5, 6);
     }
 
-    private void verifyStringContains(String string, String... substrings)
-    {
-        for (String substring : substrings)
-        {
-            assertTrue("'" + string + "' does not contain '" + substring + "'", string.contains(substring));
-        }
-    }
-
     @LogMethod
     private void verifySecondRun()
     {
@@ -368,7 +360,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         goToAssayRun("first run");
         clickAndWait(Locator.linkWithText("view results"));
 
-        DataRegionTable drt = new DataRegionTable("query", this, false);
+        DataRegionTable drt = new DataRegionTable("query", this);
         assertEquals("Unexpected number of Animal records", 9, drt.getDataRowCount());
         verifyColumnDataValues(drt, "Animal", "ID-1", "ID-2", "ID-3", "ID-4", "ID-5", "ID-6", "ID-7", "ID-8", "ID-9");
         verifyColumnDataValues(drt, "Total Reads", "1000", "2000", "3000", "8000", "10000", "6000", "7000", " ", "0");
@@ -436,11 +428,9 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
                 "Enter the animal IDs separated by whitespace, comma, or semicolon:");
 
         // test a single ID
-        Locator dr = Locator.id("dataregion_report");
         setFormElement(Locator.name("idsTextArea"), "ID-3");
         sleep(500); // entering text enables the submit button
         clickButton("Submit", 0);
-        waitForElement(dr);
         DataRegionTable drt = new DataRegionTable("report", this);
         assertTextPresentInThisOrder("A001", "B001c", "B017a");
         verifyColumnDataValues(drt, "ID-3", "2", "1", "1");
@@ -536,8 +526,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         checkCheckbox(Locator.checkboxByName(".select"));
         clickButton("Produce Report");
         waitForText("Enter the animal IDs separated by whitespace, comma, or semicolon:");
-        Locator dr = Locator.id("dataregion_report");
-        waitForElement(dr);
+        DataRegionTable.waitForDataRegion(this, "report");
     }
 
     private void goToQuery(String queryName)

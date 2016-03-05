@@ -158,21 +158,6 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
         log("Template rows deleted: " + resp.getRowsAffected());
     }
 
-    protected int getCombinedSampleRowIndex()
-    {
-        String xpath  = "//table[@id='dataregion_Analysis']/tbody/tr";
-        Locator l = null;
-        int index = 0;
-        String goalClass = "labkey-error-row";
-        for(index = 0; index<50; index++)
-        {
-            l = Locator.xpath(xpath + "[" + (index+5) + "]");    //the first four rows are invisible spacers and never contain data.
-            if(getAttribute(l, "class").equals(goalClass))
-                break;
-        }
-        return index;
-    }
-
     //pre-
     protected void setUpLists(@Nullable String listArchive, boolean hasSequencesList)
     {

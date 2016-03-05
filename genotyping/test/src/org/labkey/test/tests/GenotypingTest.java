@@ -108,20 +108,17 @@ public class GenotypingTest extends GenotypingBaseTest
         clickAndWait(Locator.linkWithText("" + getRunNumber()));  // TODO: This is probably still too permissive... need a more specific way to get the run link
 
         assertTextPresent("Reads", "Sample Id", "Percent", "TEST09");
-//        assertTextPresent("TEST14", 2);
         assertElementPresent(Locator.paginationText(1, 100, 1410));
-        DataRegionTable drt = startAlterMatches();
-        deleteMatchesTest(drt);
-        alterMatchesTest(drt);
+        startAlterMatches();
+        deleteMatchesTest();
+        alterMatchesTest();
 
     }
 
-    private void deleteMatchesTest(DataRegionTable drt)
+    private void deleteMatchesTest()
     {
-
-        String[] alleleContentsBeforeDeletion = drt.getColumnDataAsText("Allele Name").toArray(new String[] {"a"});
-
         //attempt to delete a row and cancel
+        DataRegionTable drt = new DataRegionTable("Analysis", this);
         drt.checkCheckbox(2);
 
         clickButton("Delete", 0);
@@ -138,10 +135,9 @@ public class GenotypingTest extends GenotypingBaseTest
         assertElementPresent(Locator.paginationText(1, 100, 1409));
     }
 
-    private void alterMatchesTest(DataRegionTable drt)
+    private void alterMatchesTest()
     {
         sleep(5000);
-        String expectedNewAlleles = "Mafa-A1*063:03:01, Mafa-A1*063:01";
 
         //combine two samples
         click(Locator.name(checkboxId).index(0));
@@ -153,7 +149,7 @@ public class GenotypingTest extends GenotypingBaseTest
         * WE expect them to combine to the following:
          */
         String[] alleles = {"Mamu-A1*004:01:01", "Mamu-A1*004:01:02"};
-        for(String allele: alleles)
+        for (String allele: alleles)
         {
             Locator.XPathLocator l =  Locator.tagWithText("div", allele);
             assertElementPresent(l, 1);
@@ -164,6 +160,7 @@ public class GenotypingTest extends GenotypingBaseTest
         clickAndWait(Locator.extButton("Combine"));
 
         int newIdIndex = getCombinedSampleRowIndex();
+        DataRegionTable drt = new DataRegionTable("Analysis", this);
         assertEquals("19", drt.getDataAsText(newIdIndex, "Reads") );
         assertEquals("7.3%", drt.getDataAsText(newIdIndex, "Percent") );
         assertEquals("300.0", drt.getDataAsText(newIdIndex,"Average Length") );
@@ -171,32 +168,41 @@ public class GenotypingTest extends GenotypingBaseTest
         assertEquals("5", drt.getDataAsText(newIdIndex, "Neg Reads") );
         assertEquals("0", drt.getDataAsText(newIdIndex, "Pos Ext Reads") );
         assertEquals("0", drt.getDataAsText(newIdIndex, "Neg Ext Reads") );
-//        String[] allelesAfterMerge = drt.getDataAsText(newIdIndex, "Allele Name").replace(" ", "").split(",") ;
-//        assertEquals(1,allelesAfterMerge.length);
         assertTextPresent(alleles[0]);
+    }
+
+    private int getCombinedSampleRowIndex()
+    {
+        int index;
+        Locator.XPathLocator region = DataRegionTable.Locators.dataRegion("Analysis");
+        for (index = 0; index < 50; index++)
+        {
+            Locator l = region.append("/tbody/tr" + "[" + (index + 5) + "]"); //the first four rows are invisible spacers and never contain data.
+            if (getAttribute(l, "class").equals("labkey-error-row"))
+                break;
+        }
+        return index;
     }
 
     /**
      * enable altering of matches and verify expected changes
      * precondition:  already at analysis page
      */
-    private DataRegionTable startAlterMatches()
+    private void startAlterMatches()
     {
        clickButton("Alter Matches");
 
-        for(String buttonText : new String[] {"Stop Altering Matches", "Combine", "Delete"})
+        for (String buttonText : new String[] {"Stop Altering Matches", "Combine", "Delete"})
         {
             assertElementPresent(Locator.xpath("//a[contains(@class,'button')]/span[text()='" + buttonText + "']"));
         }
-
-        return new DataRegionTable( "Analysis", this);
     }
 
     private void receiveDataFromGalaxyServer()
     {
         String[] filesToCopy = {"matches.txt", "analysis_complete.txt"};
         String analysisFolder = "analysis_" + getRunNumber();
-        for(String file: filesToCopy)
+        for (String file: filesToCopy)
         {
             copyFile(pipelineLoc + "/" + file, pipelineLoc + "/" + analysisFolder + "/" + file);
         }
@@ -212,7 +218,6 @@ public class GenotypingTest extends GenotypingBaseTest
     private void sendDataToGalaxyServer()
     {
         clickButton("Add Analysis");
-        Locator menuLocator = Locator.xpath("//input[@name='sequencesView']/../input[2]");
         _extHelper.selectComboBoxItem("Reference Sequences:", "[default]");                       //TODO:  this should be cyno
         clickButton("Submit");
         waitForPipelineJobsToComplete(++pipelineJobCount, "Submit genotyping analysis", false);
