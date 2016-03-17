@@ -112,7 +112,6 @@ public class PacBioTest extends GenotypingBaseTest
         List<String> correctRow = new ArrayList<>();
         correctRow.add(realRow.get(0));
         correctRow.addAll(poolMap.get(importCount));
-        correctRow.add(null); // not sure why, but there's a null cell at the end dataregion data
         assertEquals("Imported data doesn't match expected for (0-based count) import " + importCount, correctRow, realRow);
     }
 
