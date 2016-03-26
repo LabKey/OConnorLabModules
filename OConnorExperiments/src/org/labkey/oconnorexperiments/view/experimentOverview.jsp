@@ -15,8 +15,7 @@
 * limitations under the License.
 */
 %>
-<%@ page import="org.labkey.api.view.template.ClientDependency" %>
-<%@ page import="java.util.LinkedHashSet" %>
+<%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
 //    Container container = getContainer();
@@ -26,14 +25,12 @@
 //    User createdBy = UserManager.getUser(container.getCreatedBy());
 %>
 <%!
-    public LinkedHashSet<ClientDependency> getClientDependencies()
+    public void addClientDependencies(ClientDependencies dependencies)
     {
-        LinkedHashSet<ClientDependency> resources = new LinkedHashSet<>();
-        resources.add(ClientDependency.fromPath("Ext"));
-        resources.add(ClientDependency.fromPath("/editInPlaceElement.js"));
-        resources.add(ClientDependency.fromPath("/editInPlaceElement.css"));
-        resources.add(ClientDependency.fromPath("/ocexp/internal/Experiment.js"));
-        return resources;
+        dependencies.add("Ext");
+        dependencies.add("/editInPlaceElement.js");
+        dependencies.add("/editInPlaceElement.css");
+        dependencies.add("/ocexp/internal/Experiment.js");
     }
 %>
 
