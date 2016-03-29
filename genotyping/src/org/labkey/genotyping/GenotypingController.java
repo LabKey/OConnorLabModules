@@ -88,7 +88,6 @@ import org.labkey.api.util.MinorConfigurationException;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.Pair;
 import org.labkey.api.util.ResultSetUtil;
-import org.labkey.api.util.ReturnURLString;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
@@ -2540,7 +2539,7 @@ public class GenotypingController extends SpringActionController
 
         public void setSrcURL(String srcURL)
         {
-            setReturnUrl(new ReturnURLString(srcURL));
+            setReturnUrl(srcURL);
         }
     }
 }
