@@ -13,7 +13,7 @@ function bloodInfo(){
 	LABKEY.Query.selectRows({
 		  schemaName: 'study',
 		  queryName: 'demographicsBloodSummary',
-		  colums: 'Id, MostRecentWeight, BloodLast30, AvailBlood',
+		  columns: 'Id, MostRecentWeight, BloodLast30, AvailBlood',
 		  sort: 'Id',
           containerPath: '/WNPRC/EHR',
 		  filterArray: [LABKEY.Filter.create('Id', animalList.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
