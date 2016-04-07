@@ -14,7 +14,7 @@
             <ns:originalText>Export</ns:originalText>
           </ns:item>
           <ns:item text="Experiments Per Page">
-            <ns:originalText>Page Size</ns:originalText>
+            <ns:originalText>Paging</ns:originalText>
           </ns:item>
         </ns:buttonBarOptions>
         <!-- define hidden columns and lookup for columns in grid view -->
