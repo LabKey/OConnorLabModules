@@ -22,10 +22,12 @@ import org.junit.experimental.categories.Category;
 import org.labkey.api.reader.Readers;
 import org.labkey.test.Locator;
 import org.labkey.test.SortDirection;
+import org.labkey.test.TestFileUtils;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
+import org.labkey.test.util.TextSearcher;
 import org.labkey.test.util.ext4cmp.Ext4FieldRef;
 
 import java.io.BufferedReader;
@@ -346,7 +348,6 @@ public class IlluminaTest extends GenotypingBaseTest
         //make sure values persisted
         refresh();
         String url = getCurrentRelativeURL();
-        url += "&exportAsWebPage=1";
         beginAt(url);
 
         waitForElement(Ext4Helper.Locators.formItemWithLabel("Template:"));
@@ -365,14 +366,15 @@ public class IlluminaTest extends GenotypingBaseTest
         waitForText("Edit Sheet");
         assertEquals(prop_value, Ext4FieldRef.getForLabel(this, prop_name).getValue());
 
-        clickButton("Download");
+        File export = doAndWaitForDownload(()-> clickButton("Download", 0));
+        TextSearcher exportSearcher = new TextSearcher(() -> TestFileUtils.getFileContents(export));
 
         for (String[] a : fieldPairs)
         {
-            assertTextPresent(a[0] + "," + a[1]);
+            assertTextPresent(exportSearcher, a[0] + "," + a[1]);
         }
 
-        assertTextPresent(prop_name + "," + prop_value);
+        assertTextPresent(exportSearcher, prop_name + "," + prop_value);
         goToHome();
         goToProjectHome();
     }
