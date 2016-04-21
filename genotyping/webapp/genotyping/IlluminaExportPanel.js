@@ -879,7 +879,6 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
             LABKEY.Utils.convertToTable({
                 fileNamePrefix: fileNamePrefix,
                 delim: 'COMMA',
-                exportAsWebPage: LABKEY.ActionURL.getParameter('exportAsWebPage'),
                 rows: text
             });
         })

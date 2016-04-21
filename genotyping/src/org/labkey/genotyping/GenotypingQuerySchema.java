@@ -201,9 +201,9 @@ public class GenotypingQuerySchema extends UserSchema
                 return new QueryView(schema, settings, errors)
                 {
                     @Override
-                    public PanelButton createExportButton(boolean exportAsWebPage)
+                    public PanelButton createExportButton()
                     {
-                        PanelButton result = super.createExportButton(exportAsWebPage);
+                        PanelButton result = super.createExportButton();
                         ActionURL url = getViewContext().cloneActionURL();
                         url.addParameter("exportType", GenotypingController.FASTQ_FORMAT);
 
@@ -444,7 +444,7 @@ public class GenotypingQuerySchema extends UserSchema
                         btn.setRequiresSelection(true);
                         bar.add(btn);
 
-                        super.populateButtonBar(view, bar, false);
+                        super.populateButtonBar(view, bar);
                     }
                 };
             }
@@ -477,7 +477,7 @@ public class GenotypingQuerySchema extends UserSchema
                     @Override
                     protected void populateButtonBar(DataView view, ButtonBar bar)
                     {
-                        populateButtonBar(view, bar, false);
+                        populateButtonBar(view, bar);
 
                         ActionButton btn = new ActionButton("Create Illumina Sample Sheet");
                         btn.setActionType(ActionButton.Action.SCRIPT);
