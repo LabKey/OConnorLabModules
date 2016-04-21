@@ -477,7 +477,7 @@ public class GenotypingQuerySchema extends UserSchema
                     @Override
                     protected void populateButtonBar(DataView view, ButtonBar bar)
                     {
-                        populateButtonBar(view, bar);
+                        super.populateButtonBar(view, bar);
 
                         ActionButton btn = new ActionButton("Create Illumina Sample Sheet");
                         btn.setActionType(ActionButton.Action.SCRIPT);
