@@ -128,10 +128,11 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
         if (drt.getDataRowCount() > 0)
         {
             drt.checkAll();
-            prepForPageLoad();
-            clickButton("Delete", 0);
-            assertAlert("Are you sure you want to delete the selected rows?");
-            waitForPageToLoad();
+            doAndWaitForPageToLoad(() ->
+            {
+                clickButton("Delete", 0);
+                assertAlert("Are you sure you want to delete the selected rows?");
+            });
         }
 
         StringBuilder specimenTsv = new StringBuilder();
