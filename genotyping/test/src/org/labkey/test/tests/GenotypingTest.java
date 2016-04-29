@@ -23,6 +23,10 @@ import org.labkey.test.Locator;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebElement;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -159,29 +163,23 @@ public class GenotypingTest extends GenotypingBaseTest
         _extHelper.clickXGridPanelCheckbox(0, true);
         clickAndWait(Locator.extButton("Combine"));
 
-        int newIdIndex = getCombinedSampleRowIndex();
         DataRegionTable drt = new DataRegionTable("Analysis", this);
-        assertEquals("19", drt.getDataAsText(newIdIndex, "Reads") );
-        assertEquals("7.3%", drt.getDataAsText(newIdIndex, "Percent") );
-        assertEquals("300.0", drt.getDataAsText(newIdIndex,"Average Length") );
-        assertEquals("14", drt.getDataAsText(newIdIndex, "Pos Reads") );
-        assertEquals("5", drt.getDataAsText(newIdIndex, "Neg Reads") );
-        assertEquals("0", drt.getDataAsText(newIdIndex, "Pos Ext Reads") );
-        assertEquals("0", drt.getDataAsText(newIdIndex, "Neg Ext Reads") );
-        assertTextPresent(alleles[0]);
+        int newIdIndex = getCombinedSampleRowIndex(drt);
+        List<String> combinedSamplesRow = drt.getRowDataAsText(newIdIndex);
+        assertEquals("Wrong data in combines samples row [index = " + combinedSamplesRow + "]",
+                Arrays.asList("TEST09", "19", "7.3%", "300.0", "14", "5", "0", "0", alleles[0]), combinedSamplesRow);
     }
 
-    private int getCombinedSampleRowIndex()
+    private int getCombinedSampleRowIndex(DataRegionTable analysisTable)
     {
         int index;
-        Locator.XPathLocator region = DataRegionTable.Locators.dataRegion("Analysis");
         for (index = 0; index < 50; index++)
         {
-            Locator l = region.append("/tbody/tr" + "[" + (index + 5) + "]"); //the first four rows are invisible spacers and never contain data.
-            if (getAttribute(l, "class").equals("labkey-error-row"))
-                break;
+            WebElement row = analysisTable.findRow(index);
+            if (row.getAttribute("class").contains("labkey-error-row"))
+                return index;
         }
-        return index;
+        throw new NoSuchElementException("No row found for combined samples");
     }
 
     /**
