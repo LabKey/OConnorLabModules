@@ -17,8 +17,16 @@
 %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
+<%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
+<%!
+    public void addClientDependencies(ClientDependencies dependencies)
+    {
+        dependencies.add("internal/jQuery");
+        dependencies.add("clientapi/ext3");
+    }
+%>
 <%
     ActionURL currentURL = getActionURL();
     boolean showNewMatchMessage = (null != currentURL.getParameter("highlightId"));
@@ -34,10 +42,9 @@
     // Show a message if we just added or deleted a match
     if (null != message)
     { %>
-    Ext.onReady(function()
-    {
-        LABKEY.DataRegions["Analysis"].addMessage('<span style="color:green;"><%=message%></span>');
-    });
+    (function($) {
+        LABKEY.DataRegions['Analysis'].addMessage('<span style="color:green;"><%=message%></span>');
+    })(jQuery);
 <%  } %>
     var expectedCount;
     var grid;
