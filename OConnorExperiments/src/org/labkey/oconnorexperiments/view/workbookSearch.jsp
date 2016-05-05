@@ -18,7 +18,14 @@
 <%@ page import="org.labkey.api.data.Container" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.oconnorexperiments.OConnorExperimentsController" %>
+<%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
+<%!
+    public void addClientDependencies(ClientDependencies dependencies)
+    {
+        dependencies.add("Ext3");
+    }
+%>
 <%
     Container container = getContainer();
 %>
