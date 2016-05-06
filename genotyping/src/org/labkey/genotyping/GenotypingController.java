@@ -753,7 +753,7 @@ public class GenotypingController extends SpringActionController
                 files.add(d.getFile());
             }
 
-            PageFlowUtil.prepareResponseForFile(response, Collections.<String, String>emptyMap(), filename, true);
+            PageFlowUtil.prepareResponseForFile(response, Collections.emptyMap(), filename, true);
 
             for (File f : files)
             {

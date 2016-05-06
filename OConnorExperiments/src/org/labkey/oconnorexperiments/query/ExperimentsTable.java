@@ -516,7 +516,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
                     return true;
                 }
 
-                Map<String, Object> row = factory.getRowMap(Arrays.<Object>asList(containerEntityId, p.getEntityId()));
+                Map<String, Object> row = factory.getRowMap(Arrays.asList(containerEntityId, p.getEntityId()));
                 rows.add(row);
             }
 

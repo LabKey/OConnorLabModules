@@ -230,7 +230,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     @Override
     public List<AssayDataCollector> getDataCollectors(@Nullable Map<String, File> uploadedFiles, AssayRunUploadForm context)
     {
-        return Collections.<AssayDataCollector>singletonList(new HaplotypeDataCollector());
+        return Collections.singletonList(new HaplotypeDataCollector());
     }
 
     @Override

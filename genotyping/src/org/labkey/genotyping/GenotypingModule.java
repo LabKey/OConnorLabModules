@@ -138,6 +138,6 @@ public class GenotypingModule extends DefaultModule
     @Override
     public Set<Class> getUnitTests()
     {
-        return PageFlowUtil.<Class>set(HaplotypeDataHandler.TestCase.class);
+        return PageFlowUtil.set(HaplotypeDataHandler.TestCase.class);
     }
 }
