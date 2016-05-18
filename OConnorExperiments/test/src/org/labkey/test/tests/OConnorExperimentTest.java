@@ -113,7 +113,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         testBulkUpdate();
 
         // delete via the webpart
-        DataRegionTable table = new DataRegionTable("query", this);
+        DataRegionTable table = new DataRegionTable("query", getDriver());
         table.uncheckAll();
         table.checkCheckbox(0);
         waitForElement(Locator.lkButton("Delete"));
@@ -131,7 +131,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     protected void verifyExperimentWebpart(int row, String description, @Nullable String type, int... parentExperiments)
     {
         // Verify the Experiment is inserted, examine OConnorExperiment webpart
-        DataRegionTable table = new DataRegionTable("query", this);
+        DataRegionTable table = new DataRegionTable("query", getDriver());
         assertEquals(description, table.getDataAsText(row, "Description"));
         if (type != null)
         {
@@ -139,12 +139,12 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         }
 
         // Make sure each component of the ParentExperiments column is rendered with a link to the begin page for that experiment
-        Locator.XPathLocator l = table.xpath(row, table.getColumn("ParentExperiments"));
+        WebElement cell = table.findCell(row, table.getColumnIndex("ParentExperiments"));
         for (int i : parentExperiments)
         {
-            Locator.XPathLocator link = l.child("a[" + i + "]");
-            String parentExpText = getText(link);
-            String parentExpHref = getAttribute(link, "href");
+            WebElement link = Locator.xpath("a[" + i + "]").findElement(cell);
+            String parentExpText = link.getText();
+            String parentExpHref = link.getAttribute("href");
             assertTrue("Expected link to go to project begin for " + parentExpText + ", got: " + parentExpHref,
                     parentExpHref.contains("/" + parentExpText + "/begin.view") || parentExpHref.contains("/" + parentExpText + "/project-begin.view"));
         }
@@ -184,9 +184,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
 
     protected void updateViaExperimentWebpart(int row, String description, String type, @Nullable String parentExperiment)
     {
-        DataRegionTable table = new DataRegionTable("query", this);
-        Locator.XPathLocator l = table.xpath(row, 0);
-        waitForElement(l);
+        DataRegionTable table = new DataRegionTable("query", getDriver());
         clickAndWait(table.detailsLink(row));
 
         editExperiment(description, type, parentExperiment);
@@ -320,7 +318,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     @LogMethod
     protected void testBulkUpdate()
     {
-        DataRegionTable table = new DataRegionTable("query", this);
+        DataRegionTable table = new DataRegionTable("query", getDriver());
         table.checkAll();
         waitForElement(Locator.lkButton("Bulk Edit"));
         click(Locator.lkButton("Bulk Edit"));
@@ -330,7 +328,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         verifyExperimentWebpart(1, "bulk edit description", "type2", 1);
         verifyExperimentWebpart(2, "bulk edit description", "type2", 1);
 
-        table = new DataRegionTable("query", this);
+        table = new DataRegionTable("query", getDriver());
         table.uncheckAll();
         table.checkCheckbox(0);
         table.checkCheckbox(2);
