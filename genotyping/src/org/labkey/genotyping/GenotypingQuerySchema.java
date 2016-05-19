@@ -49,10 +49,9 @@ import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.ViewContext;
+import org.labkey.api.view.template.ClientDependency;
 import org.springframework.validation.BindException;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -408,9 +407,6 @@ public class GenotypingQuerySchema extends UserSchema
                         return qHelper.getTableInfo();
                     }
                 });
-                //SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getSequenceFilesTable() + ".Run) = ?");
-                //containerCondition.add(c.getId());
-                //table.addCondition(containerCondition);
                 setDefaultVisibleColumns(table, "Run, DataId, SampleId, ReadCount, PoolNum");
                 table.setDescription("Contains one row per sequence file imported with runs");
 
@@ -426,25 +422,23 @@ public class GenotypingQuerySchema extends UserSchema
                     protected void populateButtonBar(DataView view, ButtonBar bar)
                     {
                         //add custom button to download files
-                        ActionButton btn = new ActionButton("Download Selected")
-                        {
-                            public void render(RenderContext ctx, Writer
-                                    out) throws IOException
-                            {
-                                out.write("<script type=\"text/javascript\">\n");
-                                out.write("LABKEY.requiresExt4ClientAPI()\n");
-                                out.write("LABKEY.requiresScript('genotyping/RunExportWindow.js')\n");
-                                out.write("</script>\n");
-                                super.render(ctx, out);
-                            }
-                        };
-
+                        ActionButton btn = new ActionButton("Download Selected");
                         btn.setScript("LABKEY.Genotyping.exportFilesBtnHandler('" + view.getDataRegion().getName() + "');");
-
                         btn.setRequiresSelection(true);
+
                         bar.add(btn);
 
                         super.populateButtonBar(view, bar);
+                    }
+
+                    @NotNull
+                    @Override
+                    public LinkedHashSet<ClientDependency> getClientDependencies()
+                    {
+                        LinkedHashSet<ClientDependency> resources = super.getClientDependencies();
+                        resources.add(ClientDependency.fromPath("Ext4"));
+                        resources.add(ClientDependency.fromPath("genotyping/RunExportWindow.js"));
+                        return resources;
                     }
                 };
             }
@@ -460,8 +454,6 @@ public class GenotypingQuerySchema extends UserSchema
                 {
                     QueryHelper qHelper = new GenotypingQueryHelper(schema.getContainer(), schema.getUser(), samplesQuery);
                     TableInfo table = qHelper.getTableInfo();
-                    //FilteredTable ft = new FilteredTable(table);
-                    //ft.setDescription("Contains sample information and metadata");
 
                     return (FilteredTable)table;
                 }
@@ -508,8 +500,6 @@ public class GenotypingQuerySchema extends UserSchema
                 {
                     QueryHelper qHelper = new GenotypingQueryHelper(schema.getContainer(), schema.getUser(), queryName);
                     TableInfo table = qHelper.getTableInfo();
-                    //FilteredTable ft = new FilteredTable(table);
-                    //ft.setDescription("Contains metadata about each genotyping run");
 
                     return (FilteredTable)table;
                 }

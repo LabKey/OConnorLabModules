@@ -305,6 +305,9 @@ genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-15.20-15.21
 genotyping/resources/schemas/dbscripts/sqlserver/obsolete/genotyping-15.21-15.22.sql -text
 genotyping/resources/schemas/genotyping.xml -text
 genotyping/resources/views/illuminaSampleSheetExport.html -text
+genotyping/resources/views/illuminaSampleSheetExport.view.xml -text
+genotyping/resources/web/genotyping/IlluminaExportPanel.js -text
+genotyping/resources/web/genotyping/RunExportWindow.js -text
 genotyping/src/org/labkey/genotyping/ConcatenatedHaplotypesDisplayColumn.java -text
 genotyping/src/org/labkey/genotyping/GenotypingAnalysesView.java -text
 genotyping/src/org/labkey/genotyping/GenotypingAnalysis.java -text
@@ -376,5 +379,3 @@ genotyping/test/src/org/labkey/test/tests/IlluminaTest.java -text
 genotyping/test/src/org/labkey/test/tests/PacBioTest.java -text
 genotyping/test/test_genotyping.iml -text
 genotyping/tools/Illumina.pl -text
-genotyping/webapp/genotyping/IlluminaExportPanel.js -text
-genotyping/webapp/genotyping/RunExportWindow.js -text
