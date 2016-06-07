@@ -149,6 +149,10 @@ public class IlluminaFastqParser<SampleIdType>
                     _sequenceTotals.put(key, totalReads);
 
                     SampleIdType sampleId = _sampleMap.get(sampleIdx);
+                    if (sampleIdx != 0 && sampleId == null)
+                    {
+                        throw new PipelineJobException("Could not resolve id for sample at index " + sampleIdx + ". Sample map is: " + _sampleMap);
+                    }
                     String name = (_outputPrefix == null ? "Reads" : _outputPrefix) + "-R" + pairNumber + "-" + (sampleIdx == 0 ? "Control" : sampleId) + ".fastq.gz";
                     File newFile = new File(targetDir, name);
 
