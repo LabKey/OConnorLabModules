@@ -37,7 +37,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -160,17 +160,10 @@ public class IlluminaTest extends GenotypingBaseTest
 
     private int getFileCountInZip(File file) throws IOException
     {
-        int count = 0;
-        try (
-                InputStream is = new FileInputStream(file);
-                ZipInputStream zip = new ZipInputStream(is))
+        try (ZipFile zipFile = new ZipFile(file))
         {
-            while (zip.getNextEntry() != null)
-            {
-                count++;
-            }
+            return zipFile.size();
         }
-        return count;
     }
 
     @LogMethod
