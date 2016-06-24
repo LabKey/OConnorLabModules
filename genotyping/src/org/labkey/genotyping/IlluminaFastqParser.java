@@ -17,9 +17,13 @@ package org.labkey.genotyping;
 
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
+import org.apache.commons.collections4.ListValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Assert;
+import org.junit.Test;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.sequence.IlluminaReadHeader;
@@ -30,13 +34,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * This is designed to parse the FASTQ files produced by a single run on an illumina instructment and produce one gzipped FASTQ
+ * This is designed to parse the FASTQ files produced by a single run on an Illumina instrument and produce one gzipped FASTQ
  * for each sample in that run.  Parsing that CSV file to obtain the sample list is upstream of this class.
  * It is designed to be called from a pipeline job, although it should not need to be.
  *
@@ -62,26 +70,29 @@ public class IlluminaFastqParser<SampleIdType>
         _logger = logger;
     }
 
-    // because ilumina sample CSV files do not provide a clear way to identify the FASTQ files/
+    // because Illumina sample CSV files do not provide a clear way to identify the FASTQ files/
     // this method accepts the CSV input and an optional FASTQ file prefix.  it will return any
     // FASTQ files or zipped FASTQs in the same folder as the CSV and filter using the prefix, if provided.
     public static List<File> inferIlluminaInputsFromPath(String path, @Nullable String fastqPrefix)
     {
         File folder = new File(path);
-        List<File> _fastqFiles = new ArrayList<>();
+        List<File> result = new ArrayList<>();
 
         for (File f : folder.listFiles())
         {
             if(!FASTQ_FILETYPE.isType(f))
                 continue;
+            // Skip over files whose main file name ends in _IX_XXX where X is any digit
+            if (FASTQ_FILETYPE.getBaseName(f).matches(".*_I\\d_\\d\\d\\d"))
+                continue;
 
             if(fastqPrefix != null && !f.getName().startsWith(fastqPrefix))
                 continue;
 
-            _fastqFiles.add(f);
+            result.add(f);
         }
 
-        return _fastqFiles;
+        return result;
     }
 
     //this returns a map connecting samples with output FASTQ files.
@@ -93,6 +104,7 @@ public class IlluminaFastqParser<SampleIdType>
 
         FastqReader reader = null;
 
+        // Original->target mapping
         Map<File, File> filesToMove = new LinkedHashMap<>();
         Map<String, String> fileNameWithoutPairingInfoMap = new LinkedHashMap<>();//ex. if file name is SampleSheet-R1-1234.fastq, this map contains SampleSheet-1234
 
@@ -172,6 +184,9 @@ public class IlluminaFastqParser<SampleIdType>
             index++;
         }
 
+        checkForDuplicateTargets(filesToMove);
+        checkForExistingTargets(filesToMove.values());
+
         // Rename the files to the preferred convention after we've finished processing all of the files
         try
         {
@@ -189,12 +204,54 @@ public class IlluminaFastqParser<SampleIdType>
         }
 
         Map<Pair<SampleIdType, Integer>, File> outputs = new HashMap<>();
-        for (Pair<SampleIdType, Integer> key :_fileMap.keySet())
+        for (Pair<SampleIdType, Integer> key : _fileMap.keySet())
         {
             outputs.put(key, _fileMap.get(key));
         }
 
         return outputs;
+    }
+
+    /** Checks if one or more desired target files are already present */
+    private void checkForExistingTargets(Collection<File> targetFiles) throws PipelineJobException
+    {
+        Set<File> existingFiles = new HashSet<>();
+        for (File targetFile : targetFiles)
+        {
+            if (targetFile.exists())
+            {
+                existingFiles.add(targetFile);
+            }
+        }
+        if (!existingFiles.isEmpty())
+        {
+            throw new PipelineJobException("Input files cannot be renamed - at least one target file already exists: " + existingFiles);
+        }
+    }
+
+    /** Ensure that we don't have multiple source files trying to map to the same target file */
+    private void checkForDuplicateTargets(Map<File, File> filesToMove) throws PipelineJobException
+    {
+        ListValuedMap<File, File> map = new ArrayListValuedHashMap<>();
+        for (Map.Entry<File, File> entry : filesToMove.entrySet())
+        {
+            map.put(entry.getValue(), entry.getKey());
+        }
+
+        boolean error = false;
+        for (File targetFile : map.keySet())
+        {
+            List<File> sourceFiles = map.get(targetFile);
+            if (sourceFiles.size() > 1)
+            {
+                error = true;
+                _logger.error("Multiple input files map to the target file " + targetFile + " - they are: " + sourceFiles);
+            }
+        }
+        if (error)
+        {
+            throw new PipelineJobException("Some target files have more than one source file, see output for details");
+        }
     }
 
     private String addToPairingInfoMap(String fileName, Map m, int readCount)
@@ -233,6 +290,30 @@ public class IlluminaFastqParser<SampleIdType>
         return _sequenceTotals;
     }
 
+
+    public static class TestCase extends Assert
+    {
+        @Test
+        public void testNoDupes() throws PipelineJobException
+        {
+            IlluminaFastqParser<Integer> parser = new IlluminaFastqParser<>(null, Collections.emptyMap(), Logger.getLogger(TestCase.class), Collections.emptyList());
+            Map<File, File> files = new HashMap<>();
+            files.put(new File("a"), new File("b"));
+            files.put(new File("c"), new File("d"));
+            parser.checkForDuplicateTargets(files);
+        }
+
+        @Test(expected = PipelineJobException.class)
+        public void testDupeTargets() throws PipelineJobException
+        {
+            IlluminaFastqParser<Integer> parser = new IlluminaFastqParser<>(null, Collections.emptyMap(), Logger.getLogger(TestCase.class), Collections.emptyList());
+            Map<File, File> files = new HashMap<>();
+            files.put(new File("a"), new File("b"));
+            files.put(new File("c"), new File("b"));
+            parser.checkForDuplicateTargets(files);
+        }
+
+    }
 }
 
 
