@@ -15,25 +15,23 @@
      * limitations under the License.
      */
 %>
-<%@ page import="org.labkey.api.view.HttpView" %>
-<%@ page import="org.labkey.genotyping.GenotypingController.STRDiscrepancies" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="org.labkey.api.gwt.client.util.StringUtils" %>
-<%@ page import="org.labkey.api.view.ActionURL" %>
+<%@ page import="org.apache.commons.lang3.StringUtils" %>
+<%@ page import="org.labkey.api.data.CompareType" %>
+<%@ page import="org.labkey.api.query.FieldKey" %>
 <%@ page import="org.labkey.api.study.actions.AssayResultsAction" %>
 <%@ page import="org.labkey.api.study.assay.AssayProtocolSchema" %>
-<%@ page import="org.labkey.api.query.FieldKey" %>
-<%@ page import="org.labkey.api.data.CompareType" %>
-<%@ page import="java.util.Set" %>
-<%@ page import="java.util.ArrayList" %>
+<%@ page import="org.labkey.api.view.ActionURL" %>
+<%@ page import="org.labkey.api.view.HttpView" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
+<%@ page import="org.labkey.genotyping.GenotypingController.STRDiscrepancies" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.Set" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
-
 <%
     STRDiscrepancies model = (STRDiscrepancies)HttpView.currentModel();
     ActionURL reportURL = new ActionURL(GenotypingController.STRDiscrepanciesAssignmentReportAction.class, model.getContainer());
 %>
-
 <p>
     <form method="GET" action="<%= h(reportURL)%>">
         <input type="hidden" name="rowId" value="<%= model.getRowId() %>" />
