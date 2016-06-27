@@ -106,7 +106,7 @@ public class IlluminaFastqParser<SampleIdType>
 
         // Original->target mapping
         Map<File, File> filesToMove = new LinkedHashMap<>();
-        Map<String, String> fileNameWithoutPairingInfoMap = new LinkedHashMap<>();//ex. if file name is SampleSheet-R1-1234.fastq, this map contains SampleSheet-1234
+        Map<String, Integer> fileNameWithoutPairingInfoMap = new LinkedHashMap<>();//ex. if file name is SampleSheet-R1-1234.fastq, this map contains SampleSheet-1234
 
         int index = 1;
         for (File f : _files)
@@ -254,7 +254,7 @@ public class IlluminaFastqParser<SampleIdType>
         }
     }
 
-    private String addToPairingInfoMap(String fileName, Map m, int readCount)
+    private String addToPairingInfoMap(String fileName, Map<String, Integer> m, int readCount)
     {
         String fileNameWithoutPairingInfo = "";
         if(fileName.contains("-R1"))
@@ -272,7 +272,7 @@ public class IlluminaFastqParser<SampleIdType>
 
         if(m.containsKey(fileNameWithoutPairingInfo))
         {
-            Integer rc = (Integer) m.get(fileNameWithoutPairingInfo);
+            Integer rc = m.get(fileNameWithoutPairingInfo);
             if(readCount == 0 && rc != 0)
                 return fileName + " is empty and has 0 reads, while its pair file is not empty and has " + rc + " reads.";
             else if(rc == 0 && readCount != 0)
