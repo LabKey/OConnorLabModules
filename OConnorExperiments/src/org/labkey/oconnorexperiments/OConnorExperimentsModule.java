@@ -67,7 +67,7 @@ public class OConnorExperimentsModule extends DefaultModule
     @Override
     public double getVersion()
     {
-        return 16.10;
+        return 16.20;
     }
 
     @Override
@@ -80,7 +80,7 @@ public class OConnorExperimentsModule extends DefaultModule
     @Override
     protected Collection<WebPartFactory> createWebPartFactories()
     {
-        return new ArrayList<WebPartFactory>(Arrays.asList(
+        return new ArrayList<>(Arrays.asList(
                 new BaseWebPartFactory("OConnorExperiments")
                 {
                     public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
@@ -123,13 +123,6 @@ public class OConnorExperimentsModule extends DefaultModule
         ServiceRegistry.get(FileContentService.class).addFileListener(fileListener);
 
         FolderTypeManager.get().registerFolderType(this, new OConnorExperimentFolderType());
-    }
-
-    @NotNull
-    @Override
-    public Collection<String> getSummary(Container c)
-    {
-        return Collections.emptyList();
     }
 
     @Override
