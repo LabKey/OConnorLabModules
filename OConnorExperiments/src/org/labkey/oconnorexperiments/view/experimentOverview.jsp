@@ -25,6 +25,7 @@
 //    User createdBy = UserManager.getUser(container.getCreatedBy());
 %>
 <%!
+    @Override
     public void addClientDependencies(ClientDependencies dependencies)
     {
         dependencies.add("Ext");

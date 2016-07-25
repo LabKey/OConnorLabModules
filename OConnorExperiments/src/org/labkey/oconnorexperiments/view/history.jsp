@@ -38,6 +38,7 @@
     Container c = getContainer();
 %>
 <%!
+    @Override
     public void addClientDependencies(ClientDependencies dependencies)
     {
         dependencies.add("clientapi");
