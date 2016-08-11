@@ -388,14 +388,14 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         waitForElement(Locator.paginationText(1, 39, 39));
 
         // ADD: animal ID-5, haplotype A001
-        DataRegionTable.findDataRegion(this).clickHeaderButton("Insert", "Insert New");
+        DataRegionTable.findDataRegion(this).clickHeaderMenu("Insert", "Insert New");
         selectOptionByText(Locator.name("quf_HaplotypeId"), "A001");
         selectOptionByText(Locator.name("quf_AnimalAnalysisId"), animalAnalysisId);
         setFormElement(Locator.name("quf_DiploidNumber"), "1");
         clickButton("Submit");
 
         // ADD: animal ID-5, haplotype B002
-        DataRegionTable.findDataRegion(this).clickHeaderButton("Insert", "Insert New");
+        DataRegionTable.findDataRegion(this).clickHeaderMenu("Insert", "Insert New");
         selectOptionByText(Locator.name("quf_HaplotypeId"), "B002");
         selectOptionByText(Locator.name("quf_AnimalAnalysisId"), animalAnalysisId);
         setFormElement(Locator.name("quf_DiploidNumber"), "1");
