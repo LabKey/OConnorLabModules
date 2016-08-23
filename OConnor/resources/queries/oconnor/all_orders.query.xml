@@ -1,0 +1,16 @@
+<query xmlns="http://labkey.org/data/xml/query">
+    <metadata>
+        <tables xmlns="http://labkey.org/data/xml">
+            <table tableName="all_orders" tableDbType="TABLE">
+                <columns>
+                    <column columnName="price">
+                        <formatString>0.00</formatString>
+                    </column>
+                    <column columnName="total_price">
+                        <formatString>0.00</formatString>
+                    </column>
+                </columns>
+            </table>
+        </tables>
+    </metadata>
+</query>

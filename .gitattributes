@@ -41,6 +41,7 @@ OConnor/resources/queries/oconnor/ELISpotResults_original.sql -text
 OConnor/resources/queries/oconnor/ELISpotRuns.query.xml -text
 OConnor/resources/queries/oconnor/ELISpotRuns.sql -text
 OConnor/resources/queries/oconnor/FlowResults.sql -text
+OConnor/resources/queries/oconnor/all_orders.query.xml -text
 OConnor/resources/queries/oconnor/all_orders.sql -text
 OConnor/resources/queries/oconnor/all_orders/all.qview.xml -text
 OConnor/resources/queries/oconnor/animals.query.xml -text
