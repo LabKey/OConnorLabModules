@@ -175,8 +175,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     @LogMethod
     protected void insertViaExperimentsWebpart(String description, String type, @Nullable String parentExperiment)
     {
-        waitForElement(Locator.lkButton("Insert New"));
-        click(Locator.lkButton("Insert New"));
+        waitAndClickAndWait(Locator.lkButton("Insert New Row"));
 
         editExperiment(description, type, parentExperiment);
         goToProjectHome();
