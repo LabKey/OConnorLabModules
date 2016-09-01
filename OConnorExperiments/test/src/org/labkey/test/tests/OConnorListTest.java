@@ -168,8 +168,7 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
     {
         goToProjectHome();
         //check available experiment types
-        DataRegionTable.findDataRegion(this).clickHeaderMenu("Insert", "Insert New Row");
-        waitForElement(Locator.linkWithText("history"));
+        DataRegionTable.findDataRegion(this).clickInsertNewRowDropdown();        waitForElement(Locator.linkWithText("history"));
         click(Locator.xpath("//div[contains(@class, 'x4-trigger-index')]"));
 //        List<String> options = new ArrayList<>();
 //        List<WebElement> optionsEls = this.getDriver().findElements(By.className("list-item"));
@@ -218,8 +217,8 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
     private void insertExperimentType(String type, Boolean enabled )
     {
         PortalHelper portalHelper = new PortalHelper(this);
-        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan("Insert New").toBy()));
-        portalHelper.clickWebpartMenuItem("experimentType", "Insert New");
+        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan(DataRegionTable.getInsertNewButtonText()).toBy()));
+        portalHelper.clickWebpartMenuItem("experimentType", DataRegionTable.getInsertNewButtonText());
         setFormElement(Locator.input("quf_Name"), type);
         if(!enabled){uncheckCheckbox(Locator.checkboxByName("quf_enabled"));}
         if(enabled){checkCheckbox(Locator.checkboxByName("quf_enabled"));}
@@ -230,8 +229,8 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
     private void insertSpecimenType(String type, Boolean enabled)
     {
         PortalHelper portalHelper = new PortalHelper(this);
-        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan("Insert New").toBy()));
-        portalHelper.clickWebpartMenuItem("specimenType", "Insert New");
+        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan(DataRegionTable.getInsertNewButtonText()).toBy()));
+        portalHelper.clickWebpartMenuItem("specimenType", DataRegionTable.getInsertNewButtonText());
         setFormElement(Locator.input("quf_specimen_type"), type);
         if(!enabled){uncheckCheckbox(Locator.checkboxByName("quf_enabled"));}
         if(enabled){checkCheckbox(Locator.checkboxByName("quf_enabled"));}
