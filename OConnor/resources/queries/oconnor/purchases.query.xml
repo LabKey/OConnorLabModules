@@ -38,8 +38,7 @@
       </ns:column>
       <ns:column columnName="modifiedBy">
         <ns:shownInInsertView>false</ns:shownInInsertView>
-        <ns:shownInInsertView>false</ns:shownInInsertView>
-                    <ns:fk>
+            <ns:fk>
               <ns:fkDbSchema>core</ns:fkDbSchema>
               <ns:fkTable>Users</ns:fkTable>
               <ns:fkColumnName>userId</ns:fkColumnName>
@@ -95,6 +94,7 @@
       </ns:column>
 	<ns:column columnName="price">
         <ns:columnTitle>Unit Price</ns:columnTitle>
+        <ns:formatString>0.00</ns:formatString>
       </ns:column>
     </ns:columns>
       </ns:table>
