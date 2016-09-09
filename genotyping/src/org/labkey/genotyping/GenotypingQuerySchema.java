@@ -200,9 +200,9 @@ public class GenotypingQuerySchema extends UserSchema
                 return new QueryView(schema, settings, errors)
                 {
                     @Override
-                    public PanelButton createExportButton()
+                    public PanelButton createExportButton(@Nullable List<String> recordSelectorColumns)
                     {
-                        PanelButton result = super.createExportButton();
+                        PanelButton result = super.createExportButton(recordSelectorColumns);
                         ActionURL url = getViewContext().cloneActionURL();
                         url.addParameter("exportType", GenotypingController.FASTQ_FORMAT);
 
