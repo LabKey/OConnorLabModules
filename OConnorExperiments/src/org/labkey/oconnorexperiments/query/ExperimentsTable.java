@@ -38,13 +38,13 @@ import org.labkey.api.data.TableExtension;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.data.UpdateableTableInfo;
-import org.labkey.api.etl.DataIterator;
-import org.labkey.api.etl.DataIteratorBuilder;
-import org.labkey.api.etl.DataIteratorContext;
-import org.labkey.api.etl.DataIteratorUtil;
-import org.labkey.api.etl.ListofMapsDataIterator;
-import org.labkey.api.etl.LoggingDataIterator;
-import org.labkey.api.etl.SimpleTranslator;
+import org.labkey.api.dataiterator.DataIterator;
+import org.labkey.api.dataiterator.DataIteratorBuilder;
+import org.labkey.api.dataiterator.DataIteratorContext;
+import org.labkey.api.dataiterator.DataIteratorUtil;
+import org.labkey.api.dataiterator.ListofMapsDataIterator;
+import org.labkey.api.dataiterator.LoggingDataIterator;
+import org.labkey.api.dataiterator.SimpleTranslator;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.AbstractQueryUpdateService;
 import org.labkey.api.query.BatchValidationException;
@@ -195,7 +195,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         parentExperimentsCol.setCalculated(true);
         parentExperimentsCol.setUserEditable(true);
         parentExperimentsCol.setNullable(true);
-        // BUGBUG: ETL doesn't like using the same PropertyURI for two columns (ParentExperiments and Container).
+        // BUGBUG: DIB doesn't like using the same PropertyURI for two columns (ParentExperiments and Container).
         // BUGBUG: Clear PropertyURI -- it will be regenerated when .getPropertyURI() is called
         // BUGBUG: When wrapping columns with auto-generated PropertyURIs where the name differs, we should regenerate the PropertyURI.
         parentExperimentsCol.setPropertyURI(null);
@@ -393,10 +393,10 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
 
         // Feed the modified data iterator to the parent ETL to insert into both the Workbooks table and the OConnor experiments dbtable
         DataIteratorBuilder builder = ((UpdateableTableInfo)_workbooksTable).persistRows(data, context);
-        DataIteratorBuilder insertETL = ((UpdateableTableInfo)getRealTable()).persistRows(builder, context);
-        if (insertETL != null)
-            insertETL = new _DataIteratorBuilder(insertETL);
-        return insertETL;
+        DataIteratorBuilder insertDIB = ((UpdateableTableInfo)getRealTable()).persistRows(builder, context);
+        if (insertDIB != null)
+            insertDIB = new _DataIteratorBuilder(insertDIB);
+        return insertDIB;
     }
 
     private class _DataIteratorBuilder implements DataIteratorBuilder
