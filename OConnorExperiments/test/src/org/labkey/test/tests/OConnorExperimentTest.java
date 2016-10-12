@@ -192,6 +192,9 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
 
     protected void editExperiment(String description, String type, @Nullable String parentExperiment)
     {
+        // the type combobox
+        _ext4Helper.selectComboBoxItem("Experiment Type:", Ext4Helper.TextMatchTechnique.CONTAINS, type);
+
         // set the description field
         setEditInPlaceContent("Description:", description);
 
@@ -200,9 +203,6 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         {
             setEditInPlaceContent("Parent Experiments:", parentExperiment);
         }
-
-        // the type combobox
-        _ext4Helper.selectComboBoxItem("Experiment Type:", Ext4Helper.TextMatchTechnique.CONTAINS, type);
     }
 
     protected void setEditInPlaceContent(String label, String text)
