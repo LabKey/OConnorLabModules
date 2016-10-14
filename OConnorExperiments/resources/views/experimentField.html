@@ -30,9 +30,11 @@
                     experiment: experimentData,
                     success: function(){
                         document.getElementById('errorText').innerHTML = "";
+                        LABKEY.Utils.signalWebDriverTest("experimentDataSave", "success");
                     },
                     invalid: function(msg) {
                         document.getElementById('errorText').innerHTML = Ext4.util.Format.htmlEncode(msg);
+                        LABKEY.Utils.signalWebDriverTest("experimentDataSave", "invalid");
                     }
                 });
             };

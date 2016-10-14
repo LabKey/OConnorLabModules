@@ -60,6 +60,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     private static final String SCHEMA_NAME = MODULE_NAME;
     private static final String TABLE_NAME = "Experiments";
     private static final String EXPERIMENT_TYPE_TABLE_NAME = "ExperimentType";
+    private static final String EXPERIMENT_SAVE_SIGNAL = "experimentDataSave"; // See experimentField.html
     private ArrayList<String> pkeys = new ArrayList<>();
 
     @Nullable
@@ -107,7 +108,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         // update a single row
         updateViaExperimentWebpart(0, "updated description 3", "type2", "1");
         verifyExperimentWebpart(0, "updated description 3", "type2", 1);
-        updateViaExperimentWebpart(0, "updated description 3", "type3", "1,2");
+        updateViaExperimentWebpart(0, null, "type3", "1,2");
         verifyExperimentWebpart(0, "updated description 3", "type3", 1, 2);
 
         testBulkUpdate();
@@ -173,7 +174,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
      * Insert a new experiment using the OConnorExperiment webpart
      */
     @LogMethod
-    protected void insertViaExperimentsWebpart(String description, String type, @Nullable String parentExperiment)
+    protected void insertViaExperimentsWebpart(String description, @Nullable String type, @Nullable String parentExperiment)
     {
         waitAndClickAndWait(Locator.lkButton(DataRegionTable.getInsertNewButtonText()));
 
@@ -181,7 +182,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         goToProjectHome();
     }
 
-    protected void updateViaExperimentWebpart(int row, String description, String type, @Nullable String parentExperiment)
+    protected void updateViaExperimentWebpart(int row, @Nullable String description, @Nullable String type, @Nullable String parentExperiment)
     {
         DataRegionTable table = new DataRegionTable("query", getDriver());
         clickAndWait(table.detailsLink(row));
@@ -190,19 +191,45 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         goToProjectHome();
     }
 
-    protected void editExperiment(String description, String type, @Nullable String parentExperiment)
+    protected void editExperiment(@Nullable String description, @Nullable String type, @Nullable String parentExperiment)
     {
-        // the type combobox
-        _ext4Helper.selectComboBoxItem("Experiment Type:", Ext4Helper.TextMatchTechnique.CONTAINS, type);
-
-        // set the description field
-        setEditInPlaceContent("Description:", description);
-
-        // parent experiments field
+        if (description != null)
+        {
+            setDescription(description);
+        }
         if (parentExperiment != null)
         {
-            setEditInPlaceContent("Parent Experiments:", parentExperiment);
+            setParentExperiments(parentExperiment);
         }
+        if (type != null)
+        {
+            setExperimentType(type);
+        }
+    }
+
+    private String doAndWaitForExperimentSave(Runnable runnable)
+    {
+        return doAndWaitForPageSignal(runnable, EXPERIMENT_SAVE_SIGNAL);
+    }
+
+    protected String setDescription(String description)
+    {
+        return doAndWaitForExperimentSave(() -> setEditInPlaceContent("Description:", description));
+    }
+
+    protected String setExperimentType(String type)
+    {
+        return doAndWaitForExperimentSave(() -> _ext4Helper.selectComboBoxItem("Experiment Type:", Ext4Helper.TextMatchTechnique.CONTAINS, type));
+    }
+
+    protected String setParentExperiments(String parent)
+    {
+        return doAndWaitForExperimentSave(() -> setEditInPlaceContent("Parent Experiments:", parent));
+    }
+
+    protected String setGrant(String grant)
+    {
+        return doAndWaitForExperimentSave(() -> setEditInPlaceContent("Grant:", grant));
     }
 
     protected void setEditInPlaceContent(String label, String text)
