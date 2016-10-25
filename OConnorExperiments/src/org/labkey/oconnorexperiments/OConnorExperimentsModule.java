@@ -55,9 +55,6 @@ public class OConnorExperimentsModule extends DefaultModule
 {
     public static final String NAME = "OConnorExperiments";
 
-    private OConnorWikiChangeListener wikiListener;
-    private OConnorFileChangeListener fileListener;
-
     @Override
     public String getName()
     {
@@ -67,7 +64,7 @@ public class OConnorExperimentsModule extends DefaultModule
     @Override
     public double getVersion()
     {
-        return 16.20;
+        return 16.30;
     }
 
     @Override
@@ -81,24 +78,24 @@ public class OConnorExperimentsModule extends DefaultModule
     protected Collection<WebPartFactory> createWebPartFactories()
     {
         return new ArrayList<>(Arrays.asList(
-                new BaseWebPartFactory("OConnorExperiments")
+            new BaseWebPartFactory("OConnorExperiments")
+            {
+                public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
-                    public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
-                    {
-                        UserSchema schema = QueryService.get().getUserSchema(portalCtx.getUser(), portalCtx.getContainer(), SchemaKey.fromParts("OConnorExperiments"));
-                        WorkbookQueryView wbqview = new WorkbookQueryView(portalCtx, schema);
-                        VBox box = new VBox(new JspView<>("/org/labkey/oconnorexperiments/view/workbookSearch.jsp", new WorkbookSearchBean(wbqview, null)), wbqview);
-                        box.setFrame(WebPartView.FrameType.PORTAL);
-                        box.setTitle(OConnorExperimentsSchema.EXPERIMENTS);
-                        return box;
-                    }
-
-                    @Override
-                    public boolean isAvailable(Container c, String location)
-                    {
-                        return super.isAvailable(c, location) && !c.isWorkbook() && location.equalsIgnoreCase(HttpView.BODY);
-                    }
+                    UserSchema schema = QueryService.get().getUserSchema(portalCtx.getUser(), portalCtx.getContainer(), SchemaKey.fromParts("OConnorExperiments"));
+                    WorkbookQueryView wbqview = new WorkbookQueryView(portalCtx, schema);
+                    VBox box = new VBox(new JspView<>("/org/labkey/oconnorexperiments/view/workbookSearch.jsp", new WorkbookSearchBean(wbqview, null)), wbqview);
+                    box.setFrame(WebPartView.FrameType.PORTAL);
+                    box.setTitle(OConnorExperimentsSchema.EXPERIMENTS);
+                    return box;
                 }
+
+                @Override
+                public boolean isAvailable(Container c, String location)
+                {
+                    return super.isAvailable(c, location) && !c.isWorkbook() && location.equalsIgnoreCase(HttpView.BODY);
+                }
+            }
         ));
     }
 
@@ -116,10 +113,10 @@ public class OConnorExperimentsModule extends DefaultModule
         // add a container listener so we'll know when our container is deleted:
         ContainerManager.addContainerListener(new OConnorExperimentsContainerListener(this));
 
-        wikiListener = new OConnorWikiChangeListener();
+        OConnorWikiChangeListener wikiListener = new OConnorWikiChangeListener();
         ServiceRegistry.get(WikiService.class).addWikiListener(wikiListener);
 
-        fileListener = new OConnorFileChangeListener();
+        OConnorFileChangeListener fileListener = new OConnorFileChangeListener();
         ServiceRegistry.get(FileContentService.class).addFileListener(fileListener);
 
         FolderTypeManager.get().registerFolderType(this, new OConnorExperimentFolderType());
