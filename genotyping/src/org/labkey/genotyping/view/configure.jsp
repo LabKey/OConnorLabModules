@@ -1,7 +1,6 @@
-<%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%
 /*
- * Copyright (c) 2010-2015 LabKey Corporation
+ * Copyright (c) 2010-2016 LabKey Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +15,7 @@
  * limitations under the License.
  */
 %>
+<%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page import="org.labkey.api.exp.property.PropertyService"%>
 <%@ page import="org.labkey.api.query.QueryAction" %>
 <%@ page import="org.labkey.api.query.QueryService" %>
