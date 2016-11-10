@@ -1,32 +1,32 @@
-<ns:tables xmlns:ns="http://labkey.org/data/xml">
-    <ns:table tableName="AggregatedAnalysisResults" tableDbType="NOT_IN_DB">
-        <ns:columns>
-            <ns:column columnName="AnimalId">
-                <ns:columnTitle>Animal</ns:columnTitle>
-            </ns:column>
-            <ns:column columnName="TotalReads">
-                <ns:columnTitle>Total Reads</ns:columnTitle>
-            </ns:column>
-            <ns:column columnName="TotalIdentifiedReads">
-                <ns:columnTitle>Total Identified Reads</ns:columnTitle>
-            </ns:column>
-            <ns:column columnName="TotalPercentUnknown">
-                <ns:columnTitle>Total % Unknown</ns:columnTitle>
-                <ns:formatString>0.0'%'</ns:formatString>
-            </ns:column>
-            <ns:column columnName="ConcatenatedHaplotypes">
-                <ns:columnTitle>Concatenated Haplotypes</ns:columnTitle>
-            </ns:column>
-            <ns:column columnName="InconsistentAssignments">
-                <ns:conditionalFormats>
-                    <ns:conditionalFormat>
-                        <ns:filters>
-                            <ns:filter value="true" operator="eq"/>
-                        </ns:filters>
-                        <ns:backgroundColor>FF8080</ns:backgroundColor>
-                    </ns:conditionalFormat>
-                </ns:conditionalFormats>
-            </ns:column>
-        </ns:columns>
-    </ns:table>
-</ns:tables>
+<tables xmlns="http://labkey.org/data/xml">
+    <table tableName="AggregatedAnalysisResults" tableDbType="NOT_IN_DB">
+        <columns>
+            <column columnName="AnimalId">
+                <columnTitle>Animal</columnTitle>
+            </column>
+            <column columnName="TotalReads">
+                <columnTitle>Total Reads</columnTitle>
+            </column>
+            <column columnName="TotalIdentifiedReads">
+                <columnTitle>Total Identified Reads</columnTitle>
+            </column>
+            <column columnName="TotalPercentUnknown">
+                <columnTitle>Total % Unknown</columnTitle>
+                <formatString>0.0'%'</formatString>
+            </column>
+            <column columnName="ConcatenatedHaplotypes">
+                <columnTitle>Concatenated Haplotypes</columnTitle>
+            </column>
+            <column columnName="InconsistentAssignments">
+                <conditionalFormats>
+                    <conditionalFormat>
+                        <filters>
+                            <filter value="true" operator="eq"/>
+                        </filters>
+                        <backgroundColor>FF8080</backgroundColor>
+                    </conditionalFormat>
+                </conditionalFormats>
+            </column>
+        </columns>
+    </table>
+</tables>

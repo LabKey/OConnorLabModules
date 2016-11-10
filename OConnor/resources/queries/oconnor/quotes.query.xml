@@ -1,23 +1,23 @@
 <query xmlns="http://labkey.org/data/xml/query">
   <metadata>
-    <ns:tables xmlns:ns="http://labkey.org/data/xml">
-      <ns:table tableName="quotes" tableDbType="TABLE">
-        <ns:columns>
-      <ns:column columnName="quote_number">
-        <ns:shownInInsertView>false</ns:shownInInsertView>
-      </ns:column>
-      <ns:column columnName="key">
-        <ns:shownInInsertView>false</ns:shownInInsertView>
-      </ns:column>
-          <ns:column columnName="vendor">
-            <ns:fk>
-              <ns:fkDbSchema>purchase</ns:fkDbSchema>
-              <ns:fkTable>vendors</ns:fkTable>
-              <ns:fkColumnName>vendor</ns:fkColumnName>
-            </ns:fk>
-          </ns:column>
-        </ns:columns>
-      </ns:table>
-    </ns:tables>
+    <tables xmlns="http://labkey.org/data/xml">
+      <table tableName="quotes" tableDbType="TABLE">
+        <columns>
+      <column columnName="quote_number">
+        <shownInInsertView>false</shownInInsertView>
+      </column>
+      <column columnName="key">
+        <shownInInsertView>false</shownInInsertView>
+      </column>
+          <column columnName="vendor">
+            <fk>
+              <fkDbSchema>purchase</fkDbSchema>
+              <fkTable>vendors</fkTable>
+              <fkColumnName>vendor</fkColumnName>
+            </fk>
+          </column>
+        </columns>
+      </table>
+    </tables>
   </metadata>
 </query>

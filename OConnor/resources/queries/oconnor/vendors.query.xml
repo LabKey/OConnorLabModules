@@ -1,47 +1,47 @@
 <query xmlns="http://labkey.org/data/xml/query">
   <metadata>
-    <ns:tables xmlns:ns="http://labkey.org/data/xml">
-      <ns:table tableName="vendors" tableDbType="TABLE">
-        <ns:titleColumn>vendor</ns:titleColumn>
-        <ns:columns>
-          <ns:column columnName="key">
-            <ns:shownInInsertView>false</ns:shownInInsertView>
-            <ns:shownInUpdateView>false</ns:shownInUpdateView>
-          </ns:column>
-          <ns:column columnName="enabled">
-            <ns:defaultValue>true</ns:defaultValue>
-          </ns:column>
-          <ns:column columnName="url">
-            <ns:columnTitle>URL</ns:columnTitle>
-          </ns:column>
-          <ns:column columnName="po">
-            <ns:columnTitle>Purchase order number</ns:columnTitle>
-<ns:displayWidth>50</ns:displayWidth>
+    <tables xmlns="http://labkey.org/data/xml">
+      <table tableName="vendors" tableDbType="TABLE">
+        <titleColumn>vendor</titleColumn>
+        <columns>
+          <column columnName="key">
+            <shownInInsertView>false</shownInInsertView>
+            <shownInUpdateView>false</shownInUpdateView>
+          </column>
+          <column columnName="enabled">
+            <defaultValue>true</defaultValue>
+          </column>
+          <column columnName="url">
+            <columnTitle>URL</columnTitle>
+          </column>
+          <column columnName="po">
+            <columnTitle>Purchase order number</columnTitle>
+<displayWidth>50</displayWidth>
 
-          </ns:column>
-          <ns:column columnName="vendor">
-            <ns:displayWidth>50</ns:displayWidth>
-          </ns:column>
-          <ns:column columnName="phone">
-            <ns:displayWidth>125</ns:displayWidth>
-          </ns:column>
-              <ns:column columnName="fax">
-            <ns:displayWidth>125</ns:displayWidth>
-          </ns:column>
-          <ns:column columnName="email">
-            <ns:displayWidth>50</ns:displayWidth>
-          </ns:column>
-          <ns:column columnName="url">
-            <ns:displayWidth>50</ns:displayWidth>
-          </ns:column>
-          <ns:column columnName="comments">
-            <ns:displayWidth>50</ns:displayWidth>
-          </ns:column>
-          <ns:column columnName="account_number">
-            <ns:displayWidth>50</ns:displayWidth>
-          </ns:column>
-        </ns:columns>
-      </ns:table>
-    </ns:tables>
+          </column>
+          <column columnName="vendor">
+            <displayWidth>50</displayWidth>
+          </column>
+          <column columnName="phone">
+            <displayWidth>125</displayWidth>
+          </column>
+              <column columnName="fax">
+            <displayWidth>125</displayWidth>
+          </column>
+          <column columnName="email">
+            <displayWidth>50</displayWidth>
+          </column>
+          <column columnName="url">
+            <displayWidth>50</displayWidth>
+          </column>
+          <column columnName="comments">
+            <displayWidth>50</displayWidth>
+          </column>
+          <column columnName="account_number">
+            <displayWidth>50</displayWidth>
+          </column>
+        </columns>
+      </table>
+    </tables>
   </metadata>
 </query>

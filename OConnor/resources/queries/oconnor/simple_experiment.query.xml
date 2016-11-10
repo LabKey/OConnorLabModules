@@ -1,63 +1,63 @@
 <query xmlns="http://labkey.org/data/xml/query">
   <metadata>
-    <ns:tables xmlns:ns="http://labkey.org/data/xml">
-      <ns:table tableName="simple_experiment" tableDbType="NOT_IN_DB">
+    <tables xmlns="http://labkey.org/data/xml">
+      <table tableName="simple_experiment" tableDbType="NOT_IN_DB">
         <!-- define button bar parameters -->
-        <ns:buttonBarOptions position="top" includeStandardButtons="false">
-          <ns:item text="Delete Experiment(s)">
-            <ns:originalText>Delete</ns:originalText>
-          </ns:item>
-          <ns:item text="Print">
-            <ns:originalText>Print</ns:originalText>
-          </ns:item>
-          <ns:item text="Export Experiments">
-            <ns:originalText>Export</ns:originalText>
-          </ns:item>
-          <ns:item text="Experiments Per Page">
-            <ns:originalText>Paging</ns:originalText>
-          </ns:item>
-        </ns:buttonBarOptions>
+        <buttonBarOptions position="top" includeStandardButtons="false">
+          <item text="Delete Experiment(s)">
+            <originalText>Delete</originalText>
+          </item>
+          <item text="Print">
+            <originalText>Print</originalText>
+          </item>
+          <item text="Export Experiments">
+            <originalText>Export</originalText>
+          </item>
+          <item text="Experiments Per Page">
+            <originalText>Paging</originalText>
+          </item>
+        </buttonBarOptions>
         <!-- define hidden columns and lookup for columns in grid view -->
-        <ns:columns>
-          <ns:column columnName="key">
-          <ns:isHidden>true</ns:isHidden>
-            <ns:shownInDetailsView>false</ns:shownInDetailsView>
-            <ns:shownInUpdateView>false</ns:shownInUpdateView>
-          </ns:column>
-          <ns:column columnName="container">
-            <ns:isHidden>true</ns:isHidden>
-            <ns:shownInInsertView>false</ns:shownInInsertView>
-            <ns:shownInUpdateView>false</ns:shownInUpdateView>
-            <ns:shownInDetailsView>false</ns:shownInDetailsView>
-          </ns:column>
-          <ns:column columnName="expNumber">
-            <ns:shownInInsertView>false</ns:shownInInsertView>
-            <ns:shownInUpdateView>false</ns:shownInUpdateView>
-            <ns:columnTitle>Experiment Number (click for linked files)</ns:columnTitle>
-            <ns:url>/oconnor/experiments_files.view?experimentId=${expNumber}</ns:url>
+        <columns>
+          <column columnName="key">
+          <isHidden>true</isHidden>
+            <shownInDetailsView>false</shownInDetailsView>
+            <shownInUpdateView>false</shownInUpdateView>
+          </column>
+          <column columnName="container">
+            <isHidden>true</isHidden>
+            <shownInInsertView>false</shownInInsertView>
+            <shownInUpdateView>false</shownInUpdateView>
+            <shownInDetailsView>false</shownInDetailsView>
+          </column>
+          <column columnName="expNumber">
+            <shownInInsertView>false</shownInInsertView>
+            <shownInUpdateView>false</shownInUpdateView>
+            <columnTitle>Experiment Number (click for linked files)</columnTitle>
+            <url>/oconnor/experiments_files.view?experimentId=${expNumber}</url>
             
-          </ns:column>
-          <ns:column columnName="modified">
-            <ns:isHidden>true</ns:isHidden>
-            <ns:shownInInsertView>false</ns:shownInInsertView>
-            <ns:shownInUpdateView>false</ns:shownInUpdateView>
-            <ns:shownInDetailsView>false</ns:shownInDetailsView>
-          </ns:column>
+          </column>
+          <column columnName="modified">
+            <isHidden>true</isHidden>
+            <shownInInsertView>false</shownInInsertView>
+            <shownInUpdateView>false</shownInUpdateView>
+            <shownInDetailsView>false</shownInDetailsView>
+          </column>
           <!-- define titles for columns in grid view -->
-          <ns:column columnName="created">
-            <ns:columnTitle>Date Created</ns:columnTitle>
-          </ns:column>
-          <ns:column columnName="expDescription">
-            <ns:columnTitle>Description</ns:columnTitle>
-          </ns:column>
-          <ns:column columnName="expParent">
-            <ns:columnTitle>Parent Experiment</ns:columnTitle>
-          </ns:column>
-          <ns:column columnName="expType">
-            <ns:columnTitle>Experiment Type</ns:columnTitle>
-          </ns:column>
-        </ns:columns>
-      </ns:table>
-    </ns:tables>
+          <column columnName="created">
+            <columnTitle>Date Created</columnTitle>
+          </column>
+          <column columnName="expDescription">
+            <columnTitle>Description</columnTitle>
+          </column>
+          <column columnName="expParent">
+            <columnTitle>Parent Experiment</columnTitle>
+          </column>
+          <column columnName="expType">
+            <columnTitle>Experiment Type</columnTitle>
+          </column>
+        </columns>
+      </table>
+    </tables>
   </metadata>
 </query>
