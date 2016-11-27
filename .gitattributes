@@ -278,6 +278,7 @@ OConnorRepository/tools/study/study.xml -text
 OConnorRepository/webapp/OConnorRepository/Animal.css -text
 OConnorRepository/webapp/OConnorRepository/Animal.js -text
 genotyping/Genotyping.iml -text
+genotyping/build.gradle -text
 genotyping/module.properties -text
 genotyping/resources/assay/Haplotype/queries/AggregatedAnalysisResults.query.xml -text
 genotyping/resources/assay/Haplotype/queries/AggregatedAnalysisResults.sql -text
