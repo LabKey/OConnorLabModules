@@ -6,6 +6,7 @@
         </columns>
     </table>
     <table tableName="active_quotes" tableDbType="VIEW">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="id"/>
             <column columnName="container"/>
@@ -13,24 +14,28 @@
         </columns>
     </table>
     <table tableName="max_virus_challenge_date" tableDbType="VIEW">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="id"/>
             <column columnName="challenge_date"/>
         </columns>
     </table>
     <table tableName="oligo_type" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="oligo_type"/>
             <column columnName="rowid"/>
         </columns>
     </table>
     <table tableName="virus_strain" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="virus_strain"/>
             <column columnName="rowid"/>
         </columns>
     </table>
     <table tableName="shipping" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="key"/>
             <column columnName="container"/>
@@ -48,6 +53,7 @@
         </columns>
     </table>
     <table tableName="simple_experiment" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="key"/>
             <column columnName="container"/>
@@ -63,6 +69,7 @@
         </columns>
     </table>
     <table tableName="experiment_types" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="type"/>
             <column columnName="container"/>
@@ -133,6 +140,7 @@
         </columns>
     </table>
     <table tableName="cell_type" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="cell_type"/>
             <column columnName="rowid"/>
@@ -171,6 +179,7 @@
         </columns>
     </table>
     <table tableName="purchases" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="key"/>
             <column columnName="container"/>
@@ -216,6 +225,7 @@
         </columns>
     </table>
     <table tableName="animals" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="id"/>
             <column columnName="gs_id"/>
@@ -232,6 +242,7 @@
         </columns>
     </table>
     <table tableName="status" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="key"/>
             <column columnName="id"/>
@@ -283,6 +294,7 @@
         </columns>
     </table>
     <table tableName="inventory_removed" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="key"/>
             <column columnName="status"/>
@@ -350,6 +362,7 @@
         </columns>
     </table>
     <table tableName="freezer_id" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="freezer_id"/>
             <column columnName="rowid"/>
@@ -393,6 +406,7 @@
         </columns>
     </table>
     <table tableName="specimen_type" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="specimen_type"/>
             <column columnName="rowid"/>
@@ -402,18 +416,21 @@
         </columns>
     </table>
     <table tableName="sample_type" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="sample_type"/>
             <column columnName="rowid"/>
         </columns>
     </table>
     <table tableName="specimen_additive" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="specimen_additive"/>
             <column columnName="rowid"/>
         </columns>
     </table>
     <table tableName="active_grants" tableDbType="VIEW">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="id"/>
             <column columnName="container"/>
@@ -421,6 +438,7 @@
         </columns>
     </table>
     <table tableName="specimen_institution" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="specimen_institution"/>
             <column columnName="rowid"/>
@@ -446,6 +464,7 @@
         </columns>
     </table>
     <table tableName="all_species" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="specimen_species"/>
             <column columnName="species_common_name"/>
@@ -454,6 +473,7 @@
         </columns>
     </table>
     <table tableName="virus_challenges" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="id"/>
             <column columnName="challenge_date"/>
@@ -464,6 +484,7 @@
         </columns>
     </table>
     <table tableName="specimen_species" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="specimen_species"/>
             <column columnName="species_common_name"/>
@@ -502,12 +523,14 @@
         </columns>
     </table>
     <table tableName="availability" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="availability"/>
             <column columnName="rowid"/>
         </columns>
     </table>
     <table tableName="all_specimens" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="specimen_type"/>
             <column columnName="rowid"/>
@@ -531,18 +554,21 @@
         </columns>
     </table>
     <table tableName="specimen_geographic_origin" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="specimen_geographic_origin"/>
             <column columnName="rowid"/>
         </columns>
     </table>
     <table tableName="laboratory" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="laboratory"/>
             <column columnName="rowid"/>
         </columns>
     </table>
     <table tableName="quotes" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="key"/>
             <column columnName="container"/>
@@ -559,6 +585,7 @@
         </columns>
     </table>
     <table tableName="inventory" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="key"/>
             <column columnName="status"/>
@@ -626,6 +653,7 @@
         </columns>
     </table>
     <table tableName="tmp_ordernum" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="order_number"/>
             <column columnName="placed_by"/>
@@ -633,18 +661,21 @@
         </columns>
     </table>
     <table tableName="dna_type" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="dna_type"/>
             <column columnName="rowid"/>
         </columns>
     </table>
     <table tableName="peptide_vendor" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="peptide_vendor"/>
             <column columnName="rowid"/>
         </columns>
     </table>
     <table tableName="peptides" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="peptide_number"/>
             <column columnName="pool_contents"/>
@@ -661,6 +692,7 @@
         </columns>
     </table>
     <table tableName="grants" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="key"/>
             <column columnName="container"/>
@@ -686,6 +718,7 @@
         </columns>
     </table>
     <table tableName="vendors" tableDbType="TABLE">
+        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="key"/>
             <column columnName="container"/>
