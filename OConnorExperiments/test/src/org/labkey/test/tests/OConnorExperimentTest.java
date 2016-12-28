@@ -123,7 +123,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
 
         assertEquals("Wrong number of rows after deletion", 2, table.getDataRowCount());
 
-        // test via api's
+        // test via APIs
         insertViaJavaApi();
         verifyExperimentWebpart(0, "API Description", null);
     }
