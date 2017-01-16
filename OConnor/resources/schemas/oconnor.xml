@@ -586,6 +586,10 @@
     </table>
     <table tableName="inventory" tableDbType="TABLE">
         <auditLogging>DETAILED</auditLogging>
+        <importTemplates>
+            <template label="Default template - minimal columns" url="/query/exportExcelTemplate.view?schemaName=oconnor&amp;query.queryName=inventory&amp;headerType=Name&amp;viewName=specimen_available"/>
+            <template label="Template with all columns" url="/query/exportExcelTemplate.view?schemaName=oconnor&amp;query.queryName=inventory&amp;headerType=Name"/>
+        </importTemplates>
         <columns>
             <column columnName="key"/>
             <column columnName="status"/>
