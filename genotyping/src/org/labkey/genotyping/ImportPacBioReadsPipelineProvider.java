@@ -24,9 +24,11 @@ import org.labkey.api.module.Module;
 
 public class ImportPacBioReadsPipelineProvider extends ReadsPipelineProvider
 {
+    public static final String NAME = "Import PacBio Reads";
+
     public ImportPacBioReadsPipelineProvider(Module owningModule)
     {
-        super("Import PacBio Reads", owningModule, GenotypingManager.SEQUENCE_PLATFORMS.PACBIO.name());
+        super(NAME, owningModule, GenotypingManager.SEQUENCE_PLATFORMS.PACBIO.name());
     }
 
 }

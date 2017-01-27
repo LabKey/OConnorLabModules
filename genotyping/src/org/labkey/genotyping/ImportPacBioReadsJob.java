@@ -60,8 +60,6 @@ public class ImportPacBioReadsJob extends ReadsJob
     private static FileType FASTQ_FILETYPE = new FileType(Arrays.asList("fastq", "fq"), "fastq", FileType.gzSupportLevel.SUPPORT_GZ);
 
     private File _sampleFile;
-    private Map<File, List<File>> _dirFastqMap;//size of this map == num of pools in a run.
-    private List<File> _fastqFiles;
     private String _fastqPrefix;
     private List<PacBioPool> _pools = new LinkedList<>();
     private String _dirSubstring = "pool";
@@ -69,11 +67,10 @@ public class ImportPacBioReadsJob extends ReadsJob
 
     public ImportPacBioReadsJob(ViewBackgroundInfo info, PipeRoot root, File sampleFile, GenotypingRun run, @Nullable String fastqPrefix)
     {
-        super("Process PacBio Reads", info, root, run);
+        super(ImportPacBioReadsPipelineProvider.NAME, info, root, run);
         _sampleFile = sampleFile;
         _fastqPrefix = fastqPrefix;
         setLogFile(new File(_sampleFile.getParentFile(), FileUtil.makeFileNameWithTimestamp("import_pacbio_reads", "log")));
-        _dirFastqMap = new HashMap<>();
     }
 
     @Override

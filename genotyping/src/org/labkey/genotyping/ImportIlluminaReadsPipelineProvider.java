@@ -24,8 +24,10 @@ import org.labkey.api.module.Module;
  */
 public class ImportIlluminaReadsPipelineProvider extends ReadsPipelineProvider
 {
+    public static final String NAME = "Import Illumina Reads";
+
     public ImportIlluminaReadsPipelineProvider(Module owningModule)
     {
-        super("Import Illumina Reads", owningModule, GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.name());
+        super(NAME, owningModule, GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.name());
     }
 }

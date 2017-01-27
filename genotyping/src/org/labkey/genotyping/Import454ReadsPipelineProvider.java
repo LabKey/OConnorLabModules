@@ -27,9 +27,11 @@ import java.io.FileFilter;
  */
 public class Import454ReadsPipelineProvider extends ReadsPipelineProvider
 {
+    public static final String NAME = "Import 454 Reads";
+
     public Import454ReadsPipelineProvider(Module owningModule)
     {
-        super("Import 454 Reads", owningModule, "LS454", new ReadsFilter());
+        super(NAME, owningModule, "LS454", new ReadsFilter());
     }
 
     private static class ReadsFilter implements FileFilter

@@ -56,7 +56,7 @@ public class Import454ReadsJob extends ReadsJob
 
     public Import454ReadsJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run)
     {
-        super("Import 454 Reads", info, root, run);
+        super(Import454ReadsPipelineProvider.NAME, info, root, run);
         _reads = reads;
         setLogFile(new File(_reads.getParentFile(), FileUtil.makeFileNameWithTimestamp("import_reads", "log")));
     }

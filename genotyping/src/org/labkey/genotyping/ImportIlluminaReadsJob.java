@@ -59,7 +59,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
 
     public ImportIlluminaReadsJob(ViewBackgroundInfo info, PipeRoot root, File sampleFile, GenotypingRun run, @Nullable String fastqPrefix)
     {
-        super("Process Illumina Reads", info, root, run);
+        super(ImportIlluminaReadsPipelineProvider.NAME, info, root, run);
         _sampleFile = sampleFile;
         _fastqPrefix = fastqPrefix;
         setLogFile(new File(_sampleFile.getParentFile(), FileUtil.makeFileNameWithTimestamp("import_reads", "log")));
