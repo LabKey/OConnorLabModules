@@ -92,8 +92,9 @@ import java.util.Map;
  */
 public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperimentsUserSchema>
 {
-    TableInfo _workbooksTable;
-    TableExtension _extension;
+    private final TableInfo _workbooksTable;
+
+    private TableExtension _extension;
 
     public ExperimentsTable(String name, OConnorExperimentsUserSchema userSchema, SchemaTableInfo rootTable,
                             @NotNull TableInfo extensionTable)
@@ -240,7 +241,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
     }
 
     @Override
-    public boolean hasPermission(UserPrincipal user, Class<? extends Permission> perm)
+    public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
     {
         return super.hasPermission(user, perm) && _extension.getExtensionTable().hasPermission(user, perm);
     }

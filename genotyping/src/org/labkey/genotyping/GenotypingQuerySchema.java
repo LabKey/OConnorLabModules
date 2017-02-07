@@ -837,7 +837,7 @@ public class GenotypingQuerySchema extends UserSchema
     }
 
     @Override
-    protected TableInfo createTable(String name)
+    public TableInfo createTable(String name)
     {
         // Special handling for Matches -- need to pass in Analysis
         if (name.startsWith(TableType.Matches.name()))

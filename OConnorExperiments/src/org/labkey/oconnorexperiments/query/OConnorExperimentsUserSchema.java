@@ -66,7 +66,7 @@ public class OConnorExperimentsUserSchema extends UserSchema
 
     @Nullable
     @Override
-    protected TableInfo createTable(String name)
+    public TableInfo createTable(String name)
     {
         if (Table.Experiments.name().equalsIgnoreCase(name))
             return createExperimentsTable(name);
