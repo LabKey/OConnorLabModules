@@ -52,20 +52,22 @@ import java.util.Set;
  * Date: 4/18/12
  * Time: 11:35 AM
  */
-public class IlluminaFastqParser<SampleIdType>
+public class IlluminaFastqParser
 {
     private String _outputPrefix;
-    private Map<Integer, SampleIdType> _sampleMap;
+    private Map<Integer, Integer> _sampleIndexToIdMap;
+    private Map<Integer, Integer> _sampleIdToIndexMap;
     private List<File> _files;
-    private Map<Pair<SampleIdType, Integer>, File> _fileMap;
-    private Map<Pair<SampleIdType, Integer>, Integer> _sequenceTotals;
+    private Map<Pair<Integer, Integer>, File> _fileMap;
+    private Map<Pair<Integer, Integer>, Integer> _sequenceTotals;
     private Logger _logger;
     private static FileType FASTQ_FILETYPE = new FileType(Arrays.asList("fastq", "fq"), "fastq", FileType.gzSupportLevel.SUPPORT_GZ);
 
-    public IlluminaFastqParser(@Nullable String outputPrefix, Map<Integer, SampleIdType> sampleMap, Logger logger, List<File> files)
+    public IlluminaFastqParser(@Nullable String outputPrefix, Map<Integer, Integer> sampleIndexToIdMap, Map<Integer, Integer> sampleIdToIndexMap, Logger logger, List<File> files)
     {
         _outputPrefix = outputPrefix;
-        _sampleMap = sampleMap;
+        _sampleIndexToIdMap = sampleIndexToIdMap;
+        _sampleIdToIndexMap = sampleIdToIndexMap;
         _files = files;
         _logger = logger;
     }
@@ -97,7 +99,7 @@ public class IlluminaFastqParser<SampleIdType>
 
     //this returns a map connecting samples with output FASTQ files.
     // the key of the map is a pair where the first item is the sampleId and the second item indicated whether this file is the forward (1) or reverse (2) reads
-    public Map<Pair<SampleIdType, Integer>, File> parseFastqFiles(PipelineJob job) throws PipelineJobException
+    public Map<Pair<Integer, Integer>, File> parseFastqFiles(PipelineJob job) throws PipelineJobException
     {
         _fileMap = new HashMap<>();
         _sequenceTotals = new HashMap<>();
@@ -132,7 +134,18 @@ public class IlluminaFastqParser<SampleIdType>
                 {
                     FastqRecord fq = reader.next();
                     String header = fq.getReadHeader();
-                    IlluminaReadHeader parsedHeader = new IlluminaReadHeader(header);
+                    IlluminaReadHeader parsedHeader = new IlluminaReadHeader(header, fileName);
+                    if(parsedHeader.getSampleName() != null)  // may be new header format, so let's try alternate lookup
+                    {
+                        try
+                        {
+                            parsedHeader.setSampleNum(_sampleIdToIndexMap.get(Integer.parseInt(parsedHeader.getSampleName())));
+                        }
+                        catch (NumberFormatException nfe)
+                        {
+                            throw new PipelineJobException("Could not resolve index for sample named '" + parsedHeader.getSampleName() + "'. Sample map is: " + _sampleIdToIndexMap);
+                        }
+                    }
                     if ((sampleIdx != Integer.MIN_VALUE && sampleIdx != parsedHeader.getSampleNum()) ||
                             (pairNumber != Integer.MIN_VALUE && pairNumber != parsedHeader.getPairNumber()))
                         throw new IllegalStateException("Only one sample ID is allowed per fastq file.");
@@ -157,13 +170,13 @@ public class IlluminaFastqParser<SampleIdType>
                 else
                 {
                     reader.close();
-                    Pair<SampleIdType, Integer> key = Pair.of(_sampleMap.get(sampleIdx), pairNumber);
+                    Pair<Integer, Integer> key = Pair.of(_sampleIndexToIdMap.get(sampleIdx), pairNumber);
                     _sequenceTotals.put(key, totalReads);
 
-                    SampleIdType sampleId = _sampleMap.get(sampleIdx);
+                    Integer sampleId = _sampleIndexToIdMap.get(sampleIdx);
                     if (sampleIdx != 0 && sampleId == null)
                     {
-                        throw new PipelineJobException("Could not resolve id for sample at index " + sampleIdx + ". Sample map is: " + _sampleMap);
+                        throw new PipelineJobException("Could not resolve id for sample at index " + sampleIdx + ". Sample map is: " + _sampleIndexToIdMap);
                     }
                     String name = (_outputPrefix == null ? "Reads" : _outputPrefix) + "-R" + pairNumber + "-" + (sampleIdx == 0 ? "Control" : sampleId) + ".fastq.gz";
                     File newFile = new File(targetDir, name);
@@ -203,8 +216,8 @@ public class IlluminaFastqParser<SampleIdType>
             throw new PipelineJobException(e);
         }
 
-        Map<Pair<SampleIdType, Integer>, File> outputs = new HashMap<>();
-        for (Pair<SampleIdType, Integer> key : _fileMap.keySet())
+        Map<Pair<Integer, Integer>, File> outputs = new HashMap<>();
+        for (Pair<Integer, Integer> key : _fileMap.keySet())
         {
             outputs.put(key, _fileMap.get(key));
         }
@@ -285,7 +298,7 @@ public class IlluminaFastqParser<SampleIdType>
 
     }
 
-    public Map<Pair<SampleIdType, Integer>, Integer> getReadCounts()
+    public Map<Pair<Integer, Integer>, Integer> getReadCounts()
     {
         return _sequenceTotals;
     }
@@ -296,7 +309,7 @@ public class IlluminaFastqParser<SampleIdType>
         @Test
         public void testNoDupes() throws PipelineJobException
         {
-            IlluminaFastqParser<Integer> parser = new IlluminaFastqParser<>(null, Collections.emptyMap(), Logger.getLogger(TestCase.class), Collections.emptyList());
+            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(TestCase.class), Collections.emptyList());
             Map<File, File> files = new HashMap<>();
             files.put(new File("a"), new File("b"));
             files.put(new File("c"), new File("d"));
@@ -306,7 +319,7 @@ public class IlluminaFastqParser<SampleIdType>
         @Test(expected = PipelineJobException.class)
         public void testDupeTargets() throws PipelineJobException
         {
-            IlluminaFastqParser<Integer> parser = new IlluminaFastqParser<>(null, Collections.emptyMap(), Logger.getLogger(TestCase.class), Collections.emptyList());
+            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(TestCase.class), Collections.emptyList());
             Map<File, File> files = new HashMap<>();
             files.put(new File("a"), new File("b"));
             files.put(new File("c"), new File("b"));

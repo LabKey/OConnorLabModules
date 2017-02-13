@@ -1,0 +1,6 @@
+Sample #	OC ID	Animal ID	# Reads Merged	# Reads Identified	% Unknown	Mamu-A Haplotype 1	Mamu-A Haplotype 2	Mamu-DRB Haplotype 1	Mamu-DRB Haplotype 2
+1	ID-1	x123	1000	300	70	A001	A023	D025a	D015c
+2	ID-2	x234	2000	1000	50	A023	A021	D012b	D017a
+3	ID-3	x345	3000	600	80	A001	A001	D001c	D017a
+4	ID-4	x456	4000	2500	37.5	A004	A023	D012b	D012b
+5	ID-5	x567	5000	3250	35	A002a	A002a	D002	D002

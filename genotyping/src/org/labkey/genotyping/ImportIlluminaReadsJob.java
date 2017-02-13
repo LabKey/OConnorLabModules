@@ -132,8 +132,10 @@ public class ImportIlluminaReadsJob extends ReadsJob
 
                 //parse the samples file
                 String[] nextLine;
-                Map<Integer, Integer> sampleMap = new HashMap<>();
-                sampleMap.put(0, 0); //placeholder for control and unmapped reads
+                Map<Integer, Integer> sampleIndexToIdMap = new HashMap<>();
+                Map<Integer, Integer> sampleIdToIndexMap = new HashMap<>();
+                sampleIndexToIdMap.put(0, 0); //placeholder for control and unmapped reads
+                sampleIdToIndexMap.put(0, 0);
                 Boolean inSamples = false;
                 int sampleIdx = 0;
 
@@ -168,7 +170,8 @@ public class ImportIlluminaReadsJob extends ReadsJob
                             throw new PipelineJobException("Invalid sample Id for this run: " + nextLine[0]);
 
                         sampleIdx++;
-                        sampleMap.put(sampleIdx, sampleId);
+                        sampleIndexToIdMap.put(sampleIdx, sampleId);
+                        sampleIdToIndexMap.put(sampleId, sampleIdx);
                     }
                     catch (NumberFormatException e)
                     {
@@ -188,7 +191,8 @@ public class ImportIlluminaReadsJob extends ReadsJob
                 }
 
                 //now bin the FASTQ files into 2 per sample
-                IlluminaFastqParser<Integer> parser = new IlluminaFastqParser<>(FileUtil.getBaseName(_run.getFileName()), sampleMap, getLogger(), new ArrayList<>(_fastqFiles));
+                IlluminaFastqParser parser = new IlluminaFastqParser(FileUtil.getBaseName(_run.getFileName()), sampleIndexToIdMap, sampleIdToIndexMap,
+                        getLogger(), new ArrayList<>(_fastqFiles));
                 Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles(this);
                 Map<Pair<Integer, Integer>, Integer> readcounts = parser.getReadCounts();
 

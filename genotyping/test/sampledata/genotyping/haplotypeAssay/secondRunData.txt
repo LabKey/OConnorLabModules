@@ -1,0 +1,7 @@
+Sample #	OC ID	Animal ID	# Reads Merged	# Reads Identified	% Unknown	Mamu-A Haplotype 1	Mamu-A Haplotype 2	Mamu-B Haplotype 1	Mamu-B Haplotype 2	MHC-STR Haplotype 1	MHC-STR Haplotype 2
+4	ID-4	x456	4000	2500	37.5	A001	A023	B015c	B025a
+5	ID-5	x567	5000	3250	35
+4	ID-6	x678	6000	3000	50	A033	A033	B012b	B012b
+5	ID-7	x789	7000	3500	50	A004		B033	B033
+6	ID-8	x888				A004	A004	B033	B033
+6	ID-9	x999	0	1		A004	A004	B033	B033
