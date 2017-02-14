@@ -87,7 +87,7 @@ public class IlluminaTest extends GenotypingBaseTest
     //https://docs.google.com/a/labkey.com/file/d/0B45Fm0-0-NLtdmpDR1hKaW5jSWc/edit
     private void verifyCleanIlluminaSampleSheets()
     {
-        importFolderFromZip(new File(pipelineLoc, "/genoCleanSamples.folder.zip"), true, 2);
+        importFolderFromZip(new File(getPipelineLoc(), "genoCleanSamples.folder.zip"), true, 2);
         goToProjectHome();
         click(Locator.linkWithText("Samples"));
         waitForText("SIVkcol2");
@@ -422,7 +422,7 @@ public class IlluminaTest extends GenotypingBaseTest
     {
         assertExportButtonPresent();
         FilenameFilter filter = new OutputFilter();
-        File[] files = new File(pipelineLoc).listFiles(filter);
+        File[] files = getPipelineLoc().listFiles(filter);
 
         assertEquals(30, files.length);
         DataRegionTable d = new DataRegionTable("Reads", this);

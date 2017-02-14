@@ -25,6 +25,7 @@ import org.labkey.test.util.DataRegionTable;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -202,7 +203,7 @@ public class GenotypingTest extends GenotypingBaseTest
         String analysisFolder = "analysis_" + getRunNumber();
         for (String file: filesToCopy)
         {
-            copyFile(pipelineLoc + "/" + file, pipelineLoc + "/" + analysisFolder + "/" + file);
+            copyFile(new File(getPipelineLoc(), file), new File(getPipelineLoc(), analysisFolder + "/" + file));
         }
         refresh();
         waitForPipelineJobsToComplete(++pipelineJobCount, "Import genotyping analysis", false);

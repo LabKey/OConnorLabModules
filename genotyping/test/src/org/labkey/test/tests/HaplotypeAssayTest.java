@@ -38,11 +38,11 @@ import static org.junit.Assert.fail;
 public class HaplotypeAssayTest extends GenotypingBaseTest
 {
     private static final String ASSAY_NAME = "HaplotypeAssay";// + TRICKY_CHARACTERS_NO_QUOTES;
-    private static final File FIRST_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/firstRunData.txt");
-    private static final File SECOND_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/secondRunData.txt");
-    private static final File ERROR_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/errorRunData.txt");
-    private static final File DRB_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/drbRunData.txt");
-    private static final File STR_RUN_FILE = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/strRunData.txt");
+    private static final File FIRST_RUN_FILE = TestFileUtils.getSampleData("genotyping/haplotypeAssay/firstRunData.txt");
+    private static final File SECOND_RUN_FILE = TestFileUtils.getSampleData("genotyping/haplotypeAssay/secondRunData.txt");
+    private static final File ERROR_RUN_FILE = TestFileUtils.getSampleData("genotyping/haplotypeAssay/errorRunData.txt");
+    private static final File DRB_RUN_FILE = TestFileUtils.getSampleData("genotyping/haplotypeAssay/drbRunData.txt");
+    private static final File STR_RUN_FILE = TestFileUtils.getSampleData("genotyping/haplotypeAssay/strRunData.txt");
     private static final String DRB_ASSAY = "DRB assay";
     private static final String DRB_RUN = "drb run";
     private static final String STR_RUN = "str run";
@@ -63,7 +63,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
     private void doSetup()
     {
         setUp2(null, true);
-        File listArchive = new File(TestFileUtils.getSampledataPath(), "genotyping/haplotypeAssay/STRHaplotype.lists.zip");
+        File listArchive = TestFileUtils.getSampleData("genotyping/haplotypeAssay/STRHaplotype.lists.zip");
         new ListHelper(this).importListArchive(getProjectName(), listArchive);
     }
 

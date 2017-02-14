@@ -25,6 +25,7 @@ import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LogMethod;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,7 +38,7 @@ import static org.junit.Assert.assertEquals;
 @Category({CustomModules.class})
 public class PacBioTest extends GenotypingBaseTest
 {
-    private String pipelineLoc = TestFileUtils.getSampledataPath() + "/genotyping/PacBio";
+    private static final File pipelineLoc = TestFileUtils.getSampleData("genotyping/PacBio");
     private static final String PAC_BIO_LIST_ARCHIVE = "pacbio.lists.zip";
     private static final String CSV_NAME = "SampleSheet.csv";
     private static final String PAC_BIO_RUN = "2";
@@ -69,7 +70,7 @@ public class PacBioTest extends GenotypingBaseTest
     }
 
     @Override
-    protected String getPipelineLoc()
+    protected File getPipelineLoc()
     {
         return this.pipelineLoc;
     }

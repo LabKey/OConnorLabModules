@@ -37,7 +37,7 @@ import java.util.List;
 
 abstract public class GenotypingBaseTest extends BaseWebDriverTest
 {
-    protected static String pipelineLoc = TestFileUtils.getSampledataPath() + "/genotyping";
+    private static final File pipelineLoc = TestFileUtils.getSampleData("genotyping");
     protected static int pipelineJobCount = 0;
     protected String samples = "samples";
     protected String TEMPLATE_NAME = "GenotypingTest Saved Template";
@@ -105,9 +105,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
     @Override
     protected void doCleanup(boolean afterTest) throws TestTimeoutException
     {
-        String pipelineLoc = getPipelineLoc();
-        File dir = new File(pipelineLoc);
-        File[] files = dir.listFiles();
+        File[] files = getPipelineLoc().listFiles();
         for(File file: files)
         {
             if(file.isDirectory() && file.getName().startsWith("analysis_"))
@@ -116,7 +114,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
                 file.delete();
         }
 
-        files = new File(pipelineLoc + "/secondRead").listFiles();
+        files = new File(getPipelineLoc(), "secondRead").listFiles();
 
         if(files != null)
         {
@@ -188,10 +186,10 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
         setUpLists(listArchive, hasSequencesList);
         configureAdmin(hasSequencesList);
         clickProject(getProjectName());
-        setPipelineRoot(getPipelineLoc());
+        setPipelineRoot(getPipelineLoc().getAbsolutePath());
     }
 
-    protected String getPipelineLoc()
+    protected File getPipelineLoc()
     {
         return pipelineLoc;
     }
