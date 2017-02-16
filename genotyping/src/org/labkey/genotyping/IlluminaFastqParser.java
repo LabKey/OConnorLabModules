@@ -24,11 +24,19 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
+import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerManager;
+import org.labkey.api.files.FileContentService;
+import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.sequence.IlluminaReadHeader;
+import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.test.TestWhen;
 import org.labkey.api.util.FileType;
+import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.Pair;
+import org.labkey.api.util.TestContext;
 
 import java.io.File;
 import java.io.IOException;
@@ -113,7 +121,8 @@ public class IlluminaFastqParser
         int index = 1;
         for (File f : _files)
         {
-            job.setStatus("PARSING FILE " + index + " OF " + _files.size());
+            if(job != null)
+                job.setStatus("PARSING FILE " + index + " OF " + _files.size());
 
             if(f.length() == 0)
             {
@@ -304,12 +313,12 @@ public class IlluminaFastqParser
     }
 
 
-    public static class TestCase extends Assert
+    public static class DupeTestCase extends Assert
     {
         @Test
         public void testNoDupes() throws PipelineJobException
         {
-            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(TestCase.class), Collections.emptyList());
+            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(DupeTestCase.class), Collections.emptyList());
             Map<File, File> files = new HashMap<>();
             files.put(new File("a"), new File("b"));
             files.put(new File("c"), new File("d"));
@@ -319,13 +328,223 @@ public class IlluminaFastqParser
         @Test(expected = PipelineJobException.class)
         public void testDupeTargets() throws PipelineJobException
         {
-            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(TestCase.class), Collections.emptyList());
+            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(DupeTestCase.class), Collections.emptyList());
             Map<File, File> files = new HashMap<>();
             files.put(new File("a"), new File("b"));
             files.put(new File("c"), new File("b"));
             parser.checkForDuplicateTargets(files);
         }
+    }
 
+    @TestWhen(TestWhen.When.BVT)
+    public static class HeaderTestCase extends Assert
+    {
+        private static final String PROJECT_NAME = "IlluminaFastqParserTest Project";
+
+        @Test
+        public void testHeaders() throws PipelineJobException, IOException
+        {
+            cleanup();
+
+            Container project1 = ContainerManager.createContainer(ContainerManager.getRoot(), PROJECT_NAME);
+            File testRoot = getTestRoot();
+            FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
+            Assert.assertNotNull(svc);
+
+            svc.setFileRoot(project1, testRoot);
+
+            File trunkPath = new File(ModuleLoader.getInstance().getModule(GenotypingModule.class).getSourcePath());
+            File newHeaderPath = new File(trunkPath, "test/sampledata/genotyping/illumina_newHeader");
+            String newHeaderSampledataLoc = newHeaderPath.toString();
+            File oldHeaderPath = new File(trunkPath, "test/sampledata/genotyping");
+            String oldHeaderSampledataLoc = oldHeaderPath.toString();
+            List<String> filenamesOldHeader = Arrays.asList(
+                    "IlluminaSamples-R1-4892.fastq.gz",
+                    "IlluminaSamples-R1-4893.fastq.gz",
+                    "IlluminaSamples-R1-4894.fastq.gz",
+                    "IlluminaSamples-R1-4895.fastq.gz",
+                    "IlluminaSamples-R1-4896.fastq.gz",
+                    "IlluminaSamples-R1-4897.fastq.gz",
+                    "IlluminaSamples-R1-4898.fastq.gz",
+                    "IlluminaSamples-R1-4899.fastq.gz",
+                    "IlluminaSamples-R1-4900.fastq.gz",
+                    "IlluminaSamples-R1-4901.fastq.gz",
+                    "IlluminaSamples-R1-4902.fastq.gz",
+                    "IlluminaSamples-R1-4903.fastq.gz",
+                    "IlluminaSamples-R1-4904.fastq.gz",
+                    "IlluminaSamples-R1-4905.fastq.gz",
+                    "IlluminaSamples-R2-4892.fastq.gz",
+                    "IlluminaSamples-R2-4893.fastq.gz",
+                    "IlluminaSamples-R2-4894.fastq.gz",
+                    "IlluminaSamples-R2-4895.fastq.gz",
+                    "IlluminaSamples-R2-4896.fastq.gz",
+                    "IlluminaSamples-R2-4897.fastq.gz",
+                    "IlluminaSamples-R2-4898.fastq.gz",
+                    "IlluminaSamples-R2-4899.fastq.gz",
+                    "IlluminaSamples-R2-4900.fastq.gz",
+                    "IlluminaSamples-R2-4901.fastq.gz",
+                    "IlluminaSamples-R2-4902.fastq.gz",
+                    "IlluminaSamples-R2-4903.fastq.gz",
+                    "IlluminaSamples-R2-4904.fastq.gz",
+                    "IlluminaSamples-R2-4905.fastq.gz"
+            );
+            List<String> filenamesNewHeader = Arrays.asList(
+                    "IlluminaSamplesNewHeader-R1-4892.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4893.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4894.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4895.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4896.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4897.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4898.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4899.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4900.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4901.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4902.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4903.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4904.fastq.gz",
+                    "IlluminaSamplesNewHeader-R1-4905.fastq.gz",
+                    "4892_TTAGCT_L001_R2_001.fastq.gz",
+                    "4893_CCTCAT_L001_R2_001.fastq.gz",
+                    "4894_CTGAAT_L001_R2_001.fastq.gz",
+                    "4895_GGTTCG_L001_R2_001.fastq.gz",
+                    "IlluminaSamplesNewHeader-R2-4896.fastq.gz",
+                    "IlluminaSamplesNewHeader-R2-4897.fastq.gz",
+                    "IlluminaSamplesNewHeader-R2-4898.fastq.gz",
+                    "IlluminaSamplesNewHeader-R2-4899.fastq.gz",
+                    "IlluminaSamplesNewHeader-R2-4900.fastq.gz",
+                    "IlluminaSamplesNewHeader-R2-4901.fastq.gz",
+                    "IlluminaSamplesNewHeader-R2-4902.fastq.gz",
+                    "IlluminaSamplesNewHeader-R2-4903.fastq.gz",
+                    "IlluminaSamplesNewHeader-R2-4904.fastq.gz",
+                    "IlluminaSamplesNewHeader-R2-4905.fastq.gz"
+            );
+
+            Pair[] pairs =
+            {
+                new Pair<>(4892, 1),
+                new Pair<>(4893, 1),
+                new Pair<>(4894, 1),
+                new Pair<>(4895, 1),
+                new Pair<>(4896, 1),
+                new Pair<>(4897, 1),
+                new Pair<>(4898, 1),
+                new Pair<>(4899, 1),
+                new Pair<>(4900, 1),
+                new Pair<>(4901, 1),
+                new Pair<>(4902, 1),
+                new Pair<>(4903, 1),
+                new Pair<>(4904, 1),
+                new Pair<>(4905, 1),
+                new Pair<>(4892, 2),
+                new Pair<>(4893, 2),
+                new Pair<>(4894, 2),
+                new Pair<>(4895, 2),
+                new Pair<>(4896, 2),
+                new Pair<>(4897, 2),
+                new Pair<>(4898, 2),
+                new Pair<>(4899, 2),
+                new Pair<>(4900, 2),
+                new Pair<>(4901, 2),
+                new Pair<>(4902, 2),
+                new Pair<>(4903, 2),
+                new Pair<>(4904, 2),
+                new Pair<>(4905, 2)
+            };
+
+            int i = 0;
+            int numOfPairs = pairs.length;
+            Set<Pair<Integer, Integer>> expectedOutputs = new HashSet<>();
+            Map<Integer, Integer> sampleIndexToIdMap = new HashMap<>();
+            sampleIndexToIdMap.put(0, 0);
+            Map<Integer, Integer> sampleIdToIndexMap = new HashMap<>();
+            sampleIdToIndexMap.put(0, 0);
+            List<File> oldHeaderFiles = new ArrayList<>();
+            List<File> newHeaderFiles = new ArrayList<>();
+
+            for (String fn : filenamesOldHeader)
+            {
+                File target = new File(testRoot, fn);
+                if (target.exists())
+                {
+                    target.delete();
+                }
+
+                FileUtils.copyFile(new File(oldHeaderSampledataLoc, fn), target);
+                expectedOutputs.add((Pair<Integer, Integer>) pairs[i]);
+                oldHeaderFiles.add(target);
+
+                if (i < (numOfPairs / 2))
+                {
+                    sampleIndexToIdMap.put(i + 1, (Integer)pairs[i].getKey());
+                    sampleIdToIndexMap.put((Integer)pairs[i].getKey(), i + 1);
+                }
+                i++;
+            }
+
+            IlluminaFastqParser parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Logger.getLogger(HeaderTestCase.class), oldHeaderFiles);
+            Map<Pair<Integer, Integer>, File> outputs = parser.parseFastqFiles(null);
+            Assert.assertEquals("Outputs from parseFastqFiles with old headers were not as expected.", expectedOutputs, outputs.keySet());
+
+            // need to delete output files, so clean up
+            cleanup();
+            project1 = ContainerManager.createContainer(ContainerManager.getRoot(), PROJECT_NAME);
+            testRoot = getTestRoot();
+            svc.setFileRoot(project1, testRoot);
+
+            for (String fn : filenamesNewHeader)
+            {
+                File target = new File(testRoot, fn);
+                if (target.exists())
+                {
+                    target.delete();
+                }
+
+                FileUtils.copyFile(new File(newHeaderSampledataLoc, fn), target);
+                newHeaderFiles.add(target);
+            }
+
+            parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Logger.getLogger(HeaderTestCase.class), newHeaderFiles);
+            outputs = parser.parseFastqFiles(null);
+            Assert.assertEquals("Outputs from parseFastqFiles with new headers were not as expected.", expectedOutputs, outputs.keySet());
+
+            cleanup();
+        }
+
+        private static File getTestRoot()
+        {
+            FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
+            Assert.assertNotNull(svc);
+            File siteRoot = svc.getSiteDefaultRoot();
+            File testRoot = new File(siteRoot, "IlluminaFastqParserTestRoot");
+            testRoot.mkdirs();
+            Assert.assertTrue("Unable to create test file root", testRoot.exists());
+
+            return testRoot;
+        }
+
+        public static void cleanup()
+        {
+            FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
+            Assert.assertNotNull(svc);
+
+            Container project = ContainerManager.getForPath(PROJECT_NAME);
+            if (project != null)
+            {
+                ContainerManager.deleteAll(project, TestContext.get().getUser());
+
+                File file1 = svc.getFileRoot(project);
+                if (file1 != null && file1.exists())
+                {
+                    FileUtil.deleteDir(file1);
+                }
+            }
+
+            File testRoot = getTestRoot();
+            if (testRoot.exists())
+            {
+                FileUtil.deleteDir(testRoot);
+            }
+        }
     }
 }
 
