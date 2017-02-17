@@ -32,6 +32,7 @@ import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.sequence.IlluminaReadHeader;
 import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.settings.AppProps;
 import org.labkey.api.test.TestWhen;
 import org.labkey.api.util.FileType;
 import org.labkey.api.util.FileUtil;
@@ -353,10 +354,10 @@ public class IlluminaFastqParser
 
             svc.setFileRoot(project1, testRoot);
 
-            File trunkPath = new File(ModuleLoader.getInstance().getModule(GenotypingModule.class).getSourcePath());
-            File newHeaderPath = new File(trunkPath, "test/sampledata/genotyping/illumina_newHeader");
+            File trunkPath = new File(AppProps.getInstance().getProjectRoot());
+            File newHeaderPath = new File(trunkPath, "server/customModules/genotyping/test/sampledata/genotyping/illumina_newHeader");
             String newHeaderSampledataLoc = newHeaderPath.toString();
-            File oldHeaderPath = new File(trunkPath, "test/sampledata/genotyping");
+            File oldHeaderPath = new File(trunkPath, "server/customModules/genotyping/test/sampledata/genotyping");
             String oldHeaderSampledataLoc = oldHeaderPath.toString();
             List<String> filenamesOldHeader = Arrays.asList(
                     "IlluminaSamples-R1-4892.fastq.gz",
