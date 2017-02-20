@@ -149,7 +149,8 @@ public class IlluminaFastqParser
                     {
                         try
                         {
-                            parsedHeader.setSampleNum(_sampleIdToIndexMap.get(Integer.parseInt(parsedHeader.getSampleName())));
+                            int sampleNum = _sampleIdToIndexMap.get(Integer.parseInt(parsedHeader.getSampleName()));
+                            parsedHeader.setSampleNum(sampleNum);
                         }
                         catch (NumberFormatException nfe)
                         {

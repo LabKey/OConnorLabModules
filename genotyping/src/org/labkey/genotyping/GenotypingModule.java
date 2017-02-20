@@ -145,6 +145,6 @@ public class GenotypingModule extends DefaultModule
     @Override
     public Set<Class> getIntegrationTests()
     {
-        return PageFlowUtil.set(HaplotypeDataHandler.TestCase.class, IlluminaFastqParser.HeaderTestCase.class);
+        return PageFlowUtil.set(IlluminaFastqParser.HeaderTestCase.class);
     }
 }
