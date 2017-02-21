@@ -256,8 +256,6 @@ public class IlluminaTest extends GenotypingBaseTest
         waitForText("Row(s) with null 'fivemid' and 'threemid' value(s) selected. Unable to create 'Illumina Sample Sheet.");
         clickButton("Back");
 
-        d.uncheckCheckbox(47);
-
         String viewName = "Yellow Peas";
         createCustomizedView(viewName, new String[]{"Created"}, new String[]{"fivemid"});
         d.checkAllOnPage();
