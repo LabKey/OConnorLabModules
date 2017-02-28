@@ -465,6 +465,7 @@ genotyping/test/sampledata/genotyping/illumina_newHeader/IlluminaSamplesNewHeade
 genotyping/test/sampledata/genotyping/illumina_newHeader/IlluminaSamplesNewHeader-R2-4903.fastq.gz -text
 genotyping/test/sampledata/genotyping/illumina_newHeader/IlluminaSamplesNewHeader-R2-4904.fastq.gz -text
 genotyping/test/sampledata/genotyping/illumina_newHeader/IlluminaSamplesNewHeader-R2-4905.fastq.gz -text
+genotyping/test/sampledata/genotyping/illumina_newHeader/IlluminaSamples_badSample.csv -text
 genotyping/test/sampledata/genotyping/illumina_newHeader/IlluminaSamples_newHeader.csv -text
 genotyping/test/sampledata/genotyping/matches.txt -text
 genotyping/test/sampledata/genotyping/reads.txt -text
