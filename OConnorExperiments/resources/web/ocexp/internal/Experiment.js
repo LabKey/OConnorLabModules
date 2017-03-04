@@ -281,7 +281,7 @@ LABKEY.ocexp.internal.Experiment = new function () {
                 requiredVersion: 13.2,
                 schemaName: 'OConnorExperiments',
                 queryName: 'Experiments',
-                columns: ['ExperimentNumber', 'Description', 'ExperimentTypeId', 'ParentExperiments/Container', 'ParentExperiments/ExperimentNumber', 'Created', 'CreatedBy', 'CreatedBy/DisplayName', 'GrantId'],
+                columns: ['ExperimentNumber', 'Description', 'ExperimentTypeId', 'ParentExperiments/Container', 'ParentExperiments/ExperimentNumber', 'Created', 'CreatedBy', 'CreatedBy/DisplayName', 'GrantId', 'Container'],
                 success: config.success,
                 failure: config.failure,
                 viewName:  'BlankExperiments'  // needed otherwise the default view is used which has an unwanted filter
