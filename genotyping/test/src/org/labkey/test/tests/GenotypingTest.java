@@ -38,7 +38,6 @@ public class GenotypingTest extends GenotypingBaseTest
     public static final String second454importNum = "208";
 
     protected int runNum = 0; //this is globally unique, so we need to retrieve it every time.
-    protected String checkboxId = ".select";
 
     @Override
     protected String getProjectName()
@@ -142,23 +141,20 @@ public class GenotypingTest extends GenotypingBaseTest
 
     private void alterMatchesTest()
     {
-        sleep(5000);
+        DataRegionTable analysis = new DataRegionTable("Analysis", getDriver());
 
         //combine two samples
-        click(Locator.name(checkboxId).index(0));
-        click(Locator.name(checkboxId).index(1));
-        clickButton("Combine", 0);
-        _extHelper.waitForExt3Mask(WAIT_FOR_JAVASCRIPT);
+        analysis.checkCheckbox(0);
+        analysis.checkCheckbox(1);
+        analysis.clickHeaderButton("Combine");
+        WebElement window = org.labkey.test.util.ExtHelper.Locators.window("Combine Matches").waitForElement(getDriver(), WAIT_FOR_JAVASCRIPT);
 
         /*verify the list is what we expct.  Because the two samples had the following lists
         * WE expect them to combine to the following:
          */
-        String[] alleles = {"Mamu-A1*004:01:01", "Mamu-A1*004:01:02"};
-        for (String allele: alleles)
-        {
-            Locator.XPathLocator l =  Locator.tagWithText("div", allele);
-            assertElementPresent(l, 1);
-        }
+        List<String> alleleNames = getTexts(Locator.tagWithClass("div", "x-grid3-col-name").waitForElements(window, WAIT_FOR_JAVASCRIPT));
+        final List<String> expectedAlleles = Arrays.asList("Mamu-A1*004:01:01", "Mamu-A1*004:01:02");
+        assertEquals("Incorrect alleles matched", expectedAlleles, alleleNames);
 
         //combine some but not all of the matches
         _extHelper.clickXGridPanelCheckbox(0, true);
@@ -168,7 +164,7 @@ public class GenotypingTest extends GenotypingBaseTest
         int newIdIndex = getCombinedSampleRowIndex(drt);
         List<String> combinedSamplesRow = drt.getRowDataAsText(newIdIndex);
         assertEquals("Wrong data in combines samples row [index = " + combinedSamplesRow + "]",
-                Arrays.asList("TEST09", "19", "7.3%", "300.0", "14", "5", "0", "0", alleles[0]), combinedSamplesRow);
+                Arrays.asList("TEST09", "19", "7.3%", "300.0", "14", "5", "0", "0", expectedAlleles.get(0)), combinedSamplesRow);
     }
 
     private int getCombinedSampleRowIndex(DataRegionTable analysisTable)
