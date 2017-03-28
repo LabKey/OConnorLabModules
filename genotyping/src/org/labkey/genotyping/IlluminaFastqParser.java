@@ -29,7 +29,6 @@ import org.labkey.api.data.ContainerManager;
 import org.labkey.api.files.FileContentService;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
-import org.labkey.api.sequence.IlluminaReadHeader;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.test.TestWhen;
