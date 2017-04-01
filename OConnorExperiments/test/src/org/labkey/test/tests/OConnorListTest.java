@@ -36,11 +36,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
  * User: RyanS
  * Date: 8/19/14
  * Time: 2:52 PM
- * To change this template use File | Settings | File Templates.
  */
 
 @Category({CustomModules.class, OConnor.class})
