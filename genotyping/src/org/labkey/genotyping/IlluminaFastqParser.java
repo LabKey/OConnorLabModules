@@ -22,7 +22,10 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
@@ -33,7 +36,7 @@ import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.test.TestWhen;
 import org.labkey.api.util.FileType;
-import org.labkey.api.util.FileUtil;
+import org.labkey.api.util.JunitUtil;
 import org.labkey.api.util.Pair;
 import org.labkey.api.util.TestContext;
 
@@ -111,8 +114,6 @@ public class IlluminaFastqParser
         _fileMap = new HashMap<>();
         _sequenceTotals = new HashMap<>();
 
-        FastqReader reader = null;
-
         // Original->target mapping
         Map<File, File> filesToMove = new LinkedHashMap<>();
         Map<String, Integer> fileNameWithoutPairingInfoMap = new LinkedHashMap<>();//ex. if file name is SampleSheet-R1-1234.fastq, this map contains SampleSheet-1234
@@ -128,13 +129,12 @@ public class IlluminaFastqParser
                 _logger.info("File " + f.getName() + " has no content to parse.");
                 continue;
             }
-            try
+            _logger.info("Beginning to parse file: " + f.getName());
+            try (FastqReader reader = new FastqReader(f))
             {
-                _logger.info("Beginning to parse file: " + f.getName());
                 File targetDir = f.getParentFile();
                 String fileName = f.getName();
 
-                reader = new FastqReader(f);
                 int sampleIdx = Integer.MIN_VALUE;
                 int pairNumber = Integer.MIN_VALUE;
                 int totalReads = 0;
@@ -197,11 +197,6 @@ public class IlluminaFastqParser
                     _fileMap.put(Pair.of(sampleId, pairNumber), newFile);
                     _logger.info("Finished parsing file: " + f.getName());
                 }
-            }
-            finally
-            {
-                if (reader != null)
-                    reader.close();
             }
             index++;
         }
@@ -340,25 +335,34 @@ public class IlluminaFastqParser
     public static class HeaderTestCase extends Assert
     {
         private static final String PROJECT_NAME = "IlluminaFastqParserTest Project";
+        private Container container;
+        private File _testRoot;
+
+        @BeforeClass
+        public static void cleanTestContainer()
+        {
+            ContainerManager.deleteAll(JunitUtil.getTestContainer(), TestContext.get().getUser());
+        }
+
+        @Before
+        public void preTest() throws Exception
+        {
+            container = ContainerManager.createContainer(JunitUtil.getTestContainer(), PROJECT_NAME);
+
+            FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
+            _testRoot = svc.getFileRoot(container);
+            FileUtils.cleanDirectory(_testRoot);
+        }
 
         @Test
         public void testHeaders() throws PipelineJobException, IOException
         {
-            cleanup();
-
-            Container project1 = ContainerManager.createContainer(ContainerManager.getRoot(), PROJECT_NAME);
-            File testRoot = getTestRoot();
-            FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
-            Assert.assertNotNull(svc);
-
-            svc.setFileRoot(project1, testRoot);
-
             File trunkPath = new File(AppProps.getInstance().getProjectRoot());
             File newHeaderPath = new File(trunkPath, "server/customModules/genotyping/test/sampledata/genotyping/illumina_newHeader");
             String newHeaderSampledataLoc = newHeaderPath.toString();
             File oldHeaderPath = new File(trunkPath, "server/customModules/genotyping/test/sampledata/genotyping");
             String oldHeaderSampledataLoc = oldHeaderPath.toString();
-            List<String> filenamesOldHeader = Arrays.asList(
+            final List<String> filenamesOldHeader = Arrays.asList(
                     "IlluminaSamples-R1-4892.fastq.gz",
                     "IlluminaSamples-R1-4893.fastq.gz",
                     "IlluminaSamples-R1-4894.fastq.gz",
@@ -388,7 +392,7 @@ public class IlluminaFastqParser
                     "IlluminaSamples-R2-4904.fastq.gz",
                     "IlluminaSamples-R2-4905.fastq.gz"
             );
-            List<String> filenamesNewHeader = Arrays.asList(
+            final List<String> filenamesNewHeader = Arrays.asList(
                     "IlluminaSamplesNewHeader-R1-4892.fastq.gz",
                     "IlluminaSamplesNewHeader-R1-4893.fastq.gz",
                     "IlluminaSamplesNewHeader-R1-4894.fastq.gz",
@@ -419,7 +423,7 @@ public class IlluminaFastqParser
                     "IlluminaSamplesNewHeader-R2-4905.fastq.gz"
             );
 
-            Pair[] pairs =
+            final Pair[] pairs =
             {
                 new Pair<>(4892, 1),
                 new Pair<>(4893, 1),
@@ -463,12 +467,7 @@ public class IlluminaFastqParser
 
             for (String fn : filenamesOldHeader)
             {
-                File target = new File(testRoot, fn);
-                if (target.exists())
-                {
-                    target.delete();
-                }
-
+                File target = new File(_testRoot, fn);
                 FileUtils.copyFile(new File(oldHeaderSampledataLoc, fn), target);
                 expectedOutputs.add((Pair<Integer, Integer>) pairs[i]);
                 oldHeaderFiles.add(target);
@@ -485,20 +484,11 @@ public class IlluminaFastqParser
             Map<Pair<Integer, Integer>, File> outputs = parser.parseFastqFiles(null);
             Assert.assertEquals("Outputs from parseFastqFiles with old headers were not as expected.", expectedOutputs, outputs.keySet());
 
-            // need to delete output files, so clean up
-            cleanup();
-            project1 = ContainerManager.createContainer(ContainerManager.getRoot(), PROJECT_NAME);
-            testRoot = getTestRoot();
-            svc.setFileRoot(project1, testRoot);
+            FileUtils.cleanDirectory(_testRoot);
 
             for (String fn : filenamesNewHeader)
             {
-                File target = new File(testRoot, fn);
-                if (target.exists())
-                {
-                    target.delete();
-                }
-
+                File target = new File(_testRoot, fn);
                 FileUtils.copyFile(new File(newHeaderSampledataLoc, fn), target);
                 newHeaderFiles.add(target);
             }
@@ -506,43 +496,19 @@ public class IlluminaFastqParser
             parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Logger.getLogger(HeaderTestCase.class), newHeaderFiles);
             outputs = parser.parseFastqFiles(null);
             Assert.assertEquals("Outputs from parseFastqFiles with new headers were not as expected.", expectedOutputs, outputs.keySet());
-
-            cleanup();
         }
 
-        private static File getTestRoot()
+        @After
+        public void cleanup() throws IOException
         {
-            FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
-            Assert.assertNotNull(svc);
-            File siteRoot = svc.getSiteDefaultRoot();
-            File testRoot = new File(siteRoot, "IlluminaFastqParserTestRoot");
-            testRoot.mkdirs();
-            Assert.assertTrue("Unable to create test file root", testRoot.exists());
-
-            return testRoot;
-        }
-
-        public static void cleanup()
-        {
-            FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
-            Assert.assertNotNull(svc);
-
-            Container project = ContainerManager.getForPath(PROJECT_NAME);
-            if (project != null)
+            if (container != null)
             {
-                ContainerManager.deleteAll(project, TestContext.get().getUser());
-
-                File file1 = svc.getFileRoot(project);
-                if (file1 != null && file1.exists())
-                {
-                    FileUtil.deleteDir(file1);
-                }
+                ContainerManager.delete(container, TestContext.get().getUser());
             }
 
-            File testRoot = getTestRoot();
-            if (testRoot.exists())
+            if (_testRoot != null)
             {
-                FileUtil.deleteDir(testRoot);
+                FileUtils.deleteDirectory(_testRoot);
             }
         }
     }
