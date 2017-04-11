@@ -22,7 +22,6 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -334,7 +333,7 @@ public class IlluminaFastqParser
     @TestWhen(TestWhen.When.BVT)
     public static class HeaderTestCase extends Assert
     {
-        private static final String PROJECT_NAME = "IlluminaFastqParserTest Project";
+        private static final String FOLDER_NAME = "IlluminaFastqParserTest Project";
         private Container container;
         private File _testRoot;
 
@@ -347,7 +346,7 @@ public class IlluminaFastqParser
         @Before
         public void preTest() throws Exception
         {
-            container = ContainerManager.createContainer(JunitUtil.getTestContainer(), PROJECT_NAME);
+            container = ContainerManager.createContainer(JunitUtil.getTestContainer(), FOLDER_NAME);
 
             FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
             _testRoot = svc.getFileRoot(container);
@@ -498,7 +497,7 @@ public class IlluminaFastqParser
             Assert.assertEquals("Outputs from parseFastqFiles with new headers were not as expected.", expectedOutputs, outputs.keySet());
         }
 
-        @After
+        // @After // TODO: Disabling to debug gradle failure on TeamCity
         public void cleanup() throws IOException
         {
             if (container != null)
