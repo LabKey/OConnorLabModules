@@ -204,7 +204,6 @@ OConnor/resources/web/oconnor/server.png -text
 OConnor/resources/web/oconnor/shopping.png -text
 OConnor/resources/web/oconnor/users.png -text
 OConnor/resources/web/purchases_definitions.lists.zip -text
-OConnorExperiments/OConnorExperiments.iml -text
 OConnorExperiments/module.properties -text
 OConnorExperiments/resources/queries/ExperimentNumbers.sql -text
 OConnorExperiments/resources/queries/OConnorExperiments/Experiments.query.xml -text
@@ -259,7 +258,6 @@ OConnorExperiments/src/org/labkey/oconnorexperiments/view/workbookSearch.jsp -te
 OConnorExperiments/test/sampledata/OConnor_Test.folder.zip -text
 OConnorExperiments/test/src/org/labkey/test/tests/OConnorExperimentTest.java -text
 OConnorExperiments/test/src/org/labkey/test/tests/OConnorListTest.java -text
-OConnorExperiments/test/test_oconnorexperiments.iml -text
 OConnorRepository/module.properties -text
 OConnorRepository/resources/etls/PCRSSPtyping.xml -text
 OConnorRepository/resources/etls/demographics.xml -text
@@ -280,7 +278,6 @@ OConnorRepository/tools/study/datasets/datasets_metadata.xml -text
 OConnorRepository/tools/study/study.xml -text
 OConnorRepository/webapp/OConnorRepository/Animal.css -text
 OConnorRepository/webapp/OConnorRepository/Animal.js -text
-genotyping/Genotyping.iml -text
 genotyping/build.gradle -text
 genotyping/module.properties -text
 genotyping/resources/assay/Haplotype/queries/AggregatedAnalysisResults.query.xml -text
@@ -478,5 +475,4 @@ genotyping/test/src/org/labkey/test/tests/GenotypingTest.java -text
 genotyping/test/src/org/labkey/test/tests/HaplotypeAssayTest.java -text
 genotyping/test/src/org/labkey/test/tests/IlluminaTest.java -text
 genotyping/test/src/org/labkey/test/tests/PacBioTest.java -text
-genotyping/test/test_genotyping.iml -text
 genotyping/tools/Illumina.pl -text
