@@ -126,7 +126,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -1281,16 +1280,13 @@ public class GenotypingController extends SpringActionController
             // 12.1: relax this requirement... allow users to submit jobs without a galaxy server configured or available
             //GalaxyUtils.get(getContainer(), getUser());
 
-            SortedSet<CustomView> views = new TreeSet<>(new Comparator<CustomView>() {
-                    @Override
-                    public int compare(CustomView c1, CustomView c2)
-                    {
-                        String name1 = c1.getName();
-                        String name2 = c2.getName();
+            SortedSet<CustomView> views = new TreeSet<>((c1, c2) ->
+            {
+                String name1 = c1.getName();
+                String name2 = c2.getName();
 
-                        return (null == name1 ? DEFAULT_VIEW_PLACEHOLDER : name1).compareTo((null == name2 ? DEFAULT_VIEW_PLACEHOLDER : name2));
-                    }
-                });
+                return (null == name1 ? DEFAULT_VIEW_PLACEHOLDER : name1).compareTo((null == name2 ? DEFAULT_VIEW_PLACEHOLDER : name2));
+            });
             GenotypingSchema gs = GenotypingSchema.get();
             views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), getUser(), gs.getSchemaName(), gs.getSequencesTable().getName(), false));
 
