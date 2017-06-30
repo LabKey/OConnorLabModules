@@ -90,11 +90,15 @@ public class SampleManager
         Map<Integer, Object> sampleIds = new HashMap<>();
 
         Results results = qHelper.select(qHelper.getTableInfo().getDefaultVisibleColumns(), null);
+        ColumnInfo keyColumn = qHelper.getTableInfo().getColumn("Key");
+        if (null == keyColumn)
+            throw new IllegalStateException("SampleManager: Expected Key column to be able to get sample.");
+        FieldKey fieldKey = FieldKey.fromString(keyColumn.getAlias());
 
         while(results.next())
         {
             Map<FieldKey, Object> fieldKeyRowMap = results.getFieldKeyRowMap();
-            Integer sampleIdFromSamplesList = (Integer) fieldKeyRowMap.get(FieldKey.decode("Key"));
+            Integer sampleIdFromSamplesList = (Integer) fieldKeyRowMap.get(fieldKey);
             sampleIds.put(sampleIdFromSamplesList, null);
         }
         results.close();
