@@ -376,12 +376,12 @@ public class IlluminaTest extends GenotypingBaseTest
 
         for(String column : columnsToAdd)
         {
-            _customizeViewsHelper.addCustomizeViewColumn(column);
+            _customizeViewsHelper.addColumn(column);
         }
 
         for(String column : columnsToRemove)
         {
-            _customizeViewsHelper.removeCustomizeViewColumn(column);
+            _customizeViewsHelper.removeColumn(column);
         }
 
         _customizeViewsHelper.saveCustomView(viewName);
