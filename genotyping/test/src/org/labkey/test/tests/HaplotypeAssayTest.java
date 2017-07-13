@@ -265,16 +265,17 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
     @LogMethod
     private void verifyFirstRun()
     {
+        log("Verify Haplotype Assignment data for the first run");
         importRun("first run", ASSAY_NAME, FIRST_RUN_FILE, false);
 
-        log("Verify Haplotype Assignment data for the first run");
-        goToAssayRun("first run");
-
         // add the Animal/ClientAnimalId column so we can verify that as well
+        goToAssayRun("first run");
         _customizeViewsHelper.openCustomizeViewPanel();
-        _customizeViewsHelper.addCustomizeViewColumn("AnimalId/ClientAnimalId");
+        _customizeViewsHelper.addColumn("AnimalId/ClientAnimalId");
+        _customizeViewsHelper.removeFilter("RunId/RowId");
         _customizeViewsHelper.saveCustomView();
 
+        goToAssayRun("first run");
         DataRegionTable drt = new DataRegionTable("Data", this);
         verifyColumnDataValues(drt, "Animal", "ID-1", "ID-2", "ID-3", "ID-4", "ID-5");
         verifyColumnDataValues(drt, "TotalReads", "1000", "2000", "3000", "4000", "5000");
@@ -380,8 +381,11 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         goToAssayRun("first run");
         _customizeViewsHelper.openCustomizeViewPanel();
         _customizeViewsHelper.showHiddenItems();
-        _customizeViewsHelper.addCustomizeViewColumn("RowId");
+        _customizeViewsHelper.addColumn("RowId");
+        _customizeViewsHelper.removeFilter("RunId/RowId");
         _customizeViewsHelper.saveCustomView();
+
+        goToAssayRun("first run");
         DataRegionTable drt = new DataRegionTable("Data", this);
         String animalAnalysisId = drt.getDataAsText(4, "RowId"); // row index 4 is ID-5
         goToQuery("AnimalHaplotypeAssignment");
@@ -610,9 +614,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
     private void goToAssayRun(String assayId)
     {
         log("Navigating to Haplotype assay run");
-        goToProjectHome();
-        goToManageAssays();
-        clickAndWait(Locator.linkWithText(ASSAY_NAME));
+        goToAssayHome(ASSAY_NAME);
         clickAndWait(Locator.linkWithText(assayId));
         waitForText(ASSAY_NAME + " Results");
     }
@@ -620,11 +622,16 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
     private void goToAssayImport(String assayName)
     {
         log("Navigating to Haplotype Assay Import");
-        goToProjectHome();
-        goToManageAssays();
-        clickAndWait(Locator.linkWithText(assayName));
+        goToAssayHome(assayName);
         clickButton("Import Data");
         waitForText("Copy/Paste the rows, including the headers, into the text area below:");
         waitForText("Match the column headers from the tab-delimited data with the key fields:");
+    }
+
+    private void goToAssayHome(String assayName)
+    {
+        goToProjectHome();
+        goToManageAssays();
+        clickAndWait(Locator.linkWithText(assayName));
     }
 }
