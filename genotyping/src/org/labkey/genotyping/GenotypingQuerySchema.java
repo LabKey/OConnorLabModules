@@ -200,6 +200,7 @@ public class GenotypingQuerySchema extends UserSchema
                 return new QueryView(schema, settings, errors)
                 {
                     @Override
+                    @NotNull
                     public PanelButton createExportButton(@Nullable List<String> recordSelectorColumns)
                     {
                         PanelButton result = super.createExportButton(recordSelectorColumns);
