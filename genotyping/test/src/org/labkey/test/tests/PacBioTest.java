@@ -38,6 +38,8 @@ import static org.junit.Assert.assertEquals;
 @Category({CustomModules.class})
 public class PacBioTest extends GenotypingBaseTest
 {
+    {setIsBootstrapWhitelisted(true);}
+
     private static final File pipelineLoc = TestFileUtils.getSampleData("genotyping/PacBio");
     private static final String PAC_BIO_LIST_ARCHIVE = "pacbio.lists.zip";
     private static final String CSV_NAME = "SampleSheet.csv";

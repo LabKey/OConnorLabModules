@@ -45,6 +45,8 @@ import static org.junit.Assert.assertTrue;
 @Category({CustomModules.class})
 public class IlluminaTest extends GenotypingBaseTest
 {
+    {setIsBootstrapWhitelisted(true);}
+
     public static final String illuminaImportNum = "206";
     private static final String TEMPLATE_NAME = "GenotypingTest Saved Template";
 
