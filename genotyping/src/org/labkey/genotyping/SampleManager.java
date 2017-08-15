@@ -180,7 +180,7 @@ public class SampleManager
                     SampleKey key = getSampleKey(rs.getObject(1), rs.getObject(2), rs.getObject(3));
 
                     //Resolve the sampleId for non-unique key where one or all three values are null.
-                    if(run.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA)
+                    if(run.getPlatform().equals(GenotypingManager.SEQUENCE_PLATFORMS.ILLUMINA.toString())
                             && (key._mid3 == null || key._mid5 == null || key._amplicon == null))
                     {
                         _sampleIdMap.put(rs.getInt(4), key);
