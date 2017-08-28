@@ -28,7 +28,7 @@
     String onClickScript = "window.location = document.getElementById('" + id + "').checked ? " + filter + " : " + noFilter + "; return false;";
 
 %>
-<table class="labkey-export-tab-contents">
+<table class="lk-fields-table">
     <tr>
         <td>
             <table class="labkey-export-tab-layout"><tr><td>Export sequences as FASTQ</td></tr></table>
