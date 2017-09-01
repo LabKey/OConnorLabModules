@@ -37,6 +37,7 @@ import static org.junit.Assert.fail;
 @Category({CustomModules.class})
 public class HaplotypeAssayTest extends GenotypingBaseTest
 {
+    {setIsBootstrapWhitelisted(true);}
     private static final String ASSAY_NAME = "HaplotypeAssay";// + TRICKY_CHARACTERS_NO_QUOTES;
     private static final File FIRST_RUN_FILE = TestFileUtils.getSampleData("genotyping/haplotypeAssay/firstRunData.txt");
     private static final File SECOND_RUN_FILE = TestFileUtils.getSampleData("genotyping/haplotypeAssay/secondRunData.txt");
@@ -434,7 +435,8 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         sleep(500); // entering text enables the submit button
         clickButton("Submit", 0);
         DataRegionTable drt = new DataRegionTable("report", this);
-        assertTextPresentInThisOrder("A001", "B001c", "B017a");
+        List<String> haplotypeColData = drt.getColumnDataAsText("Haplotype");
+        verifyColumnDataValues(drt, "Haplotype","A001", "B001c", "B017a");
         verifyColumnDataValues(drt, "ID-3", "2", "1", "1");
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Client Animal ID");
         clickButton("Submit", 0);
@@ -488,7 +490,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         goToAssayRun("first run");
         DataRegionTable drt = new DataRegionTable("Data", this);
         drt.setFilter("AnimalId", "Equals", "ID-4");
-        clickAndWait(Locator.linkWithText("edit"));
+        drt.clickEditRow(0);
         waitForText("mhcB Haplotype", 2, WAIT_FOR_JAVASCRIPT);
         _ext4Helper.uncheckCheckbox("Enabled:");
         clickButton("Submit");
@@ -505,7 +507,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         clickAndWait(Locator.linkWithText(ASSAY_NAME));
         drt = new DataRegionTable("Runs", this);
         drt.setFilter("Name", "Equals", "second run");
-        clickAndWait(Locator.linkWithText("edit"));
+        drt.clickEditRow(0);
         uncheckCheckbox(Locator.name("quf_enabled"));
         clickButton("Submit");
         goToAssayRun("second run");
