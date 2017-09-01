@@ -44,6 +44,7 @@ import java.util.List;
 @Category({CustomModules.class, OConnor.class})
 public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTest
 {
+    {setIsBootstrapWhitelisted(true);}
     private static String PROJECT_NAME = "OConnorTestProject";
     private static String FOLDER_ZIP_FILE = "OConnor_Test.folder.zip";
     private static String[] MODULES = {"OConnor", "OConnorExperiments"};
