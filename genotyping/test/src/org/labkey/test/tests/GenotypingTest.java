@@ -34,6 +34,7 @@ import static org.junit.Assert.assertEquals;
 @Category({CustomModules.class})
 public class GenotypingTest extends GenotypingBaseTest
 {
+    {setIsBootstrapWhitelisted(true);}
     public static final String first454importNum = "207";
     public static final String second454importNum = "208";
 
