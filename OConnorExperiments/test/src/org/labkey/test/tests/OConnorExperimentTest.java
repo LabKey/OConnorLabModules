@@ -55,6 +55,7 @@ import static org.junit.Assert.assertTrue;
 @Category({CustomModules.class})
 public class OConnorExperimentTest extends BaseWebDriverTest implements PostgresOnlyTest
 {
+    {setIsBootstrapWhitelisted(true);}
     private static final String PROJECT_NAME = "OConnor Experiment Project";
     private static final String MODULE_NAME = "OConnorExperiments";
     private static final String SCHEMA_NAME = MODULE_NAME;
@@ -117,8 +118,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         DataRegionTable table = new DataRegionTable("query", getDriver());
         table.uncheckAll();
         table.checkCheckbox(0);
-        waitForElement(Locator.lkButton("Delete"));
-        click(Locator.lkButton("Delete"));
+        table.clickHeaderButton("Delete");
         acceptAlert();
 
         assertEquals("Wrong number of rows after deletion", 2, table.getDataRowCount());
@@ -176,7 +176,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     @LogMethod
     protected void insertViaExperimentsWebpart(String description, @Nullable String type, @Nullable String parentExperiment)
     {
-        waitAndClickAndWait(Locator.lkButton(DataRegionTable.getInsertNewButtonText()));
+        DataRegionTable.DataRegion(getDriver()).find().clickInsertNewRow();
 
         editExperiment(description, type, parentExperiment);
         goToProjectHome();
