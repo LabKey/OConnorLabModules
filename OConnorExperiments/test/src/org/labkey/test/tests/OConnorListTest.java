@@ -185,7 +185,7 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
         //check available specimen types
         beginAt("/oconnor/OConnorTestProject/inventory_specimen_available.view?");
         waitForText("Inventory Specimen Available");
-        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan("Add new specimens").toBy()));
+        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan("Add new specimens")));
         click(Locator.linkWithSpan("Add new specimens"));
         waitForText("Specimen Details");
         click(Locator.id("specimen_type"));
@@ -216,7 +216,7 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
     private void insertExperimentType(String type, Boolean enabled )
     {
         PortalHelper portalHelper = new PortalHelper(this);
-        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan(DataRegionTable.getInsertNewButtonText()).toBy()));
+        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan(DataRegionTable.getInsertNewButtonText())));
         portalHelper.clickWebpartMenuItem("experimentType", DataRegionTable.getInsertNewButtonText());
         setFormElement(Locator.input("quf_Name"), type);
         if(!enabled){uncheckCheckbox(Locator.checkboxByName("quf_enabled"));}
@@ -228,7 +228,7 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
     private void insertSpecimenType(String type, Boolean enabled)
     {
         PortalHelper portalHelper = new PortalHelper(this);
-        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan(DataRegionTable.getInsertNewButtonText()).toBy()));
+        shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan(DataRegionTable.getInsertNewButtonText())));
         portalHelper.clickWebpartMenuItem("specimenType", DataRegionTable.getInsertNewButtonText());
         setFormElement(Locator.input("quf_specimen_type"), type);
         if(!enabled){uncheckCheckbox(Locator.checkboxByName("quf_enabled"));}
