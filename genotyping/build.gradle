@@ -1,4 +1,4 @@
 dependencies 
 {
-   compile "com.github.samtools:htsjdk:${htsjdkVersion}"
+   external "com.github.samtools:htsjdk:${htsjdkVersion}"
 }

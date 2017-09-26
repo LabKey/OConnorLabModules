@@ -284,6 +284,7 @@ genotyping/resources/assay/Haplotype/queries/AggregatedAnalysisResults.query.xml
 genotyping/resources/assay/Haplotype/queries/AggregatedAnalysisResults.sql -text
 genotyping/resources/assay/Haplotype/queries/DuplicateAssignment.query.xml -text
 genotyping/resources/assay/Haplotype/queries/DuplicateAssignment.sql -text
+genotyping/resources/credits/jars.txt -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-0.00-15.20.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/genotyping-15.20-15.30.sql -text
 genotyping/resources/schemas/dbscripts/postgresql/obsolete/genotyping-0.00-12.20.sql -text

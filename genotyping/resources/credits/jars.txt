@@ -1,0 +1,4 @@
+{table}
+Filename|Component|Version|Source|License|LabKey Dev|Purpose
+htsjdk-2.11.0.jar|htsjdk|2.11.0|{link:htsjdk|http://samtools.github.io/htsjdk/}|{link:MIT License|http://opensource.org/licenses/MIT}|bbimber|Description	A Java API for high-throughput sequencing data (HTS) formats
+{table}
