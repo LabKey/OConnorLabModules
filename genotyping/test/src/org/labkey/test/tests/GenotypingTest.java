@@ -113,7 +113,7 @@ public class GenotypingTest extends GenotypingBaseTest
         clickAndWait(Locator.linkWithText("" + getRunNumber()));  // TODO: This is probably still too permissive... need a more specific way to get the run link
 
         assertTextPresent("Reads", "Sample Id", "Percent", "TEST09");
-        assertElementPresent(Locator.paginationText(1, 100, 1410));
+        assertElementPresent(Locator.paginationText("1", "100", "1,410"));
         startAlterMatches();
         deleteMatchesTest();
         alterMatchesTest();
@@ -128,7 +128,7 @@ public class GenotypingTest extends GenotypingBaseTest
 
         clickButton("Delete", 0);
         cancelAlert();
-        assertElementPresent(Locator.paginationText(1, 100, 1410));
+        assertElementPresent(Locator.paginationText("1", "100", "1,410"));
 
         //delete some rows
         doAndWaitForPageToLoad(() -> {
@@ -137,7 +137,7 @@ public class GenotypingTest extends GenotypingBaseTest
         });
 
         waitForText("1 match was deleted.");
-        assertElementPresent(Locator.paginationText(1, 100, 1409));
+        assertElementPresent(Locator.paginationText("1", "100", "1,409"));
     }
 
     private void alterMatchesTest()
@@ -255,7 +255,7 @@ public class GenotypingTest extends GenotypingBaseTest
 
     private void verifySamples()
     {
-        waitForElementWithRefresh(Locator.paginationText(1, 100, 9411), defaultWaitForPage);
+        waitForElementWithRefresh(Locator.paginationText("1", "100", "9,411"), defaultWaitForPage);
         assertTextPresent("Name", "Sample Id", "Sequence", "G3BT");
     }
 
