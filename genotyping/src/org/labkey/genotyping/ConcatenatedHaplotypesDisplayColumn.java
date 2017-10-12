@@ -88,7 +88,7 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
                 }
                 filter.applyToURL(url, "query");
                 String evaluatedURL = url.getURIString();
-                out.write("<a href=\"");
+                out.write("<a target=\"_blank\" href=\"");
                 out.write(PageFlowUtil.filter(evaluatedURL));
                 out.write("\">");
                 out.write(PageFlowUtil.filter(haplotype));
