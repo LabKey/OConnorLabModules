@@ -76,6 +76,7 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
             String separator = "";
             for (String haplotype : haplotypes)
             {
+                haplotype = haplotype.trim();
                 out.write(separator);
                 separator = ", ";
                 ActionURL url = _haplotypeTableInfo.getGridURL(_container).clone();
