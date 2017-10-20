@@ -126,7 +126,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
         }
 
         deleteTemplateRow(afterTest);
-        deleteProject(getProjectName(), afterTest);
+        _containerHelper.deleteProject(getProjectName(), afterTest);
     }
 
     private void deleteTemplateRow(boolean failOnError)
