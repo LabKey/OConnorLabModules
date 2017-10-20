@@ -393,13 +393,15 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         waitForElement(Locator.paginationText(1, 39, 39));
 
         // ADD: animal ID-5, haplotype A001
-        DataRegionTable.findDataRegion(this).clickInsertNewRowDropdown();        selectOptionByText(Locator.name("quf_HaplotypeId"), "A001");
+        DataRegionTable.findDataRegion(this).clickInsertNewRow();
+        selectOptionByText(Locator.name("quf_HaplotypeId"), "A001");
         selectOptionByText(Locator.name("quf_AnimalAnalysisId"), animalAnalysisId);
         setFormElement(Locator.name("quf_DiploidNumber"), "1");
         clickButton("Submit");
 
         // ADD: animal ID-5, haplotype B002
-        DataRegionTable.findDataRegion(this).clickInsertNewRowDropdown();        selectOptionByText(Locator.name("quf_HaplotypeId"), "B002");
+        DataRegionTable.findDataRegion(this).clickInsertNewRow();
+        selectOptionByText(Locator.name("quf_HaplotypeId"), "B002");
         selectOptionByText(Locator.name("quf_AnimalAnalysisId"), animalAnalysisId);
         setFormElement(Locator.name("quf_DiploidNumber"), "1");
         clickButton("Submit");
@@ -530,7 +532,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         checkCheckbox(Locator.checkboxByName(".select"));
         clickButton("Produce Report");
         waitForText("Enter the animal IDs separated by whitespace, comma, or semicolon:");
-        DataRegionTable.waitForDataRegion(this, "report");
+        DataRegionTable.DataRegion(getDriver()).withName("report").waitFor();
     }
 
     private void goToQuery(String queryName)
