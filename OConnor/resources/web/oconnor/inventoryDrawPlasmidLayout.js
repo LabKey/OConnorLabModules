@@ -17,36 +17,42 @@ Ext.QuickTips.init();
 			var listDnaTypes = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'dna_type',
+				sort: 'dna_type',
 				autoLoad: true
 			});	
 
 			var listSpecimenSpecies = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'specimen_species',
+				sort: 'specimen_species',
 				autoLoad: true
 			});	
 			
 			var listSpecimenGeographicOrigin = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'specimen_geographic_origin',
+				sort: 'specimen_geographic_origin',
 				autoLoad: true
-			});	
+			});
 			
 			var listSpecimenCollaborator = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'specimen_collaborator',
+				sort: 'specimen_collaborator',
 				autoLoad: true
 			});	
 			
 			var listSpecimenAdditive = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'specimen_additive',
+				sort: 'specimen_additive',
 				autoLoad: true
 			});	
 			
 			var listFreezerId = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'freezer_id',
+				sort: 'freezer_id',
 				autoLoad: true
 			});	
 
@@ -101,7 +107,7 @@ Ext.QuickTips.init();
 					allowBlank: false,
 					triggerAction: 'all',
 					hideTrigger: false,
-					editable: false,
+					editable: true,
 					selectOnFocus: true,
 					mode: 'local',
 					forceSelection: true,
@@ -140,7 +146,7 @@ Ext.QuickTips.init();
 					allowBlank: true,
 					triggerAction: 'all',
 					hideTrigger: false,
-					editable: false,
+					editable: true,
 					selectOnFocus: true,
 					mode: 'local',
 					forceSelection: true,
@@ -158,7 +164,7 @@ Ext.QuickTips.init();
 					allowBlank: true,
 					triggerAction: 'all',
 					hideTrigger: false,
-					editable: false,
+					editable: true,
 					selectOnFocus: true,
 					mode: 'local',
 					forceSelection: true,
@@ -177,7 +183,7 @@ Ext.QuickTips.init();
 					allowBlank: true,
 					triggerAction: 'all',
 					hideTrigger: false,
-					editable: false,
+					editable: true,
 					selectOnFocus: true,
 					mode: 'local',
 					forceSelection: true,
@@ -203,7 +209,7 @@ Ext.QuickTips.init();
 					allowBlank: true,
 					triggerAction: 'all',
 					hideTrigger: false,
-					editable: false,
+					editable: true,
 					selectOnFocus: true,
 					mode: 'local',
 					forceSelection: true,
@@ -277,7 +283,7 @@ Ext.QuickTips.init();
 						allowBlank: false,
 						triggerAction: 'all',
 						hideTrigger: false,
-						editable: false,
+						editable: true,
 						selectOnFocus: true,
 						mode: 'local',
 						forceSelection: true,

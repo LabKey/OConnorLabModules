@@ -17,18 +17,21 @@ Ext.QuickTips.init();
 			var listOligoPurifications = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'oligo_purification',
+				sort: 'oligo_purification',
 				autoLoad: true
 			});	
 
 			var listOligoTypes = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'oligo_type',
+				sort: 'oligo_type',
 				autoLoad: true
 			});	
 			
 			var listFreezerId = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'freezer_id',
+				sort: 'freezer_id',
 				autoLoad: true
 			});	
 
@@ -89,7 +92,7 @@ Ext.QuickTips.init();
 					allowBlank: false,
 					triggerAction: 'all',
 					hideTrigger: false,
-					editable: false,
+					editable: true,
 					selectOnFocus: true,
 					mode: 'local',
 					forceSelection: true,
@@ -107,7 +110,7 @@ Ext.QuickTips.init();
 					allowBlank: false,
 					triggerAction: 'all',
 					hideTrigger: false,
-					editable: false,
+					editable: true,
 					selectOnFocus: true,
 					mode: 'local',
 					forceSelection: true,
@@ -175,7 +178,7 @@ Ext.QuickTips.init();
 						allowBlank: false,
 						triggerAction: 'all',
 						hideTrigger: false,
-						editable: false,
+						editable: true,
 						selectOnFocus: true,
 						mode: 'local',
 						forceSelection: true,

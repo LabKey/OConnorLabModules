@@ -16,12 +16,14 @@ Ext.QuickTips.init();
 			var listVirusStrains = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'virus_strain',
+				sort: 'virus_strain',
 				autoLoad: true
 			});
 			
 			var listFreezerId = new LABKEY.ext.Store({
 				schemaName: dbSchemaName,
 				queryName: 'freezer_id',
+				sort: 'freezer_id',
 				autoLoad: true
 			});	
 
@@ -60,7 +62,7 @@ Ext.QuickTips.init();
 					allowBlank: false,
 					triggerAction: 'all',
 					hideTrigger: false,
-					editable: false,
+					editable: true,
 					selectOnFocus: true,
 					mode: 'local',
 					forceSelection: true,
@@ -148,7 +150,7 @@ Ext.QuickTips.init();
 						allowBlank: false,
 						triggerAction: 'all',
 						hideTrigger: false,
-						editable: false,
+						editable: true,
 						selectOnFocus: true,
 						mode: 'local',
 						forceSelection: true,

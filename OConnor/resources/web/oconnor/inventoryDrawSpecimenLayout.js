@@ -18,6 +18,7 @@ Ext.QuickTips.init();
                 queryName: 'specimen_type',
                 autoLoad: true,
                 //filter: [{property: 'Enabled', value: true}]
+                sort: "specimen_type",
                 filterArray: [
                         LABKEY.Filter.create('Enabled', true)
                 ]
@@ -26,36 +27,42 @@ Ext.QuickTips.init();
             var listCellTypes = new LABKEY.ext.Store({
                 schemaName: dbSchemaName,
                 queryName: 'cell_type',
+                sort: "cell_type",
                 autoLoad: true
             });
 
             var listSpecimenSpecies = new LABKEY.ext.Store({
                 schemaName: dbSchemaName,
                 queryName: 'specimen_species',
+                sort: 'specimen_species',
                 autoLoad: true
             });
 
             var listSpecimenGeographicOrigin = new LABKEY.ext.Store({
                 schemaName: dbSchemaName,
                 queryName: 'specimen_geographic_origin',
+                sort: 'specimen_geographic_origin',
                 autoLoad: true
             });
 
             var listSpecimenCollaborator = new LABKEY.ext.Store({
                 schemaName: dbSchemaName,
                 queryName: 'specimen_collaborator',
+                sort: 'specimen_collaborator',
                 autoLoad: true
             });
 
             var listSpecimenAdditive = new LABKEY.ext.Store({
                 schemaName: dbSchemaName,
                 queryName: 'specimen_additive',
+                sort: 'specimen_additive',
                 autoLoad: true
             });
 
             var listFreezerId = new LABKEY.ext.Store({
                 schemaName: dbSchemaName,
                 queryName: 'freezer_id',
+                sort: 'freezer_id',
                 autoLoad: true
             });
 
@@ -110,7 +117,7 @@ Ext.QuickTips.init();
                     allowBlank: false,
                     triggerAction: 'all',
                     hideTrigger: false,
-                    editable: false,
+                    editable: true,
                     selectOnFocus: true,
                     mode: 'local',
                     forceSelection: true,
@@ -129,7 +136,7 @@ Ext.QuickTips.init();
                     allowBlank: false,
                     triggerAction: 'all',
                     hideTrigger: false,
-                    editable: false,
+                    editable: true,
                     selectOnFocus: true,
                     mode: 'local',
                     forceSelection: true,
@@ -148,7 +155,7 @@ Ext.QuickTips.init();
                     allowBlank: true,
                     triggerAction: 'all',
                     hideTrigger: false,
-                    editable: false,
+                    editable: true,
                     selectOnFocus: true,
                     mode: 'local',
                     forceSelection: true,
@@ -167,7 +174,7 @@ Ext.QuickTips.init();
                     allowBlank: true,
                     triggerAction: 'all',
                     hideTrigger: false,
-                    editable: false,
+                    editable: true,
                     selectOnFocus: true,
                     mode: 'local',
                     forceSelection: true,
@@ -187,7 +194,7 @@ Ext.QuickTips.init();
                     allowBlank: true,
                     triggerAction: 'all',
                     hideTrigger: false,
-                    editable: false,
+                    editable: true,
                     selectOnFocus: true,
                     mode: 'local',
                     forceSelection: true,
@@ -214,7 +221,7 @@ Ext.QuickTips.init();
                     allowBlank: true,
                     triggerAction: 'all',
                     hideTrigger: false,
-                    editable: false,
+                    editable: true,
                     selectOnFocus: true,
                     mode: 'local',
                     forceSelection: true,
@@ -289,7 +296,7 @@ Ext.QuickTips.init();
                         allowBlank: false,
                         triggerAction: 'all',
                         hideTrigger: false,
-                        editable: false,
+                        editable: true,
                         selectOnFocus: true,
                         mode: 'local',
                         forceSelection: true,
