@@ -22,7 +22,7 @@
                 parentLinks.push({title: 'Parent ' + parentExperiments[index], url: "<%=contextPath%>/project<%=containerPath%>/../" + parentExperiments[index] + "/begin.view"});
             }
             // Set the navtrail and page title
-            LABKEY.NavTrail.setTrail("<span>Experiment " + LABKEY.container.title + "</span>", parentLinks, "Experiment " + LABKEY.container.title);
+            LABKEY.NavTrail.setTrail("Experiment " + LABKEY.container.title, parentLinks, "Experiment " + LABKEY.container.title);
             var experimentTypeId = experimentData.ExperimentTypeId;
             var changeCallback = function(name, newValue, oldValue, failureCb, scope){
                 experimentData[name] = newValue;

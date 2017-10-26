@@ -652,8 +652,10 @@
             <column columnName="oligo_date"/>
             <column columnName="cell_freeze_date"/>
             <column columnName="virus_freeze_date"/>
-            <column columnName="modified"/>
-            <column columnName="created"/>
+            <column columnName="Modified"/>
+            <column columnName="ModifiedBy"/>
+            <column columnName="Created"/>
+            <column columnName="CreatedBy"/>
         </columns>
     </table>
     <table tableName="tmp_ordernum" tableDbType="TABLE">

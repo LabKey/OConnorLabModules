@@ -161,7 +161,7 @@ Ext4.define('LABKEY.ocexp.internal.InPlaceTextArea', {
     showInput: function(){
         this.oldValue = this.textArea.getValue();
         this.getLayout().setActiveItem(this.textArea.getId());
-        this.textArea.focus(true);
+        this.textArea.focus(false);
     },
 
     showDisplayField: function(){
