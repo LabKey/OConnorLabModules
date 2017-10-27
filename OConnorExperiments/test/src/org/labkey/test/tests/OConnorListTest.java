@@ -35,16 +35,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * User: RyanS
- * Date: 8/19/14
- * Time: 2:52 PM
- */
-
 @Category({CustomModules.class, OConnor.class})
 public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTest
 {
-    {setIsBootstrapWhitelisted(true);}
     private static String PROJECT_NAME = "OConnorTestProject";
     private static String FOLDER_ZIP_FILE = "OConnor_Test.folder.zip";
     private static String[] MODULES = {"OConnor", "OConnorExperiments"};

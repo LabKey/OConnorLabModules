@@ -31,13 +31,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @Category({CustomModules.class})
 public class HaplotypeAssayTest extends GenotypingBaseTest
 {
-    {setIsBootstrapWhitelisted(true);}
     private static final String ASSAY_NAME = "HaplotypeAssay";// + TRICKY_CHARACTERS_NO_QUOTES;
     private static final File FIRST_RUN_FILE = TestFileUtils.getSampleData("genotyping/haplotypeAssay/firstRunData.txt");
     private static final File SECOND_RUN_FILE = TestFileUtils.getSampleData("genotyping/haplotypeAssay/secondRunData.txt");
