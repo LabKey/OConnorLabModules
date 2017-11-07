@@ -125,7 +125,7 @@ public class OConnorExperimentsController extends SpringActionController
             // global containers
             Container sourceContainer = ContainerManager.getForPath(form.getSourceProject());
             Container targetContainer = getContainer();
-            FileContentService fileContentService = ServiceRegistry.get(FileContentService.class);
+            FileContentService fileContentService = FileContentService.get();
 
             // get table info for the source table
             UserSchema sourceSchema = QueryService.get().getUserSchema(getUser(), sourceContainer, "oconnor");

@@ -27,7 +27,6 @@ import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.FolderTypeManager;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.pipeline.PipelineService;
-import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.study.assay.AssayService;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.StringUtilsLabKey;
@@ -88,8 +87,8 @@ public class GenotypingModule extends DefaultModule
         containerFrag.append(GenotypingSchema.get().getRunsTable(), "r");
         containerFrag.append(" WHERE r.RowId = ").append(TableUpdaterFileListener.TABLE_ALIAS).append(".Run");
 
-        ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getRunsTable(), "Path", TableUpdaterFileListener.Type.filePath, "RowId"));
-        ServiceRegistry.get(FileContentService.class).addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getAnalysesTable(), "Path", TableUpdaterFileListener.Type.filePath, "RowId", containerFrag));
+        FileContentService.get().addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getRunsTable(), "Path", TableUpdaterFileListener.Type.filePath, "RowId"));
+        FileContentService.get().addFileListener(new TableUpdaterFileListener(GenotypingSchema.get().getAnalysesTable(), "Path", TableUpdaterFileListener.Type.filePath, "RowId", containerFrag));
     }
 
     @NotNull

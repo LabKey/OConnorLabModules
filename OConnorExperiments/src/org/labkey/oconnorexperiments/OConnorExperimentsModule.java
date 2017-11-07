@@ -117,7 +117,7 @@ public class OConnorExperimentsModule extends DefaultModule
         ServiceRegistry.get(WikiService.class).addWikiListener(wikiListener);
 
         OConnorFileChangeListener fileListener = new OConnorFileChangeListener();
-        ServiceRegistry.get(FileContentService.class).addFileListener(fileListener);
+        FileContentService.get().addFileListener(fileListener);
 
         FolderTypeManager.get().registerFolderType(this, new OConnorExperimentFolderType());
     }
