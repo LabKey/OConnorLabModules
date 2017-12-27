@@ -130,17 +130,17 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
     @LogMethod
     private void verifySTRDisrepancies()
     {
-        final String strDisrepanciesHeader = "view STR disrepancies report";
+        final String strDisrepanciesHeader = "view STR discrepancies report";
 
         goToManageAssays();
         clickAndWait(Locator.linkWithText(DRB_ASSAY));
         clickAndWait(Locator.linkWithText(strDisrepanciesHeader));
 
-        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 0), "STR-ID-4-BAD");
-        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 1), "mhcDRB");
+        assertEquals("STR-ID-4-BAD", getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 0) );
+        assertEquals("mhcDRB", getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 1, 1));
 
-        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 0), "STR-ID-5-BAD");
-        assertEquals(getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 1), "mhcDRB");
+        assertEquals("STR-ID-5-BAD", getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 0));
+        assertEquals("mhcDRB", getTableCellText(Locator.tagWithClass("table", "labkey-data-region"), 2, 1));
 
         assertTextNotPresent("STR-ID-1-GOOD", "STR-ID-2-GOOD", "STR-ID-3-GOOD");
     }
