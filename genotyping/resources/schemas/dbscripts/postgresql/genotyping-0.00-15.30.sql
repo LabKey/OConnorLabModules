@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-/* genotyping-0.00-15.20.sql */
-
 /* genotyping-0.00-10.30.sql */
 
 CREATE SCHEMA genotyping;
@@ -39,7 +37,7 @@ CREATE TABLE genotyping.Sequences
     Initials VARCHAR(45) NULL,
     GenbankId VARCHAR(100) NULL,
     ExptNumber VARCHAR(45) NULL,
-    Comments VARCHAR(255) NULL,
+    Comments VARCHAR(4000) NULL,
     Locus VARCHAR(45) NULL,
     Species VARCHAR(45) NULL,
     Origin VARCHAR(100) NULL,
@@ -67,7 +65,7 @@ CREATE TABLE genotyping.Sequences
 
 CREATE TABLE genotyping.Runs
 (
-    RowId INT NOT NULL,           -- Lab assigns these (must be unique within the server)
+    RowId SERIAL,
     MetaDataId INT NULL,          -- Optional row ID of record with additional meta data about this run
     Container ENTITYID NOT NULL,
     CreatedBy USERID NOT NULL,
@@ -75,9 +73,13 @@ CREATE TABLE genotyping.Runs
     Path VARCHAR(1000) NOT NULL,
     FileName VARCHAR(200) NOT NULL,
     Status INT NOT NULL,
+    Platform varchar(200),
 
     CONSTRAINT PK_Runs PRIMARY KEY (RowId)
 );
+
+ALTER TABLE genotyping.runs
+  ADD CONSTRAINT UNIQUE_Runs UNIQUE (rowid, container, metadataid);
 
 CREATE TABLE genotyping.Reads
 (
@@ -87,6 +89,8 @@ CREATE TABLE genotyping.Reads
     Mid INT NULL,    -- NULL == Mid could not be isolated from sequence
     Sequence VARCHAR(8000) NOT NULL,
     Quality VARCHAR(8000) NOT NULL,
+    -- Link reads directly to sample ids; SampleId replaces the Mid column, though we'll leave Mid in place for one release
+    SampleId INT NULL,
 
     CONSTRAINT PK_Reads PRIMARY KEY (RowId),
     CONSTRAINT FK_Reads_Runs FOREIGN KEY (Run) REFERENCES genotyping.Runs (RowId),
@@ -138,6 +142,10 @@ CREATE TABLE genotyping.Matches
     PosExtReads INT NOT NULL,
     NegExtReads INT NOT NULL,
 
+    -- ParentId column -- when matches are combined or altered this is set to the new match's row id
+    -- We then filter out combined matches (ParentId IS NOT NULL) from normal analysis views.
+    ParentId INT NULL,
+
     CONSTRAINT PK_Matches PRIMARY KEY (RowId),
     CONSTRAINT FK_Matches_Analyses FOREIGN KEY (Analysis) REFERENCES genotyping.Analyses(RowId),
     CONSTRAINT FK_Matches_AnalysisSamples FOREIGN KEY (Analysis, SampleId) REFERENCES genotyping.AnalysisSamples(Analysis, SampleId)
@@ -148,10 +156,14 @@ CREATE TABLE genotyping.AllelesJunction
 (
     MatchId INT NOT NULL,
     SequenceId INT NOT NULL,
+    Analysis INT NOT NULL,
 
     CONSTRAINT FK_AllelesJunction_Matches FOREIGN KEY (MatchId) REFERENCES genotyping.Matches(RowId),
-    CONSTRAINT FK_AllelesJunction_Reads FOREIGN KEY (SequenceId) REFERENCES genotyping.Sequences(RowId)
+    CONSTRAINT FK_AllelesJunction_Reads FOREIGN KEY (SequenceId) REFERENCES genotyping.Sequences(RowId),
+    CONSTRAINT FK_AllelesJunction_Analyses FOREIGN KEY (Analysis) REFERENCES genotyping.Analyses (RowId)
 );
+
+CREATE INDEX IX_Analysis ON genotyping.AllelesJunction(Analysis);
 
 -- Junction table that links each row of Matches to one or more rows in Reads table
 CREATE TABLE genotyping.ReadsJunction
@@ -162,19 +174,6 @@ CREATE TABLE genotyping.ReadsJunction
     CONSTRAINT FK_ReadsJunction_Matches FOREIGN KEY (MatchId) REFERENCES genotyping.Matches(RowId),
     CONSTRAINT FK_ReadsJunction_Reads FOREIGN KEY (ReadId) REFERENCES genotyping.Reads(RowId)
 );
-
-/* genotyping-10.30-11.10.sql */
-
--- Add ParentId column -- when matches are combined or altered this is set to the new match's row id
--- We then filter out combined matches (ParentId IS NOT NULL) from normal analysis views.
-ALTER TABLE genotyping.Matches
-    ADD ParentId INT NULL;
-
-ALTER TABLE genotyping.Sequences
-    ALTER COLUMN Comments TYPE VARCHAR(4000);
-
--- Link reads directly to sample ids; SampleId replaces the Mid column, though we'll leave Mid in place for one release
-ALTER TABLE genotyping.Reads ADD COLUMN SampleId INT NULL;
 
 /* genotyping-11.10-11.20.sql */
 
@@ -201,43 +200,18 @@ SELECT core.ensureIndex('IX_AllelesJunction_SequenceId', 'genotyping', 'AllelesJ
 
 DROP FUNCTION core.ensureIndex(text, text, text, text);
 
-/* genotyping-11.20-11.30.sql */
-
--- Pull the analysis row id into the alleles junction table for performance
-
-ALTER TABLE genotyping.AllelesJunction ADD COLUMN Analysis INTEGER;
-
-UPDATE genotyping.AllelesJunction SET Analysis = (SELECT Analysis FROM genotyping.Matches WHERE RowId = MatchId);
-
-ALTER TABLE genotyping.AllelesJunction ALTER COLUMN Analysis SET NOT NULL;
-
-CREATE INDEX IX_Analysis ON genotyping.AllelesJunction(Analysis);
-
-ALTER TABLE genotyping.AllelesJunction
-    ADD CONSTRAINT FK_AllelesJunction_Analyses FOREIGN KEY (Analysis) REFERENCES genotyping.Analyses (RowId);
-
-/* genotyping-12.10-12.20.sql */
-
-ALTER TABLE Genotyping.Runs
-  add column Platform varchar(200)
-;
-
---all existing runs will be 454
-UPDATE genotyping.Runs set Platform = 'LS454';
-
 CREATE TABLE genotyping.SequenceFiles (
-  RowId SERIAL,
-  Run INTEGER NOT NULL,
-  DataId INTEGER NOT NULL,
-  SampleId INTEGER,
+    RowId SERIAL,
+    Run INTEGER NOT NULL,
+    DataId INTEGER NOT NULL,
+    SampleId INTEGER,
+    ReadCount INTEGER,
+    PoolNum INTEGER NULL,
+    
   CONSTRAINT FK_SequenceFiles_Runs FOREIGN KEY (Run) REFERENCES genotyping.Runs (RowId),
   CONSTRAINT FK_SequenceFiles_DataId FOREIGN KEY (DataId) REFERENCES exp.Data (RowId),
   CONSTRAINT PK_SequenceFiles PRIMARY KEY (rowid)
 );
-
-ALTER TABLE Genotyping.SequenceFiles
-  add column ReadCount integer
-;
 
 create table genotyping.IlluminaTemplates (
   name varchar(100) not null,
@@ -269,35 +243,41 @@ VALUES
   '}', true
 );
 
---convert the rowid of runs table from int to serial
-CREATE SEQUENCE genotyping.runs_rowid_seq
-  INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 OWNED BY genotyping.runs.rowid;
-
-select setval('genotyping.runs_rowid_seq', (select max(rowid)+1 from genotyping.runs), false);
-
-ALTER TABLE genotyping.runs ALTER COLUMN rowid
-  SET DEFAULT nextval('genotyping.runs_rowid_seq'::regclass);
-
-ALTER TABLE genotyping.runs ADD CONSTRAINT UNIQUE_Runs UNIQUE (container, metadataid);
-
 /* genotyping-12.20-12.30.sql */
+
+CREATE TABLE genotyping.Species
+(
+    RowId SERIAL,
+    Name VARCHAR(10),
+    FullName VARCHAR(45),
+
+    CONSTRAINT PK_Species PRIMARY KEY (RowId),
+    CONSTRAINT Unique_Species_Name UNIQUE (Name),
+    CONSTRAINT Unique_Species_FullName UNIQUE (FullName)
+);
+
+INSERT INTO genotyping.Species (Name, FullName) VALUES ('mamu', 'Macaca mulatta (rhesus)');
+INSERT INTO genotyping.Species (Name, FullName) VALUES ('mane', 'Macaca nemestrina (pigtail)');
+INSERT INTO genotyping.Species (Name, FullName) VALUES ('mafa', 'Macaca fascicularis (cynomolgus)');
 
 CREATE TABLE genotyping.Animal
 (
     RowId SERIAL,
     Container ENTITYID NOT NULL,
     LabAnimalId VARCHAR(100),
-    CustomerAnimalId VARCHAR(100),
-    Lsid LsidType NOT NULL,
+    ClientAnimalId VARCHAR(100),
+    Lsid LsidType,
     CreatedBy USERID NOT NULL,
     Created TIMESTAMP NOT NULL,
     ModifiedBy USERID NOT NULL,
     Modified TIMESTAMP NOT NULL,
+    SpeciesId INT NOT NULL,
 
     CONSTRAINT PK_Animal PRIMARY KEY (RowId),
     CONSTRAINT UQ_Animal_LabAnimalId UNIQUE (Container, LabAnimalId),
     CONSTRAINT FK_Animal_Container FOREIGN KEY (Container) REFERENCES core.Containers(EntityId),
-    CONSTRAINT FK_Animal_Lsid FOREIGN KEY (Lsid) REFERENCES exp.Object(ObjectURI)
+    CONSTRAINT FK_Animal_Lsid FOREIGN KEY (Lsid) REFERENCES exp.Object(ObjectURI),
+    CONSTRAINT FK_Animal_SpeciesId FOREIGN KEY (SpeciesId) REFERENCES genotyping.Species(RowId)
 );
 
 CREATE INDEX IDX_Animal_Container ON genotyping.Animal(Container);
@@ -311,33 +291,17 @@ CREATE TABLE genotyping.Haplotype
     Created TIMESTAMP NOT NULL,
     ModifiedBy USERID NOT NULL,
     Modified TIMESTAMP NOT NULL,
+    Lsid LsidType,
+    Type VARCHAR(20),
+    SpeciesId INT NOT NULL,
 
     CONSTRAINT PK_Haplotype PRIMARY KEY (RowId),
-    CONSTRAINT FK_Haplotype_Container FOREIGN KEY (Container) REFERENCES core.Containers(EntityId)
+    CONSTRAINT FK_Haplotype_Container FOREIGN KEY (Container) REFERENCES core.Containers(EntityId),
+    CONSTRAINT FK_Haplotype_Lsid FOREIGN KEY (Lsid) REFERENCES exp.Object(ObjectURI),
+    CONSTRAINT FK_Haplotype_SpeciesId FOREIGN KEY (SpeciesId) REFERENCES genotyping.Species(RowId)
 );
 
 CREATE INDEX IDX_Haplotype_Container ON genotyping.Haplotype(Container);
-
-CREATE TABLE genotyping.AnimalHaplotypeAssignment
-(
-    RowId SERIAL,
-    AnimalId INT NOT NULL,
-    HaplotypeId INT NOT NULL,
-    RunId INT NOT NULL,
-    CreatedBy USERID NOT NULL,
-    Created TIMESTAMP NOT NULL,
-    ModifiedBy USERID NOT NULL,
-    Modified TIMESTAMP NOT NULL,
-
-    CONSTRAINT PK_AnimalHaplotypeAssignment PRIMARY KEY (RowId),
-    CONSTRAINT UQ_AnimalHaplotypeAssignment UNIQUE (AnimalId, HaplotypeId, RunId),
-    CONSTRAINT FK_AnimalHaplotypeAssignment_Animal FOREIGN KEY (AnimalId) REFERENCES genotyping.Animal(RowId),
-    CONSTRAINT FK_AnimalHaplotypeAssignment_Run FOREIGN KEY (RunId) REFERENCES exp.ExperimentRun(RowId),
-    CONSTRAINT FK_AnimalHaplotypeAssignment_Haplotype FOREIGN KEY (HaplotypeId) REFERENCES genotyping.Haplotype(RowId)
-);
-
-CREATE INDEX IDX_AnimalHaplotypeAssignment_Run ON genotyping.AnimalHaplotypeAssignment(RunId);
-CREATE INDEX IDX_AnimalHaplotypeAssignment_Haplotype ON genotyping.AnimalHaplotypeAssignment(HaplotypeId);
 
 CREATE TABLE genotyping.AnimalAnalysis
 (
@@ -361,129 +325,23 @@ CREATE TABLE genotyping.AnimalAnalysis
 CREATE INDEX IDX_AnimalAnalysis_Run ON genotyping.AnimalAnalysis(RunId);
 CREATE INDEX IDX_AnimalAnalysis_Animal ON genotyping.AnimalAnalysis(AnimalId);
 
--- change AnimalHaplotypeAssignment to use AnimalAnalysisId instead of AnimalId and RunId
-DELETE FROM genotyping.AnimalHaplotypeAssignment;
-DROP INDEX genotyping.IDX_AnimalHaplotypeAssignment_Run;
-ALTER TABLE genotyping.AnimalHaplotypeAssignment DROP CONSTRAINT UQ_AnimalHaplotypeAssignment;
-ALTER TABLE genotyping.AnimalHaplotypeAssignment DROP COLUMN AnimalId;
-ALTER TABLE genotyping.AnimalHaplotypeAssignment DROP COLUMN RunId;
-ALTER TABLE genotyping.AnimalHaplotypeAssignment ADD COLUMN AnimalAnalysisId INT NOT NULL;
-ALTER TABLE genotyping.AnimalHaplotypeAssignment ADD CONSTRAINT FK_AnimalHaplotypeAssignment_AnimalAnalysis FOREIGN KEY (AnimalAnalysisId) REFERENCES genotyping.AnimalAnalysis(RowId);
-
--- drop not null contraint on Animal table for case where table not configured to be extensible
-ALTER TABLE genotyping.Animal ALTER COLUMN Lsid DROP NOT NULL;
-
--- add Lsid column to Haplotype to allow it to be extensible
-ALTER TABLE genotyping.Haplotype ADD COLUMN Lsid LsidType;
-ALTER TABLE genotyping.Haplotype ADD CONSTRAINT FK_Haplotype_Lsid FOREIGN KEY (Lsid) REFERENCES exp.Object(ObjectURI);
-
--- add Type column to Haplotype to store 'Mamu-A' or 'Mamu-B'
-ALTER TABLE genotyping.Haplotype ADD COLUMN Type VARCHAR(20);
-
--- rename column
-ALTER TABLE genotyping.Animal RENAME COLUMN CustomerAnimalId TO ClientAnimalId;
-
-/* genotyping-14.10-14.20.sql */
-
-CREATE INDEX idx_animalhaplotypeassignment_animalanalysisid ON genotyping.animalhaplotypeassignment (animalanalysisid);
-
-CREATE TABLE genotyping.Species
+CREATE TABLE genotyping.AnimalHaplotypeAssignment
 (
-  RowId SERIAL,
-  Name VARCHAR(45),
+    RowId SERIAL,
+    AnimalAnalysisId INT NOT NULL,
+    HaplotypeId INT NOT NULL,
+    CreatedBy USERID NOT NULL,
+    Created TIMESTAMP NOT NULL,
+    ModifiedBy USERID NOT NULL,
+    Modified TIMESTAMP NOT NULL,
+    DiploidNumber INT NOT NULL,
+    DiploidNumberInferred BOOLEAN NOT NULL,
 
-  CONSTRAINT PK_Species PRIMARY KEY (RowId)
+    CONSTRAINT PK_AnimalHaplotypeAssignment PRIMARY KEY (RowId),
+    CONSTRAINT FK_AnimalHaplotypeAssignment_Haplotype FOREIGN KEY (HaplotypeId) REFERENCES genotyping.Haplotype(RowId),
+    CONSTRAINT FK_AnimalHaplotypeAssignment_AnimalAnalysis FOREIGN KEY (AnimalAnalysisId) REFERENCES genotyping.AnimalAnalysis(RowId)
 );
 
-INSERT INTO genotyping.Species (Name) VALUES ('rhesus macaques');
+CREATE INDEX IDX_AnimalHaplotypeAssignment_Haplotype ON genotyping.AnimalHaplotypeAssignment(HaplotypeId);
+CREATE INDEX idx_animalhaplotypeassignment_animalanalysisid ON genotyping.AnimalHaplotypeAssignment (AnimalAnalysisId);
 
-ALTER TABLE genotyping.Animal ADD SpeciesId INT;
-UPDATE genotyping.Animal SET SpeciesId = (SELECT RowId FROM genotyping.Species WHERE Name = 'rhesus macaques');
-ALTER TABLE genotyping.Animal ALTER COLUMN SpeciesId SET NOT NULL;
-ALTER TABLE genotyping.Animal ADD CONSTRAINT FK_Animal_SpeciesId FOREIGN KEY (SpeciesId) REFERENCES genotyping.Species(RowId);
-
-ALTER TABLE genotyping.Haplotype ADD SpeciesId INT;
-UPDATE genotyping.Haplotype SET SpeciesId = (SELECT RowId FROM genotyping.Species WHERE Name = 'rhesus macaques');
-ALTER TABLE genotyping.Haplotype ALTER COLUMN SpeciesId SET NOT NULL;
-ALTER TABLE genotyping.Haplotype ADD CONSTRAINT FK_Haplotype_SpeciesId FOREIGN KEY (SpeciesId) REFERENCES genotyping.Species(RowId);
-
-/* genotyping-14.20-14.30.sql */
-
-/* Consider: setting up these fields to not null */
-
-ALTER TABLE genotyping.Species ADD FullName VARCHAR(45);
-ALTER TABLE genotyping.Species ADD CONSTRAINT Unique_Species_FullName UNIQUE (FullName);
-UPDATE genotyping.Species SET Name='mamu', FullName='Macaca mulatta (rhesus)' WHERE Name = 'rhesus macaques';
-
-ALTER TABLE genotyping.Species ALTER COLUMN Name TYPE VARCHAR(10);
-ALTER TABLE genotyping.Species ADD CONSTRAINT Unique_Species_Name UNIQUE (Name);
-INSERT INTO genotyping.Species (Name, FullName) VALUES ('mane', 'Macaca nemestrina (pigtail)');
-INSERT INTO genotyping.Species (Name, FullName) VALUES ('mafa', 'Macaca fascicularis (cynomolgus)');
-
-/* genotyping-15.10-15.11.sql */
-
--- Added in modules15.1 branch - needs special handling if being rolled up into consolidated upgrade script
-
-ALTER TABLE genotyping.AnimalHaplotypeAssignment ADD DiploidNumber INT;
-ALTER TABLE genotyping.AnimalHaplotypeAssignment ADD DiploidNumberInferred BOOLEAN;
-
-UPDATE genotyping.AnimalHaplotypeAssignment SET DiploidNumberInferred = true;
-
--- Misses a few cases where both copies have the same haplotype assignment
-UPDATE genotyping.AnimalHaplotypeAssignment SET
-  DiploidNumber = 1
-WHERE
-  RowId IN (
-    SELECT
-      aha.RowId
-    FROM
-      genotyping.AnimalHaplotypeAssignment aha
-      INNER JOIN genotyping.Haplotype h ON (aha.HaplotypeId = h.RowId)
-    WHERE
-      h.Name =
-      (SELECT MIN(h2.Name)
-       FROM
-         genotyping.AnimalHaplotypeAssignment aha2
-         INNER JOIN genotyping.Haplotype h2 ON (aha2.HaplotypeId = h2.RowId)
-       WHERE
-         aha2.animalanalysisid = aha.animalanalysisid AND
-         h.type = h2.type
-      )
-  );
-
-UPDATE genotyping.AnimalHaplotypeAssignment SET
-  DiploidNumber = 2
-WHERE
-  DiploidNumber IS NULL OR
-  RowId IN (
-    SELECT MaxRowId FROM (
-                           SELECT
-                             MAX(aha.RowId) AS MaxRowId,
-                             COUNT(*) AS DupeCount
-                           FROM
-                             genotyping.AnimalHaplotypeAssignment aha
-                             INNER JOIN genotyping.Haplotype h ON (aha.HaplotypeId = h.RowId)
-                           WHERE
-                             aha.DiploidNumber = 1
-                           GROUP BY aha.AnimalAnalysisId, h.Type
-                         ) x
-    WHERE DupeCount > 1
-  );
-
-ALTER TABLE genotyping.AnimalHaplotypeAssignment ALTER COLUMN DiploidNumber SET NOT NULL;
-ALTER TABLE genotyping.AnimalHaplotypeAssignment ALTER COLUMN DiploidNumberInferred SET NOT NULL;
-
-/* genotyping-15.20-15.30.sql */
-
-/* genotyping-15.20-15.21.sql */
-
-ALTER TABLE Genotyping.SequenceFiles
-    ADD COLUMN PoolNum INT NULL;
-
-/* genotyping-15.21-15.22.sql */
-
-ALTER TABLE genotyping.runs
-    DROP CONSTRAINT UNIQUE_Runs;
-
-ALTER TABLE genotyping.runs
-    ADD CONSTRAINT UNIQUE_Runs UNIQUE (rowid, container, metadataid);
