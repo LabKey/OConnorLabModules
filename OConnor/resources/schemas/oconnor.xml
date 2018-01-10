@@ -359,6 +359,8 @@
             <column columnName="virus_freeze_date"/>
             <column columnName="created"/>
             <column columnName="modified"/>
+            <column columnName="modifiedby"/>
+            <column columnName="createdby"/>
         </columns>
     </table>
     <table tableName="freezer_id" tableDbType="TABLE">

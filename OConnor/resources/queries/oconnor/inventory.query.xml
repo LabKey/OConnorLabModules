@@ -6,34 +6,6 @@
 
 <!-- the most flexible way to define metadata is to do it against the table. this allows you to define a button bar and perform editing on the resulting query results. --> 
     <table tableName="inventory" tableDbType="TABLE">
-        <buttonBarOptions position="both" includeStandardButtons="false">
-
-            <item text="Grid Views">
-                <originalText>Grid Views</originalText>
-            </item>
-            <item text="Reports">
-                <originalText>Reports</originalText>
-            </item>
-            <item text="Insert">
-                <originalText>Insert</originalText>
-            </item>
-            <item text="Insert New Row">
-                <originalText>Insert New Row</originalText>
-            </item>
-            <item text="Delete">
-                <originalText>Delete</originalText>
-            </item>
-            <item text="Export">
-                <originalText>Export</originalText>
-            </item>
-            <item text="Print">
-                <originalText>Print</originalText>
-            </item>
-            <item text="Paging">
-                <originalText>Paging</originalText>
-            </item>
-        </buttonBarOptions>
-
 <!-- this defines column-specific features. inherited by all views based on this query -->
         <columns>
 
@@ -55,7 +27,7 @@ create foreign key lookup to experiment_db - allows users to link to experiment
                          <fkColumnName>ExperimentNumber</fkColumnName>
                          <fkTable>ExperimentNumbers</fkTable>
                          <fkDbSchema>OConnorExperiments</fkDbSchema>
-                         <fkDbSchema>/dho/experiments</fkDbSchema>
+                         <fkFolderPath>/dho/experiments</fkFolderPath>
                      </fk>
             </column>	
 <!-- rename fields where display name does not equal postgresSQL field name	 -->											

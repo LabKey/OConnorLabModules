@@ -97,6 +97,7 @@ OConnor/resources/schemas/dbscripts/postgresql/obsolete/oconnor-17.20-17.21.sql 
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-0.00-14.30.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-16.30-17.10.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-17.20-17.30.sql -text
+OConnor/resources/schemas/dbscripts/postgresql/oconnor-17.30-17.31.sql -text
 OConnor/resources/schemas/oconnor.xml -text
 OConnor/resources/views/AnimalList.html -text
 OConnor/resources/views/AnimalList.view.xml -text
@@ -134,7 +135,9 @@ OConnor/resources/views/enabled_vendor_quotes.html -text
 OConnor/resources/views/enabled_vendors.html -text
 OConnor/resources/views/enabled_vendors.view.xml -text
 OConnor/resources/views/experimentInsert.html -text
+OConnor/resources/views/experimentInsert.view.xml -text
 OConnor/resources/views/experimentUpdate.html -text
+OConnor/resources/views/experimentUpdate.view.xml -text
 OConnor/resources/views/experiments.html -text
 OConnor/resources/views/grant_summary.html -text
 OConnor/resources/views/inventory.html -text

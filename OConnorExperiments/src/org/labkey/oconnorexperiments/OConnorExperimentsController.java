@@ -31,6 +31,7 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.CoreSchema;
 import org.labkey.api.data.DbSequenceManager;
+import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.TableInfo;
@@ -38,6 +39,7 @@ import org.labkey.api.data.TableSelector;
 import org.labkey.api.files.FileContentService;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryAction;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
@@ -139,6 +141,9 @@ public class OConnorExperimentsController extends SpringActionController
             QueryUpdateService queryUpdateService = targetTable.getUpdateService();
             BatchValidationException batchErrors = new BatchValidationException();
 
+            TableInfo typeTable = targetSchema.getTable(OConnorExperimentsSchema.EXPERIMENT_TYPE);
+            QueryUpdateService typeUpdateService = typeTable.getUpdateService();
+
             int maxExpNumber = 0;
 
             // parse the sourceCollection into the target collection
@@ -153,7 +158,24 @@ public class OConnorExperimentsController extends SpringActionController
                         maxExpNumber = expNumber;
                     map.put("Name", databaseMap.get("expnumber"));
                     map.put("Description", databaseMap.get("expDescription"));
-                    map.put("ExperimentType", databaseMap.get("expType"));
+
+                    String currentType = (String) databaseMap.get("expType");
+                    Integer targetType = null;
+                    if (currentType != null)
+                    {
+                        TableSelector typeSelector = new TableSelector(typeTable, Collections.singleton("RowId"), new SimpleFilter(FieldKey.fromParts("Name"), currentType), null);
+                        targetType = typeSelector.getObject(Integer.class);
+                        if (targetType == null)
+                        {
+                            Map<String, Object> newType = new CaseInsensitiveHashMap<>();
+                            newType.put("Name", currentType);
+                            newType.put("Enabled", true);
+                            List<Map<String, Object>> newTypes = typeUpdateService.insertRows(getUser(), getContainer(), Collections.singletonList(newType), new BatchValidationException(), null, null);
+                            targetType = (Integer) newTypes.get(0).get("RowId");
+                        }
+                    }
+
+                    map.put("ExperimentTypeId", targetType);
                     //map.put("Modified", databaseMap.get("created"));
 
                     // get the user name
