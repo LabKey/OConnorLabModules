@@ -145,7 +145,8 @@ Ext4.define('LABKEY.Genotyping.RunExportWindow', {
 
         var form = Ext4.create('Ext.form.Panel', {
             url: url,
-            standardSubmit: true
+            standardSubmit: true,
+            items : [{ xtype: 'hidden', name: 'X-LABKEY-CSRF', value: LABKEY.CSRF }]
         });
         form.submit();
 

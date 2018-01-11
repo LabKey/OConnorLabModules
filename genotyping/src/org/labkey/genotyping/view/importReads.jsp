@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 %>
+<%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page import="org.apache.commons.lang3.StringUtils" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.genotyping.GenotypingManager" %>
