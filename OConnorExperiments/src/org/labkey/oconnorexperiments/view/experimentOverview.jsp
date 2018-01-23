@@ -28,7 +28,7 @@
     @Override
     public void addClientDependencies(ClientDependencies dependencies)
     {
-        dependencies.add("Ext");
+        dependencies.add("Ext4");
         dependencies.add("/editInPlaceElement.js");
         dependencies.add("/editInPlaceElement.css");
         dependencies.add("/ocexp/internal/Experiment.js");
