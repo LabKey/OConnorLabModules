@@ -22,7 +22,6 @@ import org.junit.experimental.categories.Category;
 import org.labkey.api.reader.Readers;
 import org.labkey.test.Locator;
 import org.labkey.test.SortDirection;
-import org.labkey.test.TestFileUtils;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
@@ -358,7 +357,7 @@ public class IlluminaTest extends GenotypingBaseTest
         assertEquals(prop_value, Ext4FieldRef.getForLabel(this, prop_name).getValue());
 
         File export = doAndWaitForDownload(()-> clickButton("Download", 0));
-        TextSearcher exportSearcher = new TextSearcher(() -> TestFileUtils.getFileContents(export));
+        TextSearcher exportSearcher = new TextSearcher(export);
 
         for (String[] a : fieldPairs)
         {
