@@ -114,7 +114,7 @@ public class OConnorExperimentsModule extends DefaultModule
         ContainerManager.addContainerListener(new OConnorExperimentsContainerListener(this));
 
         OConnorWikiChangeListener wikiListener = new OConnorWikiChangeListener();
-        ServiceRegistry.get(WikiService.class).addWikiListener(wikiListener);
+        WikiService.get().addWikiListener(wikiListener);
 
         OConnorFileChangeListener fileListener = new OConnorFileChangeListener();
         FileContentService.get().addFileListener(fileListener);

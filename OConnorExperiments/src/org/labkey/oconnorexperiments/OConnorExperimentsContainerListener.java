@@ -42,7 +42,7 @@ public class OConnorExperimentsContainerListener extends SimpleModuleContainerLi
             if (c.getParent().getActiveModules().contains(ModuleLoader.getInstance().getModule(OConnorExperimentsModule.class)))
             {
                 // Create an empty default wiki with title "Notes"
-                ServiceRegistry.get(WikiService.class).insertWiki(user, c, "default", null, WikiRendererType.HTML, "Notes");
+                WikiService.get().insertWiki(user, c, "default", null, WikiRendererType.HTML, "Notes");
 
                 // TODO: Inserting to Experiments table will insert to Workbooks table first, causing this listener to fire
                 // TODO: and insert a new Experiment record and ultimately will make the Experiment table's DataIterator

@@ -349,7 +349,7 @@ public class IlluminaFastqParser
         {
             container = ContainerManager.createContainer(JunitUtil.getTestContainer(), FOLDER_NAME);
 
-            FileContentService svc = ServiceRegistry.get().getService(FileContentService.class);
+            FileContentService svc = FileContentService.get();
             _testRoot = svc.getFileRoot(container);
             FileUtils.cleanDirectory(_testRoot);
         }

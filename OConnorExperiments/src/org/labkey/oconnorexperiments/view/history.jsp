@@ -95,7 +95,7 @@
 <h3>Notes History</h3>
 <%
     {
-        WebPartView view = ServiceRegistry.get(WikiService.class).getHistoryView(c, "default");
+        WebPartView view = WikiService.get().getHistoryView(c, "default");
         if (view != null)
             include(view, out);
     }
