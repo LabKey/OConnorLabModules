@@ -432,7 +432,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
 
         // test a single ID
         setFormElement(Locator.name("idsTextArea"), "ID-3");
-        fireEvent(Locator.id("idsTextArea"), SeleniumEvent.blur);
+        fireEvent(Locator.name("idsTextArea"), SeleniumEvent.blur);
         sleep(500); // entering text enables the submit button
         clickButton("Submit", 0);
         DataRegionTable drt = new DataRegionTable("report", this);
@@ -450,7 +450,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         _ext4Helper.selectComboBoxItem("Search for animal IDs by:", "Client Animal ID");
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Lab Animal ID");
         setFormElement(Locator.name("idsTextArea"), "x123,x234;x345 x678 x789");
-        fireEvent(Locator.id("idsTextArea"), SeleniumEvent.blur);
+        fireEvent(Locator.name("idsTextArea"), SeleniumEvent.blur);
         clickButton("Submit", 0);
         waitForElement(Locator.paginationText(11));
         assertTextPresentInThisOrder("ID-1", "ID-2", "ID-3", "ID-6", "ID-7");
@@ -470,7 +470,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         _ext4Helper.selectComboBoxItem("Search for animal IDs by:", "Lab Animal ID");
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Lab Animal ID");
         setFormElement(Locator.name("idsTextArea"), "ID-4,ID-5");
-        fireEvent(Locator.id("idsTextArea"), SeleniumEvent.blur);
+        fireEvent(Locator.name("idsTextArea"), SeleniumEvent.blur);
         clickButton("Submit", 0);
         waitForElement(Locator.paginationText(1, 8, 8));
         waitForText("Warning: multiple enabled assay results were found for the following IDs: ID-4 (2), ID-5 (2)");
