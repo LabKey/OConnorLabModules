@@ -532,18 +532,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
             source.setDebugName("ExperimentsTable.ParentExperiments");
 
             // Perform the insert to ParentExperiments table
-            try
-            {
-                int rowCount = DataIteratorUtil.copy(_context, (DataIterator)source, _parentExperimentsTable, c, null);
-            }
-            catch (IOException e)
-            {
-                addRowError(e.getMessage());
-            }
-            catch (BatchValidationException e)
-            {
-                getRowError().addErrors(e.getLastRowError());
-            }
+            int rowCount = DataIteratorUtil.copy(_context, (DataIterator)source, _parentExperimentsTable, c, null);
 
             return true;
         }
