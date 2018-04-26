@@ -102,16 +102,8 @@ public class ImportPacBioReadsJob extends ReadsJob
         {
             error("Processing PacBio reads failed", e);
             setStatus(TaskStatus.error);
-
-            try
-            {
-                info("Deleting run " + _run.getRowId());
-                GenotypingManager.get().deleteRun(_run);
-            }
-            catch (SQLException se)
-            {
-                error("Failed to delete run " + _run.getRowId(), se);
-            }
+            info("Deleting run " + _run.getRowId());
+            GenotypingManager.get().deleteRun(_run);
         }
     }
 
@@ -231,7 +223,7 @@ public class ImportPacBioReadsJob extends ReadsJob
         }
     }
 
-    private void persistPacBioPoolRecords(Map<String, Integer> sampleNameSampleIdMap) throws PipelineJobException, SQLException
+    private void persistPacBioPoolRecords(Map<String, Integer> sampleNameSampleIdMap)
     {
         List<Map<String, Object>> listOfRows = new LinkedList<>();
 

@@ -64,7 +64,7 @@ public abstract class ReadsJob extends PipelineJob
         return GenotypingController.getRunURL(getContainer(), _run);
     }
 
-    public void updateRunStatus(Status status) throws PipelineJobException, SQLException
+    public void updateRunStatus(Status status)
     {
         // Issue 14880: if a job has run and failed, we will have deleted the run.  trying to update the status of this non-existent row
         // causes an OptimisticConflictException.  therefore we first test whether the runs exists

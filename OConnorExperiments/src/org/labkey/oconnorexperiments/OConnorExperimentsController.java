@@ -94,7 +94,7 @@ public class OConnorExperimentsController extends SpringActionController
     @RequiresPermission(ReadPermission.class)
     public class BeginAction extends SimpleViewAction
     {
-        public ModelAndView getView(Object o, BindException errors) throws Exception
+        public ModelAndView getView(Object o, BindException errors)
         {
             return HttpView.redirect(PageFlowUtil.urlProvider(ProjectUrls.class).getHomeURL());
         }
@@ -112,7 +112,7 @@ public class OConnorExperimentsController extends SpringActionController
         {
         }
 
-        public ModelAndView getView(UserForm form, boolean reshow, BindException errors) throws Exception
+        public ModelAndView getView(UserForm form, boolean reshow, BindException errors)
         {
             return new JspView<>("/org/labkey/oconnorexperiments/view/migrateData.jsp");
         }
@@ -493,7 +493,7 @@ public class OConnorExperimentsController extends SpringActionController
     public class HistoryAction extends SimpleViewAction
     {
         @Override
-        public ModelAndView getView(Object o, BindException errors) throws Exception
+        public ModelAndView getView(Object o, BindException errors)
         {
             getPageConfig().setNoIndex();
             getPageConfig().setNoFollow();
@@ -525,7 +525,7 @@ public class OConnorExperimentsController extends SpringActionController
     @RequiresPermission(ReadPermission.class)
     public class LookupWorkbookAction extends SimpleViewAction<LookupWorkbookForm>
     {
-        public ModelAndView getView(LookupWorkbookForm form, BindException errors) throws Exception
+        public ModelAndView getView(LookupWorkbookForm form, BindException errors)
         {
             if (null == form.getId())
                 throw new NotFoundException("You must supply the id of the workbook you wish to find.");

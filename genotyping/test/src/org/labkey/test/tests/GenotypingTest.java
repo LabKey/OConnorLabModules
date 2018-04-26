@@ -64,7 +64,7 @@ public class GenotypingTest extends GenotypingBaseTest
     }
 
     @Test
-    public void testSteps() throws Exception
+    public void testSteps()
     {
         //TODO: need to fix 454/genotyping tests
         importRunTest();

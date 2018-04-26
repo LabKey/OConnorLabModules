@@ -67,7 +67,7 @@ public class SubmitAnalysisJob extends PipelineJob
     // skip trying to submit to Galaxy on subsequent attempts (until server restart).
     private static Boolean _useGalaxy = null;
 
-    public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingAnalysis analysis, @NotNull Set<Integer> sampleIds) throws SQLException
+    public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingAnalysis analysis, @NotNull Set<Integer> sampleIds)
     {
         super("Submit Analysis", info, root);      // No pipeline provider
         _dir = reads.getParentFile();
@@ -141,7 +141,7 @@ public class SubmitAnalysisJob extends PipelineJob
     }
 
 
-    private void writeAnalysisSamples() throws SQLException
+    private void writeAnalysisSamples()
     {
         Map<String, Object> sampleMap = new HashMap<>();   // Map to reuse for each insertion to AnalysisSamples
         sampleMap.put("analysis", _analysis.getRowId());
@@ -212,7 +212,7 @@ public class SubmitAnalysisJob extends PipelineJob
     }
 
 
-    private void writeFasta() throws SQLException, IOException
+    private void writeFasta() throws IOException
     {
         info("Writing FASTA file");
         setStatus("WRITING FASTA");

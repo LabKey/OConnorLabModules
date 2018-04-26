@@ -152,7 +152,7 @@ public class GenotypingController extends SpringActionController
     public class BeginAction extends SimpleRedirectAction
     {
         @Override
-        public ActionURL getRedirectURL(Object o) throws Exception
+        public ActionURL getRedirectURL(Object o)
         {
             return getRunsURL(getContainer());
         }
@@ -267,7 +267,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        protected QueryView createQueryView(AnalysisForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        protected QueryView createQueryView(AnalysisForm form, BindException errors, boolean forExport, String dataRegion)
         {
             _analysis = GenotypingManager.get().getAnalysis(getContainer(), form.getAnalysis());
 
@@ -430,7 +430,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public boolean doAction(CombineForm form, BindException errors) throws Exception
+        public boolean doAction(CombineForm form, BindException errors)
         {
             try
             {
@@ -477,7 +477,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public boolean doAction(MatchesForm form, BindException errors) throws Exception
+        public boolean doAction(MatchesForm form, BindException errors)
         {
             List<String> ids = getViewContext().getList(DataRegion.SELECT_CHECKBOX_NAME);
             List<Integer> matchIds = new LinkedList<>();
@@ -507,7 +507,7 @@ public class GenotypingController extends SpringActionController
     public class LoadSequencesAction extends SimpleRedirectAction<ReturnUrlForm>
     {
         @Override
-        public URLHelper getRedirectURL(ReturnUrlForm form) throws Exception
+        public URLHelper getRedirectURL(ReturnUrlForm form)
         {
             long startTime = System.currentTimeMillis();
             SequenceManager.get().loadSequences(getContainer(), getUser());
@@ -678,7 +678,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public ModelAndView getView(AdminForm form, boolean reshow, BindException errors) throws Exception
+        public ModelAndView getView(AdminForm form, boolean reshow, BindException errors)
         {
             NonValidatingGenotypingFolderSettings currentSettings = new NonValidatingGenotypingFolderSettings(getContainer());
             VBox vbox = new VBox();
@@ -698,7 +698,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public boolean handlePost(AdminForm form, BindException errors) throws Exception
+        public boolean handlePost(AdminForm form, BindException errors)
         {
             // Save both the genotyping settings and Galaxy configuration settings
             GenotypingManager.get().saveSettings(getContainer(), form);
@@ -881,13 +881,13 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public ModelAndView getView(MySettingsForm form, boolean reshow, BindException errors) throws Exception
+        public ModelAndView getView(MySettingsForm form, boolean reshow, BindException errors)
         {
             return new JspView<>("/org/labkey/genotyping/view/mySettings.jsp", form, errors);
         }
 
         @Override
-        public boolean handlePost(MySettingsForm form, BindException errors) throws Exception
+        public boolean handlePost(MySettingsForm form, BindException errors)
         {
             GalaxyManager.get().saveUserSettings(getContainer(), getUser(), form);
             return true;
@@ -1090,7 +1090,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public ModelAndView getView(ImportReadsForm form, boolean reshow, BindException errors) throws Exception
+        public ModelAndView getView(ImportReadsForm form, boolean reshow, BindException errors)
         {
             ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(getContainer(), getUser(), "importing reads");
             TableInfo runs = new GenotypingQueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo();
@@ -1549,7 +1549,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    private void importAnalysis(int analysisId, File pipelineDir, User user) throws IOException, SQLException, PipelineValidationException
+    private void importAnalysis(int analysisId, File pipelineDir, User user) throws IOException, PipelineValidationException
     {
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(getContainer(), analysisId);
         File analysisDir = new File(analysis.getPath());
@@ -1635,7 +1635,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        protected QueryView createQueryView(SequencesForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        protected QueryView createQueryView(SequencesForm form, BindException errors, boolean forExport, String dataRegion)
         {
             QuerySettings settings = new QuerySettings(getViewContext(), "Sequences", TableType.Sequences.toString());
             settings.setAllowChooseView(true);
@@ -1697,7 +1697,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public ModelAndView getView(SequenceForm form, BindException errors) throws Exception
+        public ModelAndView getView(SequenceForm form, BindException errors)
         {
             QuerySettings settings = new QuerySettings(getViewContext(), "Sequence", TableType.Sequences.toString());
 
@@ -1746,7 +1746,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion)
         {
             boolean isAdmin = getContainer().hasPermission(getUser(), AdminPermission.class);
             return new GenotypingRunsView(getViewContext(), errors, "Runs", isAdmin);
@@ -1775,7 +1775,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        protected QueryView createQueryView(QueryExportForm form, BindException errors, boolean forExport, String dataRegion)
         {
             boolean allowDelete = getContainer().hasPermission(getUser(), DeletePermission.class);
             return new GenotypingAnalysesView(getViewContext(), errors, "Analyses", null, allowDelete);
@@ -1929,7 +1929,7 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        protected QueryView createQueryView(FORM form, BindException errors, boolean forExport, String dataRegion) throws Exception
+        protected QueryView createQueryView(FORM form, BindException errors, boolean forExport, String dataRegion)
         {
             GenotypingRun _run = GenotypingManager.get().getRun(getContainer(), form.getRun());
             final String platform = null==_run?"":_run.getPlatform();
@@ -2046,7 +2046,7 @@ public class GenotypingController extends SpringActionController
     public class DeleteRunsAction extends RedirectAction
     {
         @Override
-        public boolean doAction(Object o, BindException errors) throws Exception
+        public boolean doAction(Object o, BindException errors)
         {
             GenotypingManager gm = GenotypingManager.get();
             Set<Integer> runs = DataRegionSelection.getSelectedIntegers(getViewContext(), true);
@@ -2075,7 +2075,7 @@ public class GenotypingController extends SpringActionController
     public class DeleteAnalysesAction extends RedirectAction
     {
         @Override
-        public boolean doAction(Object o, BindException errors) throws Exception
+        public boolean doAction(Object o, BindException errors)
         {
             GenotypingManager gm = GenotypingManager.get();
 
@@ -2205,7 +2205,7 @@ public class GenotypingController extends SpringActionController
         private ExpProtocol _protocol;
 
         @Override
-        public ModelAndView getView(ProtocolIdForm form, BindException errors) throws Exception
+        public ModelAndView getView(ProtocolIdForm form, BindException errors)
         {
             _protocol = form.getProtocol();
 
@@ -2241,7 +2241,7 @@ public class GenotypingController extends SpringActionController
         private ExpProtocol _protocol;
 
         @Override
-        public ModelAndView getView(ProtocolIdForm form, BindException errors) throws Exception
+        public ModelAndView getView(ProtocolIdForm form, BindException errors)
         {
             _protocol = form.getProtocol();
 
@@ -2477,7 +2477,7 @@ public class GenotypingController extends SpringActionController
         private ExpProtocol _protocol;
 
         @Override
-        public ModelAndView getView(ProtocolIdForm form, BindException errors) throws Exception
+        public ModelAndView getView(ProtocolIdForm form, BindException errors)
         {
             _protocol = form.getProtocol();
 
@@ -2502,7 +2502,7 @@ public class GenotypingController extends SpringActionController
     public class EditHaplotypeAssignmentAction extends SimpleViewAction<AssignmentForm>
     {
         @Override
-        public ModelAndView getView(AssignmentForm form, BindException errors) throws Exception
+        public ModelAndView getView(AssignmentForm form, BindException errors)
         {
             if (form.getRowId() == -1)
                 errors.reject(ERROR_MSG, "Error: Please provide an rowId for the AnimalAnalysis table.");

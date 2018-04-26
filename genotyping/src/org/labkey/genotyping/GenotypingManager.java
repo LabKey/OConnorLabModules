@@ -190,7 +190,7 @@ public class GenotypingManager
     // Multiple threads could attempt to set the status at roughly the same time. (For example, there are several ways
     // to initiate an analysis import: signal from Galaxy, pipeline ui, script, etc.) Use an AtomicDatabaseInteger to
     // synchronously set the status.  Returns true if status was changed, false if it wasn't.
-    public boolean updateAnalysisStatus(GenotypingAnalysis analysis, User user, Status expected, Status update) throws SQLException
+    public boolean updateAnalysisStatus(GenotypingAnalysis analysis, User user, Status expected, Status update)
     {
         assert (expected.getStatusId() + 1) == update.getStatusId();
 
@@ -213,14 +213,7 @@ public class GenotypingManager
     {
         for (GenotypingRun run : getRuns(c))
         {
-            try
-            {
-                deleteRun(run);
-            }
-            catch (SQLException e)
-            {
-                throw new RuntimeSQLException(e);
-            }
+            deleteRun(run);
         }
 
         GenotypingSchema gs = GenotypingSchema.get();
@@ -261,7 +254,7 @@ public class GenotypingManager
 
 
     // Deletes all the reads, analyses, and matches associated with a run, including rows in all junction tables.
-    public void deleteRun(GenotypingRun run) throws SQLException
+    public void deleteRun(GenotypingRun run)
     {
         GenotypingSchema gs = GenotypingSchema.get();
         deleteAnalyses(" WHERE Run = ? AND Run IN (SELECT RowId FROM " + gs.getRunsTable() + " WHERE Container = ?)", run.getRowId(), run.getContainer());
@@ -273,14 +266,14 @@ public class GenotypingManager
     }
 
 
-    public void deleteAnalysis(GenotypingAnalysis analysis) throws SQLException
+    public void deleteAnalysis(GenotypingAnalysis analysis)
     {
         GenotypingSchema gs = GenotypingSchema.get();
         deleteAnalyses(" WHERE RowId = ? AND Run IN (SELECT RowId FROM " + gs.getRunsTable() + " WHERE Container = ?)", analysis.getRowId(), analysis.getContainer());
     }
 
 
-    private void deleteAnalyses(CharSequence analysisFilter, Object... params) throws SQLException
+    private void deleteAnalyses(CharSequence analysisFilter, Object... params)
     {
         GenotypingSchema gs = GenotypingSchema.get();
         String analysisFrom = " FROM " + gs.getAnalysesTable() + analysisFilter;
@@ -590,7 +583,7 @@ public class GenotypingManager
         return matchId;
     }
 
-    public int deleteMatches(Container c, User user, int analysisId, List<Integer> matchIds) throws SQLException
+    public int deleteMatches(Container c, User user, int analysisId, List<Integer> matchIds)
     {
         // Validate analysis was posted and exists in this container
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(c, analysisId);

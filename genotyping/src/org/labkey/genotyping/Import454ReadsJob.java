@@ -94,16 +94,8 @@ public class Import454ReadsJob extends ReadsJob
         {
             error("Import 454 reads failed", e);
             setStatus(TaskStatus.error);
-
-            try
-            {
-                info("Deleting run " + _run.getRowId());
-                GenotypingManager.get().deleteRun(_run);
-            }
-            catch (SQLException se)
-            {
-                error("Failed to delete run " + _run.getRowId(), se);
-            }
+            info("Deleting run " + _run.getRowId());
+            GenotypingManager.get().deleteRun(_run);
         }
     }
 

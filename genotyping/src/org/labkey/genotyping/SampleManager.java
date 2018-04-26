@@ -61,7 +61,7 @@ public class SampleManager
         return INSTANCE;
     }
 
-    public Results selectSamples(Container c, User user, GenotypingRun run, String columnNames, String action) throws SQLException
+    public Results selectSamples(Container c, User user, GenotypingRun run, String columnNames, String action)
     {
         QueryHelper qHelper = validateSamplesQuery(c, user, run, action);
         MetaDataRun metaDataRun = validateRun(user, run, action);
@@ -76,7 +76,7 @@ public class SampleManager
         return qHelper.select(fieldKeys, extraFilter);
     }
 
-    public Results selectSamples(Container c, User user, GenotypingRun run, String action) throws SQLException
+    public Results selectSamples(Container c, User user, GenotypingRun run, String action)
     {
         QueryHelper qHelper = validateSamplesQuery(c, user, run, action);
         MetaDataRun metaDataRun = validateRun(user, run, action);

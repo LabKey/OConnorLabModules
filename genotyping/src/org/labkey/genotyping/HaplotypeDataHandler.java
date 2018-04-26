@@ -476,7 +476,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
     }
 
     @Override
-    public void runMoved(ExpData newData, Container container, Container targetContainer, String oldRunLSID, String newRunLSID, User user, int oldDataRowID) throws ExperimentException
+    public void runMoved(ExpData newData, Container container, Container targetContainer, String oldRunLSID, String newRunLSID, User user, int oldDataRowID)
     {
         throw new UnsupportedOperationException();
     }
@@ -488,7 +488,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
     }
 
     @Override
-    public void beforeDeleteData(List<ExpData> data) throws ExperimentException
+    public void beforeDeleteData(List<ExpData> data)
     {
         for (ExpData expData : data)
         {

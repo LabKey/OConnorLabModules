@@ -69,7 +69,7 @@ public class SequenceManager
     }
 
 
-    public void loadSequences(Container c, final User user) throws SQLException
+    public void loadSequences(Container c, final User user)
     {
         Map<String, Object> dictionary = new HashMap<>();
         dictionary.put("container", c);
@@ -89,7 +89,7 @@ public class SequenceManager
         new TableSelector(source, viewFilter, null).forEachMap(new Selector.ForEachBlock<Map<String, Object>>()
         {
             @Override
-            public void exec(Map<String, Object> map) throws SQLException
+            public void exec(Map<String, Object> map)
             {
                 Map<String, Object> inMap = new HashMap<>(map.size() * 2);
 
@@ -113,7 +113,7 @@ public class SequenceManager
     }
 
 
-    public void writeFasta(Container c, User user, @Nullable String sequencesViewName, File destination) throws SQLException, IOException
+    public void writeFasta(Container c, User user, @Nullable String sequencesViewName, File destination) throws IOException
     {
         ResultSet rs = null;
 
@@ -200,7 +200,7 @@ public class SequenceManager
         }
     }
 
-    private ResultSet selectSequences(Container c, User user, SequenceDictionary dictionary, String sequencesViewName, String columnNames) throws SQLException
+    private ResultSet selectSequences(Container c, User user, SequenceDictionary dictionary, String sequencesViewName, String columnNames)
     {
         // First, make sure that dictionary exists in this container
         SimpleFilter filter = SimpleFilter.createContainerFilter(c);
