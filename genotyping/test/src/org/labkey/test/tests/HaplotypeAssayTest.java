@@ -530,7 +530,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         // this method assumes that we are already viewing the Assay results grid
         DataRegionTable drt = new DataRegionTable("Data", this);
         drt.setFilter("AnimalId", "Equals", id);
-        checkCheckbox(Locator.checkboxByName(".select"));
+        drt.checkCheckbox(0);
         clickButton("Produce Report");
         waitForText("Enter the animal IDs separated by whitespace, comma, or semicolon:");
         DataRegionTable.DataRegion(getDriver()).withName("report").waitFor();
