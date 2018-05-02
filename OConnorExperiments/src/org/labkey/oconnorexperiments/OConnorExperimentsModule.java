@@ -104,7 +104,6 @@ public class OConnorExperimentsModule extends DefaultModule
     {
         addController("ocexp", OConnorExperimentsController.class);
         OConnorExperimentsUserSchema.register(this);
-        ServiceRegistry.get().registerService(OConnorExperimentsService.class, new OConnorExperimentsService());
     }
 
     @Override

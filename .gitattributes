@@ -249,7 +249,6 @@ OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsContainer
 OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsController.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsModule.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsSchema.java -text
-OConnorExperiments/src/org/labkey/oconnorexperiments/OConnorExperimentsService.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/WorkbookQueryView.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/WorkbookSearchBean.java -text
 OConnorExperiments/src/org/labkey/oconnorexperiments/model/Experiment.java -text
