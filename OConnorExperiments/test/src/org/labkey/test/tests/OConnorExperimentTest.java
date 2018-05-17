@@ -53,6 +53,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @Category({CustomModules.class})
+@BaseWebDriverTest.ClassTimeout(minutes = 6)
 public class OConnorExperimentTest extends BaseWebDriverTest implements PostgresOnlyTest
 {
     private static final String PROJECT_NAME = "OConnor Experiment Project";
