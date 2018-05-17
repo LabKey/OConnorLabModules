@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.categories.CustomModules;
@@ -36,6 +37,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 @Category({CustomModules.class})
+@BaseWebDriverTest.ClassTimeout(minutes = 5)
 public class PacBioTest extends GenotypingBaseTest
 {
     private static final File pipelineLoc = TestFileUtils.getSampleData("genotyping/PacBio");

@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
@@ -32,6 +33,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 @Category({CustomModules.class})
+@BaseWebDriverTest.ClassTimeout(minutes = 9)
 public class GenotypingTest extends GenotypingBaseTest
 {
     public static final String first454importNum = "207";

@@ -18,6 +18,7 @@ package org.labkey.test.tests;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
@@ -34,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @Category({CustomModules.class})
+@BaseWebDriverTest.ClassTimeout(minutes = 15)
 public class HaplotypeAssayTest extends GenotypingBaseTest
 {
     private static final String ASSAY_NAME = "HaplotypeAssay";// + TRICKY_CHARACTERS_NO_QUOTES;

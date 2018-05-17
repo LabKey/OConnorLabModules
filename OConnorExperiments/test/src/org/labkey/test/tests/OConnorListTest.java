@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Category({CustomModules.class, OConnor.class})
+@BaseWebDriverTest.ClassTimeout(minutes = 5)
 public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTest
 {
     private static String PROJECT_NAME = "OConnorTestProject";
