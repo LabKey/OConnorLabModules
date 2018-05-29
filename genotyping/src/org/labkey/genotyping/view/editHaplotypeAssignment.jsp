@@ -35,9 +35,8 @@
     GenotypingController.AssignmentForm bean = me.getModelBean();
     final String formDivId = "form" + getRequestScopedUID();
 
-    ActionURL returnURL = bean.getReturnActionURL();
-    if (returnURL == null)
-        returnURL = PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
+    ActionURL returnURL = bean.getReturnActionURL(
+            PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer()));
 %>
 <%
     if (getErrors("form").hasErrors())
