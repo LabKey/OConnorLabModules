@@ -221,7 +221,7 @@ public class IlluminaReadHeader
 
     public void setSampleNum(int sampleNum)
     {
-        this._sampleNum = sampleNum;
+        _sampleNum = sampleNum;
     }
 
     public String getSampleName()
