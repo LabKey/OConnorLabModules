@@ -41,7 +41,6 @@ import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.SQLFragment;
-import org.labkey.api.data.Selector.ForEachBlock;
 import org.labkey.api.data.ShowRows;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
@@ -1170,11 +1169,7 @@ public class GenotypingController extends SpringActionController
                 PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
                 ImportReadsForm.Platforms platform = ImportReadsForm.Platforms.valueOf(form.getPlatform());
 
-                if(platform == null)
-                    throw new IllegalArgumentException("Unknown sequence platform: " + form.getPlatform());
-                else
-                    platform.prepareAndQueueRunJob(vbi, root, new File(form.getReadsPath()), run, form.getPrefix());
-
+                platform.prepareAndQueueRunJob(vbi, root, new File(form.getReadsPath()), run, form.getPrefix());
             }
             catch (Exception e)
             {
@@ -1354,7 +1349,7 @@ public class GenotypingController extends SpringActionController
             for (String key : keys)
                 sampleKeys.add(Integer.parseInt(key));
 
-            GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, null == description ? null : description, sequencesView);
+            GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, description, sequencesView);
             try
             {
                 PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsPath, analysis, sampleKeys);
@@ -2266,7 +2261,7 @@ public class GenotypingController extends SpringActionController
     public class STRDiscrepanciesAssignmentReportAction extends SimpleViewAction<STRDiscrepancies>
     {
         private ExpProtocol _protocol;
-        private static final String _delim = "[;,/]";
+        private static final String DELIM = "[;,/]";
 
         @Override
         public ModelAndView getView(final STRDiscrepancies form, BindException errors)
@@ -2300,27 +2295,20 @@ public class GenotypingController extends SpringActionController
             // NOTE: this has assignments already mixed in (site/key 'STR').
             final Map<String, Map<String, Set<String>>> animalHaplotypes = new TreeMap<>();
 
-            new SqlSelector(gs.getSchema(), sql).forEach(new ForEachBlock<ResultSet>()
-            {
-                @Override
-                public void exec(ResultSet rs) throws SQLException
+            new SqlSelector(gs.getSchema(), sql).forEach(rs -> {
+                String labAnimalId = rs.getString(HaplotypeAssayProvider.LAB_ANIMAL_ID);
+                String type = rs.getString("type");
+
+                for (String name : getHaplotypeArray(rs, "name"))
                 {
-                    String labAnimalId = rs.getString(HaplotypeAssayProvider.LAB_ANIMAL_ID);
-                    String type = rs.getString("type");
+                    name = stripSubType(name, form);
 
-                    for (String name : rs.getString("name").split(_delim))
-                    {
-                        name = stripSubType(name, form);
+                    animalHaplotypes.computeIfAbsent(labAnimalId, k -> new TreeMap<>());
+                    Map<String, Set<String>> haplotypeMap = animalHaplotypes.get(labAnimalId);
 
-                        if (animalHaplotypes.get(labAnimalId) == null)
-                            animalHaplotypes.put(labAnimalId, new TreeMap<String, Set<String>>());
-                        Map<String, Set<String>> haplotypeMap = animalHaplotypes.get(labAnimalId);
+                    haplotypeMap.computeIfAbsent(type, k -> new HashSet<>());
 
-                        if (haplotypeMap.get(type) == null)
-                            haplotypeMap.put(type, new HashSet<String>());
-
-                        haplotypeMap.get(type).add(name);
-                    }
+                    haplotypeMap.get(type).add(name);
                 }
             });
 
@@ -2332,45 +2320,30 @@ public class GenotypingController extends SpringActionController
                 throw new NotFoundException("Could not find table '" + HaplotypeAssayProvider.STR_HAPLOTYPE + "' in schema 'lists'");
             }
 
-            new TableSelector(tableInfo).forEach(new ForEachBlock<ResultSet>()
-            {
-                @Override
-                public void exec(ResultSet rs) throws SQLException
-                {
-                    String[] mamuAs = rs.getString(HaplotypeAssayProvider.MHC_A).split(_delim);
-                    String[] mamuBs = rs.getString(HaplotypeAssayProvider.MHC_B).split(_delim);
-                    String[] mamuDRs = (rs.getString(HaplotypeAssayProvider.MHC_DR) != null) ? rs.getString(HaplotypeAssayProvider.MHC_DR).split(_delim) : null;
-                    Set<Map<String, String>> strGrouping = new HashSet<>();
+            new TableSelector(tableInfo).forEach(rs -> {
+                String[] mamuAs = getHaplotypeArray(rs, HaplotypeAssayProvider.MHC_A);
+                String[] mamuBs = getHaplotypeArray(rs, HaplotypeAssayProvider.MHC_B);
+                String[] mamuDRs = getHaplotypeArray(rs, HaplotypeAssayProvider.MHC_DR);
+                Set<Map<String, String>> strGrouping = new HashSet<>();
 
-                    for(String mamuA : mamuAs)
+                for(String mamuA : mamuAs)
+                {
+                    mamuA = stripSubType(mamuA, form);
+                    for(String mamuB : mamuBs)
                     {
-                        mamuA = stripSubType(mamuA, form);
-                        for(String mamuB : mamuBs)
+                        mamuB = stripSubType(mamuB, form);
+                        for(String mamuDR : mamuDRs)
                         {
-                            mamuB = stripSubType(mamuB, form);
-                            if (mamuDRs != null)
-                            {
-                                for(String mamuDR : mamuDRs)
-                                {
-                                    mamuDR = stripSubType(mamuDR, form);
-                                    Map<String, String> haplotypeMap = new TreeMap<>();
-                                    haplotypeMap.put(HaplotypeAssayProvider.MHC_A, mamuA );
-                                    haplotypeMap.put(HaplotypeAssayProvider.MHC_B, mamuB );
-                                    haplotypeMap.put(HaplotypeAssayProvider.MHC_DRB, mamuDR );
-                                    strGrouping.add(haplotypeMap);
-                                }
-                            }
-                            else
-                            {
-                                Map<String, String> haplotypeMap = new TreeMap<>();
-                                haplotypeMap.put(HaplotypeAssayProvider.MHC_A, mamuA );
-                                haplotypeMap.put(HaplotypeAssayProvider.MHC_B, mamuB );
-                                strGrouping.add(haplotypeMap);
-                            }
+                            mamuDR = stripSubType(mamuDR, form);
+                            Map<String, String> haplotypeMap = new TreeMap<>();
+                            haplotypeMap.put(HaplotypeAssayProvider.MHC_A, mamuA);
+                            haplotypeMap.put(HaplotypeAssayProvider.MHC_B, mamuB);
+                            haplotypeMap.put(HaplotypeAssayProvider.MHC_DRB, mamuDR);
+                            strGrouping.add(haplotypeMap);
                         }
                     }
-                    strHaplotypes.put(rs.getString(HaplotypeAssayProvider.STR_HAPLOTYPE), strGrouping);
                 }
+                strHaplotypes.put(rs.getString(HaplotypeAssayProvider.STR_HAPLOTYPE), strGrouping);
             });
 
             // now loop over STR assignments looking for discrepancies
@@ -2406,6 +2379,17 @@ public class GenotypingController extends SpringActionController
             AssayHeaderView header = new AssayHeaderView(_protocol, form.getProvider(), false, true, tableInfo.getContainerFilter());
             JspView<STRDiscrepancies> view = new JspView<>("/org/labkey/genotyping/view/strDiscrepancies.jsp", form, errors);
             return new VBox(header, view);
+        }
+
+        @NotNull
+        private String[] getHaplotypeArray(ResultSet rs, String columnName) throws SQLException
+        {
+            String value = rs.getString(columnName);
+            if (value == null)
+            {
+                value = "";
+            }
+            return value.split(DELIM);
         }
 
         private String stripSubType(String name, STRDiscrepancies form)
@@ -2445,7 +2429,7 @@ public class GenotypingController extends SpringActionController
         public void insertDiscrepancy(String name, String disrepancy)
         {
             if (!discrepancies.containsKey(name))
-                discrepancies.put(name, new TreeSet<String>());
+                discrepancies.put(name, new TreeSet<>());
             //NOTE: this might be better as a set...
             discrepancies.get(name).add(disrepancy);
         }
