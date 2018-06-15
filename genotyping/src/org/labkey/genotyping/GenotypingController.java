@@ -2336,9 +2336,12 @@ public class GenotypingController extends SpringActionController
                         {
                             mamuDR = stripSubType(mamuDR, form);
                             Map<String, String> haplotypeMap = new TreeMap<>();
-                            haplotypeMap.put(HaplotypeAssayProvider.MHC_A, mamuA);
-                            haplotypeMap.put(HaplotypeAssayProvider.MHC_B, mamuB);
-                            haplotypeMap.put(HaplotypeAssayProvider.MHC_DRB, mamuDR);
+                            if (!mamuA.isEmpty())
+                                haplotypeMap.put(HaplotypeAssayProvider.MHC_A, mamuA);
+                            if (!mamuB.isEmpty())
+                                haplotypeMap.put(HaplotypeAssayProvider.MHC_B, mamuB);
+                            if (!mamuDR.isEmpty())
+                                haplotypeMap.put(HaplotypeAssayProvider.MHC_DRB, mamuDR);
                             strGrouping.add(haplotypeMap);
                         }
                     }
