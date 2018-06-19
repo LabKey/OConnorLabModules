@@ -71,7 +71,6 @@ public class IlluminaFastqParser
     private Map<Pair<Integer, Integer>, File> _fileMap;
     private Map<Pair<Integer, Integer>, Integer> _sequenceTotals;
     private Logger _logger;
-    private static FileType FASTQ_FILETYPE = new FileType(Arrays.asList("fastq", "fq"), "fastq", FileType.gzSupportLevel.SUPPORT_GZ);
 
     public IlluminaFastqParser(@Nullable String outputPrefix, Map<Integer, Integer> sampleIndexToIdMap, Map<Integer, Integer> sampleIdToIndexMap, Logger logger, List<File> files)
     {
@@ -92,10 +91,10 @@ public class IlluminaFastqParser
 
         for (File f : folder.listFiles())
         {
-            if(!FASTQ_FILETYPE.isType(f))
+            if(!ReadsJob.FASTQ_FILETYPE.isType(f))
                 continue;
             // Skip over files whose main file name ends in _IX_XXX where X is any digit
-            if (FASTQ_FILETYPE.getBaseName(f).matches(".*_I\\d_\\d\\d\\d"))
+            if (ReadsJob.FASTQ_FILETYPE.getBaseName(f).matches(".*_I\\d_\\d\\d\\d"))
                 continue;
 
             if(fastqPrefix != null && !f.getName().startsWith(fastqPrefix))

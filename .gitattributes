@@ -432,9 +432,9 @@ genotyping/test/sampledata/genotyping/PacBio/pacbio8/pool1_barcoded_fastqs/Sampl
 genotyping/test/sampledata/genotyping/PacBio/pacbio8/pool1_barcoded_fastqs/lbc1--lbc1.fastq -text
 genotyping/test/sampledata/genotyping/PacBio/pacbio8/pool1_barcoded_fastqs/lbc2--lbc2.fastq -text
 genotyping/test/sampledata/genotyping/PacBio/pacbio8/pool2_barcoded_fastqs/SampleSheet.csv -text
-genotyping/test/sampledata/genotyping/PacBio/pacbio8/pool2_barcoded_fastqs/lbc14--lbc14.fastq -text
-genotyping/test/sampledata/genotyping/PacBio/pacbio8/pool2_barcoded_fastqs/lbc15--lbc15.fastq -text
-genotyping/test/sampledata/genotyping/PacBio/pacbio8/pool2_barcoded_fastqs/lbc16--lbc16.fastq -text
+genotyping/test/sampledata/genotyping/PacBio/pacbio8/pool2_barcoded_fastqs/lbc14--lbc14.fastq.gz -text
+genotyping/test/sampledata/genotyping/PacBio/pacbio8/pool2_barcoded_fastqs/lbc15--lbc15.fastq.gz -text
+genotyping/test/sampledata/genotyping/PacBio/pacbio8/pool2_barcoded_fastqs/lbc16--lbc16.fastq.gz -text
 genotyping/test/sampledata/genotyping/SkipMe.fastq.gz -text
 genotyping/test/sampledata/genotyping/analysis_complete.txt -text
 genotyping/test/sampledata/genotyping/genoCleanSamples.folder.zip -text

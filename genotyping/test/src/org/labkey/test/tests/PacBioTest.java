@@ -54,9 +54,9 @@ public class PacBioTest extends GenotypingBaseTest
     private static final Map<Integer, List<String>> POOL2_DATA =
             Collections.unmodifiableMap(new HashMap<Integer, List<String>>()
             {{
-                    put(0, Arrays.asList("lbc14--lbc14.fastq", "1871", "7", "2"));
-                    put(1, Arrays.asList("lbc15--lbc15.fastq", "1872", "6", "2"));
-                    put(2, Arrays.asList("lbc16--lbc16.fastq", "1873", "0", "2"));
+                    put(0, Arrays.asList("lbc14--lbc14.fastq.gz", "1871", "7", "2"));
+                    put(1, Arrays.asList("lbc15--lbc15.fastq.gz", "1872", "6", "2"));
+                    put(2, Arrays.asList("lbc16--lbc16.fastq.gz", "1873", "0", "2"));
                 }});
 
     @BeforeClass

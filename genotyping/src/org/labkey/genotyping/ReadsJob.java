@@ -31,6 +31,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.security.UserManager;
 import org.labkey.api.settings.LookAndFeelProperties;
 import org.labkey.api.util.ConfigurationException;
+import org.labkey.api.util.FileType;
 import org.labkey.api.util.MailHelper;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ViewBackgroundInfo;
@@ -38,12 +39,15 @@ import org.labkey.api.view.ViewBackgroundInfo;
 import javax.mail.MessagingException;
 import java.io.File;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public abstract class ReadsJob extends PipelineJob
 {
+    public static FileType FASTQ_FILETYPE = new FileType(Arrays.asList(".fastq", ".fq"), ".fastq", FileType.gzSupportLevel.SUPPORT_GZ);
+
     GenotypingRun _run;
 
     public ReadsJob(PipelineJob job, GenotypingRun run)

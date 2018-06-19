@@ -57,8 +57,6 @@ import java.util.Map;
 
 public class ImportPacBioReadsJob extends ReadsJob
 {
-    private static FileType FASTQ_FILETYPE = new FileType(Arrays.asList("fastq", "fq"), "fastq", FileType.gzSupportLevel.SUPPORT_GZ);
-
     private File _sampleFile;
     private String _fastqPrefix;
     private List<PacBioPool> _pools = new LinkedList<>();
@@ -280,7 +278,7 @@ public class ImportPacBioReadsJob extends ReadsJob
 
     private int getSampleId(File file, Map<String, Integer> sampleNameSampleIdMap)
     {
-        String fileName = FileUtil.getBaseName(file).trim().toLowerCase();
+        String fileName = FASTQ_FILETYPE.getBaseName(file).trim().toLowerCase();
         Integer result = sampleNameSampleIdMap.get(fileName);
         if (result == null)
         {
