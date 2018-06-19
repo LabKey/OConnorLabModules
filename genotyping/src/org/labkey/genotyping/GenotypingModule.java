@@ -27,6 +27,7 @@ import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.FolderTypeManager;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.pipeline.PipelineService;
+import org.labkey.api.security.User;
 import org.labkey.api.study.assay.AssayService;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.StringUtilsLabKey;
@@ -93,7 +94,7 @@ public class GenotypingModule extends DefaultModule
 
     @NotNull
     @Override
-    public Collection<String> getSummary(Container c)
+    public Collection<String> getSummary(Container c, User user)
     {
         GenotypingManager gm = GenotypingManager.get();
         Collection<String> list = new LinkedList<>();
