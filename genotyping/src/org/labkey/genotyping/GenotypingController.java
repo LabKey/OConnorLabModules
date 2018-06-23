@@ -1100,7 +1100,7 @@ public class GenotypingController extends SpringActionController
             // Issue 14278: segregate genotyping runs by container
             SimpleFilter filter = SimpleFilter.createContainerFilter(getContainer());
 
-            if(!form.getPlatform().equalsIgnoreCase(String.valueOf(SEQUENCE_PLATFORMS.PACBIO)))//for PacBio allow association with a run multiple times
+            if(!SEQUENCE_PLATFORMS.PACBIO.name().equalsIgnoreCase(form.getPlatform()))//for PacBio allow association with a run multiple times
                 allRuns.removeAll(new TableSelector(GenotypingSchema.get().getRunsTable(), PageFlowUtil.set("MetaDataId"), filter, null).getCollection(Integer.class));
 
             return new JspView<>("/org/labkey/genotyping/view/importReads.jsp", new ImportReadsBean(allRuns, form.getReadsPath(), form.getPath(), form.getPlatform(), form.getPrefix()), errors);
