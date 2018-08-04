@@ -94,10 +94,10 @@ OConnor/resources/schemas/dbscripts/postgresql/obsolete/oconnor-1.07-14.23.sql -
 OConnor/resources/schemas/dbscripts/postgresql/obsolete/oconnor-1.07-14.30.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/obsolete/oconnor-16.30-16.31.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/obsolete/oconnor-17.20-17.21.sql -text
+OConnor/resources/schemas/dbscripts/postgresql/obsolete/oconnor-17.30-17.31.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-0.00-14.30.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-16.30-17.10.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-17.20-17.30.sql -text
-OConnor/resources/schemas/dbscripts/postgresql/oconnor-17.30-17.31.sql -text
 OConnor/resources/schemas/dbscripts/postgresql/oconnor-17.30-18.10.sql -text
 OConnor/resources/schemas/oconnor.xml -text
 OConnor/resources/views/AnimalList.html -text
