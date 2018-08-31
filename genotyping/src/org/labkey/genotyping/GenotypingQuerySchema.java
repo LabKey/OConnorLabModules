@@ -560,7 +560,9 @@ public class GenotypingQuerySchema extends UserSchema
                 SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable(schema, GS.getAnimalTable()).init();
                 table.setDescription("Contains one row per animal");
 
-                table.addColumn(schema.createConcatenatedHaplotypeColumn(table, true));
+                ColumnInfo ci = schema.createConcatenatedHaplotypeColumn(table, true);
+                if (ci != null)
+                    table.addColumn(ci);
 
                 return table;
             }
@@ -608,9 +610,9 @@ public class GenotypingQuerySchema extends UserSchema
                 table.init();
                 table.setContainerFilter(table.getContainerFilter());
 
-                ExprColumn concatCol = schema.createConcatenatedHaplotypeColumn(table, false);
-                table.addColumn(concatCol);
-
+                ColumnInfo concatCol = schema.createConcatenatedHaplotypeColumn(table, false);
+                if (concatCol != null)
+                    table.addColumn(concatCol);
 
                 // calculated field for % Unknown = (Total Reads - Identified Reads) / Total Reads
                 SQLFragment percUnknownSql = new SQLFragment("(CASE WHEN (IdentifiedReads IS NULL OR TotalReads IS NULL OR TotalReads = 0) THEN NULL "
