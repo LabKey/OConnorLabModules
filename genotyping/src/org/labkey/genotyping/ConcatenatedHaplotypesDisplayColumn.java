@@ -81,7 +81,7 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
                 separator = ", ";
                 ActionURL url = _haplotypeTableInfo.getGridURL(_container).clone();
                 // Filter the default grid URL to just show matches for this haplotype
-                SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("Haplotype"), haplotype);
+                SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("DisplayName"), haplotype);
                 String speciesValue = ctx.get(getSpeciesFieldKey(), String.class);
                 if (speciesValue != null)
                 {
