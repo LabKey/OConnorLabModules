@@ -53,6 +53,9 @@ public class ImportAnalysisJob extends PipelineJob
     private File _dir;
     private GenotypingAnalysis _analysis;
 
+    // For serialization
+    protected ImportAnalysisJob() {}
+
     public ImportAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File pipelineDir, GenotypingAnalysis analysis)
     {
         super("Import Analysis", info, root);
@@ -65,6 +68,13 @@ public class ImportAnalysisJob extends PipelineJob
 
         if (null == _analysis)
             throw new IllegalArgumentException("Analysis was not specified");
+    }
+
+
+    @Override
+    public boolean hasJacksonSerialization()
+    {
+        return true;
     }
 
 

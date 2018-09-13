@@ -15,6 +15,8 @@
  */
 package org.labkey.genotyping;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Selector;
@@ -67,6 +69,26 @@ public class SubmitAnalysisJob extends PipelineJob
     // skip trying to submit to Galaxy on subsequent attempts (until server restart).
     private static Boolean _useGalaxy = null;
 
+    @JsonCreator
+    protected SubmitAnalysisJob(
+            @JsonProperty("_dir") File dir,
+            @JsonProperty("_analysis") GenotypingAnalysis analysis,
+            @JsonProperty("_analysisDir") File analysisDir,
+            @JsonProperty("_sampleIds") Set<Integer> sampleIds,
+            @JsonProperty("_galaxyURL") URLHelper galaxyURL,
+            @JsonProperty("_completionFile") File completionFile,
+            @JsonProperty("_useGalaxy") Boolean useGalaxy
+    )
+    {
+        _dir = dir;
+        _analysis = analysis;
+        _analysisDir = analysisDir;
+        _sampleIds = sampleIds;
+        _galaxyURL = galaxyURL;
+        _completionFile = completionFile;
+        _useGalaxy = useGalaxy;
+    }
+    
     public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingAnalysis analysis, @NotNull Set<Integer> sampleIds)
     {
         super("Submit Analysis", info, root);      // No pipeline provider
@@ -87,6 +109,13 @@ public class SubmitAnalysisJob extends PipelineJob
         _analysis.setPath(_analysisDir.getAbsolutePath());
         _analysis.setFileName(_analysisDir.getName());
         Table.update(getUser(), GenotypingSchema.get().getAnalysesTable(), PageFlowUtil.map("Path", _analysis.getPath(), "FileName", _analysis.getFileName()), _analysis.getRowId());
+    }
+
+    
+    @Override
+    public boolean hasJacksonSerialization()
+    {
+        return true;
     }
 
 

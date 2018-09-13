@@ -16,6 +16,8 @@
 package org.labkey.genotyping;
 
 import au.com.bytecode.opencsv.CSVReader;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.DbScope;
@@ -56,6 +58,15 @@ public class ImportIlluminaReadsJob extends ReadsJob
     private final File _sampleFile;
     private List<File> _fastqFiles;
     private String _fastqPrefix;
+
+    @JsonCreator
+    protected ImportIlluminaReadsJob(@JsonProperty("_sampleFile") File sampleFile, @JsonProperty("_fastqFiles") List<File> fastqFiles,
+                                     @JsonProperty("_fastqPrefix") String fastqPrefix)
+    {
+        _sampleFile = sampleFile;
+        _fastqFiles = fastqFiles;
+        _fastqPrefix = fastqPrefix;
+    }
 
     public ImportIlluminaReadsJob(ViewBackgroundInfo info, PipeRoot root, File sampleFile, GenotypingRun run, @Nullable String fastqPrefix)
     {

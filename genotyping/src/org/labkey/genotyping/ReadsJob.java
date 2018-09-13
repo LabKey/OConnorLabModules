@@ -50,6 +50,9 @@ public abstract class ReadsJob extends PipelineJob
 
     GenotypingRun _run;
 
+    // For serialization
+    protected ReadsJob() {}
+
     public ReadsJob(PipelineJob job, GenotypingRun run)
     {
         super(job);
@@ -60,6 +63,12 @@ public abstract class ReadsJob extends PipelineJob
     {
         super(provider, info, root);
         _run = run;
+    }
+
+    @Override
+    public boolean hasJacksonSerialization()
+    {
+        return true;
     }
 
     @Override

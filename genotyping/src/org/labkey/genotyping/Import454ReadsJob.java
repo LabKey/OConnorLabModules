@@ -15,6 +15,8 @@
  */
 package org.labkey.genotyping;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.RuntimeSQLException;
@@ -53,6 +55,12 @@ public class Import454ReadsJob extends ReadsJob
 {
     private final File _reads;
     private final static boolean TEST_COMRESSION = false;
+
+    @JsonCreator
+    protected Import454ReadsJob(@JsonProperty("_reads") File reads)
+    {
+        _reads = reads;
+    }
 
     public Import454ReadsJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run)
     {

@@ -63,6 +63,9 @@ public class ImportPacBioReadsJob extends ReadsJob
     private String _dirSubstring = "pool";
     private String[] _extensions = {"fastq.gz", "fastq"};
 
+    // For serialization
+    protected ImportPacBioReadsJob() {}
+
     public ImportPacBioReadsJob(ViewBackgroundInfo info, PipeRoot root, File sampleFile, GenotypingRun run, @Nullable String fastqPrefix)
     {
         super(ImportPacBioReadsPipelineProvider.NAME, info, root, run);
@@ -335,6 +338,9 @@ public class ImportPacBioReadsJob extends ReadsJob
         int poolNum;
         List<File> fastqFiles = new ArrayList<>();
 
+        // For serialization
+        protected PacBioPool() {}
+        
         public PacBioPool(int poolNum, Collection<File> fastqFiles)
         {
             this.poolNum = poolNum;
