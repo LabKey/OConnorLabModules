@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.collections.Sets;
 import org.labkey.api.data.*;
+import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.query.ExpSchema;
 import org.labkey.api.module.Module;
@@ -56,6 +57,7 @@ import org.springframework.validation.BindException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -78,7 +80,7 @@ public class GenotypingQuerySchema extends UserSchema
     private static final String NULL_HAPLOTYPE_MARKER = "~";
     private static final Logger LOG = Logger.getLogger(GenotypingQuerySchema.class);
 
-    private SortedMap<Integer, String> _allHaplotypes;
+    private SortedMap<Integer, Map<String, String>> _allHaplotypes;
 
     @Nullable private final Integer _analysisId;
 
@@ -719,14 +721,14 @@ public class GenotypingQuerySchema extends UserSchema
     }
 
     /** All of the haplotype types, such as mhcA, mhcB, etc (not specific assignments like A001, A002a, etc) used in this container */
-    private SortedMap<Integer, String> getAllHaplotypes(TableInfo haplotypeDefTi)
+    private SortedMap<Integer, Map<String, String>> getAllHaplotypes(TableInfo haplotypeTypes)
     {
         if (_allHaplotypes == null)
         {
-            SQLFragment sql = new SQLFragment("SELECT DISTINCT h.Type, hap.sortorder FROM ");
+            SQLFragment sql = new SQLFragment("SELECT DISTINCT h.Type, hap.sortorder, hap.prefix FROM ");
             sql.append(getDbSchema().getTable("Haplotype"), "h");
             sql.append(" JOIN ");
-            sql.append(haplotypeDefTi, "hap");
+            sql.append(haplotypeTypes, "hap");
             sql.append(" ON h.Type=hap.Type");
             sql.append(" WHERE h.Container = ?");
             sql.add(getContainer());
@@ -737,7 +739,11 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 for (Map<String, Object> result : results)
                 {
-                    _allHaplotypes.put((Integer) result.get("sortorder"), (String) result.get("Type"));
+                    Map<String, String> prefixType = new HashMap<>();
+                    prefixType.put("type", (String) result.get("type"));
+                    prefixType.put("prefix", (String) result.get("prefix"));
+
+                    _allHaplotypes.put((Integer) result.get("sortorder"), prefixType);
                 }
             }
             catch (SQLException e)
@@ -769,21 +775,28 @@ public class GenotypingQuerySchema extends UserSchema
     private ExprColumn createConcatenatedHaplotypeColumn(SimpleUserSchema.SimpleTable table, boolean fromAnimal)
     {
         List<SQLFragment> haplotypeSQLs = new ArrayList<>();
-        TableInfo haplotypeDefTi = QueryService.get().getUserSchema(getUser(), getContainer(), "lists").getTable("HaplotypeDefinitions");
+        TableInfo haplotypeTypes = QueryService.get().getUserSchema(getUser(), getContainer(), "lists").getTable("HaplotypeTypes");
 
-        if (haplotypeDefTi == null)
+        List<String> prefixes = new ArrayList<>();
+
+        if (haplotypeTypes == null)
         {
-            LOG.error("HaplotypeDefinitions List is not found. This list must have columns Haplotype, Allele, DisplayName, SortOrder and Type.");
+            LOG.error("HaplotypeTypes List is not found. This list must have columns Type, Prefix and SortOrder.");
             return null;
         }
         // Build up an ordered list of haplotype assignments. We want mhcA1, mhcA2, mhcB1, mhcB2, etc, which means
         // that we can't use a simple GROUP_CONCAT
-        for (String haplotype : getAllHaplotypes(haplotypeDefTi).values())
+        for (Map<String, String> haplotypeType : getAllHaplotypes(haplotypeTypes).values())
         {
-            haplotypeSQLs.add(getHaplotypeSelect(haplotype, haplotypeDefTi, 1, fromAnimal));
+            haplotypeSQLs.add(getHaplotypeSelect(haplotypeType, 1, fromAnimal, haplotypeTypes.getSqlDialect()));
             haplotypeSQLs.add(new SQLFragment("', '"));
-            haplotypeSQLs.add(getHaplotypeSelect(haplotype, haplotypeDefTi, 2, fromAnimal));
+            haplotypeSQLs.add(getHaplotypeSelect(haplotypeType, 2, fromAnimal, haplotypeTypes.getSqlDialect()));
             haplotypeSQLs.add(new SQLFragment("', '"));
+
+            if (haplotypeType.get("prefix") != null)
+            {
+                prefixes.add(haplotypeType.get("prefix"));
+            }
         }
         // Add a final marker to make replacement simpler
         haplotypeSQLs.add(new SQLFragment("'" + NULL_HAPLOTYPE_MARKER + "'"));
@@ -809,7 +822,7 @@ public class GenotypingQuerySchema extends UserSchema
                     @Override
                     public DisplayColumn createRenderer(ColumnInfo colInfo)
                     {
-                        return new ConcatenatedHaplotypesDisplayColumn(colInfo, getContainer(), haplotypeTableInfo);
+                        return new ConcatenatedHaplotypesDisplayColumn(colInfo, getContainer(), haplotypeTableInfo, prefixes);
                     }
                 });
             }
@@ -818,15 +831,24 @@ public class GenotypingQuerySchema extends UserSchema
     }
 
     /** Generate SQL that pulls the specific haplotype assignment for a given type (mhcA, for example) and number (1 or 2) */
-    private SQLFragment getHaplotypeSelect(String haplotype, TableInfo haplotypeDefTi, int diploidNumber, boolean fromAnimal)
+    private SQLFragment getHaplotypeSelect(Map<String, String> haplotypeType, int diploidNumber, boolean fromAnimal, SqlDialect dialect)
     {
         SQLFragment sql = new SQLFragment();
-        sql.append("(SELECT COALESCE(MIN(hap.displayname), '" + NULL_HAPLOTYPE_MARKER + "') FROM ");
+        if (haplotypeType.get("prefix") != null)
+        {
+            sql.append("(SELECT (CASE WHEN (MIN(h.Name) IS NOT NULL) THEN (CASE WHEN (");
+            sql.append(dialect.sqlLocate(new SQLFragment("?", haplotypeType.get("prefix").substring(0, haplotypeType.get("prefix").length() - 1)), new SQLFragment("MIN(h.Name)")));
+            sql.append("= 1) THEN (MIN(h.Name)) ELSE (");
+            sql.append(dialect.concatenate(new SQLFragment("?", haplotypeType.get("prefix")), new SQLFragment("MIN(h.Name)")));
+            sql.append(")END) ELSE '" + NULL_HAPLOTYPE_MARKER + "' END) FROM ");
+        }
+        else
+        {
+            sql.append("(SELECT COALESCE(MIN(h.Name), '" + NULL_HAPLOTYPE_MARKER + "') FROM ");
+        }
         sql.append(getDbSchema().getTable("Haplotype"), "h");
         sql.append(", ");
         sql.append(getDbSchema().getTable("AnimalHaplotypeAssignment"), "aha");
-        sql.append(", ");
-        sql.append(haplotypeDefTi, "hap");
         if (fromAnimal)
         {
             sql.append(", ");
@@ -840,8 +862,8 @@ public class GenotypingQuerySchema extends UserSchema
         }
         sql.append(ExprColumn.STR_TABLE_ALIAS);
         sql.append(".RowId AND h.Type = ?");
-        sql.add(haplotype);
-        sql.append(" AND h.Type = hap.Type AND h.Name = hap.haplotype AND aha.DiploidNumber = ");
+        sql.add(haplotypeType.get("type"));
+        sql.append(" AND aha.DiploidNumber = ");
         sql.append(Integer.toString(diploidNumber));
         sql.append(")");
         return sql;

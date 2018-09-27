@@ -28,6 +28,7 @@ import org.labkey.api.view.ActionURL;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -41,12 +42,15 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
     private final Container _container;
     @NotNull
     private final TableInfo _haplotypeTableInfo;
+    @NotNull
+    private final List<String> _prefixes;
 
-    public ConcatenatedHaplotypesDisplayColumn(@NotNull ColumnInfo col, @NotNull Container container, @NotNull TableInfo haplotypeTableInfo)
+    public ConcatenatedHaplotypesDisplayColumn(@NotNull ColumnInfo col, @NotNull Container container, @NotNull TableInfo haplotypeTableInfo, @NotNull List<String> prefixes)
     {
         super(col);
         _container = container;
         _haplotypeTableInfo = haplotypeTableInfo;
+        _prefixes = prefixes;
     }
 
     @Override
@@ -74,14 +78,26 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
             String values = o.toString();
             String[] haplotypes = values.split(",");
             String separator = "";
+            String haplotypeFilter;
             for (String haplotype : haplotypes)
             {
                 haplotype = haplotype.trim();
+                haplotypeFilter = haplotype;
+
+                // Best guess prefix removing
+                for (String prefix : _prefixes)
+                {
+                    if (haplotype.startsWith(prefix))
+                    {
+                        haplotypeFilter = haplotype.substring(prefix.length());
+                        break;
+                    }
+                }
                 out.write(separator);
                 separator = ", ";
                 ActionURL url = _haplotypeTableInfo.getGridURL(_container).clone();
                 // Filter the default grid URL to just show matches for this haplotype
-                SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("DisplayName"), haplotype);
+                SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("haplotype"), haplotypeFilter);
                 String speciesValue = ctx.get(getSpeciesFieldKey(), String.class);
                 if (speciesValue != null)
                 {
