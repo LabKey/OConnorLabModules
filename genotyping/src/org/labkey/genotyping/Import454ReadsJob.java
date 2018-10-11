@@ -24,6 +24,7 @@ import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJobException;
+import org.labkey.api.query.QueryService;
 import org.labkey.api.reader.ColumnDescriptor;
 import org.labkey.api.reader.TabLoader;
 import org.labkey.api.util.Compress;
@@ -80,6 +81,9 @@ public class Import454ReadsJob extends ReadsJob
     {
         try
         {
+            QueryService.get().setEnvironment(QueryService.Environment.USER, getUser());
+            QueryService.get().setEnvironment(QueryService.Environment.CONTAINER, getContainer());
+
             updateRunStatus(Status.Importing);
 
             try
@@ -104,6 +108,10 @@ public class Import454ReadsJob extends ReadsJob
             setStatus(TaskStatus.error);
             info("Deleting run " + _run.getRowId());
             GenotypingManager.get().deleteRun(_run);
+        }
+        finally
+        {
+            QueryService.get().clearEnvironment();
         }
     }
 
