@@ -111,13 +111,6 @@ public class SubmitAnalysisJob extends PipelineJob
         Table.update(getUser(), GenotypingSchema.get().getAnalysesTable(), PageFlowUtil.map("Path", _analysis.getPath(), "FileName", _analysis.getFileName()), _analysis.getRowId());
     }
 
-    
-    @Override
-    public boolean hasJacksonSerialization()
-    {
-        return true;
-    }
-
 
     @Override
     public URLHelper getStatusHref()

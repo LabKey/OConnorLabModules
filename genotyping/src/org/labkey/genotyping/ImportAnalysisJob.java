@@ -72,13 +72,6 @@ public class ImportAnalysisJob extends PipelineJob
 
 
     @Override
-    public boolean hasJacksonSerialization()
-    {
-        return true;
-    }
-
-
-    @Override
     public ActionURL getStatusHref()
     {
         return GenotypingController.getAnalysisURL(getContainer(), _analysis.getRowId());

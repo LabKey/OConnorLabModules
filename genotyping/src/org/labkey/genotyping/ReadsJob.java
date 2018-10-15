@@ -25,7 +25,6 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJob;
-import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.security.User;
 import org.labkey.api.security.UserManager;
@@ -38,7 +37,6 @@ import org.labkey.api.view.ViewBackgroundInfo;
 
 import javax.mail.MessagingException;
 import java.io.File;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,12 +61,6 @@ public abstract class ReadsJob extends PipelineJob
     {
         super(provider, info, root);
         _run = run;
-    }
-
-    @Override
-    public boolean hasJacksonSerialization()
-    {
-        return true;
     }
 
     @Override
