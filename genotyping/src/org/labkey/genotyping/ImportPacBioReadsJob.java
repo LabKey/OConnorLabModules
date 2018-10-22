@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ImportPacBioReadsJob extends ReadsJob
 {
@@ -112,9 +113,7 @@ public class ImportPacBioReadsJob extends ReadsJob
     {
 
         Map<String, Integer> sampleNameSampleIdMap = new HashMap<>();
-        Map<Integer, Object> sampleIdsFromSamplesList = null;
-
-        sampleIdsFromSamplesList = SampleManager.get().getSampleIdsFromSamplesList(getContainer(), getUser(), _run, "importing reads");
+        Set<Integer> sampleIdsFromSamplesList = SampleManager.get().getSampleIdsFromSamplesList(getContainer(), getUser(), _run, "importing reads");
 
         readFromSampleSheetFile(sampleNameSampleIdMap, sampleIdsFromSamplesList);
 
@@ -127,7 +126,7 @@ public class ImportPacBioReadsJob extends ReadsJob
         persistPacBioPoolRecords(sampleNameSampleIdMap);
     }
 
-    private void readFromSampleSheetFile(Map<String, Integer> sampleNameSampleIdMap, Map<Integer, Object> sampleIdsFromSamplesList) throws PipelineJobException
+    private void readFromSampleSheetFile(Map<String, Integer> sampleNameSampleIdMap, Set<Integer> sampleIdsFromSamplesList) throws PipelineJobException
     {
         try
         {
@@ -157,7 +156,7 @@ public class ImportPacBioReadsJob extends ReadsJob
                     int sampleId = Integer.parseInt(nextLine[0].trim());
 
                     //identify whether Sample ID in sample sheet matches Sample ID in samples list
-                    if(!sampleIdsFromSamplesList.containsKey(sampleId))
+                    if(!sampleIdsFromSamplesList.contains(sampleId))
                         throw new PipelineJobException("Sample ID" + sampleId + " does not match Sample ID in samples list.");
 
                     String sampleName = nextLine[1].trim();

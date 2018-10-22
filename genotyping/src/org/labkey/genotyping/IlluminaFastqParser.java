@@ -33,9 +33,7 @@ import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
-import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.test.TestWhen;
-import org.labkey.api.util.FileType;
 import org.labkey.api.util.JunitUtil;
 import org.labkey.api.util.Pair;
 import org.labkey.api.util.TestContext;
@@ -67,16 +65,18 @@ public class IlluminaFastqParser
     private String _outputPrefix;
     private Map<Integer, Integer> _sampleIndexToIdMap;
     private Map<Integer, Integer> _sampleIdToIndexMap;
+    private Map<String, Integer> _sampleNameToIdMap;
     private List<File> _files;
     private Map<Pair<Integer, Integer>, File> _fileMap;
     private Map<Pair<Integer, Integer>, Integer> _sequenceTotals;
     private Logger _logger;
 
-    public IlluminaFastqParser(@Nullable String outputPrefix, Map<Integer, Integer> sampleIndexToIdMap, Map<Integer, Integer> sampleIdToIndexMap, Logger logger, List<File> files)
+    public IlluminaFastqParser(@Nullable String outputPrefix, Map<Integer, Integer> sampleIndexToIdMap, Map<Integer, Integer> sampleIdToIndexMap, Map<String, Integer> sampleNameToIdMap, Logger logger, List<File> files)
     {
         _outputPrefix = outputPrefix;
         _sampleIndexToIdMap = sampleIndexToIdMap;
         _sampleIdToIndexMap = sampleIdToIndexMap;
+        _sampleNameToIdMap = sampleNameToIdMap;
         _files = files;
         _logger = logger;
     }
@@ -135,6 +135,7 @@ public class IlluminaFastqParser
                 String fileName = f.getName();
 
                 int sampleIdx = Integer.MIN_VALUE;
+                String sampleName = null;
                 int pairNumber = Integer.MIN_VALUE;
                 int totalReads = 0;
                 while (reader.hasNext())
@@ -144,14 +145,26 @@ public class IlluminaFastqParser
                     IlluminaReadHeader parsedHeader = new IlluminaReadHeader(header, fileName);
                     if(parsedHeader.getSampleName() != null)  // may be new header format, so let's try alternate lookup
                     {
-                        try
+                        sampleName = parsedHeader.getSampleName();
+
+                        // First try to resolve as a sample name
+                        Integer sampleId = _sampleNameToIdMap.get(parsedHeader.getSampleName());
+                        if (sampleId == null)
                         {
-                            int sampleNum = _sampleIdToIndexMap.get(Integer.parseInt(parsedHeader.getSampleName()));
-                            parsedHeader.setSampleNum(sampleNum);
-                        }
-                        catch (NumberFormatException nfe)
-                        {
-                            throw new PipelineJobException("Could not resolve index for sample named '" + parsedHeader.getSampleName() + "'. Sample map is: " + _sampleIdToIndexMap);
+                            try
+                            {
+                                sampleId = Integer.parseInt(parsedHeader.getSampleName());
+                            }
+                            catch(NumberFormatException e)
+                            {
+                                throw new PipelineJobException("Could not resolve sample ID for sample named '" + parsedHeader.getSampleName() + "'. Sample map is: " + _sampleNameToIdMap);
+                            }
+                            Integer sampleIndex = _sampleIdToIndexMap.get(sampleId);
+                            if (sampleIndex == null)
+                            {
+                                throw new PipelineJobException("Could not resolve Sample Index for Sample ID: " + sampleId + ". Id to Index mapping is: " + _sampleIdToIndexMap);
+                            }
+                            parsedHeader.setSampleNum(sampleIndex.intValue());
                         }
                     }
                     if ((sampleIdx != Integer.MIN_VALUE && sampleIdx != parsedHeader.getSampleNum()) ||
@@ -182,7 +195,7 @@ public class IlluminaFastqParser
                     _sequenceTotals.put(key, totalReads);
 
                     Integer sampleId = _sampleIndexToIdMap.get(sampleIdx);
-                    if (sampleIdx != 0 && sampleId == null)
+                    if (sampleIdx != 0 && sampleId == null && sampleName == null)
                     {
                         throw new PipelineJobException("Could not resolve id for sample at index " + sampleIdx + ". Sample map is: " + _sampleIndexToIdMap);
                     }
@@ -312,7 +325,7 @@ public class IlluminaFastqParser
         @Test
         public void testNoDupes() throws PipelineJobException
         {
-            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(DupeTestCase.class), Collections.emptyList());
+            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(DupeTestCase.class), Collections.emptyList());
             Map<File, File> files = new HashMap<>();
             files.put(new File("a"), new File("b"));
             files.put(new File("c"), new File("d"));
@@ -322,7 +335,7 @@ public class IlluminaFastqParser
         @Test(expected = PipelineJobException.class)
         public void testDupeTargets() throws PipelineJobException
         {
-            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(DupeTestCase.class), Collections.emptyList());
+            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(DupeTestCase.class), Collections.emptyList());
             Map<File, File> files = new HashMap<>();
             files.put(new File("a"), new File("b"));
             files.put(new File("c"), new File("b"));
@@ -479,7 +492,7 @@ public class IlluminaFastqParser
                 i++;
             }
 
-            IlluminaFastqParser parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Logger.getLogger(HeaderTestCase.class), oldHeaderFiles);
+            IlluminaFastqParser parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Collections.emptyMap(), Logger.getLogger(HeaderTestCase.class), oldHeaderFiles);
             Map<Pair<Integer, Integer>, File> outputs = parser.parseFastqFiles(null);
             Assert.assertEquals("Outputs from parseFastqFiles with old headers were not as expected.", expectedOutputs, outputs.keySet());
 
@@ -492,7 +505,7 @@ public class IlluminaFastqParser
                 newHeaderFiles.add(target);
             }
 
-            parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Logger.getLogger(HeaderTestCase.class), newHeaderFiles);
+            parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Collections.emptyMap(), Logger.getLogger(HeaderTestCase.class), newHeaderFiles);
             outputs = parser.parseFastqFiles(null);
             Assert.assertEquals("Outputs from parseFastqFiles with new headers were not as expected.", expectedOutputs, outputs.keySet());
         }

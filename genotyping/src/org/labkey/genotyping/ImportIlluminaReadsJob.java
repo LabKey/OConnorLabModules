@@ -18,6 +18,7 @@ package org.labkey.genotyping;
 import au.com.bytecode.opencsv.CSVReader;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.DbScope;
@@ -35,7 +36,6 @@ import org.labkey.api.util.Pair;
 import org.labkey.api.view.ViewBackgroundInfo;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -118,9 +118,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
             info("Processing Run From File: " + _sampleFile.getName());
             setStatus("PROCESSING READS");
 
-            Map<Integer, Object> sampleIdsFromSamplesList = null;
-
-            sampleIdsFromSamplesList = SampleManager.get().getSampleIdsFromSamplesList(getContainer(), getUser(), _run, "importing reads");
+            Set<Integer> sampleIdsFromSamplesList = SampleManager.get().getSampleIdsFromSamplesList(getContainer(), getUser(), _run, "importing reads");
 
             try (CSVReader reader = new CSVReader(Readers.getReader(_sampleFile)))
             {
@@ -135,8 +133,12 @@ public class ImportIlluminaReadsJob extends ReadsJob
 
                 //parse the samples file
                 String[] nextLine;
+                /* Index is the number of the sample as ordered in SampleSet CSV, mapped to the unique RowId for each sample */
                 Map<Integer, Integer> sampleIndexToIdMap = new HashMap<>();
+                /* Unique RowId for each sample mapped to the index is the number of the sample as ordered in SampleSet CSV */
                 Map<Integer, Integer> sampleIdToIndexMap = new HashMap<>();
+                /* Name for each sample, mapped to the RowId of the sample */
+                Map<String, Integer> sampleNameToIdMap = new HashMap<>();
                 sampleIndexToIdMap.put(0, 0); //placeholder for control and unmapped reads
                 sampleIdToIndexMap.put(0, 0);
                 Boolean inSamples = false;
@@ -150,31 +152,44 @@ public class ImportIlluminaReadsJob extends ReadsJob
                         continue;
                     }
 
-                    //NOTE: for now we only parse samples.  at a future point we might consider using more of this file
+                    //NOTE: for now we only parse the samples in the [Data] section of the file.
+                    // At a future point we might consider using more of this file
                     if (!inSamples)
                         continue;
 
-                    if (nextLine.length == 0 || null == nextLine[0] || nextLine[0].trim().isEmpty())
+                    // Skip blank lines
+                    if (nextLine.length == 0)
                         continue;
 
-                    if ("Sample_ID".equalsIgnoreCase(nextLine[0].trim()))
+                    // Find the value of the sample ID and name columns when possible
+                    String sampleId = StringUtils.trimToNull(nextLine[0]);
+                    String sampleName = null;
+                    if (nextLine.length > 1)
+                    {
+                        sampleName = StringUtils.trimToNull(nextLine[1]);
+                    }
+
+                    // Skip the header line
+                    if ("Sample_ID".equalsIgnoreCase(nextLine[0]))
                         continue;
 
-                    int sampleId;
                     try
                     {
-                        sampleId = Integer.parseInt(nextLine[0].trim());
+                        sampleIdx++;
+
+                        int parsedSampleId = Integer.parseInt(sampleId);
 
                         //identify whether Sample ID in sample sheet matches Sample ID in samples list
-                        if(!sampleIdsFromSamplesList.containsKey(sampleId))
-                            throw new PipelineJobException("Sample ID " + sampleId + " does not match Sample ID in samples list.");
+                        if (!sampleIdsFromSamplesList.contains(parsedSampleId))
+                            throw new PipelineJobException("Sample ID " + parsedSampleId + " does not match Sample ID in samples list.");
 
-                        if (!finder.isValidSampleKey(sampleId))
+                        if (!finder.isValidSampleKey(parsedSampleId))
                             throw new PipelineJobException("Invalid sample Id for this run: " + nextLine[0]);
 
-                        sampleIdx++;
-                        sampleIndexToIdMap.put(sampleIdx, sampleId);
-                        sampleIdToIndexMap.put(sampleId, sampleIdx);
+                        sampleIndexToIdMap.put(sampleIdx, parsedSampleId);
+                        sampleIdToIndexMap.put(parsedSampleId, sampleIdx);
+
+                        sampleNameToIdMap.put(sampleName, parsedSampleId);
                     }
                     catch (NumberFormatException e)
                     {
@@ -194,7 +209,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
                 }
 
                 //now bin the FASTQ files into 2 per sample
-                IlluminaFastqParser parser = new IlluminaFastqParser(FileUtil.getBaseName(_run.getFileName()), sampleIndexToIdMap, sampleIdToIndexMap,
+                IlluminaFastqParser parser = new IlluminaFastqParser(FileUtil.getBaseName(_run.getFileName()), sampleIndexToIdMap, sampleIdToIndexMap, sampleNameToIdMap,
                         getLogger(), new ArrayList<>(_fastqFiles));
                 Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles(this);
                 Map<Pair<Integer, Integer>, Integer> readcounts = parser.getReadCounts();

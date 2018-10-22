@@ -16,6 +16,7 @@
 package org.labkey.genotyping;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
@@ -29,7 +30,9 @@ import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.NotFoundException;
 
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,6 +52,8 @@ public class SampleManager
     public static final String MID3_COLUMN_NAME = "threemid";
     public static final String AMPLICON_COLUMN_NAME = "amplicon";
     public static final String KEY_COLUMN_NAME = "key";
+
+    private static final Logger LOG = Logger.getLogger(SampleManager.class);
 
     static final Set<String> POSSIBLE_SAMPLE_KEYS = new CaseInsensitiveHashSet(MID5_COLUMN_NAME, MID3_COLUMN_NAME, AMPLICON_COLUMN_NAME);
 
@@ -83,11 +88,11 @@ public class SampleManager
         return qHelper.select(qHelper.getTableInfo().getDefaultVisibleColumns(), null);
     }
 
-    public Map<Integer, Object> getSampleIdsFromSamplesList(Container c, User user, GenotypingRun run, String action) throws SQLException
+    public Set<Integer> getSampleIdsFromSamplesList(Container c, User user, GenotypingRun run, String action) throws SQLException
     {
         QueryHelper qHelper = validateSamplesQuery(c, user, run, action);
         MetaDataRun metaDataRun = validateRun(user, run, action);
-        Map<Integer, Object> sampleIds = new HashMap<>();
+        Set<Integer> sampleIds = new HashSet<>();
 
         ColumnInfo keyColumn = qHelper.getTableInfo().getColumn("Key");
         if (null == keyColumn)
@@ -100,7 +105,7 @@ public class SampleManager
             {
                 Map<FieldKey, Object> fieldKeyRowMap = results.getFieldKeyRowMap();
                 Integer sampleIdFromSamplesList = (Integer) fieldKeyRowMap.get(fieldKey);
-                sampleIds.put(sampleIdFromSamplesList, null);
+                sampleIds.add(sampleIdFromSamplesList);
             }
         }
         return sampleIds;
