@@ -387,7 +387,6 @@ genotyping/src/org/labkey/genotyping/view/haplotypeAssignmentReport.jsp -text
 genotyping/src/org/labkey/genotyping/view/importHaplotypeAssignments.jsp -text
 genotyping/src/org/labkey/genotyping/view/importReads.jsp -text
 genotyping/src/org/labkey/genotyping/view/loadSequences.jsp -text
-genotyping/src/org/labkey/genotyping/view/matchCombiner.jsp -text
 genotyping/src/org/labkey/genotyping/view/mhcQuery.jsp -text
 genotyping/src/org/labkey/genotyping/view/mySettings.jsp -text
 genotyping/src/org/labkey/genotyping/view/overview.jsp -text

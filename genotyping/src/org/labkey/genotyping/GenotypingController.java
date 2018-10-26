@@ -177,7 +177,6 @@ public class GenotypingController extends SpringActionController
     public static class AnalysisForm extends QueryExportForm
     {
         private Integer _analysis = null;
-        private boolean _alter = false;
         private Integer _highlightId = null;
         private String _error = null;
 
@@ -190,17 +189,6 @@ public class GenotypingController extends SpringActionController
         public void setAnalysis(Integer analysis)
         {
             _analysis = analysis;
-        }
-
-        public boolean getAlter()
-        {
-            return _alter;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setAlter(boolean alter)
-        {
-            _alter = alter;
         }
 
         public Integer getHighlightId()
@@ -259,9 +247,6 @@ public class GenotypingController extends SpringActionController
 
             vbox.addView(super.getView(form, errors));
 
-            if (form.getAlter() && !form.isExport())
-                vbox.addView(new JspView("/org/labkey/genotyping/view/matchCombiner.jsp"));
-
             return vbox;
         }
 
@@ -276,78 +261,7 @@ public class GenotypingController extends SpringActionController
             settings.getBaseFilter().addCondition(FieldKey.fromParts("Analysis"), form.getAnalysis());
 
             UserSchema gqs = new GenotypingQuerySchema(getUser(), getContainer(), form.getAnalysis());
-            QueryView qv;
-
-            // If the user doesn't have update permissions then just provide a normal, read-only view.
-            // Otherwise, either add the "Alter Matches" button or display that mode, depending on the value of the "alter" parameter.
-            if (!getContainer().hasPermission(getUser(), UpdatePermission.class))
-            {
-                qv = new QueryView(gqs, settings, errors);
-            }
-            else
-            {
-                final ActionURL url = getViewContext().cloneActionURL();
-
-                if (!form.getAlter())
-                {
-                    url.replaceParameter("alter", "1");
-
-                    qv = new QueryView(gqs, settings, errors) {
-                         @Override
-                         protected void populateButtonBar(DataView view, ButtonBar bar)
-                         {
-                             super.populateButtonBar(view, bar);
-
-                             ActionButton combineModeButton = new ActionButton(url, "Alter Matches");
-                             bar.add(combineModeButton);
-                         }
-                    };
-                }
-                else
-                {
-                    url.deleteParameter("alter");
-                    final Integer highlightId = form.getHighlightId();
-
-                    qv = new QueryView(gqs, settings, errors) {
-                        @Override
-                        protected void populateButtonBar(DataView view, ButtonBar bar)
-                        {
-                            super.populateButtonBar(view, bar);
-
-                            ActionButton combineModeButton = new ActionButton(url, "Stop Altering Matches");
-                            bar.add(combineModeButton);
-
-                            ActionButton combineButton = new ActionButton(CombineMatchesAction.class, "Combine");
-                            combineButton.setRequiresSelection(true);
-                            combineButton.setScript("combine(" + _analysis.getRowId() + ");return false;");
-                            bar.add(combineButton);
-
-                            ActionButton deleteButton = new ActionButton(getDeleteMatchesURL(_analysis.getRowId()), "Delete");
-                            deleteButton.setRequiresSelection(true, "Are you sure you want to delete the selected match?", "Are you sure you want to delete the selected matches?");
-                            bar.add(deleteButton);
-                        }
-
-                        @Override
-                        protected DataRegion createDataRegion()
-                        {
-                            // Override to highlight the just-added match
-                            DataRegion rgn = new DataRegion() {
-                                @Override
-                                protected String getRowClass(RenderContext ctx, int rowIndex)
-                                {
-                                    if (highlightId != null && highlightId.equals(ctx.get("RowId")))
-                                        return "labkey-error-row";
-
-                                    return super.getRowClass(ctx, rowIndex);
-                                }
-                            };
-                            configureDataRegion(rgn);
-                            return rgn;
-                        }
-                    };
-                }
-            }
-
+            QueryView qv = new QueryView(gqs, settings, errors);
             qv.setShadeAlternatingRows(true);
             return qv;
         }
@@ -387,67 +301,6 @@ public class GenotypingController extends SpringActionController
             _matchIds = matchIds;
         }
     }
-
-
-    public static class CombineForm extends MatchesForm
-    {
-        private int[] _alleleIds;
-
-        public int[] getAlleleIds()
-        {
-            return _alleleIds;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setAlleleIds(int[] alleleIds)
-        {
-            _alleleIds = alleleIds;
-        }
-    }
-
-
-    @RequiresPermission(UpdatePermission.class)
-    public class CombineMatchesAction extends RedirectAction<CombineForm>
-    {
-        private Integer _newId = null;
-        private String _error = null;
-
-        @Override
-        public URLHelper getSuccessURL(CombineForm form)
-        {
-            ActionURL url = form.getReturnActionURL();
-
-            if (null != url)
-            {
-                if (null != _error)
-                    url.replaceParameter("error", _error);
-                else if  (null != _newId)
-                    url.replaceParameter("highlightId", String.valueOf(_newId));
-            }
-
-            return url;
-        }
-
-        @Override
-        public boolean doAction(CombineForm form, BindException errors)
-        {
-            try
-            {
-                _newId = GenotypingManager.get().combineMatches(getContainer(), getUser(), form.getAnalysis(), form.getMatchIds(), form.getAlleleIds());
-            }
-            catch (IllegalStateException e)
-            {
-                _error = "Combine failed: " + e.getMessage();
-            }
-            return true;
-        }
-
-        @Override
-        public void validateCommand(CombineForm form, Errors errors)
-        {
-        }
-    }
-
 
     private ActionURL getDeleteMatchesURL(int analysisId)
     {

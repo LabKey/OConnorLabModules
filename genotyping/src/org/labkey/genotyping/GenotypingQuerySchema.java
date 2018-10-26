@@ -278,9 +278,6 @@ public class GenotypingQuerySchema extends UserSchema
                 return table;
             }},
 
-        // TODO: Add matches view that displays the original match information (omitting combining/altering).  SQL for this is below
-        // SELECT * FROM genotyping.matches matches LEFT JOIN genotyping.matches combined on matches.rowid = combined.parentid WHERE matches.analysis = 38 AND combined.rowid IS NULL order by matches.rowid
-
         Matches() {
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema)
