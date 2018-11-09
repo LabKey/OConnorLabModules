@@ -7,7 +7,7 @@ Ext4.ns('LABKEY.Genotyping');
 
 LABKEY.Genotyping.exportFilesBtnHandler = function(dataRegionName){
     var dr = LABKEY.DataRegions[dataRegionName];
-    var selected = dr.getChecked();
+    var selected = dr.getSelected();
 
     LABKEY.Query.selectRows({
         schemaName: 'genotyping',
@@ -115,7 +115,7 @@ Ext4.define('LABKEY.Genotyping.RunExportWindow', {
 
         //button should require selection, so this should never happen...
         var dr = LABKEY.DataRegions[this.dataRegionName];
-        var selected = dr.getChecked();
+        var selected = dr.getSelected();
         if(!selected.length){
             this.hide();
             alert('No Files Selected');
