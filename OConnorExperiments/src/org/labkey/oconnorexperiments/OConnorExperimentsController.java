@@ -44,7 +44,6 @@ import org.labkey.api.query.QueryAction;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.UserSchema;
-import org.labkey.api.security.CSRF;
 import org.labkey.api.security.RequiresLogin;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
@@ -415,7 +414,7 @@ public class OConnorExperimentsController extends SpringActionController
      * Use the QueryUpdateService to create a new experiment so the Experiment and Workbook deafults are used
      * then redirect to the newly created experiment begin page.
      */
-    @RequiresLogin @CSRF
+    @RequiresLogin
     @RequiresPermission(InsertPermission.class)
     public class InsertExperimentAction extends RedirectAction
     {
@@ -458,7 +457,7 @@ public class OConnorExperimentsController extends SpringActionController
         }
     }
 
-    @RequiresLogin @CSRF
+    @RequiresLogin
     @RequiresPermission(ReadPermission.class)
     public class GetExperimentAction extends ApiAction
     {
