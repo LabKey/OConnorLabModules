@@ -7,48 +7,49 @@ Ext4.ns('LABKEY.Genotyping');
 
 LABKEY.Genotyping.exportFilesBtnHandler = function(dataRegionName){
     var dr = LABKEY.DataRegions[dataRegionName];
-    var selected = dr.getSelected();
+    dr.getSelected({success: function(data) {
 
-    LABKEY.Query.selectRows({
-        schemaName: 'genotyping',
-        queryName: 'SequenceFiles',
-        filterArray: [
-            LABKEY.Filter.create('RowId', selected.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)
-        ],
-        columns: 'RowId,DataId,DataId/Name,DataId/DownloadLink,ReadCount',
-        scope: this,
-        requiredVersion: 9.1,
-        success: function(result){
-            var ids = [];
-            var readTotal = 0;
-            if(result && result.rows.length){
-                Ext4.each(result.rows, function(row){
-                    ids.push(row.DataId.value);
-                    readTotal += row.ReadCount.value;
-                }, this);
+        LABKEY.Query.selectRows({
+            schemaName: 'genotyping',
+            queryName: 'SequenceFiles',
+            filterArray: [
+                LABKEY.Filter.create('RowId', data.selected.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)
+            ],
+            columns: 'RowId,DataId,DataId/Name,DataId/DownloadLink,ReadCount',
+            scope: this,
+            requiredVersion: 9.1,
+            success: function(result){
+                var ids = [];
+                var readTotal = 0;
+                if(result && result.rows.length){
+                    Ext4.each(result.rows, function(row){
+                        ids.push(row.DataId.value);
+                        readTotal += row.ReadCount.value;
+                    }, this);
 
-                if(!ids.length){
-                    alert('Error: no matching files were found')
-                }
-                //if you just checked 1 file, just download it directly
-                else if (ids.length == 1){
-                    var url = result.rows[0]['DataId/DownloadLink'].value;
-                    console.log(url);
-                    var form = Ext4.create('Ext.form.Panel', {
-                        url: url,
-                        standardSubmit: true
-                    });
-                    form.submit();
-                }
-                else {
-                    Ext4.create('LABKEY.Genotyping.RunExportWindow', {
-                        dataRegionName: dataRegionName,
-                        readTotal: readTotal,
-                        dataIds: ids
-                    }).show();
-                }
+                    if(!ids.length){
+                        alert('Error: no matching files were found')
+                    }
+                    //if you just checked 1 file, just download it directly
+                    else if (ids.length == 1){
+                        var url = result.rows[0]['DataId/DownloadLink'].value;
+                        console.log(url);
+                        var form = Ext4.create('Ext.form.Panel', {
+                            url: url,
+                            standardSubmit: true
+                        });
+                        form.submit();
+                    }
+                    else {
+                        Ext4.create('LABKEY.Genotyping.RunExportWindow', {
+                            dataRegionName: dataRegionName,
+                            readTotal: readTotal,
+                            dataIds: ids
+                        }).show();
+                    }
 
-            }
+                }
+            }});
         }
     })
 }
@@ -114,9 +115,7 @@ Ext4.define('LABKEY.Genotyping.RunExportWindow', {
         this.callParent();
 
         //button should require selection, so this should never happen...
-        var dr = LABKEY.DataRegions[this.dataRegionName];
-        var selected = dr.getSelected();
-        if(!selected.length){
+        if(!this.dataIds || !this.dataIds.length){
             this.hide();
             alert('No Files Selected');
         }
