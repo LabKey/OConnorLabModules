@@ -141,7 +141,7 @@ public class IlluminaFastqParser
                 while (reader.hasNext())
                 {
                     FastqRecord fq = reader.next();
-                    String header = fq.getReadHeader();
+                    String header = fq.getReadName();
                     IlluminaReadHeader parsedHeader = new IlluminaReadHeader(header, fileName);
                     if(parsedHeader.getSampleName() != null)  // may be new header format, so let's try alternate lookup
                     {
@@ -198,6 +198,10 @@ public class IlluminaFastqParser
                     if (sampleIdx != 0 && sampleId == null && sampleName == null)
                     {
                         throw new PipelineJobException("Could not resolve id for sample at index " + sampleIdx + ". Sample map is: " + _sampleIndexToIdMap);
+                    }
+                    if (sampleId == null && sampleName != null)
+                    {
+                        sampleId = _sampleNameToIdMap.get(sampleName);
                     }
                     String name = (_outputPrefix == null ? "Reads" : _outputPrefix) + "-R" + pairNumber + "-" + (sampleIdx == 0 ? "Control" : sampleId) + ".fastq.gz";
                     File newFile = new File(targetDir, name);
