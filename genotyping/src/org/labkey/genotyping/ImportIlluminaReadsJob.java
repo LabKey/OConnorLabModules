@@ -79,7 +79,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
     @Override
     public String getDescription()
     {
-        return "Process Illumina reads for run " + _run.getRowId();
+        return "Process Illumina reads for run " + _run.getRowId() + " in directory " + getLogFile().getParentFile().getName();
     }
 
     @Override
@@ -211,8 +211,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
                 //now bin the FASTQ files into 2 per sample
                 IlluminaFastqParser parser = new IlluminaFastqParser(FileUtil.getBaseName(_run.getFileName()), sampleIndexToIdMap, sampleIdToIndexMap, sampleNameToIdMap,
                         getLogger(), new ArrayList<>(_fastqFiles));
-                Map<Pair<Integer, Integer>, File> fileMap = parser.parseFastqFiles(this);
-                Map<Pair<Integer, Integer>, Integer> readcounts = parser.getReadCounts();
+                Map<Pair<Integer, Integer>, IlluminaFastqParser.FileInfo> fileMap = parser.parseFastqFiles(this);
 
                 info("Recording records for each FASTQ file");
 
@@ -229,12 +228,10 @@ public class ImportIlluminaReadsJob extends ReadsJob
                     if (sampleId > 0)
                         row.put("SampleId", sampleKey.getKey());
 
-                    if (readcounts.containsKey(sampleKey))
-                    {
-                        row.put("ReadCount", readcounts.get(sampleKey));
-                    }
+                    IlluminaFastqParser.FileInfo fileInfo = fileMap.get(sampleKey);
+                    File input = fileInfo.getFile();
 
-                    File input = fileMap.get(sampleKey);
+                    row.put("ReadCount", fileInfo.getReadCount());
 
                     ExpData data = ExperimentService.get().createData(getContainer(), new DataType("Illumina FASTQ File " + sampleKey.getValue()));
                     data.setDataFileURI(input.toURI());

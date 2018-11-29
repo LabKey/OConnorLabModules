@@ -67,8 +67,7 @@ public class IlluminaFastqParser
     private Map<Integer, Integer> _sampleIdToIndexMap;
     private Map<String, Integer> _sampleNameToIdMap;
     private List<File> _files;
-    private Map<Pair<Integer, Integer>, File> _fileMap;
-    private Map<Pair<Integer, Integer>, Integer> _sequenceTotals;
+    private Map<Pair<Integer, Integer>, FileInfo> _fileInfo = new HashMap<>();
     private Logger _logger;
 
     public IlluminaFastqParser(@Nullable String outputPrefix, Map<Integer, Integer> sampleIndexToIdMap, Map<Integer, Integer> sampleIdToIndexMap, Map<String, Integer> sampleNameToIdMap, Logger logger, List<File> files)
@@ -108,11 +107,8 @@ public class IlluminaFastqParser
 
     //this returns a map connecting samples with output FASTQ files.
     // the key of the map is a pair where the first item is the sampleId and the second item indicated whether this file is the forward (1) or reverse (2) reads
-    public Map<Pair<Integer, Integer>, File> parseFastqFiles(PipelineJob job) throws PipelineJobException
+    public Map<Pair<Integer, Integer>, FileInfo> parseFastqFiles(PipelineJob job) throws PipelineJobException
     {
-        _fileMap = new HashMap<>();
-        _sequenceTotals = new HashMap<>();
-
         // Original->target mapping
         Map<File, File> filesToMove = new LinkedHashMap<>();
         Map<String, Integer> fileNameWithoutPairingInfoMap = new LinkedHashMap<>();//ex. if file name is SampleSheet-R1-1234.fastq, this map contains SampleSheet-1234
@@ -191,9 +187,6 @@ public class IlluminaFastqParser
                 else
                 {
                     reader.close();
-                    Pair<Integer, Integer> key = Pair.of(_sampleIndexToIdMap.get(sampleIdx), pairNumber);
-                    _sequenceTotals.put(key, totalReads);
-
                     Integer sampleId = _sampleIndexToIdMap.get(sampleIdx);
                     if (sampleIdx != 0 && sampleId == null && sampleName == null)
                     {
@@ -210,7 +203,9 @@ public class IlluminaFastqParser
                     {
                         filesToMove.put(f, newFile);
                     }
-                    _fileMap.put(Pair.of(sampleId, pairNumber), newFile);
+                    Pair<Integer, Integer> key = Pair.of(sampleId, pairNumber);
+                    _fileInfo.put(key, new FileInfo(newFile, totalReads));
+
                     _logger.info("Finished parsing file: " + f.getName());
                 }
             }
@@ -235,14 +230,29 @@ public class IlluminaFastqParser
         {
             throw new PipelineJobException(e);
         }
+        return Collections.unmodifiableMap(_fileInfo);
+    }
 
-        Map<Pair<Integer, Integer>, File> outputs = new HashMap<>();
-        for (Pair<Integer, Integer> key : _fileMap.keySet())
+    public static class FileInfo
+    {
+        private final File _file;
+        private final int _readCount;
+
+        public FileInfo(File file, int readCount)
         {
-            outputs.put(key, _fileMap.get(key));
+            _file = file;
+            _readCount = readCount;
         }
 
-        return outputs;
+        public File getFile()
+        {
+            return _file;
+        }
+
+        public int getReadCount()
+        {
+            return _readCount;
+        }
     }
 
     /** Checks if one or more desired target files are already present */
@@ -317,12 +327,6 @@ public class IlluminaFastqParser
         return null;
 
     }
-
-    public Map<Pair<Integer, Integer>, Integer> getReadCounts()
-    {
-        return _sequenceTotals;
-    }
-
 
     public static class DupeTestCase extends Assert
     {
@@ -497,7 +501,7 @@ public class IlluminaFastqParser
             }
 
             IlluminaFastqParser parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Collections.emptyMap(), Logger.getLogger(HeaderTestCase.class), oldHeaderFiles);
-            Map<Pair<Integer, Integer>, File> outputs = parser.parseFastqFiles(null);
+            Map<Pair<Integer, Integer>, FileInfo> outputs = parser.parseFastqFiles(null);
             Assert.assertEquals("Outputs from parseFastqFiles with old headers were not as expected.", expectedOutputs, outputs.keySet());
 
             FileUtils.cleanDirectory(_testRoot);

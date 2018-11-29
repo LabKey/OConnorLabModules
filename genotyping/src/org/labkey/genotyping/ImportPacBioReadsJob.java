@@ -37,17 +37,14 @@ import org.labkey.api.pipeline.CancelledException;
 import org.labkey.api.pipeline.PipeRoot;
 import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.reader.Readers;
-import org.labkey.api.util.FileType;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.view.ViewBackgroundInfo;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -78,7 +75,7 @@ public class ImportPacBioReadsJob extends ReadsJob
     @Override
     public String getDescription()
     {
-        return "Process PacBio reads for run " + _run.getRowId();
+        return "Process PacBio reads for run " + _run.getRowId() + " in directory " + getLogFile().getParentFile().getName();
     }
 
     @Override

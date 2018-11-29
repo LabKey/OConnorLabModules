@@ -72,7 +72,7 @@ public class Import454ReadsJob extends ReadsJob
     @Override
     public String getDescription()
     {
-        return "Import 454 reads for run " + _run.getRowId();
+        return "Import 454 reads for run " + _run.getRowId() + " in directory " + getLogFile().getParentFile().getName();
     }
 
     @Override
