@@ -322,7 +322,7 @@ public class IlluminaFastqParser
                 return fileName + " has " + readCount + " reads, while its pair file is empty and has 0 reads.";
         }
         else
-            m.put(fileNameWithoutPairingInfo, new Integer(readCount));
+            m.put(fileNameWithoutPairingInfo, Integer.valueOf(readCount));
 
         return null;
 
