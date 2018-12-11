@@ -118,8 +118,10 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         DataRegionTable table = new DataRegionTable("query", getDriver());
         table.uncheckAll();
         table.checkCheckbox(0);
-        table.clickHeaderButton("Delete");
-        acceptAlert();
+        table.doAndWaitForUpdate(() -> {
+            table.clickHeaderButton("Delete");
+            acceptAlert();
+        });
 
         assertEquals("Wrong number of rows after deletion", 2, table.getDataRowCount());
 
@@ -346,8 +348,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     {
         DataRegionTable table = new DataRegionTable("query", getDriver());
         table.checkAll();
-        waitForElement(Locator.lkButton("Bulk Edit"));
-        click(Locator.lkButton("Bulk Edit"));
+        waitAndClickAndWait(Locator.lkButton("Bulk Edit"));
 
         editMultipleExperiments("bulk edit description", "type2", "1", null, null);
         verifyExperimentWebpart(0, "bulk edit description", "type2", 1);
@@ -358,8 +359,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         table.uncheckAll();
         table.checkCheckbox(0);
         table.checkCheckbox(2);
-        waitForElement(Locator.lkButton("Bulk Edit"));
-        click(Locator.lkButton("Bulk Edit"));
+        waitAndClickAndWait(Locator.lkButton("Bulk Edit"));
 
         editMultipleExperiments("multiple edit description", "type3", "1", "bulk edit description", "type2");
         verifyExperimentWebpart(0, "multiple edit description", "type3", 1);
