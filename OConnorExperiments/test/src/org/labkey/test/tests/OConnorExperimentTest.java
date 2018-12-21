@@ -37,7 +37,6 @@ import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.PortalHelper;
 import org.labkey.test.util.PostgresOnlyTest;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
@@ -244,8 +243,10 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         if (!isElementPresent(cmp))
             cmp = input.append(Locator.xpath("//input"));
 
+        waitForElement(cmp);
+        setFormElement(cmp, text);
+
         WebElement el = cmp.findElement(getDriver());
-        el.sendKeys(Keys.DELETE, text);
         fireEvent(el, SeleniumEvent.blur);
         shortWait().until(ExpectedConditions.not(ExpectedConditions.visibilityOf(el)));
     }
