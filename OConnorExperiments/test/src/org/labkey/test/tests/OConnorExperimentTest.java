@@ -245,6 +245,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
             cmp = input.append(Locator.xpath("//input"));
 
         WebElement el = cmp.findElement(getDriver());
+        setFormElementJS(el, "");
         el.sendKeys(Keys.DELETE, text);
         fireEvent(el, SeleniumEvent.blur);
         shortWait().until(ExpectedConditions.not(ExpectedConditions.visibilityOf(el)));
