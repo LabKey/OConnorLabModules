@@ -163,10 +163,8 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
         //check available experiment types
         DataRegionTable.findDataRegion(this).clickInsertNewRow();
         waitForElement(Locator.linkWithText("history"));
-        click(Locator.xpath("//div[contains(@class, 'x4-trigger-index')]"));
-//        List<String> options = new ArrayList<>();
-//        List<WebElement> optionsEls = this.getDriver().findElements(By.className("list-item"));
-//        for(WebElement optionEl : optionsEls){options.add(optionEl.getText());}
+        waitAndClick(Locator.xpath("//div[contains(@class, 'x4-trigger-index')]"));
+
         //enabled types are present
         for(String option : EXPERIMENT_TYPES)
         {
