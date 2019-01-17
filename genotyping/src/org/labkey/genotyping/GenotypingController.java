@@ -347,11 +347,6 @@ public class GenotypingController extends SpringActionController
             }
             return true;
         }
-
-        @Override
-        public void validateCommand(MatchesForm form, Errors errors)
-        {
-        }
     }
 
 
@@ -1908,10 +1903,6 @@ public class GenotypingController extends SpringActionController
             return true;
         }
 
-        public void validateCommand(Object o, Errors errors)
-        {
-        }
-
         public ActionURL getSuccessURL(Object o)
         {
             return getRunsURL(getContainer());
@@ -1934,10 +1925,6 @@ public class GenotypingController extends SpringActionController
             }
 
             return true;
-        }
-
-        public void validateCommand(Object o, Errors errors)
-        {
         }
 
         public ActionURL getSuccessURL(Object o)

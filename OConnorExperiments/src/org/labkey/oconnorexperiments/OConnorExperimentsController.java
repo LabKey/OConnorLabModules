@@ -450,11 +450,6 @@ public class OConnorExperimentsController extends SpringActionController
 
             return false;
         }
-
-        @Override
-        public void validateCommand(Object target, Errors errors)
-        {
-        }
     }
 
     @RequiresLogin
