@@ -23,9 +23,9 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.action.ExportAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.HasViewContext;
+import org.labkey.api.action.OldRedirectAction;
 import org.labkey.api.action.QueryViewAction;
 import org.labkey.api.action.QueryViewAction.QueryExportForm;
-import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleErrorView;
 import org.labkey.api.action.SimpleRedirectAction;
@@ -309,7 +309,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(DeletePermission.class)
-    public class DeleteMatchesAction extends RedirectAction<MatchesForm>
+    public class DeleteMatchesAction extends OldRedirectAction<MatchesForm>
     {
         private int _count = 0;
         private String _error = null;
@@ -1886,7 +1886,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(AdminPermission.class)
-    public class DeleteRunsAction extends RedirectAction
+    public class DeleteRunsAction extends OldRedirectAction
     {
         @Override
         public boolean doAction(Object o, BindException errors)
@@ -1911,7 +1911,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(DeletePermission.class)
-    public class DeleteAnalysesAction extends RedirectAction
+    public class DeleteAnalysesAction extends OldRedirectAction
     {
         @Override
         public boolean doAction(Object o, BindException errors)

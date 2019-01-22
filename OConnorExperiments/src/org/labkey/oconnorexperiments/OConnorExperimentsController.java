@@ -22,7 +22,7 @@ import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.FormViewAction;
-import org.labkey.api.action.RedirectAction;
+import org.labkey.api.action.OldRedirectAction;
 import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
@@ -416,7 +416,7 @@ public class OConnorExperimentsController extends SpringActionController
      */
     @RequiresLogin
     @RequiresPermission(InsertPermission.class)
-    public class InsertExperimentAction extends RedirectAction
+    public class InsertExperimentAction extends OldRedirectAction
     {
         private Container newExperiment;
 
