@@ -411,7 +411,7 @@ public class OConnorExperimentsController extends SpringActionController
 
 
     /**
-     * Use the QueryUpdateService to create a new experiment so the Experiment and Workbook deafults are used
+     * Use the QueryUpdateService to create a new experiment so the Experiment and Workbook defaults are used
      * then redirect to the newly created experiment begin page.
      */
     @RequiresLogin
