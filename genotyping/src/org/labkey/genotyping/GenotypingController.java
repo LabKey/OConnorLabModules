@@ -1534,11 +1534,6 @@ public class GenotypingController extends SpringActionController
     @RequiresPermission(ReadPermission.class)
     public class SequenceAction extends SimpleViewAction<SequenceForm>
     {
-        public SequenceAction()
-        {
-            super(SequenceForm.class);
-        }
-
         @Override
         public ModelAndView getView(SequenceForm form, BindException errors)
         {
