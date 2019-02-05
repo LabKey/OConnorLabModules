@@ -123,7 +123,7 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
             drt.checkAll();
             doAndWaitForPageToLoad(() ->
             {
-                clickButton("Delete", 0);
+                click(Locator.xpath("//a[@data-original-title='Delete']"));
                 assertAlert("Are you sure you want to delete the selected rows?");
             });
         }
