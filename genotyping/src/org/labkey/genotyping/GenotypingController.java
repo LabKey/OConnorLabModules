@@ -21,8 +21,10 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.action.ExportAction;
+import org.labkey.api.action.FormHandlerAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.HasViewContext;
+import org.labkey.api.action.MutatingApiAction;
 import org.labkey.api.action.OldRedirectAction;
 import org.labkey.api.action.QueryViewAction;
 import org.labkey.api.action.QueryViewAction.QueryExportForm;
@@ -63,6 +65,7 @@ import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserSchema;
+import org.labkey.api.security.CSRF;
 import org.labkey.api.security.IgnoresTermsOfUse;
 import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermission;
@@ -351,20 +354,10 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(AdminPermission.class)
-    public class LoadSequencesAction extends SimpleRedirectAction<ReturnUrlForm>
+    public class LoadSequencesAction extends FormHandlerAction<ReturnUrlForm>
     {
         @Override
-        public URLHelper getRedirectURL(ReturnUrlForm form)
-        {
-            long startTime = System.currentTimeMillis();
-            SequenceManager.get().loadSequences(getContainer(), getUser());
-            LOG.info(DateUtil.formatDuration(System.currentTimeMillis() - startTime) + " to load sequences");
-
-            return form.getReturnURLHelper(getPortalURL());
-        }
-
-        @Override
-        public void validate(ReturnUrlForm form, BindException errors)
+        public void validateCommand(ReturnUrlForm target, Errors errors)
         {
             //Issue 15583: if sequences table has not been set properly, reject the import
             ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(getContainer(), getUser(), "loading sequences");
@@ -373,12 +366,23 @@ public class GenotypingController extends SpringActionController
             if (qHelper.getTableInfo() == null)
                 errors.reject("Could not find sequences query " + settings.getSequencesQuery());
         }
-    }
 
+        @Override
+        public boolean handlePost(ReturnUrlForm returnUrlForm, BindException errors)
+        {
+            long startTime = System.currentTimeMillis();
+            SequenceManager.get().loadSequences(getContainer(), getUser());
+            LOG.info(DateUtil.formatDuration(System.currentTimeMillis() - startTime) + " to load sequences");
 
-    private ActionURL getPortalURL()
-    {
-        return PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
+            return true;
+        }
+
+        @Override
+        public URLHelper getSuccessURL(ReturnUrlForm form)
+        {
+            ActionURL begin = PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
+            return form.getReturnURLHelper(begin);
+        }
     }
 
 
@@ -1266,10 +1270,21 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresNoPermission
-    public class WorkflowCompleteAction extends SimpleViewAction<ImportAnalysisForm>
+    @CSRF(CSRF.Method.NONE)
+    public class WorkflowCompleteAction extends MutatingApiAction<ImportAnalysisForm>
     {
         @Override
-        public ModelAndView getView(ImportAnalysisForm form, BindException errors) throws Exception
+        public void validateForm(ImportAnalysisForm form, Errors errors)
+        {
+            if (null == form.getAnalysis())
+                errors.reject(ERROR_MSG, "Must specify an analysis parameter");
+
+            if (null == form.getPath())
+                errors.reject(ERROR_MSG, "Must specify a path parameter");
+        }
+
+        @Override
+        public Object execute(ImportAnalysisForm form, BindException errors) throws Exception
         {
             LOG.info("Galaxy signaled the completion of analysis " + form.getAnalysis());
             String message;
@@ -1307,6 +1322,8 @@ public class GenotypingController extends SpringActionController
                 // missing, isn't a directory, lacks a properties.xml file, or doesn't match the analysis table path. This
                 // prevents attackers from gaining any useful information about the file system.  Log the more detailed message.
                 message = FAILURE_PREFACE + "Analysis path doesn't match import path (see system log for more details)";
+
+                // But log more detail to the administrator so they're aware
                 LOG.error(FAILURE_PREFACE + fnf.getMessage());
             }
             catch (Exception e)
@@ -1320,27 +1337,21 @@ public class GenotypingController extends SpringActionController
 
             return null;
         }
-
-        @Override
-        public NavTree appendNavTrail(NavTree root)
-        {
-            return null;
-        }
     }
 
 
     public static class ImportAnalysisForm
     {
-        private int _analysis;
-        private String _path;
+        private Integer _analysis = null;
+        private String _path = null;
 
-        public int getAnalysis()
+        public Integer getAnalysis()
         {
             return _analysis;
         }
 
         @SuppressWarnings({"UnusedDeclaration"})
-        public void setAnalysis(int analysis)
+        public void setAnalysis(Integer analysis)
         {
             _analysis = analysis;
         }
@@ -1359,10 +1370,15 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(InsertPermission.class)
-    public class ImportAnalysisAction extends SimpleRedirectAction<PipelinePathForm>
+    public class ImportAnalysisAction extends FormHandlerAction<PipelinePathForm>
     {
         @Override
-        public ActionURL getRedirectURL(PipelinePathForm form) throws Exception
+        public void validateCommand(PipelinePathForm target, Errors errors)
+        {
+        }
+
+        @Override
+        public boolean handlePost(PipelinePathForm form, BindException errors) throws IOException, PipelineValidationException
         {
             // Manual upload of genotyping analysis; pipeline provider posts to this action with matches file.
             File matches = form.getValidatedSingleFile(getContainer());
@@ -1370,24 +1386,16 @@ public class GenotypingController extends SpringActionController
 
             // Load properties to determine the run.
             Properties props = GenotypingManager.get().readProperties(analysisDir);
-            Integer analysisId = Integer.parseInt((String)props.get("analysis"));
+            int analysisId = Integer.parseInt((String)props.get("analysis"));
             importAnalysis(analysisId, analysisDir, getUser());
 
-            return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
+            return true;
         }
 
         @Override
-        protected ModelAndView getErrorView(Exception e, BindException errors) throws Exception
+        public URLHelper getSuccessURL(PipelinePathForm pipelinePathForm)
         {
-            try
-            {
-                throw e;
-            }
-            catch (IOException ioe)
-            {
-                errors.reject("importAnalysis", ioe.getMessage());
-                return new SimpleErrorView(errors);
-            }
+            return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
         }
     }
 

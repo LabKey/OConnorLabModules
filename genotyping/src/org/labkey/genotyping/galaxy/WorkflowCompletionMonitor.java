@@ -16,22 +16,22 @@
 package org.labkey.genotyping.galaxy;
 
 import org.apache.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 import org.labkey.api.util.ContextListener;
 import org.labkey.api.util.ShutdownListener;
 import org.labkey.genotyping.GenotypingManager;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,13 +44,7 @@ public class WorkflowCompletionMonitor implements ShutdownListener
     private static final Logger LOG = Logger.getLogger(WorkflowCompletionMonitor.class);
     private static final WorkflowCompletionMonitor INSTANCE = new WorkflowCompletionMonitor();
 
-    private final ScheduledExecutorService _executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
-        @Override
-        public Thread newThread(@NotNull Runnable r)
-        {
-            return new Thread(r, "Genotyping Workflow Completion Monitor");
-        }
-    });
+    private final ScheduledExecutorService _executor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "Genotyping Workflow Completion Monitor"));
     private final List<File> _pendingCompletionFiles = new CopyOnWriteArrayList<>();
 
 
@@ -133,15 +127,20 @@ public class WorkflowCompletionMonitor implements ShutdownListener
                             // Load analysis properties
                             Properties props = GenotypingManager.get().readProperties(file.getParentFile());
 
-                            // GET the provided URL to signal LabKey Server that the workflow is complete
+                            // POST to the provided URL to signal LabKey Server that the workflow is complete
                             String url = (String)props.get("url");
                             String analysisId = (String)props.get("analysis");
                             LOG.info("Detected completion file for analysis " + analysisId + "; attempting to signal LabKey Server at " + url);
-                            InputStream is = (InputStream)new URL(url).getContent();
-                            BufferedReader r = new BufferedReader(new InputStreamReader(is));
-                            LOG.info("LabKey response to analysis " + analysisId + " completion: \"" + r.readLine() + "\"");
-                            r.close();
-                            is.close();
+                            HttpClient client = HttpClient.newHttpClient();
+                            HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(url))
+                                .POST(HttpRequest.BodyPublishers.noBody())
+                                .build();
+                            BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8);
+                            HttpResponse<String> response = client.send(request, bodyHandler);
+                            String message = response.body();
+
+                            LOG.info("LabKey response to analysis " + analysisId + " completion: \"" + message + "\"");
                         }
                         catch (Throwable t)
                         {
