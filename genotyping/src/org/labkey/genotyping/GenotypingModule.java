@@ -31,7 +31,6 @@ import org.labkey.api.study.assay.AssayService;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.StringUtilsLabKey;
 import org.labkey.api.view.WebPartFactory;
-import org.labkey.genotyping.galaxy.WorkflowCompletionMonitor;
 import org.labkey.genotyping.sequences.SequenceManager;
 
 import java.util.Arrays;
@@ -145,6 +144,6 @@ public class GenotypingModule extends DefaultModule
     @Override
     public Set<Class> getIntegrationTests()
     {
-        return PageFlowUtil.set(IlluminaFastqParser.HeaderTestCase.class, WorkflowCompletionMonitor.TestCase.class);
+        return PageFlowUtil.set(IlluminaFastqParser.HeaderTestCase.class);
     }
 }
