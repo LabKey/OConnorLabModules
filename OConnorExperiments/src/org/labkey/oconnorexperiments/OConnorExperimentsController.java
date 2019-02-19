@@ -18,11 +18,11 @@ package org.labkey.oconnorexperiments;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.OldRedirectAction;
+import org.labkey.api.action.ReadOnlyApiAction;
 import org.labkey.api.action.ReturnUrlForm;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
@@ -454,7 +454,7 @@ public class OConnorExperimentsController extends SpringActionController
 
     @RequiresLogin
     @RequiresPermission(ReadPermission.class)
-    public class GetExperimentAction extends ApiAction
+    public class GetExperimentAction extends ReadOnlyApiAction
     {
         @Override
         public ApiResponse execute(Object o, BindException errors) throws Exception
