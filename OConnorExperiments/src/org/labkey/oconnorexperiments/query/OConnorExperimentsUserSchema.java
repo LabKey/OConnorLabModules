@@ -24,11 +24,17 @@ import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.DetailsURL;
 import org.labkey.api.query.QuerySchema;
+import org.labkey.api.query.QuerySettings;
+import org.labkey.api.query.QueryView;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.util.PageFlowUtil;
+import org.labkey.api.view.ViewContext;
+import org.labkey.oconnorexperiments.OConnorExperimentsController;
 import org.labkey.oconnorexperiments.OConnorExperimentsSchema;
+import org.labkey.oconnorexperiments.WorkbookQueryView;
+import org.springframework.validation.BindException;
 
 import java.util.Set;
 
@@ -129,5 +135,15 @@ public class OConnorExperimentsUserSchema extends UserSchema
         table.setDetailsURL(detailsURL);
 
         return table;
+    }
+
+    @Override
+    public QueryView createView(ViewContext context, QuerySettings settings, BindException errors)
+    {
+        if (OConnorExperimentsController.EXPERIMENTS.equalsIgnoreCase(settings.getQueryName()))
+        {
+            return new WorkbookQueryView(context, this);
+        }
+        return super.createView(context, settings, errors);
     }
 }

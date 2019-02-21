@@ -15,9 +15,12 @@
  */
 package org.labkey.oconnorexperiments;
 
+import org.labkey.api.data.ActionButton;
+import org.labkey.api.query.QueryAction;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserSchema;
+import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
 import org.labkey.api.view.ViewContext;
 
@@ -43,5 +46,21 @@ public class WorkbookQueryView extends QueryView
     {
         DataView view = super.createDataView();
         return view;
+    }
+
+    @Override
+    public ActionButton createInsertMenuButton(ActionURL overrideInsertUrl, ActionURL overrideImportUrl)
+    {
+        ActionURL url = urlFor(QueryAction.insertQueryRow);
+        if (url != null)
+        {
+            ActionButton button = new ActionButton(url, getInsertButtonText(INSERT_ROW_TEXT));
+            button.setActionType(ActionButton.Action.POST);
+            button.setTooltip(getInsertButtonText(INSERT_ROW_TEXT));
+            button.setIconCls("plus");
+
+            return button;
+        }
+        return null;
     }
 }

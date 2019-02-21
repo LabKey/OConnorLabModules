@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
+import org.labkey.api.action.FormHandlerAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.OldRedirectAction;
 import org.labkey.api.action.ReadOnlyApiAction;
@@ -416,9 +417,14 @@ public class OConnorExperimentsController extends SpringActionController
      */
     @RequiresLogin
     @RequiresPermission(InsertPermission.class)
-    public class InsertExperimentAction extends OldRedirectAction
+    public class InsertExperimentAction extends FormHandlerAction
     {
         private Container newExperiment;
+
+        @Override
+        public void validateCommand(Object target, Errors errors)
+        {
+        }
 
         @Override
         public URLHelper getSuccessURL(Object o)
@@ -427,7 +433,7 @@ public class OConnorExperimentsController extends SpringActionController
         }
 
         @Override
-        public boolean doAction(Object o, BindException errors) throws Exception
+        public boolean handlePost(Object o, BindException errors) throws Exception
         {
             UserSchema schema = QueryService.get().getUserSchema(getUser(), getContainer(), OConnorExperimentsUserSchema.NAME);
             TableInfo table = schema.getTable(OConnorExperimentsUserSchema.Table.Experiments.name());
@@ -447,7 +453,6 @@ public class OConnorExperimentsController extends SpringActionController
                 newExperiment = ContainerManager.getForId(entityId);
                 return true;
             }
-
             return false;
         }
     }
