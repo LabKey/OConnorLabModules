@@ -25,7 +25,6 @@ import org.labkey.api.action.FormHandlerAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.HasViewContext;
 import org.labkey.api.action.MutatingApiAction;
-import org.labkey.api.action.OldRedirectAction;
 import org.labkey.api.action.QueryViewAction;
 import org.labkey.api.action.QueryViewAction.QueryExportForm;
 import org.labkey.api.action.ReturnUrlForm;
@@ -311,8 +310,9 @@ public class GenotypingController extends SpringActionController
     }
 
 
+    // TODO: Delete this action? No longer used?
     @RequiresPermission(DeletePermission.class)
-    public class DeleteMatchesAction extends OldRedirectAction<MatchesForm>
+    public class DeleteMatchesAction extends FormHandlerAction<MatchesForm>
     {
         private int _count = 0;
         private String _error = null;
@@ -332,7 +332,12 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public boolean doAction(MatchesForm form, BindException errors)
+        public void validateCommand(MatchesForm target, Errors errors)
+        {
+        }
+
+        @Override
+        public boolean handlePost(MatchesForm form, BindException errors)
         {
             List<String> ids = getViewContext().getList(DataRegion.SELECT_CHECKBOX_NAME);
             List<Integer> matchIds = new LinkedList<>();
@@ -1889,10 +1894,15 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(AdminPermission.class)
-    public class DeleteRunsAction extends OldRedirectAction
+    public class DeleteRunsAction extends FormHandlerAction
     {
         @Override
-        public boolean doAction(Object o, BindException errors)
+        public void validateCommand(Object target, Errors errors)
+        {
+        }
+
+        @Override
+        public boolean handlePost(Object o, BindException errors)
         {
             GenotypingManager gm = GenotypingManager.get();
             Set<Integer> runs = DataRegionSelection.getSelectedIntegers(getViewContext(), true);
@@ -1906,6 +1916,7 @@ public class GenotypingController extends SpringActionController
             return true;
         }
 
+        @Override
         public ActionURL getSuccessURL(Object o)
         {
             return getRunsURL(getContainer());
@@ -1914,10 +1925,15 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(DeletePermission.class)
-    public class DeleteAnalysesAction extends OldRedirectAction
+    public class DeleteAnalysesAction extends FormHandlerAction
     {
         @Override
-        public boolean doAction(Object o, BindException errors)
+        public void validateCommand(Object target, Errors errors)
+        {
+        }
+
+        @Override
+        public boolean handlePost(Object o, BindException errors) throws Exception
         {
             GenotypingManager gm = GenotypingManager.get();
 
@@ -1930,6 +1946,7 @@ public class GenotypingController extends SpringActionController
             return true;
         }
 
+        @Override
         public ActionURL getSuccessURL(Object o)
         {
             return getAnalysesURL(getContainer());
