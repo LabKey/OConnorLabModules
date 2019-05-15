@@ -18,6 +18,7 @@ package org.labkey.oconnorexperiments.query;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.Sets;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.module.Module;
 import org.labkey.api.portal.ProjectUrls;
@@ -72,14 +73,14 @@ public class OConnorExperimentsUserSchema extends UserSchema
 
     @Nullable
     @Override
-    public TableInfo createTable(String name)
+    public TableInfo createTable(String name, ContainerFilter cf)
     {
         if (Table.Experiments.name().equalsIgnoreCase(name))
-            return createExperimentsTable(name);
+            return createExperimentsTable(name, cf);
         else if (Table.ParentExperiments.name().equalsIgnoreCase(name))
-            return createParentExperimentsTable(name);
+            return createParentExperimentsTable(name, cf);
         else if (Table.ExperimentType.name().equalsIgnoreCase(name))
-            return createExperimentTypeTable(name);
+            return createExperimentTypeTable(name, cf);
 
         return null;
     }
@@ -88,8 +89,8 @@ public class OConnorExperimentsUserSchema extends UserSchema
     {
         switch (t)
         {
-            case Experiments:       return createExperimentsTable(t.name());
-            case ParentExperiments: return createParentExperimentsTable(t.name());
+            case Experiments:       return createExperimentsTable(t.name(), null);
+            case ParentExperiments: return createParentExperimentsTable(t.name(), null);
         }
 
         return null;
@@ -113,21 +114,21 @@ public class OConnorExperimentsUserSchema extends UserSchema
         );
     }
 
-    private TableInfo createExperimentsTable(String name)
+    private TableInfo createExperimentsTable(String name, ContainerFilter cf)
     {
-        return ExperimentsTable.create(this, name);
+        return ExperimentsTable.create(this, name, cf);
     }
 
-    private TableInfo createExperimentTypeTable(String name)
+    private TableInfo createExperimentTypeTable(String name, ContainerFilter cf)
     {
-        SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable<>(this, OConnorExperimentsSchema.getInstance().createTableInfoExperimentType());
+        SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable<>(this, OConnorExperimentsSchema.getInstance().createTableInfoExperimentType(), cf);
         table.init();
         return table;
     }
 
-    private TableInfo createParentExperimentsTable(String name)
+    private TableInfo createParentExperimentsTable(String name, ContainerFilter cf)
     {
-        SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable<>(this, OConnorExperimentsSchema.getInstance().createTableInfoParentExperiments());
+        SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable<>(this, OConnorExperimentsSchema.getInstance().createTableInfoParentExperiments(), cf);
         table.init();
 
         //DetailsURL detailsURL = new DetailsURL(QueryService.get().urlDefault(getContainer(), QueryAction.detailsQueryRow, OConnorExperimentsUserSchema.NAME, Table.Experiments.name(), Collections.<String, Object>emptyMap());

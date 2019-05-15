@@ -142,7 +142,7 @@ public class GenotypingManager
     {
         ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(c, user, action);
         QueryHelper qHelper = new GenotypingQueryHelper(c, user, settings.getRunsQuery());
-        MetaDataRun run = new TableSelector(qHelper.getTableInfo()).getObject(runId, MetaDataRun.class);
+        MetaDataRun run = new TableSelector(qHelper.getTableInfo(null)).getObject(runId, MetaDataRun.class);
 
         if (null != run)
             run.setContainer(c);
@@ -456,7 +456,7 @@ public class GenotypingManager
         // Count the corresponding matches in the database, making sure they belong to this analysis
         SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("Analysis"), analysis.getRowId());
         filter.addInClause(FieldKey.fromParts("RowId"), matchIds);
-        TableInfo tinfo = GenotypingQuerySchema.TableType.Matches.createTable(new GenotypingQuerySchema(user, c), analysis.getRowId());
+        TableInfo tinfo = GenotypingQuerySchema.TableType.Matches.createTable(new GenotypingQuerySchema(user, c), null, analysis.getRowId());
         TableSelector selector = new TableSelector(tinfo, tinfo.getColumns("RowId"), filter, null);
 
         // Verify that the selected match count equals the number of rowIds posted...

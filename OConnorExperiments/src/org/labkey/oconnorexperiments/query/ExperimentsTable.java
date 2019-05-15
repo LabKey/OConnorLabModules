@@ -73,7 +73,6 @@ import org.labkey.oconnorexperiments.OConnorExperimentFolderType;
 import org.labkey.oconnorexperiments.OConnorExperimentsController;
 import org.labkey.oconnorexperiments.OConnorExperimentsSchema;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,10 +95,10 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
 
     private TableExtension _extension;
 
-    public ExperimentsTable(String name, OConnorExperimentsUserSchema userSchema, SchemaTableInfo rootTable,
+    public ExperimentsTable(String name, OConnorExperimentsUserSchema userSchema, ContainerFilter cf, SchemaTableInfo rootTable,
                             @NotNull TableInfo extensionTable)
     {
-        super(userSchema, rootTable);
+        super(userSchema, rootTable, cf);
         setName(name);
 
         _workbooksTable = extensionTable;
@@ -115,14 +114,14 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         }
     }
 
-    public static TableInfo create(OConnorExperimentsUserSchema schema, String name)
+    public static TableInfo create(OConnorExperimentsUserSchema schema, String name, ContainerFilter cf)
     {
         UserSchema core = QueryService.get().getUserSchema(schema.getUser(), schema.getContainer(), SchemaKey.fromParts("core"));
-        TableInfo workbooksTable = core.getTable("Workbooks");
+        TableInfo workbooksTable = core.getTable("Workbooks", ContainerFilter.EVERYTHING, true, true);
 
         SchemaTableInfo rootTable = OConnorExperimentsSchema.getInstance().createTableInfoExperiments();
 
-        return new ExperimentsTable(name, schema, rootTable, workbooksTable).init();
+        return new ExperimentsTable(name, schema, cf, rootTable, workbooksTable).init();
     }
 
     @Override
@@ -137,9 +136,10 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         // No-op - rely on the fact that we're doing an INNER JOIN to the core.containers table for our filtering
     }
 
+    @Override
     public void addColumns()
     {
-        ColumnInfo containerCol = addWrapColumn(getRealTable().getColumn("Container"));
+        var containerCol = addWrapColumn(getRealTable().getColumn("Container"));
         QueryForeignKey containerFK = new QueryForeignKey(_workbooksTable, null, "EntityId", null);
         containerFK.setJoinType(LookupColumn.JoinType.inner);
         containerCol.setFk(containerFK);
@@ -149,47 +149,53 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
 
         _extension = TableExtension.create(this, _workbooksTable, "Container", "EntityId", LookupColumn.JoinType.inner);
 
-        ColumnInfo idCol = _extension.addExtensionColumn("ID", "ID");
+        var idCol = _extension.addExtensionColumn("ID", "ID");
         idCol.setLabel("ID");
         idCol.setHidden(true);
 
-        ColumnInfo expNumberCol = _extension.addExtensionColumn("SortOrder", "ExperimentNumber");
+        var expNumberCol = _extension.addExtensionColumn("SortOrder", "ExperimentNumber");
         expNumberCol.setLabel("Experiment Number");
         expNumberCol.setReadOnly(true);
         expNumberCol.setShownInInsertView(false);
 
-        ColumnInfo descriptionCol = _extension.addExtensionColumn("Description", "Description");
+        var descriptionCol = _extension.addExtensionColumn("Description", "Description");
         descriptionCol.setDescription("Summary information about the experiment");
         descriptionCol.setReadOnly(false);
         descriptionCol.setUserEditable(true);
 
-        ColumnInfo createdByCol = _extension.addExtensionColumn("CreatedBy", "CreatedBy");
-        UserIdQueryForeignKey.initColumn(getUserSchema().getUser(), getUserSchema().getContainer(), createdByCol, false);
+        var createdByCol = _extension.addExtensionColumn("CreatedBy", "CreatedBy");
+        UserIdQueryForeignKey.initColumn(getUserSchema(), createdByCol, false);
         createdByCol.setLabel("Created By");
 
-        ColumnInfo createdCol = _extension.addExtensionColumn("Created", "Created");
+        var createdCol = _extension.addExtensionColumn("Created", "Created");
         createdCol.setLabel("Created");
 
-        ColumnInfo modifiedByCol = addWrapColumn(getRealTable().getColumn("ModifiedBy"));
-        UserIdQueryForeignKey.initColumn(getUserSchema().getUser(), getUserSchema().getContainer(), modifiedByCol, false);
+        var modifiedByCol = addWrapColumn(getRealTable().getColumn("ModifiedBy"));
+        UserIdQueryForeignKey.initColumn(getUserSchema(), modifiedByCol, false);
         modifiedByCol.setLabel("Modified By");
 
-        ColumnInfo modifiedCol = addWrapColumn(getRealTable().getColumn("Modified"));
+        var modifiedCol = addWrapColumn(getRealTable().getColumn("Modified"));
         modifiedCol.setLabel("Modified");
 
-        ColumnInfo experimentTypeCol = addWrapColumn(getRealTable().getColumn("ExperimentTypeId"));
+        var experimentTypeCol = addWrapColumn(getRealTable().getColumn("ExperimentTypeId"));
         experimentTypeCol.setLabel("Experiment Type");
         experimentTypeCol.setUserEditable(true);
-        experimentTypeCol.setFk(new QueryForeignKey(OConnorExperimentsUserSchema.NAME, getContainer().isWorkbook() ? getContainer().getParent() : getContainer(), null, getUserSchema().getUser(), OConnorExperimentsUserSchema.Table.ExperimentType.name(), "RowId", "Name"));
+        experimentTypeCol.setFk(QueryForeignKey
+                .from(getUserSchema(), getContainerFilter())
+                .schema(OConnorExperimentsUserSchema.NAME, getContainer().isWorkbook() ? getContainer().getParent() : getContainer())
+                .to(OConnorExperimentsUserSchema.Table.ExperimentType.name(), "RowId", "Name"));
 
-        ColumnInfo grantIdCol = addWrapColumn(getRealTable().getColumn("GrantId"));
+        var grantIdCol = addWrapColumn(getRealTable().getColumn("GrantId"));
         grantIdCol.setLabel("Grant");
         grantIdCol.setUserEditable(true);
 
-        ColumnInfo parentExperimentsCol = wrapColumn("ParentExperiments", getRealTable().getColumn("Container"));
-        UserSchema targetSchema = getUserSchema().getContainer().isWorkbook() ? new OConnorExperimentsUserSchema(getUserSchema().getUser(), getUserSchema().getContainer().getParent()) : getUserSchema();
+        var parentExperimentsCol = wrapColumn("ParentExperiments", getRealTable().getColumn("Container"));
+        //UserSchema targetSchema = getUserSchema().getContainer().isWorkbook() ? new OConnorExperimentsUserSchema(getUserSchema().getUser(), getUserSchema().getContainer().getParent()) : getUserSchema();
         MultiValuedForeignKey parentExperimentsFk = new MultiValuedForeignKey(
-                new QueryForeignKey(targetSchema, null, OConnorExperimentsUserSchema.Table.ParentExperiments.name(), "Container", null),
+                QueryForeignKey
+                        .from(getUserSchema(), getContainerFilter())
+                        .schema(OConnorExperimentsUserSchema.NAME, getContainer().isWorkbook() ? getContainer().getParent() : getContainer())
+                        .to(OConnorExperimentsUserSchema.Table.ParentExperiments.name(), "Container", null),
                 "ParentExperiment");
         parentExperimentsCol.setFk(parentExperimentsFk);
         parentExperimentsCol.setLabel("Parent Experiments");
@@ -207,7 +213,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         parentExperimentsCol.setURL(parentExperimentsURL);
         addColumn(parentExperimentsCol);
 
-        ColumnInfo folderTypeCol = _extension.addExtensionColumn("FolderType", "FolderType");
+        var folderTypeCol = _extension.addExtensionColumn("FolderType", "FolderType");
         folderTypeCol.setHidden(true);
         //folderTypeCol.setReadOnly(false);
         //folderTypeCol.setUserEditable(true);

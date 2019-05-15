@@ -18,9 +18,11 @@ package org.labkey.genotyping;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ActionButton;
+import org.labkey.api.data.BaseColumnInfo;
 import org.labkey.api.data.ButtonBar;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.DataRegion;
 import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
@@ -85,22 +87,22 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
 
     @Nullable
     @Override
-    public TableInfo getTable(String name, boolean includeExtraMetadata)
+    public TableInfo getTable(String name, @Nullable ContainerFilter cf, boolean includeExtraMetadata, boolean forWrite)
     {
-        TableInfo result = super.getTable(name, includeExtraMetadata);
+        TableInfo result = super.getTable(name, cf, includeExtraMetadata, forWrite);
         if (result != null && name.equalsIgnoreCase(AGGREGATED_RESULTS_QUERY_NAME))
         {
             ActionURL baseURL = new ActionURL(AssayResultsAction.class, getContainer());
             baseURL.addParameter("rowId", getProtocol().getRowId());
-            result.getColumn("AnimalId").setURL(new DetailsURL(baseURL, Collections.singletonMap("Data.AnimalId/LabAnimalId~eq", "AnimalId/LabAnimalId")));
+            ((BaseColumnInfo)result.getColumn("AnimalId")).setURL(new DetailsURL(baseURL, Collections.singletonMap("Data.AnimalId/LabAnimalId~eq", "AnimalId/LabAnimalId")));
         }
         return result;
     }
 
     @Override
-    public FilteredTable createDataTable(boolean includeCopiedToStudyColumns)
+    public @Nullable TableInfo createDataTable(ContainerFilter cf, boolean includeCopiedToStudyColumns)
     {
-        FilteredTable table = (FilteredTable)new GenotypingQuerySchema(getUser(), getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name());
+        FilteredTable table = (FilteredTable)new GenotypingQuerySchema(getUser(), getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name(), cf,true, true);
         List<FieldKey> keys = new ArrayList<>(table.getDefaultVisibleColumns());
         HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
         List<? extends DomainProperty> props = HaplotypeAssayProvider.getDomainProps(getProtocol());
@@ -130,7 +132,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
 
         table.setDefaultVisibleColumns(keys);
 
-        table.getColumn("RunId").setFk(new LookupForeignKey()
+        table.getMutableColumn("RunId").setFk(new LookupForeignKey()
         {
             @Override
             public TableInfo getLookupTableInfo()

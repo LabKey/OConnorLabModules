@@ -176,7 +176,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
     private Map<String, Integer> ensureAnimalIds(Map<String, String> ids, Map<String, String> runPropertyValues, User user, Container container) throws Exception
     {
         // get the updateService for the Animal table
-        TableInfo tinfo = GenotypingQuerySchema.TableType.Animal.createTable(new GenotypingQuerySchema(user, container));
+        TableInfo tinfo = GenotypingQuerySchema.TableType.Animal.createTable(new GenotypingQuerySchema(user, container), null);
         QueryUpdateService updateService = tinfo.getUpdateService();
         if (updateService == null)
         {
@@ -255,7 +255,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
     private Map<HaplotypeIdentifier, Integer> ensureHaplotypeNames(List<HaplotypeIdentifier> haplotypes, String speciesId, User user, Container container) throws Exception
     {
         // get the updateService for the Haplotype table
-        TableInfo tinfo = GenotypingQuerySchema.TableType.Haplotype.createTable(new GenotypingQuerySchema(user, container));
+        TableInfo tinfo = GenotypingQuerySchema.TableType.Haplotype.createTable(new GenotypingQuerySchema(user, container), null);
         QueryUpdateService updateService = tinfo.getUpdateService();
         if (updateService == null)
         {
@@ -329,7 +329,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
               User user, Container container, Map<String, Integer> animalRowIdMap, Map<String, String> runPropertyValues) throws Exception
     {
         // get the updateService for the AnimalAnalysis table
-        TableInfo tinfo = GenotypingQuerySchema.TableType.AnimalAnalysis.createTable(new GenotypingQuerySchema(user, container));
+        TableInfo tinfo = GenotypingQuerySchema.TableType.AnimalAnalysis.createTable(new GenotypingQuerySchema(user, container), null);
         QueryUpdateService updateService = tinfo.getUpdateService();
         if (updateService == null)
         {
@@ -429,7 +429,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
            Map<String, Integer> animalRowIdMap, Map<HaplotypeIdentifier, Integer> haplotypeRowIdMap, Map<Integer, Integer> animalAnalysisRowIdMap) throws Exception
     {
         // get the updateService for the AnimalHaplotypeAssignment table
-        TableInfo tinfo = GenotypingQuerySchema.TableType.AnimalHaplotypeAssignment.createTable(new GenotypingQuerySchema(user, container));
+        TableInfo tinfo = GenotypingQuerySchema.TableType.AnimalHaplotypeAssignment.createTable(new GenotypingQuerySchema(user, container), null);
         QueryUpdateService updateService = tinfo.getUpdateService();
         if (updateService == null)
         {

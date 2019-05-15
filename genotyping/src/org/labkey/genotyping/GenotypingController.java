@@ -368,7 +368,7 @@ public class GenotypingController extends SpringActionController
             ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(getContainer(), getUser(), "loading sequences");
             GenotypingQueryHelper qHelper = new GenotypingQueryHelper(getContainer(), getUser(), settings.getSequencesQuery());
 
-            if (qHelper.getTableInfo() == null)
+            if (qHelper.getTableInfo(null) == null)
                 errors.reject("Could not find sequences query " + settings.getSequencesQuery());
         }
 
@@ -949,7 +949,7 @@ public class GenotypingController extends SpringActionController
         public ModelAndView getView(ImportReadsForm form, boolean reshow, BindException errors)
         {
             ValidatingGenotypingFolderSettings settings = new ValidatingGenotypingFolderSettings(getContainer(), getUser(), "importing reads");
-            TableInfo runs = new GenotypingQueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo();
+            TableInfo runs = new GenotypingQueryHelper(getContainer(), getUser(), settings.getRunsQuery()).getTableInfo(null);
             GenotypingQueryHelper.validateRunsQuery(runs);
             settings.getSamplesQuery();  // Pipeline job will flag this if missing, but let's proactively validate before we launch the job
             List<Integer> allRuns = new TableSelector(runs, PageFlowUtil.set(GenotypingQueryHelper.RUN_NUM), null, new Sort("-run_num")).getArrayList(Integer.class);   // TODO: Should restrict to this folder, #14278
