@@ -41,7 +41,7 @@
             <td colspan="2" width="600px">
             You need to provide a Galaxy web API key to send data from LabKey to your Galaxy server. Galaxy generates a
             unique web API key for each user and uses it to authorize every call to the Galaxy web API. You can find or
-            generate a key by logging into Galaxy and visiting <%=text(preferencesHTML)%>. Copy the 32-character hexidecimal
+            generate a key by logging into Galaxy and visiting <%=text(preferencesHTML)%>. Copy the 32-character hexadecimal
             string and paste it in the box below.
             </td>
         <tr><td>&nbsp;</td></tr>

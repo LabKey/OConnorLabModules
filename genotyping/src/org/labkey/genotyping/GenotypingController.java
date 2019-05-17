@@ -731,7 +731,7 @@ public class GenotypingController extends SpringActionController
                     }
 
                     if (!success)
-                        errors.reject(ERROR_MSG, "Galaxy web API key is not valid hexidecimal." + advice);
+                        errors.reject(ERROR_MSG, "Galaxy web API key is not valid hexadecimal." + advice);
                 }
             }
         }
