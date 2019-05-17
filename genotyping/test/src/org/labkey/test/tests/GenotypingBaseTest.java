@@ -25,9 +25,9 @@ import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
+import org.labkey.test.WebTestHelper;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LogMethod;
-import org.labkey.test.util.PasswordUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -131,7 +131,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest
 
     private void deleteTemplateRow(boolean failOnError)
     {
-        Connection cn = new Connection(getBaseURL(), PasswordUtil.getUsername(), PasswordUtil.getPassword());
+        Connection cn = WebTestHelper.getRemoteApiConnection();
         DeleteRowsCommand cmd = new DeleteRowsCommand("genotyping", "IlluminaTemplates");
         cmd.addRow(Collections.singletonMap("Name", (Object) TEMPLATE_NAME));
         SaveRowsResponse resp;

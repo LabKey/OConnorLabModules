@@ -30,11 +30,11 @@ import org.labkey.remoteapi.query.UpdateRowsCommand;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestTimeoutException;
+import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
-import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.PortalHelper;
 import org.labkey.test.util.PostgresOnlyTest;
 import org.openqa.selenium.Keys;
@@ -261,7 +261,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
             rowMap = new HashMap<>();
             rowMap.put("Description", "API Description");
             rowMap.put("ExperimentType", "API Type");
-            Connection cn = new Connection(getBaseURL(), PasswordUtil.getUsername(), PasswordUtil.getPassword());
+            Connection cn = WebTestHelper.getRemoteApiConnection();
             InsertRowsCommand insertCmd = new InsertRowsCommand(SCHEMA_NAME, TABLE_NAME);
             insertCmd.addRow(rowMap);
             SaveRowsResponse resp = insertCmd.execute(cn, getProjectName());
@@ -290,7 +290,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
             rowMap = new HashMap<>();
             rowMap.put("Description", "API Description Edited");
             rowMap.put("ExperimentType", "API Type Edited");
-            Connection cn = new Connection(getBaseURL(), PasswordUtil.getUsername(), PasswordUtil.getPassword());
+            Connection cn = WebTestHelper.getRemoteApiConnection();
             SaveRowsResponse resp = cmd.execute(cn, getProjectName());
             assertEquals("Expected to update " + rowMap.size() + " rows", rowMap.size(), resp.getRowsAffected().intValue());
             goToProjectHome();
@@ -315,7 +315,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         try
         {
             DeleteRowsCommand cmd = new DeleteRowsCommand(SCHEMA_NAME, TABLE_NAME);
-            Connection cn = new Connection(getBaseURL(), PasswordUtil.getUsername(), PasswordUtil.getPassword());
+            Connection cn = WebTestHelper.getRemoteApiConnection();
             for (String pk : pkeys)
                 cmd.addRow(Collections.singletonMap("container", (Object) pk));
 
