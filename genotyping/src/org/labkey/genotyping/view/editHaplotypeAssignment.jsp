@@ -16,7 +16,6 @@
  */
 %>
 <%@ page import="org.labkey.api.portal.ProjectUrls" %>
-<%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.api.view.HttpView" %>
 <%@ page import="org.labkey.api.view.JspView" %>
@@ -35,8 +34,7 @@
     GenotypingController.AssignmentForm bean = me.getModelBean();
     final String formDivId = "form" + getRequestScopedUID();
 
-    ActionURL returnURL = bean.getReturnActionURL(
-            PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer()));
+    ActionURL returnURL = bean.getReturnActionURL(urlProvider(ProjectUrls.class).getBeginURL(getContainer()));
 %>
 <%
     if (getErrors("form").hasErrors())
