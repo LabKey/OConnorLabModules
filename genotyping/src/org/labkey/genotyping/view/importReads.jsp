@@ -49,7 +49,7 @@
     <table id="analysesTable">
         <%=formatMissedErrorsInTable("form", 2)%>
         <tr><td colspan="2"><b>Run Information</b></td></tr>
-        <tr><td>Platform:</td><td><%=h(bean.getPlatform())%></td></tr>
+        <tr><td>Platform:</td><td><%=bean.getPlatform()%></td></tr>
         <tr><td>Associated Run:</td><td><select name="run"><%
             for (Integer run : bean.getRuns())
             { %><option><%=h(run)%></option>
@@ -67,7 +67,7 @@
 %>
         <tr><td>&nbsp;</td></tr>
         <tr><td>
-            <input type="hidden" name="platform" value="<%=h(bean.getPlatform())%>">
+            <input type="hidden" name="platform" value="<%=bean.getPlatform()%>">
             <input type="hidden" name="pipeline" value="1">
             <input type="hidden" name="readsPath" value="<%=h(bean.getReadsPath())%>">
             <input type="hidden" name="analyze" value="0">
