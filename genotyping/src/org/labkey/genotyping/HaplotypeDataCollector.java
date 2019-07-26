@@ -19,8 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.exp.ExperimentException;
 import org.labkey.api.exp.api.ExpProtocol;
-import org.labkey.api.study.assay.AbstractTempDirDataCollector;
-import org.labkey.api.study.assay.AssayRunUploadContext;
+import org.labkey.api.assay.AbstractTempDirDataCollector;
+import org.labkey.api.assay.AssayRunUploadContext;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 
@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
