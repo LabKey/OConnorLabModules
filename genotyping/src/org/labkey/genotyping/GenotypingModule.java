@@ -27,7 +27,7 @@ import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.FolderTypeManager;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.pipeline.PipelineService;
-import org.labkey.api.study.assay.AssayService;
+import org.labkey.api.assay.AssayService;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.StringUtilsLabKey;
 import org.labkey.api.view.WebPartFactory;
