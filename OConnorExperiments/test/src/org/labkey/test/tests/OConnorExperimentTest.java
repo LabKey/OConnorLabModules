@@ -119,7 +119,12 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         DataRegionTable table = new DataRegionTable("query", getDriver());
         table.uncheckAll();
         table.checkCheckbox(0);
-        table.deleteSelectedRows();
+
+        table.clickHeaderButton("Delete");
+        table.getWrapper().acceptAlert();
+
+        // Confirm the delete on the standard container deletion page as well
+        waitAndClick(Locator.lkButton("Delete"));
 
         assertEquals("Wrong number of rows after deletion", 2, table.getDataRowCount());
 
