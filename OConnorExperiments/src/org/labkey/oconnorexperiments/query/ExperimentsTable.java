@@ -112,6 +112,8 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
             // when viewing the query, which isn't the normal behavior, so explicitly limit to the current workbook
             table.addCondition(table.getRealTable().getColumn(FieldKey.fromParts("EntityId")), container.getId());
         }
+
+        setDeleteURL(DetailsURL.fromString("admin/deleteWorkbooks.view"));
     }
 
     public static TableInfo create(OConnorExperimentsUserSchema schema, String name, ContainerFilter cf)
@@ -296,13 +298,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         @Override
         public List<Map<String, Object>> deleteRows(User user, Container container, List<Map<String, Object>> keys, @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext) throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
         {
-            // TODO: Handle MultiValueFK junction entries in SimpleQueryUpdateService instead of here...
-            // Delete all associated ParentExperiment rows before deleting experiment rows
-            // so we don't get a constraint violation.
-            // CONSIDER: Should we delete all ParentExperiments that refer to Containers being deleted?
-            deleteParentExperiments(user, container, keys, configParameters, extraScriptContext);
-
-            return _wrapped.deleteRows(user, container, keys, configParameters, extraScriptContext);
+            throw new UnsupportedOperationException("Deletion must be performed via standard container delete APIs");
         }
 
         private void insertParentExperiments(User user, Container container, List<Map<String, Object>> rows, Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException, QueryUpdateServiceException, BatchValidationException, DuplicateKeyException
