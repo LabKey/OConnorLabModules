@@ -24,6 +24,7 @@ import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.SortDirection;
 import org.labkey.test.categories.CustomModules;
+import org.labkey.test.categories.OConnor;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
@@ -42,7 +43,7 @@ import java.util.zip.ZipFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Category({CustomModules.class})
+@Category({CustomModules.class, OConnor.class})
 @BaseWebDriverTest.ClassTimeout(minutes = 8)
 public class IlluminaTest extends GenotypingBaseTest
 {

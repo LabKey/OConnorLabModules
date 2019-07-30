@@ -22,17 +22,12 @@ import org.junit.experimental.categories.Category;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.categories.CustomModules;
-import org.labkey.test.util.DataRegionTable;
+import org.labkey.test.categories.OConnor;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.WebElement;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
-@Category({CustomModules.class})
+@Category({CustomModules.class, OConnor.class})
 @BaseWebDriverTest.ClassTimeout(minutes = 9)
 public class GenotypingTest extends GenotypingBaseTest
 {
