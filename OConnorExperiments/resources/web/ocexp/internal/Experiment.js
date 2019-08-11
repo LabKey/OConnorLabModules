@@ -201,6 +201,10 @@ LABKEY.ocexp.internal.Experiment = new function () {
         for (var i = 0; i < a.length; i++)
         {
             var item = a[i];
+            // Issue 38143: be sure value is a string, not a numeric primitive
+            if (!Ext4.isString(item)) {
+                item = item.toString();
+            }
             if (item.length > 0)
                 o[item] = true;
         }
