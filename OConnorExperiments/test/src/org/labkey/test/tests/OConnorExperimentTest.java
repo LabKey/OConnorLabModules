@@ -32,6 +32,7 @@ import org.labkey.test.Locator;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
+import org.labkey.test.categories.OConnor;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
@@ -53,7 +54,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Category({CustomModules.class})
+@Category({CustomModules.class, OConnor.class})
 @BaseWebDriverTest.ClassTimeout(minutes = 6)
 public class OConnorExperimentTest extends BaseWebDriverTest implements PostgresOnlyTest
 {
@@ -119,7 +120,12 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         DataRegionTable table = new DataRegionTable("query", getDriver());
         table.uncheckAll();
         table.checkCheckbox(0);
-        table.deleteSelectedRows();
+
+        table.clickHeaderButton("Delete");
+        table.getWrapper().acceptAlert();
+
+        // Confirm the delete on the standard container deletion page as well
+        waitAndClick(Locator.lkButton("Delete"));
 
         assertEquals("Wrong number of rows after deletion", 2, table.getDataRowCount());
 
