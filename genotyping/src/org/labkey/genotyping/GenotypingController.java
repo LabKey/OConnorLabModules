@@ -2341,7 +2341,8 @@ public class GenotypingController extends SpringActionController
         public NavTree appendNavTrail(NavTree root)
         {
             NavTree result = super.appendNavTrail(root);
-            return result.addChild(_protocol.getName() + ": Aggregated Results Report");
+            result.addChild(_protocol.getName() + ": Aggregated Results Report");
+            return root;
         }
     }
 
