@@ -2112,8 +2112,10 @@ public class GenotypingController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            NavTree result = super.appendNavTrail(root);
-            return result.addChild(_protocol.getName() + ": Duplicate Assignment Report");
+            super.appendNavTrail(root);
+            root.addChild(_protocol.getName() + ": Duplicate Assignment Report");
+
+            return root;
         }
     }
 
@@ -2340,8 +2342,10 @@ public class GenotypingController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            NavTree result = super.appendNavTrail(root);
-            return result.addChild(_protocol.getName() + ": Aggregated Results Report");
+            super.appendNavTrail(root);
+            root.addChild(_protocol.getName() + ": Aggregated Results Report");
+
+            return root;
         }
     }
 
