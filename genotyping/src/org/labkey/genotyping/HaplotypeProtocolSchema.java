@@ -17,6 +17,9 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.assay.AssayProtocolSchema;
+import org.labkey.api.assay.AssayUrls;
+import org.labkey.api.assay.query.ResultsQueryView;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.BaseColumnInfo;
 import org.labkey.api.data.ButtonBar;
@@ -38,9 +41,7 @@ import org.labkey.api.query.LookupForeignKey;
 import org.labkey.api.query.QueryHelper;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.security.User;
-import org.labkey.api.assay.actions.AssayResultsAction;
-import org.labkey.api.assay.AssayProtocolSchema;
-import org.labkey.api.assay.query.ResultsQueryView;
+import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
 import org.labkey.api.view.ViewContext;
@@ -92,8 +93,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         TableInfo result = super.getTable(name, cf, includeExtraMetadata, forWrite);
         if (result != null && name.equalsIgnoreCase(AGGREGATED_RESULTS_QUERY_NAME))
         {
-            ActionURL baseURL = new ActionURL(AssayResultsAction.class, getContainer());
-            baseURL.addParameter("rowId", getProtocol().getRowId());
+            ActionURL baseURL = PageFlowUtil.urlProvider(AssayUrls.class).getAssayResultsURL(getContainer(), getProtocol());
             ((BaseColumnInfo)result.getColumn("AnimalId")).setURL(new DetailsURL(baseURL, Collections.singletonMap("Data.AnimalId/LabAnimalId~eq", "AnimalId/LabAnimalId")));
         }
         return result;
