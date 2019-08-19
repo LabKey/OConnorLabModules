@@ -2083,10 +2083,10 @@ public class GenotypingController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            NavTree navTree = root.addChild("Assay List", PageFlowUtil.urlProvider(AssayUrls.class).getAssayListURL(getContainer()));
-            navTree.addChild(_protocol.getName(), new ActionURL(AssayRunsAction.class, getContainer()).addParameter("rowId", _protocol.getRowId()));
-            navTree.addChild("Haplotype Assignment Report");
-            return navTree;
+            root.addChild("Assay List", PageFlowUtil.urlProvider(AssayUrls.class).getAssayListURL(getContainer()));
+            root.addChild(_protocol.getName(), new ActionURL(AssayRunsAction.class, getContainer()).addParameter("rowId", _protocol.getRowId()));
+            root.addChild("Haplotype Assignment Report");
+            return root;
         }
     }
 
@@ -2112,8 +2112,10 @@ public class GenotypingController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            NavTree result = super.appendNavTrail(root);
-            return result.addChild(_protocol.getName() + ": Duplicate Assignment Report");
+            super.appendNavTrail(root);
+            root.addChild(_protocol.getName() + ": Duplicate Assignment Report");
+
+            return root;
         }
     }
 
@@ -2272,10 +2274,10 @@ public class GenotypingController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            NavTree navTree = root.addChild("Assay List", PageFlowUtil.urlProvider(AssayUrls.class).getAssayListURL(getContainer()));
-            navTree.addChild(_protocol.getName(), new ActionURL(AssayRunsAction.class, getContainer()).addParameter("rowId", _protocol.getRowId()));
-            navTree.addChild("STR Discrepancies Report");
-            return navTree;
+            root.addChild("Assay List", PageFlowUtil.urlProvider(AssayUrls.class).getAssayListURL(getContainer()));
+            root.addChild(_protocol.getName(), new ActionURL(AssayRunsAction.class, getContainer()).addParameter("rowId", _protocol.getRowId()));
+            root.addChild("STR Discrepancies Report");
+            return root;
         }
     }
 
@@ -2340,8 +2342,9 @@ public class GenotypingController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
-            NavTree result = super.appendNavTrail(root);
-            result.addChild(_protocol.getName() + ": Aggregated Results Report");
+            super.appendNavTrail(root);
+            root.addChild(_protocol.getName() + ": Aggregated Results Report");
+
             return root;
         }
     }
