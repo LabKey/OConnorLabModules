@@ -22,7 +22,7 @@ function selectProduct(dataRegion, dataRegionName)
 	var checkedRows = dataRegion.getChecked();
 
 	//check there is at only one checked row
-	if (checkedRows.length > 1)
+	if (checkedRows.length !== 1)
 	{
 		var win = new Ext.Window({
 			title: 'Status update',
@@ -53,7 +53,7 @@ function selectProduct(dataRegion, dataRegionName)
 			successCallback: newData,
 			failureCallback: onFailure,
 			filterArray: [
-			              LABKEY.Filter.create('key', checkedRows, LABKEY.Filter.Types.EQUALS)
+			              LABKEY.Filter.create('key', checkedRows[0], LABKEY.Filter.Types.EQUALS)
 			              ]
 		});
 	};
