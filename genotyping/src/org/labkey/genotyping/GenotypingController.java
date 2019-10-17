@@ -1735,12 +1735,9 @@ public class GenotypingController extends SpringActionController
 
                 RenderContext rc = view.getRenderContext();
                 rc.setCache(false);
-                ResultSet rs = null;
 
-                try
+                try (ResultSet rs = rgn.getResultSet(rc))
                 {
-                    rs = rgn.getResultSet(rc);
-
                     FastqGenerator fg = new FastqGenerator(rs)
                     {
                         @Override
@@ -1764,10 +1761,6 @@ public class GenotypingController extends SpringActionController
 
                     FastqWriter writer = new FastqWriter(fg, form.getFilterLowQualityBases());
                     writer.write(getViewContext().getResponse(), "reads.fastq");
-                }
-                finally
-                {
-                    ResultSetUtil.close(rs);
                 }
 
                 return null;
