@@ -119,18 +119,14 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         goToProjectHome();
         goToManageAssays();
         clickAndWait(Locator.linkWithText(ASSAY_NAME));
-        _assayHelper.clickEditAssayDesign();
 
-        setFormElement(Locator.name("ff_name5"), prefix2+"AHaplotype1");
-        setFormElement(Locator.name("ff_label5"), prefix+"-A Haplotype 1");
-        setFormElement(Locator.name("ff_name6"), prefix2+"AHaplotype2");
-        setFormElement(Locator.name("ff_label6"), prefix+"-A Haplotype 2");
-        setFormElement(Locator.name("ff_name7"), prefix2+"BHaplotype1");
-        setFormElement(Locator.name("ff_label7"), prefix+"-B Haplotype 1");
-        setFormElement(Locator.name("ff_name8"), prefix2+"BHaplotype2");
-        setFormElement(Locator.name("ff_label8"), prefix+"-B Haplotype 2");
-
-        clickButton("Save & Close");
+        ReactAssayDesignerPage assayDesignerPage = _assayHelper.clickEditAssayDesign();
+        DomainFormPanel domainFormPanel = assayDesignerPage.expandFieldProperties("Run");
+        domainFormPanel.getField(5).setName(prefix2+"AHaplotype1").setLabel(prefix+"-A Haplotype 1");
+        domainFormPanel.getField(6).setName(prefix2+"AHaplotype2").setLabel(prefix+"-A Haplotype 2");
+        domainFormPanel.getField(7).setName(prefix2+"BHaplotype1").setLabel(prefix+"-B Haplotype 1");
+        domainFormPanel.getField(8).setName(prefix2+"BHaplotype2").setLabel(prefix+"-B Haplotype 2");
+        assayDesignerPage.clickFinish();
     }
 
     @LogMethod
@@ -221,6 +217,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
     {
         log("Setting up Haplotype assay");
         goToProjectHome();
+        goToManageAssays();
         ReactAssayDesignerPage assayDesignerPage = _assayHelper.createAssayDesign("Haplotype", name);
         assayDesignerPage.setEditableRuns(true);
 
