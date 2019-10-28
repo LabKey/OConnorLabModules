@@ -24,6 +24,9 @@ import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.categories.OConnor;
+import org.labkey.test.components.domain.DomainFormPanel;
+import org.labkey.test.pages.ReactAssayDesignerPage;
+import org.labkey.test.params.FieldDefinition;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.ListHelper;
 import org.labkey.test.util.LogMethod;
@@ -179,10 +182,9 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         log("Configure extensible Animal table");
         goToProjectHome();
         clickAndWait(Locator.id("adminSettings"));
-        clickAndWait(Locator.id("configureAnimal"));
-        waitForText("No fields have been defined.");
-        _listHelper.addField("Field Properties", "animalStrTest", "Animal String Test", ListHelper.ListColumnType.String);
-        _listHelper.addField("Field Properties", "animalIntTest", "Animal Integer Test", ListHelper.ListColumnType.Integer);
+        DomainFormPanel domainFormPanel = goToEditDefinition("configureAnimal");
+        domainFormPanel.addField(new FieldDefinition("animalStrTest", FieldDefinition.ColumnType.String).setLabel("Animal String Test"));
+        domainFormPanel.addField(new FieldDefinition("animalIntTest", FieldDefinition.ColumnType.Integer).setLabel("Animal Integer Test"));
         clickButton("Save");
         clickAndWait(Locator.linkWithText("Animal"));
         _customizeViewsHelper.openCustomizeViewPanel();
@@ -192,14 +194,21 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         log("Configure extensible Haplotype table");
         goToProjectHome();
         clickAndWait(Locator.id("adminSettings"));
-        clickAndWait(Locator.id("configureHaplotype"));
-        waitForText("No fields have been defined.");
-        _listHelper.addField("Field Properties", "haplotypeStrTest", "Haplotype String Test", ListHelper.ListColumnType.String);
-        _listHelper.addField("Field Properties", "haplotypeIntTest", "Haplotype Integer Test", ListHelper.ListColumnType.Integer);
+        domainFormPanel = goToEditDefinition("configureHaplotype");
+        domainFormPanel.addField(new FieldDefinition("haplotypeStrTest", FieldDefinition.ColumnType.String).setLabel("Haplotype String Test"));
+        domainFormPanel.addField(new FieldDefinition("haplotypeIntTest", FieldDefinition.ColumnType.Integer).setLabel("Haplotype Integer Test"));
         clickButton("Save");
         clickAndWait(Locator.linkWithText("Haplotype"));
         _customizeViewsHelper.openCustomizeViewPanel(); //TODO:  should this be necessary?
         assertTextPresent("Haplotype String Test", "Haplotype Integer Test");
+    }
+
+    private DomainFormPanel goToEditDefinition(String tableName)
+    {
+        enableUxDomainDesigner();
+        clickAndWait(Locator.id(tableName));
+        disableUxDomainDesigner();
+        return new DomainFormPanel.DomainFormPanelFinder(getDriver()).waitFor();
     }
 
     private void setupHaplotypeAssay()
@@ -212,34 +221,28 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
     {
         log("Setting up Haplotype assay");
         goToProjectHome();
-        goToManageAssays();
-        clickButton("New Assay Design");
-        checkCheckbox(Locator.radioButtonByNameAndValue("providerName", "Haplotype"));
-        clickButton("Next");
-        waitForElement(Locator.xpath("//input[@id='AssayDesignerName']"), WAIT_FOR_JAVASCRIPT);
+        ReactAssayDesignerPage assayDesignerPage = _assayHelper.createAssayDesign("Haplotype", name);
+        assayDesignerPage.setEditableRuns(true);
 
-        if(extraHaplotypes!=null)
+        if (extraHaplotypes!=null)
         {
-            int columnIndex = 9;
-            for(String[] haplotype : extraHaplotypes)
-            {
-                _listHelper.addField("Run Fields", haplotype[0] + "1", haplotype[1] + " 1", ListHelper.ListColumnType.String);
-                click(Locator.xpath("(//span[@id='propertyShownInInsert']/input)[2]"));
-                click(Locator.xpath("(//span[@id='propertyShownInUpdate']/input)[2]"));
+            DomainFormPanel domainFormPanel = assayDesignerPage.goToRunFields();
 
-                _listHelper.addField("Run Fields", haplotype[0] + "2", haplotype[1] + " 2", ListHelper.ListColumnType.String);
-                click(Locator.xpath("(//span[@id='propertyShownInInsert']/input)[2]"));
-                click(Locator.xpath("(//span[@id='propertyShownInUpdate']/input)[2]"));
+            for (String[] haplotype : extraHaplotypes)
+            {
+                domainFormPanel.addField(haplotype[0] + "1")
+                    .setLabel(haplotype[1] + " 1")
+                    .showFieldOnInsertView(false)
+                    .showFieldOnUpdateView(false);
+
+                domainFormPanel.addField(haplotype[0] + "2")
+                    .setLabel(haplotype[1] + " 2")
+                    .showFieldOnInsertView(false)
+                    .showFieldOnUpdateView(false);
             }
         }
 
-        setFormElement(Locator.id("AssayDesignerName"), name);
-        fireEvent(Locator.xpath("//input[@id='AssayDesignerName']"), SeleniumEvent.blur);
-        checkCheckbox(Locator.name("editableRunProperties"));
-
-        clickButton("Save", 0);
-        waitForText(WAIT_FOR_JAVASCRIPT, "Save successful.");
-
+        assayDesignerPage.clickFinish();
     }
 
     @LogMethod
