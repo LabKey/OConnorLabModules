@@ -15,9 +15,6 @@
 					<item text="Print">
 						<originalText>Print</originalText>
 					</item>
-					<item text="Paging">
-						<originalText>Paging</originalText>
-					</item>
 				</buttonBarOptions>
 			</table>
 		</tables>
