@@ -13,9 +13,6 @@
           <item text="Export Experiments">
             <originalText>Export</originalText>
           </item>
-          <item text="Experiments Per Page">
-            <originalText>Paging</originalText>
-          </item>
         </buttonBarOptions>
         <!-- define hidden columns and lookup for columns in grid view -->
         <columns>
