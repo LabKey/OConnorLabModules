@@ -201,9 +201,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
 
     private DomainFormPanel goToEditDefinition(String tableName)
     {
-        enableUxDomainDesigner();
         clickAndWait(Locator.id(tableName));
-        disableUxDomainDesigner();
         return new DomainFormPanel.DomainFormPanelFinder(getDriver()).waitFor();
     }
 
