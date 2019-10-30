@@ -121,7 +121,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         clickAndWait(Locator.linkWithText(ASSAY_NAME));
 
         ReactAssayDesignerPage assayDesignerPage = _assayHelper.clickEditAssayDesign();
-        DomainFormPanel domainFormPanel = assayDesignerPage.expandFieldProperties("Run");
+        DomainFormPanel domainFormPanel = assayDesignerPage.expandFieldsPanel("Run");
         domainFormPanel.getField(5).setName(prefix2+"AHaplotype1").setLabel(prefix+"-A Haplotype 1");
         domainFormPanel.getField(6).setName(prefix2+"AHaplotype2").setLabel(prefix+"-A Haplotype 2");
         domainFormPanel.getField(7).setName(prefix2+"BHaplotype1").setLabel(prefix+"-B Haplotype 1");
