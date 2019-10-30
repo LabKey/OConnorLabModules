@@ -181,7 +181,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         DomainFormPanel domainFormPanel = goToEditDefinition("configureAnimal");
         domainFormPanel.addField(new FieldDefinition("animalStrTest", FieldDefinition.ColumnType.String).setLabel("Animal String Test"));
         domainFormPanel.addField(new FieldDefinition("animalIntTest", FieldDefinition.ColumnType.Integer).setLabel("Animal Integer Test"));
-        clickButton("Save");
+        clickButton("Finish");
         clickAndWait(Locator.linkWithText("Animal"));
         _customizeViewsHelper.openCustomizeViewPanel();
         waitForText("Animal String Test");
@@ -193,7 +193,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         domainFormPanel = goToEditDefinition("configureHaplotype");
         domainFormPanel.addField(new FieldDefinition("haplotypeStrTest", FieldDefinition.ColumnType.String).setLabel("Haplotype String Test"));
         domainFormPanel.addField(new FieldDefinition("haplotypeIntTest", FieldDefinition.ColumnType.Integer).setLabel("Haplotype Integer Test"));
-        clickButton("Save");
+        clickButton("Finish");
         clickAndWait(Locator.linkWithText("Haplotype"));
         _customizeViewsHelper.openCustomizeViewPanel(); //TODO:  should this be necessary?
         assertTextPresent("Haplotype String Test", "Haplotype Integer Test");
