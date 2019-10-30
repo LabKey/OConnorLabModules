@@ -24,6 +24,7 @@ import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.categories.OConnor;
+import org.labkey.test.components.DomainDesignerPage;
 import org.labkey.test.components.domain.DomainFormPanel;
 import org.labkey.test.pages.ReactAssayDesignerPage;
 import org.labkey.test.params.FieldDefinition;
@@ -178,10 +179,11 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         log("Configure extensible Animal table");
         goToProjectHome();
         clickAndWait(Locator.id("adminSettings"));
-        DomainFormPanel domainFormPanel = goToEditDefinition("configureAnimal");
+        DomainDesignerPage domainDesignerPage = goToEditDefinition("configureAnimal");
+        DomainFormPanel domainFormPanel = domainDesignerPage.fieldsPanel();
         domainFormPanel.addField(new FieldDefinition("animalStrTest", FieldDefinition.ColumnType.String).setLabel("Animal String Test"));
         domainFormPanel.addField(new FieldDefinition("animalIntTest", FieldDefinition.ColumnType.Integer).setLabel("Animal Integer Test"));
-        clickButton("Finish");
+        domainDesignerPage.clickFinish();
         clickAndWait(Locator.linkWithText("Animal"));
         _customizeViewsHelper.openCustomizeViewPanel();
         waitForText("Animal String Test");
@@ -190,19 +192,20 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         log("Configure extensible Haplotype table");
         goToProjectHome();
         clickAndWait(Locator.id("adminSettings"));
-        domainFormPanel = goToEditDefinition("configureHaplotype");
+        domainDesignerPage = goToEditDefinition("configureHaplotype");
+        domainFormPanel = domainDesignerPage.fieldsPanel();
         domainFormPanel.addField(new FieldDefinition("haplotypeStrTest", FieldDefinition.ColumnType.String).setLabel("Haplotype String Test"));
         domainFormPanel.addField(new FieldDefinition("haplotypeIntTest", FieldDefinition.ColumnType.Integer).setLabel("Haplotype Integer Test"));
-        clickButton("Finish");
+        domainDesignerPage.clickFinish();
         clickAndWait(Locator.linkWithText("Haplotype"));
         _customizeViewsHelper.openCustomizeViewPanel(); //TODO:  should this be necessary?
         assertTextPresent("Haplotype String Test", "Haplotype Integer Test");
     }
 
-    private DomainFormPanel goToEditDefinition(String tableName)
+    private DomainDesignerPage goToEditDefinition(String tableName)
     {
         clickAndWait(Locator.id(tableName));
-        return new DomainFormPanel.DomainFormPanelFinder(getDriver()).waitFor();
+        return new DomainDesignerPage(getDriver());
     }
 
     private void setupHaplotypeAssay()
