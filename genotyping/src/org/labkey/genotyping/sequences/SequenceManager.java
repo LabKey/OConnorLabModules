@@ -107,15 +107,12 @@ public class SequenceManager
     }
 
 
-    public void writeFasta(Container c, User user, @Nullable String sequencesViewName, File destination) throws IOException
+    public void writeFasta(Container c, User user, @Nullable String sequencesViewName, File destination) throws IOException, SQLException
     {
-        ResultSet rs = null;
-
-        try
+        try (ResultSet rs = selectSequences(c, user, getCurrentDictionary(c, user), sequencesViewName, "AlleleName,Sequence"))
         {
-            rs = selectSequences(c, user, getCurrentDictionary(c, user), sequencesViewName, "AlleleName,Sequence");
-
-            FastaWriter<FastaEntry> fw = new FastaWriter<>(new ResultSetFastaGenerator(rs) {
+            FastaWriter<FastaEntry> fw = new FastaWriter<>(new ResultSetFastaGenerator(rs)
+            {
                 @Override
                 public String getHeader(ResultSet rs) throws SQLException
                 {
@@ -130,10 +127,6 @@ public class SequenceManager
             });
 
             fw.write(destination);
-        }
-        finally
-        {
-            ResultSetUtil.close(rs);
         }
     }
 

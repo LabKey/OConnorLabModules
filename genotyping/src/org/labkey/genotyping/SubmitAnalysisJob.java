@@ -234,7 +234,7 @@ public class SubmitAnalysisJob extends PipelineJob
     }
 
 
-    private void writeFasta() throws IOException
+    private void writeFasta() throws IOException, SQLException
     {
         info("Writing FASTA file");
         setStatus("WRITING FASTA");
