@@ -41,32 +41,38 @@ import java.util.Set;
 
 public class GenotypingModule extends DefaultModule
 {
+    @Override
     public String getName()
     {
         return "Genotyping";
     }
 
+    @Override
     public double getVersion()
     {
         return 19.30;
     }
 
+    @Override
     public boolean hasScripts()
     {
         return true;
     }
 
+    @Override
     @NotNull
     protected Collection<WebPartFactory> createWebPartFactories()
     {
         return Arrays.asList(GenotypingWebPart.FACTORY, GenotypingRunsView.FACTORY, GenotypingAnalysesView.FACTORY);
     }
 
+    @Override
     protected void init()
     {
         addController("genotyping", GenotypingController.class);
     }
 
+    @Override
     public void doStartup(ModuleContext moduleContext)
     {
         // add a container listener so we'll know when our container is deleted:

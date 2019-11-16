@@ -1143,28 +1143,21 @@ public class GenotypingController extends SpringActionController
             views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), getUser(), gs.getSchemaName(), gs.getSequencesTable().getName(), false));
 
             Map<Integer, Pair<String, String>> sampleMap = new TreeMap<>();
-            ResultSet rs = null;
 
-            try
+            try (Results results = SampleManager.get().selectSamples(getContainer(), getUser(), run, "library_sample_name, library_sample_species, key", "creating an analysis"))
             {
-                Results results = SampleManager.get().selectSamples(getContainer(), getUser(), run, "library_sample_name, library_sample_species, key", "creating an analysis");
-                rs = results.getResultSet();
                 Map<FieldKey, ColumnInfo> fieldMap = results.getFieldMap();
                 ColumnInfo sampleNameColumn = getColumnInfo(fieldMap, "library_sample_name");
                 ColumnInfo sampleSpeciesColumn = getColumnInfo(fieldMap, "library_sample_species");
                 ColumnInfo keyColumn = getColumnInfo(fieldMap, "key");
 
-                while (null != rs && rs.next())
+                while (results.next())
                 {
-                    String sampleName = (String)sampleNameColumn.getValue(rs);
-                    String species = (String)sampleSpeciesColumn.getValue(rs);
-                    int sampleId = (Integer)keyColumn.getValue(rs);
+                    String sampleName = (String) sampleNameColumn.getValue(results);
+                    String species = (String) sampleSpeciesColumn.getValue(results);
+                    int sampleId = (Integer) keyColumn.getValue(results);
                     sampleMap.put(sampleId, new Pair<>(sampleName, species));
                 }
-            }
-            finally
-            {
-                ResultSetUtil.close(rs);
             }
 
             return new JspView<>("/org/labkey/genotyping/view/analyze.jsp", new AnalyzeBean(views, sampleMap, form.getReturnActionURL()), errors);
@@ -1736,9 +1729,9 @@ public class GenotypingController extends SpringActionController
                 RenderContext rc = view.getRenderContext();
                 rc.setCache(false);
 
-                try (ResultSet rs = rgn.getResultSet(rc))
+                try (Results results = rgn.getResults(rc))
                 {
-                    FastqGenerator fg = new FastqGenerator(rs)
+                    FastqGenerator fg = new FastqGenerator(results)
                     {
                         @Override
                         public String getHeader(ResultSet rs) throws SQLException
