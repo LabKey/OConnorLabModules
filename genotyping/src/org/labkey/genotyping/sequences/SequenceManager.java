@@ -20,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.SQLFragment;
-import org.labkey.api.data.Selector;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.SqlSelector;
@@ -86,42 +85,34 @@ public class SequenceManager
             viewFilter.addCondition(FieldKey.fromParts("file_active"), 1);
         TableInfo source = qHelper.getTableInfo();
 
-        new TableSelector(source, viewFilter, null).forEachMap(new Selector.ForEachBlock<Map<String, Object>>()
-        {
-            @Override
-            public void exec(Map<String, Object> map)
+        new TableSelector(source, viewFilter, null).forEachMap(map -> {
+            Map<String, Object> inMap = new HashMap<>(map.size() * 2);
+
+            // General way to map column names would be nice...
+            for (Map.Entry<String, Object> entry : map.entrySet())
             {
-                Map<String, Object> inMap = new HashMap<>(map.size() * 2);
-
-                // General way to map column names would be nice...
-                for (Map.Entry<String, Object> entry : map.entrySet())
-                {
-                    String key = entry.getKey().replaceAll("_", "");
-                    inMap.put(key, entry.getValue());
-                }
-
-                // Skip empty sequences.  TODO: remove this check once wisconsin eliminates empty sequences
-                if (StringUtils.isBlank((String)inMap.get("sequence")))
-                    return;
-
-                inMap.put("dictionary", dictionaryId);
-                Table.insert(user, destination, inMap);
+                String key = entry.getKey().replaceAll("_", "");
+                inMap.put(key, entry.getValue());
             }
+
+            // Skip empty sequences.  TODO: remove this check once wisconsin eliminates empty sequences
+            if (StringUtils.isBlank((String)inMap.get("sequence")))
+                return;
+
+            inMap.put("dictionary", dictionaryId);
+            Table.insert(user, destination, inMap);
         });
 
         destination.getSqlDialect().updateStatistics(destination);
     }
 
 
-    public void writeFasta(Container c, User user, @Nullable String sequencesViewName, File destination) throws IOException
+    public void writeFasta(Container c, User user, @Nullable String sequencesViewName, File destination) throws IOException, SQLException
     {
-        ResultSet rs = null;
-
-        try
+        try (ResultSet rs = selectSequences(c, user, getCurrentDictionary(c, user), sequencesViewName, "AlleleName,Sequence"))
         {
-            rs = selectSequences(c, user, getCurrentDictionary(c, user), sequencesViewName, "AlleleName,Sequence");
-
-            FastaWriter<FastaEntry> fw = new FastaWriter<>(new ResultSetFastaGenerator(rs) {
+            FastaWriter<FastaEntry> fw = new FastaWriter<>(new ResultSetFastaGenerator(rs)
+            {
                 @Override
                 public String getHeader(ResultSet rs) throws SQLException
                 {
@@ -136,10 +127,6 @@ public class SequenceManager
             });
 
             fw.write(destination);
-        }
-        finally
-        {
-            ResultSetUtil.close(rs);
         }
     }
 
@@ -177,14 +164,11 @@ public class SequenceManager
 
     public Map<String, Integer> getSequences(Container c, User user, SequenceDictionary dictionary, String sequencesViewName) throws SQLException
     {
-        ResultSet rs = null;
         HashMap<String, Integer> sequences = new HashMap<>();
 
-        try
+        try (ResultSet rs = selectSequences(c, user, dictionary, sequencesViewName, "AlleleName,RowId"))
         {
-            rs = selectSequences(c, user, dictionary, sequencesViewName, "AlleleName,RowId");
-
-            while(rs.next())
+            while (rs.next())
             {
                 Integer previous = sequences.put(rs.getString(1), rs.getInt(2));
 
@@ -193,10 +177,6 @@ public class SequenceManager
             }
 
             return sequences;
-        }
-        finally
-        {
-            ResultSetUtil.close(rs);
         }
     }
 

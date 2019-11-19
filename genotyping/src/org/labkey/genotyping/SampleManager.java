@@ -17,6 +17,7 @@ package org.labkey.genotyping;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
@@ -30,8 +31,6 @@ import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.NotFoundException;
 
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -66,7 +65,7 @@ public class SampleManager
         return INSTANCE;
     }
 
-    public Results selectSamples(Container c, User user, GenotypingRun run, String columnNames, String action)
+    public @NotNull Results selectSamples(Container c, User user, GenotypingRun run, String columnNames, String action)
     {
         QueryHelper qHelper = validateSamplesQuery(c, user, run, action);
         MetaDataRun metaDataRun = validateRun(user, run, action);
@@ -81,7 +80,7 @@ public class SampleManager
         return qHelper.select(fieldKeys, extraFilter);
     }
 
-    public Results selectSamples(Container c, User user, GenotypingRun run, String action)
+    public @NotNull Results selectSamples(Container c, User user, GenotypingRun run, String action)
     {
         QueryHelper qHelper = validateSamplesQuery(c, user, run, action);
         MetaDataRun metaDataRun = validateRun(user, run, action);
