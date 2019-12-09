@@ -488,7 +488,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
     }
 
     @Override
-    public void beforeDeleteData(List<ExpData> data)
+    public void beforeDeleteData(List<ExpData> data, User user)
     {
         for (ExpData expData : data)
         {
