@@ -2161,3 +2161,8 @@ ALTER TABLE oconnor.inventory ALTER COLUMN box_row TYPE INT USING (box_row::inte
 
 ALTER TABLE oconnor.inventory ALTER COLUMN box_column DROP DEFAULT;
 ALTER TABLE oconnor.inventory ALTER COLUMN box_column TYPE INT USING (box_column::integer);
+
+/* oconnor-17.20-17.30.sql */
+
+ALTER TABLE oconnor.inventory ADD ModifiedBy USERID;
+ALTER TABLE oconnor.inventory ADD CreatedBy USERID;
