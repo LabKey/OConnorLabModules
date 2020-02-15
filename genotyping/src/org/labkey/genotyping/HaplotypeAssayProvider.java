@@ -110,6 +110,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     @Override @NotNull
     public AssayTableMetadata getTableMetadata(@NotNull ExpProtocol protocol)
     {
+        // TODO: assay result LSID?
         return new AssayTableMetadata(this, protocol, null, FieldKey.fromParts("RunId"), FieldKey.fromParts("RowId"))
         {
             @Override
@@ -267,7 +268,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     }
 
     @Override
-    public void changeDomain(User user, ExpProtocol protocol, GWTDomain<? extends GWTPropertyDescriptor> orig, GWTDomain<? extends GWTPropertyDescriptor> update)
+    public void changeDomain(User user, ExpProtocol protocol, GWTDomain<GWTPropertyDescriptor> orig, GWTDomain<GWTPropertyDescriptor> update)
     {
         GenotypingSchema gs = GenotypingSchema.get();
         SqlExecutor executor = new SqlExecutor(gs.getSchema());
