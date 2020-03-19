@@ -37,15 +37,6 @@
     User user = getUser();
     Container c = getContainer();
 %>
-<%!
-    @Override
-    public void addClientDependencies(ClientDependencies dependencies)
-    {
-        dependencies.add("clientapi");
-    }
-%>
-<labkey:scriptDependency/>
-
 <h3>Experiment History</h3>
 <%
     {
