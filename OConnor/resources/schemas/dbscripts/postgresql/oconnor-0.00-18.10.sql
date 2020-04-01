@@ -2166,3 +2166,8 @@ ALTER TABLE oconnor.inventory ALTER COLUMN box_column TYPE INT USING (box_column
 
 ALTER TABLE oconnor.inventory ADD ModifiedBy USERID;
 ALTER TABLE oconnor.inventory ADD CreatedBy USERID;
+
+/* oconnor-17.30-18.10.sql */
+
+ALTER TABLE oconnor.inventory_removed ADD ModifiedBy USERID;
+ALTER TABLE oconnor.inventory_removed ADD CreatedBy USERID;
