@@ -121,7 +121,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         UserSchema core = QueryService.get().getUserSchema(schema.getUser(), schema.getContainer(), SchemaKey.fromParts("core"));
         // Issue 38535 and 38515 - join is tricky because we need to support workbook-scoping rules by default but still allow
         // for AllFolders and other non-standard ContainerFilters for specific use cases
-        ContainerFilter workbookCF = cf == null ? new ContainerFilter.CurrentOrParentAndWorkbooks(schema.getUser()) : cf;
+        ContainerFilter workbookCF = cf == null ? ContainerFilter.Type.CurrentOrParentAndWorkbooks.create(schema) : cf;
         TableInfo workbooksTable = core.getTable("Workbooks", workbookCF, true, true);
 
         SchemaTableInfo rootTable = OConnorExperimentsSchema.getInstance().createTableInfoExperiments();
