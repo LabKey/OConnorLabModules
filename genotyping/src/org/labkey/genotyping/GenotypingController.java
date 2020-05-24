@@ -32,6 +32,13 @@ import org.labkey.api.action.SimpleErrorView;
 import org.labkey.api.action.SimpleRedirectAction;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
+import org.labkey.api.assay.AssaySchema;
+import org.labkey.api.assay.AssayUrls;
+import org.labkey.api.assay.AssayView;
+import org.labkey.api.assay.actions.AssayHeaderView;
+import org.labkey.api.assay.actions.AssayRunsAction;
+import org.labkey.api.assay.actions.BaseAssayAction;
+import org.labkey.api.assay.actions.ProtocolIdForm;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.ButtonBar;
 import org.labkey.api.data.ColumnInfo;
@@ -76,19 +83,11 @@ import org.labkey.api.security.permissions.DeletePermission;
 import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
-import org.labkey.api.assay.actions.AssayHeaderView;
-import org.labkey.api.assay.actions.AssayRunsAction;
-import org.labkey.api.assay.actions.BaseAssayAction;
-import org.labkey.api.assay.actions.ProtocolIdForm;
-import org.labkey.api.assay.AssaySchema;
-import org.labkey.api.assay.AssayUrls;
-import org.labkey.api.assay.AssayView;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.HelpTopic;
 import org.labkey.api.util.MinorConfigurationException;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.Pair;
-import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
@@ -269,9 +268,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Genotyping Analysis " + _analysis.getRowId());
+            root.addChild("Genotyping Analysis " + _analysis.getRowId());
         }
     }
 
@@ -569,9 +568,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Genotyping Admin");
+            root.addChild("Genotyping Admin");
         }
     }
 
@@ -756,9 +755,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("My Galaxy Settings");
+            root.addChild("My Galaxy Settings");
         }
     }
 
@@ -1046,9 +1045,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Import Reads");
+            root.addChild("Import Reads");
         }
     }
 
@@ -1221,9 +1220,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Submit Analysis");
+            root.addChild("Submit Analysis");
         }
     }
 
@@ -1499,9 +1498,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Reference Sequences");
+            root.addChild("Reference Sequences");
         }
     }
 
@@ -1568,9 +1567,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Reference Sequence");
+            root.addChild("Reference Sequence");
         }
     }
 
@@ -1597,9 +1596,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Sequencing Runs");
+            root.addChild("Sequencing Runs");
         }
     }
 
@@ -1626,9 +1625,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Analyses");
+            root.addChild("Analyses");
         }
     }
 
@@ -1860,9 +1859,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Run " + _run.getRowId());
+            root.addChild("Run " + _run.getRowId());
         }
 
         @Override
@@ -1991,9 +1990,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Reads for match " + _matchId);
+            root.addChild("Reads for match " + _matchId);
         }
 
         @Override
@@ -2067,12 +2066,11 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
             root.addChild("Assay List", PageFlowUtil.urlProvider(AssayUrls.class).getAssayListURL(getContainer()));
             root.addChild(_protocol.getName(), new ActionURL(AssayRunsAction.class, getContainer()).addParameter("rowId", _protocol.getRowId()));
             root.addChild("Haplotype Assignment Report");
-            return root;
         }
     }
 
@@ -2096,12 +2094,10 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            super.appendNavTrail(root);
+            super.addNavTrail(root);
             root.addChild(_protocol.getName() + ": Duplicate Assignment Report");
-
-            return root;
         }
     }
 
@@ -2258,12 +2254,11 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
             root.addChild("Assay List", PageFlowUtil.urlProvider(AssayUrls.class).getAssayListURL(getContainer()));
             root.addChild(_protocol.getName(), new ActionURL(AssayRunsAction.class, getContainer()).addParameter("rowId", _protocol.getRowId()));
             root.addChild("STR Discrepancies Report");
-            return root;
         }
     }
 
@@ -2326,12 +2321,10 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            super.appendNavTrail(root);
+            super.addNavTrail(root);
             root.addChild(_protocol.getName() + ": Aggregated Results Report");
-
-            return root;
         }
     }
 
@@ -2350,9 +2343,9 @@ public class GenotypingController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Edit Haplotype Assignments");
+            root.addChild("Edit Haplotype Assignments");
         }
     }
 

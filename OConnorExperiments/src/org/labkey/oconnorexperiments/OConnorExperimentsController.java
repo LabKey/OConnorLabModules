@@ -98,9 +98,8 @@ public class OConnorExperimentsController extends SpringActionController
             return HttpView.redirect(PageFlowUtil.urlProvider(ProjectUrls.class).getHomeURL());
         }
 
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root;
         }
     }
 
@@ -349,9 +348,8 @@ public class OConnorExperimentsController extends SpringActionController
             return true;
         }
 
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root;
         }
 
         public ActionURL getSuccessURL(UserForm form)
@@ -499,9 +497,9 @@ public class OConnorExperimentsController extends SpringActionController
         }
 
         @Override
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
-            return root.addChild("Experiment History");
+            root.addChild("Experiment History");
         }
     }
 
@@ -551,10 +549,10 @@ public class OConnorExperimentsController extends SpringActionController
             return new VBox(message, new JspView<>("/org/labkey/oconnorexperiments/view/workbookSearch.jsp", new WorkbookSearchBean(wbqview, null)), wbqview);
         }
 
-        public NavTree appendNavTrail(NavTree root)
+        public void addNavTrail(NavTree root)
         {
             //if a view ends up getting rendered, the workbook id was not found
-            return root.addChild(OConnorExperimentsSchema.EXPERIMENTS);
+            root.addChild(OConnorExperimentsSchema.EXPERIMENTS);
         }
     }
 }
