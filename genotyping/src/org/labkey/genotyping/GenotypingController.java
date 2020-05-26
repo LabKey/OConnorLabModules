@@ -578,6 +578,7 @@ public class GenotypingController extends SpringActionController
     @IgnoresTermsOfUse
     public class MergeFastqFilesAction extends ExportAction<MergeFastqFilesForm>
     {
+        @Override
         public void export(MergeFastqFilesForm form, HttpServletResponse response, BindException errors) throws Exception
         {
             if(form.getDataIds() == null || form.getDataIds().length == 0)

@@ -63,6 +63,7 @@ public class ReadsPipelineProvider extends PipelineProvider
 
     private static class SampleCSVFilter implements FileFilter
     {
+        @Override
         public boolean accept(File file)
         {
             return "csv".equalsIgnoreCase(FileUtil.getExtension(file));

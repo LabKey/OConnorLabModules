@@ -93,11 +93,13 @@ public class OConnorExperimentsController extends SpringActionController
     @RequiresPermission(ReadPermission.class)
     public class BeginAction extends SimpleViewAction
     {
+        @Override
         public ModelAndView getView(Object o, BindException errors)
         {
             return HttpView.redirect(PageFlowUtil.urlProvider(ProjectUrls.class).getHomeURL());
         }
 
+        @Override
         public void addNavTrail(NavTree root)
         {
         }
@@ -106,15 +108,18 @@ public class OConnorExperimentsController extends SpringActionController
     @RequiresPermission(AdminPermission.class)
     public class MigrateDataAction extends FormViewAction<UserForm>
     {
+        @Override
         public void validateCommand(UserForm target, Errors errors)
         {
         }
 
+        @Override
         public ModelAndView getView(UserForm form, boolean reshow, BindException errors)
         {
             return new JspView<>("/org/labkey/oconnorexperiments/view/migrateData.jsp");
         }
 
+        @Override
         public boolean handlePost(UserForm form, BindException errors) throws Exception
         {
             if (form.isFinalMigration())
@@ -348,10 +353,12 @@ public class OConnorExperimentsController extends SpringActionController
             return true;
         }
 
+        @Override
         public void addNavTrail(NavTree root)
         {
         }
 
+        @Override
         public ActionURL getSuccessURL(UserForm form)
         {
             UserSchema targetSchema = QueryService.get().getUserSchema(getUser(), getContainer(), OConnorExperimentsSchema.NAME);
@@ -521,6 +528,7 @@ public class OConnorExperimentsController extends SpringActionController
     @RequiresPermission(ReadPermission.class)
     public class LookupWorkbookAction extends SimpleViewAction<LookupWorkbookForm>
     {
+        @Override
         public ModelAndView getView(LookupWorkbookForm form, BindException errors)
         {
             if (null == form.getId())
@@ -549,6 +557,7 @@ public class OConnorExperimentsController extends SpringActionController
             return new VBox(message, new JspView<>("/org/labkey/oconnorexperiments/view/workbookSearch.jsp", new WorkbookSearchBean(wbqview, null)), wbqview);
         }
 
+        @Override
         public void addNavTrail(NavTree root)
         {
             //if a view ends up getting rendered, the workbook id was not found

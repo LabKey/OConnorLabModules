@@ -51,6 +51,7 @@ public class ImportAnalysisPipelineProvider extends PipelineProvider
 
     private static class ResultsFilter implements FileFilter
     {
+        @Override
         public boolean accept(File file)
         {
             return file.getName().equalsIgnoreCase(GenotypingManager.MATCHES_FILE_NAME);
