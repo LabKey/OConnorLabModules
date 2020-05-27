@@ -41,6 +41,7 @@ public class GenotypingRunsView extends QueryView
 
     public static final WebPartFactory FACTORY = new BaseWebPartFactory("Sequencing Runs")
     {
+        @Override
         public WebPartView getWebPartView(@NotNull ViewContext ctx, @NotNull Portal.WebPart webPart)
         {
             WebPartView view = new GenotypingRunsView(ctx, null, "SequencingRuns", false);

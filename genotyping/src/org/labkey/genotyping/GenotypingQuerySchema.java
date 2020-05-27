@@ -285,6 +285,7 @@ public class GenotypingQuerySchema extends UserSchema
                 return createTable(schema, cf, null);
             }
 
+            @Override
             public FilteredTable createTable(final GenotypingQuerySchema schema, ContainerFilter cf, @Nullable final Integer analysisId)
             {
                 FilteredTable table = new FilteredTable<>(GS.getMatchesTable(), schema, cf);
@@ -870,6 +871,7 @@ public class GenotypingQuerySchema extends UserSchema
     {
         DefaultSchema.registerProvider(NAME, new DefaultSchema.SchemaProvider(module)
         {
+            @Override
             public QuerySchema createSchema(DefaultSchema schema, Module module)
             {
                 return new GenotypingQuerySchema(schema.getUser(), schema.getContainer());

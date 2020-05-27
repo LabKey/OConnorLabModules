@@ -80,6 +80,7 @@ public class OConnorExperimentsModule extends DefaultModule
         return new ArrayList<>(Arrays.asList(
             new BaseWebPartFactory("OConnorExperiments")
             {
+                @Override
                 public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     UserSchema schema = QueryService.get().getUserSchema(portalCtx.getUser(), portalCtx.getContainer(), SchemaKey.fromParts("OConnorExperiments"));

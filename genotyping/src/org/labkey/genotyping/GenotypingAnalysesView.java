@@ -40,6 +40,7 @@ public class GenotypingAnalysesView extends QueryView
 
     public static final WebPartFactory FACTORY = new BaseWebPartFactory("Genotyping Analyses")
     {
+        @Override
         public WebPartView getWebPartView(@NotNull ViewContext ctx, @NotNull Portal.WebPart webPart)
         {
             WebPartView view = new GenotypingAnalysesView(ctx, null, "GenotypingAnalyses");

@@ -35,6 +35,7 @@ public class GenotypingWebPart extends JspView
 {
     public static final WebPartFactory FACTORY = new BaseWebPartFactory("Genotyping Overview")
     {
+        @Override
         public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
         {
             return new GenotypingWebPart();

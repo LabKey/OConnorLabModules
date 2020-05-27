@@ -22,6 +22,7 @@ import org.labkey.api.security.User;
 
 public class GenotypingContainerListener extends ContainerManager.AbstractContainerListener
 {
+    @Override
     public void containerDeleted(Container c, User user)
     {
         GenotypingManager.get().delete(c);

@@ -36,6 +36,7 @@ public class Import454ReadsPipelineProvider extends ReadsPipelineProvider
 
     private static class ReadsFilter implements FileFilter
     {
+        @Override
         public boolean accept(File file)
         {
             return file.getName().equalsIgnoreCase(GenotypingManager.READS_FILE_NAME);
