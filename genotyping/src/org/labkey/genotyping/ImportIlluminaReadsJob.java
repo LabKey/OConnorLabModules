@@ -133,9 +133,9 @@ public class ImportIlluminaReadsJob extends ReadsJob
 
                 //parse the samples file
                 String[] nextLine;
-                /* Index is the number of the sample as ordered in SampleSet CSV, mapped to the unique RowId for each sample */
+                /* Index is the number of the sample as ordered in SampleType CSV, mapped to the unique RowId for each sample */
                 Map<Integer, Integer> sampleIndexToIdMap = new HashMap<>();
-                /* Unique RowId for each sample mapped to the index is the number of the sample as ordered in SampleSet CSV */
+                /* Unique RowId for each sample mapped to the index is the number of the sample as ordered in SampleType CSV */
                 Map<Integer, Integer> sampleIdToIndexMap = new HashMap<>();
                 /* Name for each sample, mapped to the RowId of the sample */
                 Map<String, Integer> sampleNameToIdMap = new HashMap<>();
