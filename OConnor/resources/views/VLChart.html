@@ -1,9 +1,6 @@
 <html>
 <script type="text/javascript">
 
-LABKEY.requiresScript('oconnor/addOCIcons.js'); 	
-
-
 var animals = LABKEY.ActionURL.getParameter('animals');
 var animalList = animals.split(',');
 var chart1Animals = animalList;
@@ -20,9 +17,7 @@ var skins = ['CircleSkin', 'DiamondSkin', 'TriangleSkin', 'RectangleSkin', 'Circ
 Ext.onReady(getInfectDates);
 
 function getInfectDates(){
-	addIcons();
 
-	
     var store = LABKEY.Query.selectRows({
 		timeout:100000000,			
         schemaName: 'lists',

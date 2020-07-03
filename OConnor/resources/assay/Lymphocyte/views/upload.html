@@ -1,15 +1,12 @@
 <script type="text/javascript">
 
 LABKEY.requiresScript("ehr/AssayUpload.js");
-LABKEY.requiresScript("oconnor/AddOCIcons.js");
 
 
 if (!LABKEY.ActionURL.getParameter('legacyData')){
 
 	
 	Ext.onReady(function() {	
-		
-		addIcons();
 		
 		today = new Date();
 	   name = LABKEY.Security.currentUser.displayName + '_' + today.format('Y-m-d');
