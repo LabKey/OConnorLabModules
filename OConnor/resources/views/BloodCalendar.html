@@ -1,8 +1,6 @@
 <html>
 <script type="text/javascript">
 
-LABKEY.requiresScript('oconnor/addOCIcons.js'); 	
-
 var iconsAdded = false;
 var currentDate = new Date();
 var weekOf = document.getElementById('week');
@@ -13,12 +11,6 @@ Ext.onReady(calendar);
 
 function calendar(){	
 
-	if (!iconsAdded)
-		addIcons();
-	
-	iconsAdded = true;
-	
-	
 	var currentDay = currentDate.getDay();
 	var weekArray = [];
 	
