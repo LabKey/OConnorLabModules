@@ -15,7 +15,8 @@
  */
 package org.labkey.genotyping.galaxy;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.labkey.api.util.ContextListener;
 import org.labkey.api.util.ShutdownListener;
 import org.labkey.genotyping.GenotypingManager;
@@ -41,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class WorkflowCompletionMonitor implements ShutdownListener
 {
-    private static final Logger LOG = Logger.getLogger(WorkflowCompletionMonitor.class);
+    private static final Logger LOG = LogManager.getLogger(WorkflowCompletionMonitor.class);
     private static final WorkflowCompletionMonitor INSTANCE = new WorkflowCompletionMonitor();
 
     private final ScheduledExecutorService _executor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "Genotyping Workflow Completion Monitor"));

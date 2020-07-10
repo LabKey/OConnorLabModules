@@ -17,7 +17,8 @@
 package org.labkey.genotyping;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.action.ExportAction;
@@ -139,7 +140,7 @@ import java.util.TreeSet;
 
 public class GenotypingController extends SpringActionController
 {
-    private static final Logger LOG = Logger.getLogger(GenotypingController.class);
+    private static final Logger LOG = LogManager.getLogger(GenotypingController.class);
     @SuppressWarnings({"unchecked"})
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(GenotypingController.class);
 

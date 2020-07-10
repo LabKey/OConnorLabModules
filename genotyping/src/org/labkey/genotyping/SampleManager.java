@@ -16,7 +16,8 @@
 package org.labkey.genotyping;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.data.ColumnInfo;
@@ -52,7 +53,7 @@ public class SampleManager
     public static final String AMPLICON_COLUMN_NAME = "amplicon";
     public static final String KEY_COLUMN_NAME = "key";
 
-    private static final Logger LOG = Logger.getLogger(SampleManager.class);
+    private static final Logger LOG = LogManager.getLogger(SampleManager.class);
 
     static final Set<String> POSSIBLE_SAMPLE_KEYS = new CaseInsensitiveHashSet(MID5_COLUMN_NAME, MID3_COLUMN_NAME, AMPLICON_COLUMN_NAME);
 

@@ -15,7 +15,8 @@
  */
 package org.labkey.genotyping;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
@@ -78,7 +79,7 @@ public class GenotypingQuerySchema extends UserSchema
     private static final Set<String> TABLE_NAMES;
     /** When building up concatenated haplotypes, a placeholder for NULL values */
     private static final String NULL_HAPLOTYPE_MARKER = "~";
-    private static final Logger LOG = Logger.getLogger(GenotypingQuerySchema.class);
+    private static final Logger LOG = LogManager.getLogger(GenotypingQuerySchema.class);
 
     private SortedMap<Integer, Map<String, String>> _allHaplotypes;
 
