@@ -1,8 +1,22 @@
 <html>
 <script type="text/javascript">
 
-LABKEY.requiresScript('oconnor/addOCIcons.js'); 		
-LABKEY.requiresScript('oconnor/oconnorFunctions.js'); 		
+LABKEY.requiresScript('oconnor/oconnorFunctions.js');
+
+function toExperiment(experiment){
+
+    LABKEY.Query.selectRows({
+        schemaName: 'oconnor',
+        queryName: 'experiment_db',
+        columns: 'workbook',
+        containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+        filterArray: [LABKEY.Filter.create('experiment_number', experiment, LABKEY.Filter.Types.EQUAL)],
+        successCallback: function(data){
+            var wbcontainer = "/WNPRC/WNPRC_Laboratories/oconnor/experiments/workbook-" + data.rows[0].workbook;
+            window.location = LABKEY.ActionURL.buildURL('project','begin', wbcontainer);
+        }
+    });
+}
 
 
 var trad1 = '';
@@ -19,10 +33,7 @@ Ext.onReady(main);
 
 
 function main(){		
-	addIcons();
 
-	//toExperiment(1234);
-	
 	var tradExps = LABKEY.ActionURL.getParameter('trad');
 	var matrixExps = LABKEY.ActionURL.getParameter('matrix');
 	
