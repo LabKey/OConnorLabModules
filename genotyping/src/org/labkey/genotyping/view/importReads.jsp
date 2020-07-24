@@ -17,6 +17,7 @@
 %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page import="org.apache.commons.lang3.StringUtils" %>
+<%@ page import="org.labkey.api.util.HtmlString" %>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
 <%@ page import="org.labkey.genotyping.GenotypingManager" %>
 <%@ page import="org.labkey.genotyping.GenotypingManager.SEQUENCE_PLATFORMS" %>
@@ -40,7 +41,7 @@
     if (platform == SEQUENCE_PLATFORMS.ILLUMINA)
     {
 %>
-    The pipeline will attempt to load any files in this folder with the following extensions: "<%=h(extensions)%>" or gzipped versions of them.  If you enter a FASTQ prefix, only files beginning with that prefix will be used.
+    The pipeline will attempt to load any files in this folder with the following extensions: "<%=h(extensions)%>" or gzipped versions of them. If you enter a FASTQ prefix, only files beginning with that prefix will be used.
 <%
     }
 %>
@@ -73,7 +74,7 @@
             <input type="hidden" name="analyze" value="0">
         </td></tr>
         <tr><td><%= button("Import Reads").submit(true) %>
-            <%=platform == SEQUENCE_PLATFORMS.LS454 ? button("Import Reads And Analyze").submit(true).onClick("document.importReads.analyze.value=1;") : ""%>
+            <%=platform == SEQUENCE_PLATFORMS.LS454 ? button("Import Reads And Analyze").submit(true).onClick("document.importReads.analyze.value=1;") : HtmlString.EMPTY_STRING%>
         </td></tr>
     </table>
 </form>

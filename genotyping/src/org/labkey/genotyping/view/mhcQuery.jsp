@@ -33,11 +33,11 @@ SELECT  reads.sampleid,
         CAST(SUM(pos_ext_reads) AS INT) AS pos_ext_reads,
         CAST(SUM(neg_ext_reads) AS INT) AS neg_ext_reads,
         <%=dialect.getGroupConcat(new SQLFragment("rowid"), true, false).getSQL()%> AS ReadIds
-    FROM <%=ctx.reads%> reads
+    FROM <%=ctx.reads.getSelectName()%> reads
     INNER JOIN
     (
         SELECT sampleid, COUNT(*) AS total_reads
-        FROM <%=ctx.reads%> reads
+        FROM <%=ctx.reads.getSelectName()%> reads
         WHERE reads.Run = <%=ctx.run%>
         GROUP BY sampleid
     ) read_count ON read_count.sampleid = reads.sampleid
@@ -48,7 +48,7 @@ SELECT  reads.sampleid,
             CASE WHEN direction = '-' THEN 1 ELSE 0 END AS neg_reads,
             CASE WHEN direction = '+ext' THEN 1 ELSE 0 END AS pos_ext_reads,
             CASE WHEN direction = '-ext' THEN 1 ELSE 0 END AS neg_ext_reads
-        FROM <%=ctx.matches%>
+        FROM <%=ctx.matches.getSelectName()%>
         GROUP BY read_name, direction
     ) matches ON matches.read_name = reads.name
 WHERE reads.Run = <%=ctx.run%>
