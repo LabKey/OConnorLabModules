@@ -31,7 +31,7 @@ import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryHelper;
 import org.labkey.api.security.User;
-import org.labkey.api.util.EnumHasHtmlString;
+import org.labkey.api.util.SimpleHasHtmlString;
 import org.labkey.api.view.NotFoundException;
 
 import java.io.File;
@@ -58,7 +58,7 @@ public class GenotypingManager
     public static final String MATCHES_FILE_NAME = "matches.txt";
     public static final String SEQUENCES_FILE_NAME = "sequences.fasta";
 
-    public enum SEQUENCE_PLATFORMS implements EnumHasHtmlString<SEQUENCE_PLATFORMS>
+    public enum SEQUENCE_PLATFORMS implements SimpleHasHtmlString
     {
         LS454, ILLUMINA, PACBIO;
 
