@@ -16,7 +16,8 @@
 
 package org.labkey.genotyping.galaxy;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
 import org.labkey.api.security.User;
@@ -31,7 +32,7 @@ import java.util.Map;
 
 public class GalaxyManager
 {
-    private static final Logger LOG = Logger.getLogger(GalaxyManager.class);
+    private static final Logger LOG = LogManager.getLogger(GalaxyManager.class);
     private static final GalaxyManager _instance = new GalaxyManager();
 
     private GalaxyManager()

@@ -17,7 +17,8 @@
 package org.labkey.oconnorexperiments;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.FormHandlerAction;
@@ -124,7 +125,7 @@ public class OConnorExperimentsController extends SpringActionController
         {
             if (form.isFinalMigration())
             {
-                Logger.getLogger(OConnorExperimentsController.class).info("Final migration to be performed - file move events will be performed (irreversible).");
+                LogManager.getLogger(OConnorExperimentsController.class).info("Final migration to be performed - file move events will be performed (irreversible).");
             }
 
             // global containers
@@ -192,7 +193,7 @@ public class OConnorExperimentsController extends SpringActionController
                         User user = UserManager.getUserByDisplayName((String) databaseMap.get("initials"));
                         if (user == null)
                         {
-                            Logger.getLogger(OConnorExperimentsController.class).warn("User '" + databaseMap.get("initials") + "' not found for experiment " + databaseMap.get("expnumber"));
+                            LogManager.getLogger(OConnorExperimentsController.class).warn("User '" + databaseMap.get("initials") + "' not found for experiment " + databaseMap.get("expnumber"));
                             effectiveUser = getUser();
                         }
                         else
@@ -202,7 +203,7 @@ public class OConnorExperimentsController extends SpringActionController
                     }
 
                     databaseMap.put("EffectiveUser", effectiveUser);
-                    Logger.getLogger(OConnorExperimentsController.class).info("Insert on experiment " + databaseMap.get("expnumber"));
+                    LogManager.getLogger(OConnorExperimentsController.class).info("Insert on experiment " + databaseMap.get("expnumber"));
                     List<Map<String, Object>> updateResult;
                     try
                     {
@@ -211,13 +212,13 @@ public class OConnorExperimentsController extends SpringActionController
                     catch (Exception e)
                     {
                         // log the error to the logfile and continue
-                        Logger.getLogger(OConnorExperimentsController.class).warn("Error inserting expNumber " + expNumber + " with exception " + e.getMessage());
+                        LogManager.getLogger(OConnorExperimentsController.class).warn("Error inserting expNumber " + expNumber + " with exception " + e.getMessage());
                         continue;
                     }
                     if (batchErrors.hasErrors())
                     {
                         // throw batchErrors.getLastRowError();
-                        Logger.getLogger(OConnorExperimentsController.class).warn("Error inserting expNumber " + expNumber);
+                        LogManager.getLogger(OConnorExperimentsController.class).warn("Error inserting expNumber " + expNumber);
                     }
 
                     Container workbookContainer = ContainerManager.getForId((String)updateResult.get(0).get("EntityId"));
@@ -232,7 +233,7 @@ public class OConnorExperimentsController extends SpringActionController
                     // Move files
                     File sourceFile = new File(fileContentService.getFileRoot(sourceContainer).getPath() + File.separator + "@files", databaseMap.get("expnumber").toString());
                     File targetDir = new File(fileContentService.getFileRoot(targetContainer).getPath() + File.separator + databaseMap.get("expnumber").toString() + File.separator + "@files");
-                    Logger.getLogger(OConnorExperimentsController.class).info("Copy from file '" + sourceFile.toString() + "' to directory '" + targetDir.toString() +"'" );
+                    LogManager.getLogger(OConnorExperimentsController.class).info("Copy from file '" + sourceFile.toString() + "' to directory '" + targetDir.toString() +"'" );
                     if (sourceFile.exists())
                     {
                         FileUtils.copyDirectory(sourceFile, targetDir);
@@ -274,7 +275,7 @@ public class OConnorExperimentsController extends SpringActionController
                                 }
                                 else
                                 {
-                                    Logger.getLogger(OConnorExperimentsController.class).warn("child container not found: " + parents[i] + " for experiment " + databaseMap.get("expnumber") + " with username " + databaseMap.get("initials"));
+                                    LogManager.getLogger(OConnorExperimentsController.class).warn("child container not found: " + parents[i] + " for experiment " + databaseMap.get("expnumber") + " with username " + databaseMap.get("initials"));
                                 }
                             }
                         }
@@ -283,7 +284,7 @@ public class OConnorExperimentsController extends SpringActionController
                             map.put("ParentExperiments", parentsEntityId.toArray(new String[parentsEntityId.size()]));
 
                             // workaround, pass user, container - databaseMap.get("Container"), singleton list
-                            Logger.getLogger(OConnorExperimentsController.class).info("Update rows on experiment " + databaseMap.get("expnumber"));
+                            LogManager.getLogger(OConnorExperimentsController.class).info("Update rows on experiment " + databaseMap.get("expnumber"));
                             try
                             {
                                 queryUpdateService.updateRows(getUser(), targetContainer, Collections.singletonList(map), null, null, null);
@@ -291,7 +292,7 @@ public class OConnorExperimentsController extends SpringActionController
                             catch (Exception e)
                             {
                                 // log the error to the logfile and continue
-                                Logger.getLogger(OConnorExperimentsController.class).warn("Error updating parent experiments for experiment number " + expNumber + " with exception " + e.getMessage());
+                                LogManager.getLogger(OConnorExperimentsController.class).warn("Error updating parent experiments for experiment number " + expNumber + " with exception " + e.getMessage());
                                 continue;
                             }
 
@@ -318,7 +319,7 @@ public class OConnorExperimentsController extends SpringActionController
                         Container workbookContainer = targetContainer.getChild(databaseMap.get("expnumber").toString());
                         if (workbookContainer == null)
                         {
-                            Logger.getLogger(OConnorExperimentsController.class).warn("Updating wiki, container not found: " + databaseMap.get("expnumber"));
+                            LogManager.getLogger(OConnorExperimentsController.class).warn("Updating wiki, container not found: " + databaseMap.get("expnumber"));
                         }
                         else
                         {
@@ -334,14 +335,14 @@ public class OConnorExperimentsController extends SpringActionController
                             catch (Exception e)
                             {
                                 // log the error to the logfile and continue
-                                Logger.getLogger(OConnorExperimentsController.class).warn("Error wiki for experiment number " + expNumber + " with exception " + e.getMessage());
+                                LogManager.getLogger(OConnorExperimentsController.class).warn("Error wiki for experiment number " + expNumber + " with exception " + e.getMessage());
                                 continue;
                             }
                             finally
                             {
                                 in.closeInputStream();
                             }
-                            Logger.getLogger(OConnorExperimentsController.class).info("Inserting wiki for experiment " + databaseMap.get("expnumber"));
+                            LogManager.getLogger(OConnorExperimentsController.class).info("Inserting wiki for experiment " + databaseMap.get("expnumber"));
                         }
                     }
                 }

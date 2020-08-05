@@ -20,7 +20,8 @@ import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Before;
@@ -333,7 +334,7 @@ public class IlluminaFastqParser
         @Test
         public void testNoDupes() throws PipelineJobException
         {
-            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(DupeTestCase.class), Collections.emptyList());
+            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), LogManager.getLogger(DupeTestCase.class), Collections.emptyList());
             Map<File, File> files = new HashMap<>();
             files.put(new File("a"), new File("b"));
             files.put(new File("c"), new File("d"));
@@ -343,7 +344,7 @@ public class IlluminaFastqParser
         @Test(expected = PipelineJobException.class)
         public void testDupeTargets() throws PipelineJobException
         {
-            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Logger.getLogger(DupeTestCase.class), Collections.emptyList());
+            IlluminaFastqParser parser = new IlluminaFastqParser(null, Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), LogManager.getLogger(DupeTestCase.class), Collections.emptyList());
             Map<File, File> files = new HashMap<>();
             files.put(new File("a"), new File("b"));
             files.put(new File("c"), new File("b"));
@@ -500,7 +501,7 @@ public class IlluminaFastqParser
                 i++;
             }
 
-            IlluminaFastqParser parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Collections.emptyMap(), Logger.getLogger(HeaderTestCase.class), oldHeaderFiles);
+            IlluminaFastqParser parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Collections.emptyMap(), LogManager.getLogger(HeaderTestCase.class), oldHeaderFiles);
             Map<Pair<Integer, Integer>, FileInfo> outputs = parser.parseFastqFiles(null);
             Assert.assertEquals("Outputs from parseFastqFiles with old headers were not as expected.", expectedOutputs, outputs.keySet());
 
@@ -513,7 +514,7 @@ public class IlluminaFastqParser
                 newHeaderFiles.add(target);
             }
 
-            parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Collections.emptyMap(), Logger.getLogger(HeaderTestCase.class), newHeaderFiles);
+            parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Collections.emptyMap(), LogManager.getLogger(HeaderTestCase.class), newHeaderFiles);
             outputs = parser.parseFastqFiles(null);
             Assert.assertEquals("Outputs from parseFastqFiles with new headers were not as expected.", expectedOutputs, outputs.keySet());
         }
