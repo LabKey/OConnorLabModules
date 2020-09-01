@@ -216,6 +216,7 @@ public class ImportAnalysisJob extends PipelineJob
         }
     }
 
+    // Simple test that renders mhcQuery.jsp. Useful for validating JspTemplate and non-HTML JSP rendering.
     public static class TestCase extends Assert
     {
         @Test
