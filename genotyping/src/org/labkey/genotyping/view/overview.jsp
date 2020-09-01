@@ -51,11 +51,11 @@
     long sequencesCount = SequenceManager.get().getCurrentSequenceCount(c, user);
 %>
 <table>
-    <tr><td colspan="3" class="labkey-announcement-title"><span><%=containerType%> Contents</span></td></tr>
+    <tr><td colspan="3" class="labkey-announcement-title"><span><%=h(containerType)%> Contents</span></td></tr>
     <tr><td colspan="3" class="labkey-title-area-line"></td></tr>
-    <tr><td width="10"></td><td>&bull;&nbsp;<%=Formats.commaf0.format(runCount)%> run<%=(1 == runCount ? "" : "s")%></td><td><% if (runCount > 0) { out.print(link("View Runs", GenotypingController.getRunsURL(c))); } else { %>&nbsp;<% } %></td></tr>
-    <tr><td></td><td>&bull;&nbsp;<%=Formats.commaf0.format(analysisCount)%> analys<%=(1 == analysisCount ? "is" : "es")%></td><td><% if (analysisCount > 0) { out.print(link("View Analyses", GenotypingController.getAnalysesURL(c))); } else { %>&nbsp;<% } %></td></tr>
-    <tr><td></td><td>&bull;&nbsp;<%=Formats.commaf0.format(sequencesCount)%> reference sequence<%=(1 == sequencesCount ? "" : "s")%>&nbsp;&nbsp;</td><td><% if (sequencesCount > 0) { out.print(link("View Reference Sequences", GenotypingController.getSequencesURL(c, null))); } else { %>&nbsp;<% } %></td></tr>
+    <tr><td width="10"></td><td>&bull;&nbsp;<%=h(Formats.commaf0.format(runCount))%> run<%=h(1 == runCount ? "" : "s")%></td><td><% if (runCount > 0) { out.print(link("View Runs", GenotypingController.getRunsURL(c))); } else { %>&nbsp;<% } %></td></tr>
+    <tr><td></td><td>&bull;&nbsp;<%=h(Formats.commaf0.format(analysisCount))%> analys<%=h(1 == analysisCount ? "is" : "es")%></td><td><% if (analysisCount > 0) { out.print(link("View Analyses", GenotypingController.getAnalysesURL(c))); } else { %>&nbsp;<% } %></td></tr>
+    <tr><td></td><td>&bull;&nbsp;<%=h(Formats.commaf0.format(sequencesCount))%> reference sequence<%=h(1 == sequencesCount ? "" : "s")%>&nbsp;&nbsp;</td><td><% if (sequencesCount > 0) { out.print(link("View Reference Sequences", GenotypingController.getSequencesURL(c, null))); } else { %>&nbsp;<% } %></td></tr>
 
     <tr><td colspan="3" class="labkey-announcement-title"><span>Tasks</span></td></tr>
     <tr><td colspan="3" class="labkey-title-area-line"></td></tr><%

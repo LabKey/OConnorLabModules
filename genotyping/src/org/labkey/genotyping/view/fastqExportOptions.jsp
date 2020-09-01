@@ -26,7 +26,6 @@
     String filter = PageFlowUtil.jsString(url.clone().replaceParameter("filterLowQualityBases", "1").getLocalURIString());
     String noFilter = PageFlowUtil.jsString(url.clone().replaceParameter("filterLowQualityBases", "0").getLocalURIString());
     String onClickScript = "window.location = document.getElementById('" + id + "').checked ? " + filter + " : " + noFilter + "; return false;";
-
 %>
 <table class="lk-fields-table">
     <tr>
@@ -42,7 +41,7 @@
     <tr><td>&nbsp;</td></tr>
     <tr>
         <td>
-            <table class="labkey-export-tab-layout"><tr><td><input id="<%=id%>" type="checkbox" checked> Filter out low-quality bases</td></tr></table>
+            <table class="labkey-export-tab-layout"><tr><td><input id="<%=h(id)%>" type="checkbox" checked> Filter out low-quality bases</td></tr></table>
         </td>
     </tr>
 </table>

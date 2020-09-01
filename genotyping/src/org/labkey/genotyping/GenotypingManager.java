@@ -31,7 +31,7 @@ import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryHelper;
 import org.labkey.api.security.User;
-import org.labkey.api.util.SimpleHasHtmlString;
+import org.labkey.api.util.SafeToRenderEnum;
 import org.labkey.api.view.NotFoundException;
 
 import java.io.File;
@@ -58,7 +58,7 @@ public class GenotypingManager
     public static final String MATCHES_FILE_NAME = "matches.txt";
     public static final String SEQUENCES_FILE_NAME = "sequences.fasta";
 
-    public enum SEQUENCE_PLATFORMS implements SimpleHasHtmlString
+    public enum SEQUENCE_PLATFORMS implements SafeToRenderEnum
     {
         LS454, ILLUMINA, PACBIO;
 
@@ -86,7 +86,7 @@ public class GenotypingManager
 
     static final String FOLDER_CATEGORY = "GenotypingSettings";
 
-    public static enum Setting
+    public enum Setting
     {
         ReferenceSequencesQuery("SequencesQuery", "the source of DNA reference sequences"),
         RunsQuery("RunsQuery", "run meta data"),
@@ -96,7 +96,7 @@ public class GenotypingManager
         private final String _key;
         private final String _description;
 
-        private Setting(String key, String friendlyName)
+        Setting(String key, String friendlyName)
         {
             _key = key;
             _description = friendlyName;

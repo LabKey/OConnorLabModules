@@ -111,7 +111,7 @@
                             commands: commands,
                             success: function(data) {
                                 assignmentForm.getEl().unmask();
-                                window.location = '<%=returnURL.getLocalURIString()%>'
+                                window.location = <%=q(returnURL.toString())%>
                             },
                             failure: function(response) {
                                 alert(response.exception);
@@ -123,7 +123,7 @@
                 {
                     text: 'Cancel',
                     handler: function(){
-                        window.location = '<%=returnURL.getLocalURIString()%>'
+                        window.location = <%=q(returnURL.toString())%>
                     }
                 }
             ],

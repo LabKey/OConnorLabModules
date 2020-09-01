@@ -49,12 +49,14 @@
 
     for (Map.Entry<Integer, Pair<String, String>> e : bean.getSampleMap().entrySet())
     {
-        out.print(sep);
-        out.print("        [");
-        out.print("'" + e.getKey() + "', ");
-        out.print(q(e.getValue().getKey()) + ", ");
+        out.print(unsafe(sep));
+        out.print(unsafe("        ["));
+        out.print(q(String.valueOf(e.getKey())));
+        out.print(unsafe(", "));
+        out.print(q(e.getValue().getKey()));
+        out.print(unsafe(", "));
         out.print(q(e.getValue().getValue()));
-        out.print("]");
+        out.print(unsafe("]"));
 
         sep = ",\n";
     }
@@ -82,9 +84,9 @@ var views = [
 %><%!
     private String addViewName(JspWriter out, String viewName, String sep) throws IOException
     {
-        out.print(sep);
+        out.print(unsafe(sep));
         viewName = (null == viewName ? GenotypingController.DEFAULT_VIEW_PLACEHOLDER : viewName);
-        out.print("        [" + q(viewName) + "]");
+        out.print(unsafe("        [" + q(viewName) + "]"));
         return ",\n";
     }
 %>
