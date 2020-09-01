@@ -19,7 +19,6 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
 import org.labkey.api.data.DbSchema;
-import org.labkey.api.data.Selector;
 import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TempTableInfo;
@@ -40,7 +39,6 @@ import org.labkey.genotyping.sequences.SequenceManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Set;
@@ -227,7 +225,8 @@ public class ImportAnalysisJob extends PipelineJob
             QueryContext ctx = new QueryContext(schema, gs.getMatchesTable(), gs.getReadsTable(), 37);
             JspTemplate<QueryContext> jspQuery = new JspTemplate<>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
             String sql = jspQuery.render();
-            assertEquals(1405, sql.length());
+            int expectedLength = gs.getSqlDialect().isSqlServer() ? 1386 : 1405;
+            assertEquals("Unexpected length for SQL (" + sql.length() + "): " + sql, expectedLength, sql.length());
         }
     }
 }
