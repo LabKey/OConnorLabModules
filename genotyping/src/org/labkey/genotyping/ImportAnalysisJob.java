@@ -16,8 +16,9 @@
 package org.labkey.genotyping;
 
 import org.jetbrains.annotations.Nullable;
+import org.junit.Assert;
+import org.junit.Test;
 import org.labkey.api.data.DbSchema;
-import org.labkey.api.data.Selector;
 import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TempTableInfo;
@@ -38,7 +39,6 @@ import org.labkey.genotyping.sequences.SequenceManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Set;
@@ -114,45 +114,40 @@ public class ImportAnalysisJob extends PipelineJob
                 SequenceDictionary dictionary = SequenceManager.get().getSequenceDictionary(getContainer(), _analysis.getSequenceDictionary());
                 final Map<String, Integer> sequences = SequenceManager.get().getSequences(getContainer(), getUser(), dictionary, _analysis.getSequencesView());
 
-                new SqlSelector(schema, sql).forEach(new Selector.ForEachBlock<ResultSet>()
-                {
-                    @Override
-                    public void exec(ResultSet rs) throws SQLException
+                new SqlSelector(schema, sql).forEach(rs -> {
+                    Integer sampleId = (Integer)rs.getObject("sampleid");
+
+                    if (null != sampleId)
                     {
-                        Integer sampleId = (Integer)rs.getObject("sampleid");
+                        // Compute array of read row ids
+                        String readIdsString = rs.getString("ReadIds");
+                        String[] readArray = readIdsString.split(",");
+                        int[] readIds = new int[readArray.length];
 
-                        if (null != sampleId)
+                        for (int i = 0; i < readArray.length; i++)
+                            readIds[i] = Integer.parseInt(readArray[i]);
+
+                        // Compute array of allele row ids and verify each is in the reference sequence dictionary
+                        String allelesString = rs.getString("alleles");
+                        String[] alleles = allelesString.split(",");
+                        int[] alleleIds = new int[alleles.length];
+
+                        for (int i = 0; i < alleles.length; i++)
                         {
-                            // Compute array of read row ids
-                            String readIdsString = rs.getString("ReadIds");
-                            String[] readArray = readIdsString.split(",");
-                            int[] readIds = new int[readArray.length];
+                            String allele = alleles[i];
+                            Integer sequenceId = sequences.get(allele);
 
-                            for (int i = 0; i < readArray.length; i++)
-                                readIds[i] = Integer.parseInt(readArray[i]);
-
-                            // Compute array of allele row ids and verify each is in the reference sequence dictionary
-                            String allelesString = rs.getString("alleles");
-                            String[] alleles = allelesString.split(",");
-                            int[] alleleIds = new int[alleles.length];
-
-                            for (int i = 0; i < alleles.length; i++)
+                            if (null == sequenceId)
                             {
-                                String allele = alleles[i];
-                                Integer sequenceId = sequences.get(allele);
-
-                                if (null == sequenceId)
-                                {
-                                    String view = _analysis.getSequencesView();
-                                    throw new NotFoundException("Allele name \"" + allele + "\" not found in reference sequences dictionary " +
-                                            _analysis.getSequenceDictionary() + ", view \"" + (null != view ? view : "<default>") + "\"");
-                                }
-
-                                alleleIds[i] = sequenceId;
+                                String view = _analysis.getSequencesView();
+                                throw new NotFoundException("Allele name \"" + allele + "\" not found in reference sequences dictionary " +
+                                        _analysis.getSequenceDictionary() + ", view \"" + (null != view ? view : "<default>") + "\"");
                             }
 
-                            GenotypingManager.get().insertMatch(getUser(), _analysis, sampleId, rs, readIds, alleleIds);
+                            alleleIds[i] = sequenceId;
                         }
+
+                        GenotypingManager.get().insertMatch(getUser(), _analysis, sampleId, rs, readIds, alleleIds);
                     }
                 });
             }
@@ -216,6 +211,22 @@ public class ImportAnalysisJob extends PipelineJob
             this.matches = matches;
             this.reads = reads;
             this.run = run;
+        }
+    }
+
+    // Simple test that renders mhcQuery.jsp. Useful for validating JspTemplate and non-HTML JSP rendering.
+    public static class TestCase extends Assert
+    {
+        @Test
+        public void testMhcQuery() throws Exception
+        {
+            GenotypingSchema gs = GenotypingSchema.get();
+            DbSchema schema = gs.getSchema();
+            QueryContext ctx = new QueryContext(schema, gs.getMatchesTable(), gs.getReadsTable(), 37);
+            JspTemplate<QueryContext> jspQuery = new JspTemplate<>("/org/labkey/genotyping/view/mhcQuery.jsp", ctx);
+            String sql = jspQuery.render();
+            int expectedLength = gs.getSqlDialect().isSqlServer() ? 1386 : 1405;
+            assertEquals("Unexpected length for SQL (" + sql.length() + "): " + sql, expectedLength, sql.length());
         }
     }
 }

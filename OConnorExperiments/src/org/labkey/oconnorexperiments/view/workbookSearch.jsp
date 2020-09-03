@@ -17,8 +17,9 @@
 %>
 <%@ page import="org.labkey.api.data.Container" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
-<%@ page import="org.labkey.oconnorexperiments.OConnorExperimentsController" %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
+<%@ page import="org.labkey.oconnorexperiments.OConnorExperimentsController" %>
+<%@ page import="org.labkey.api.search.SearchUrls" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%!
     @Override
@@ -32,12 +33,12 @@
 %>
 <table><tr>
 <td>
-<form method="GET" action="<%=new ActionURL(OConnorExperimentsController.LookupWorkbookAction.class, container)%>">
+<form method="GET" action="<%=h(new ActionURL(OConnorExperimentsController.LookupWorkbookAction.class, container))%>">
     Jump To Experiment: <input type="text" id="wbsearch-id" name="id" size="10" value=""/>
     <%=button("Go").submit(true)%>
 </form>
 </td><td style="padding-left:20px;">
-<form method="GET" action="<%=new ActionURL("search", "search", container)%>">
+<form method="GET" action="<%=h(urlProvider(SearchUrls.class).getSearchURL(container, null))%>">
     Search Experiments: <input type="text" id="wbtextsearch-id" name="q" size="40" value=""/>
     <input type="hidden" name="container" value="<%=h(container.getId())%>"/>
     <input type="hidden" name="includeSubfolders" value="1"/>

@@ -46,7 +46,7 @@
     <%
     for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties(bean.getProtocol()).entrySet())
     {
-        %>expectedHeaders.push({name: '<%=h(property.getKey())%>', label: '<%=h(property.getValue().getLabel())%>', reshowValue: '<%=h(dataCollector.getReshowValue(property.getKey()))%>', required: <%=h(property.getValue().isRequired())%>});<%
+        %>expectedHeaders.push({name: '<%=h(property.getKey())%>', label: '<%=h(property.getValue().getLabel())%>', reshowValue: '<%=h(dataCollector.getReshowValue(property.getKey()))%>', required: <%=property.getValue().isRequired()%>});<%
     }
     %>
 

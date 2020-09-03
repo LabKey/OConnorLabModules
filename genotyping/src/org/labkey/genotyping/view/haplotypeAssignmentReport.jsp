@@ -16,7 +16,6 @@
  */
 %>
 <%@ page import="org.apache.commons.lang3.StringUtils" %>
-<%@ page import="org.labkey.api.util.PageFlowUtil" %>
 <%@ page import="org.labkey.api.view.HttpView" %>
 <%@ page import="org.labkey.api.view.JspView" %>
 <%@ page import="org.labkey.api.view.template.ClientDependencies" %>
@@ -53,7 +52,7 @@
         if (ids.length > 0)
         {
             LABKEY.Query.selectRows({
-                schemaName: 'assay.Haplotype.' + <%= PageFlowUtil.jsString(assayName)%>,
+                schemaName: 'assay.Haplotype.' + <%=q(assayName)%>,
                 queryName: 'Data',
                 filterArray: [LABKEY.Filter.create('RowId', ids, LABKEY.Filter.Types.IN)],
                 columns: 'AnimalId/LabAnimalId',
@@ -144,7 +143,7 @@
                 {
                     text: 'Cancel',
                     handler: function(){
-                        window.location = '<%=bean.getReturnURL()%>';
+                        window.location = <%=q(bean.getReturnURL().toString())%>;
                     }
                 }
             ],
