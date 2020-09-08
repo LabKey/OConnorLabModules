@@ -154,13 +154,13 @@
         </tr>
         <tr><td>&nbsp;</td></tr>
         <tr>
-            <td><a href="<%=h(animalQueryURL.getLocalURIString())%>">Animal</a></td>
+            <td><a href="<%=h(animalQueryURL)%>">Animal</a></td>
             <td>
                 <%=link("configure", animalEditDomainURL).id("configureAnimal")%>
             </td>
         </tr>
         <tr>
-            <td><a href="<%=h(haplotypeQueryURL.getLocalURIString())%>">Haplotype</a></td>
+            <td><a href="<%=h(haplotypeQueryURL)%>">Haplotype</a></td>
             <td>
                 <%=link("configure", haplotypeEditDomainURL).id("configureHaplotype")%>
             </td>
