@@ -16,9 +16,7 @@
  */
 %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
-<%@ page import="org.labkey.api.view.HttpView"%>
-<%@ page import="org.labkey.api.view.JspView" %>
-<%@ page import="org.labkey.oconnorexperiments.OConnorExperimentsController" %>
+<%@ page import="org.labkey.oconnorexperiments.OConnorExperimentsController"%>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 
 <form <%=formAction(OConnorExperimentsController.MigrateDataAction.class, Method.Post)%>><labkey:csrf/>
