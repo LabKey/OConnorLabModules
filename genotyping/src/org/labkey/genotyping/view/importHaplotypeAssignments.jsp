@@ -37,9 +37,7 @@
 
     final String copyPasteDivId = "copypasteDiv" + getRequestScopedUID();
 %>
-<labkey:form action="importHaplotypeAssignments.post" method="post">
-    <div id="<%=h(copyPasteDivId)%>"></div>
-</labkey:form>
+<div id="<%=h(copyPasteDivId)%>"></div>
 
 <script type="text/javascript">
     var expectedHeaders = [];
