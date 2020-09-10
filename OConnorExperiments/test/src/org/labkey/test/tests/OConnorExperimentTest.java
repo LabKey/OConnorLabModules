@@ -125,7 +125,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         table.getWrapper().acceptAlert();
 
         // Confirm the delete on the standard container deletion page as well
-        waitAndClick(Locator.lkButton("Yes, Delete All"));
+        waitAndClick(Locator.lkButton("Yes, delete all"));
 
         assertEquals("Wrong number of rows after deletion", 2, table.getDataRowCount());
 
