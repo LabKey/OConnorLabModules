@@ -17,12 +17,12 @@
 %>
 
 <%@ page import="org.labkey.api.view.HttpView" %>
-<%@ page import="org.labkey.genotyping.HaplotypeDataCollector" %>
 <%@ page import="org.labkey.api.view.JspView" %>
 <%@ page import="org.labkey.genotyping.HaplotypeAssayProvider" %>
-<%@ page import="java.util.Map" %>
 <%@ page import="org.labkey.genotyping.HaplotypeColumnMappingProperty" %>
+<%@ page import="org.labkey.genotyping.HaplotypeDataCollector" %>
 <%@ page import="org.labkey.genotyping.HaplotypeProtocolBean" %>
+<%@ page import="java.util.Map" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
@@ -37,9 +37,7 @@
 
     final String copyPasteDivId = "copypasteDiv" + getRequestScopedUID();
 %>
-<labkey:form action="importHaplotypeAssignments.post" method="post">
-    <div id="<%=h(copyPasteDivId)%>"></div>
-</labkey:form>
+<div id="<%=h(copyPasteDivId)%>"></div>
 
 <script type="text/javascript">
     var expectedHeaders = [];

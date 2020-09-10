@@ -17,6 +17,7 @@
 %>
 <%@ page import="org.labkey.api.util.URLHelper"%>
 <%@ page import="org.labkey.genotyping.GenotypingController" %>
+<%@ page import="org.labkey.genotyping.GenotypingController.MySettingsAction" %>
 <%@ page import="org.labkey.genotyping.galaxy.GalaxyFolderSettings" %>
 <%@ page import="org.labkey.genotyping.galaxy.GalaxyManager" %>
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
@@ -34,7 +35,7 @@
         preferencesHTML = "<a href=\"" + h(userURL.getURIString()) + "\" target=\"pref\">" + preferencesHTML + "</a>";
     }
 %>
-<labkey:form action="mySettings.post" method="post">
+<labkey:form action="<%=urlFor(MySettingsAction.class)%>" method="post">
     <table>
         <%=formatMissedErrorsInTable("form", 2)%>
         <tr>
