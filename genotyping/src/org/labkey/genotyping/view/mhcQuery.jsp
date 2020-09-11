@@ -21,7 +21,7 @@
 <%@ page extends="org.labkey.api.jsp.JspContext" %>
 <%
     // Turn off warnings/exceptions for unencoded Strings in this JSP since it's not generating HTML
-    out = getPermissiveJspWriter(out);
+    out = getUnsafeJspWriter(out);
 
     ImportAnalysisJob.QueryContext ctx = (ImportAnalysisJob.QueryContext)getModelBean();
     SqlDialect dialect = ctx.schema.getSqlDialect();
