@@ -185,7 +185,7 @@ public class GenotypingManager
     {
         assert (expected.getStatusId() + 1) == update.getStatusId();
 
-        AtomicDatabaseInteger status = new AtomicDatabaseInteger(GenotypingSchema.get().getAnalysesTable().getColumn("Status"), user, null, analysis.getRowId());
+        AtomicDatabaseInteger status = new AtomicDatabaseInteger(GenotypingSchema.get().getAnalysesTable().getColumn("Status"), null, analysis.getRowId());
         return status.compareAndSet(expected.getStatusId(), update.getStatusId());
     }
 
