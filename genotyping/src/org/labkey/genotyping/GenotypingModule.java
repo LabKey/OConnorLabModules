@@ -18,6 +18,7 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.assay.AssayService;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.SQLFragment;
@@ -28,16 +29,15 @@ import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.FolderTypeManager;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.pipeline.PipelineService;
-import org.labkey.api.assay.AssayService;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.StringUtilsLabKey;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.genotyping.sequences.SequenceManager;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 public class GenotypingModule extends DefaultModule
@@ -51,7 +51,7 @@ public class GenotypingModule extends DefaultModule
     @Override
     public @Nullable Double getSchemaVersion()
     {
-        return 20.000;
+        return 21.000;
     }
 
     @Override
@@ -64,7 +64,7 @@ public class GenotypingModule extends DefaultModule
     @NotNull
     protected Collection<WebPartFactory> createWebPartFactories()
     {
-        return Arrays.asList(GenotypingWebPart.FACTORY, GenotypingRunsView.FACTORY, GenotypingAnalysesView.FACTORY);
+        return List.of(GenotypingWebPart.FACTORY, GenotypingRunsView.FACTORY, GenotypingAnalysesView.FACTORY);
     }
 
     @Override
