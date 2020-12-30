@@ -30,7 +30,6 @@ import org.labkey.api.query.QueryService;
 import org.labkey.api.query.SchemaKey;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
-import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.view.BaseWebPartFactory;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
@@ -45,10 +44,9 @@ import org.labkey.oconnorexperiments.model.OConnorExperimentsManager;
 import org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class OConnorExperimentsModule extends DefaultModule
@@ -64,7 +62,7 @@ public class OConnorExperimentsModule extends DefaultModule
     @Override
     public @Nullable Double getSchemaVersion()
     {
-        return 20.000;
+        return 21.000;
     }
 
     @Override
@@ -77,11 +75,11 @@ public class OConnorExperimentsModule extends DefaultModule
     @Override
     protected Collection<WebPartFactory> createWebPartFactories()
     {
-        return new ArrayList<>(Arrays.asList(
+        return List.of(
             new BaseWebPartFactory("OConnorExperiments")
             {
                 @Override
-                public WebPartView getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
+                public WebPartView<?> getWebPartView(@NotNull ViewContext portalCtx, @NotNull Portal.WebPart webPart)
                 {
                     UserSchema schema = QueryService.get().getUserSchema(portalCtx.getUser(), portalCtx.getContainer(), SchemaKey.fromParts("OConnorExperiments"));
                     WorkbookQueryView wbqview = new WorkbookQueryView(portalCtx, schema);
@@ -97,7 +95,7 @@ public class OConnorExperimentsModule extends DefaultModule
                     return super.isAvailable(c, scope, location) && !c.isWorkbook() && location.equalsIgnoreCase(HttpView.BODY);
                 }
             }
-        ));
+        );
     }
 
     @Override
