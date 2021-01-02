@@ -25,6 +25,7 @@ import org.labkey.test.Locator;
 import org.labkey.test.SortDirection;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.categories.OConnor;
+import org.labkey.test.components.MessagePrompt;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
@@ -320,10 +321,9 @@ public class IlluminaTest extends GenotypingBaseTest
 
         //save template
         clickButton("Save As Template", 0);
-        waitForElement(Ext4Helper.Locators.window("Choose Name"));
-        Ext4FieldRef textfield = _ext4Helper.queryOne("textfield", Ext4FieldRef.class);
-        textfield.setValue(TEMPLATE_NAME);
-        clickButton("OK", 0);
+        new MessagePrompt("Choose Name", getDriver())
+                .setValue(TEMPLATE_NAME)
+                .clickOK();
         _ext4Helper.clickTabContainingText("General Info");
         assertEquals(TEMPLATE_NAME, Ext4FieldRef.getForLabel(this, "Template").getValue());
 
