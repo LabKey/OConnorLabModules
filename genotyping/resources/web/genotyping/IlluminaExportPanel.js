@@ -253,7 +253,7 @@ var panel = Ext4.define('Genotyping.ext.IlluminaSampleExportPanel', {
                     text: 'Cancel',
                     handler: function (btn)
                     {
-                        var url = LABKEY.ActionURL.getParameter('srcURL');
+                        var url = LABKEY.ActionURL.getReturnUrl();
                         if (url)
                             window.location = decodeURIComponent(url);
                         else
