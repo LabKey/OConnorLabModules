@@ -2367,7 +2367,7 @@ public class GenotypingController extends SpringActionController
 
         public void setSrcURL(String srcURL)
         {
-            setReturnUrl(srcURL);
+            ReturnUrlForm.throwBadParam();
         }
     }
 }
