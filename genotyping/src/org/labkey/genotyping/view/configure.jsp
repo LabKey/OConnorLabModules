@@ -39,11 +39,11 @@
 
     ActionURL animalQueryURL = QueryService.get().urlFor(getUser(), getContainer(), QueryAction.executeQuery, "genotyping", "Animal");
     ActionURL animalEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Animal.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Animal.name(), getContainer(), getUser());
-    animalEditDomainURL.addParameter(ActionURL.Param.returnUrl, getActionURL().toString());
+    animalEditDomainURL.addReturnURL(getActionURL());
 
     ActionURL haplotypeQueryURL = QueryService.get().urlFor(getUser(), getContainer(), QueryAction.executeQuery, "genotyping", "Haplotype");
     ActionURL haplotypeEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Haplotype.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Haplotype.name(), getContainer(), getUser());
-    haplotypeEditDomainURL.addParameter(ActionURL.Param.returnUrl, getActionURL().toString());
+    haplotypeEditDomainURL.addReturnURL(getActionURL());
 %>
 <script type="text/javascript">
     var queries = {};
