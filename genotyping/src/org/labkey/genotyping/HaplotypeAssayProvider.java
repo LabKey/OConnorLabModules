@@ -56,6 +56,7 @@ import org.labkey.api.view.NavTree;
 import org.labkey.api.view.ViewContext;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -125,12 +126,6 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
                 return FieldKey.fromParts("RunId", "Created");
             }
         };
-    }
-
-    @Override
-    public ExpData getDataForDataRow(Object dataRowId, ExpProtocol protocol)
-    {
-        return null;
     }
 
     @Override
