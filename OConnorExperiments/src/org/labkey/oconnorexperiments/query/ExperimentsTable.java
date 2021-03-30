@@ -211,6 +211,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         // BUGBUG: Clear PropertyURI -- it will be regenerated when .getPropertyURI() is called
         // BUGBUG: When wrapping columns with auto-generated PropertyURIs where the name differs, we should regenerate the PropertyURI.
         parentExperimentsCol.setPropertyURI(null);
+        parentExperimentsCol.setConceptURI(null);   // avoid default container column treatment, alternately chose a new ConceptURI
 
         ActionURL projectBeginURL = PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
         DetailsURL parentExperimentsURL = new DetailsURL(projectBeginURL);
