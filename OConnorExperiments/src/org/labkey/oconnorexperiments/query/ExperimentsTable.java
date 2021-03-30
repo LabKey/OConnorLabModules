@@ -207,6 +207,9 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         parentExperimentsCol.setCalculated(true);
         parentExperimentsCol.setUserEditable(true);
         parentExperimentsCol.setNullable(true);
+        parentExperimentsCol.setShownInInsertView(true);
+        parentExperimentsCol.setShownInUpdateView(true);
+        parentExperimentsCol.setConceptURI(null);   // avoid default container column treatment, alternately chose a new ConceptURI
         // BUGBUG: DIB doesn't like using the same PropertyURI for two columns (ParentExperiments and Container).
         // BUGBUG: Clear PropertyURI -- it will be regenerated when .getPropertyURI() is called
         // BUGBUG: When wrapping columns with auto-generated PropertyURIs where the name differs, we should regenerate the PropertyURI.
