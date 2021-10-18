@@ -17,8 +17,8 @@
 package org.labkey.genotyping;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.action.ExportAction;
@@ -85,7 +85,6 @@ import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.util.DateUtil;
-import org.labkey.api.util.HelpTopic;
 import org.labkey.api.util.MinorConfigurationException;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.Pair;
@@ -164,7 +163,7 @@ public class GenotypingController extends SpringActionController
     public PageConfig defaultPageConfig()
     {
         PageConfig config = super.defaultPageConfig();
-        return config.setHelpTopic(new HelpTopic("genotyping"));
+        return config.setHelpTopic("genotyping");
     }
 
 
