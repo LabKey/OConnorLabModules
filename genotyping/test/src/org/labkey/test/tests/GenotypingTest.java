@@ -90,7 +90,7 @@ public class GenotypingTest extends GenotypingBaseTest
         }
         catch (NoSuchElementException expected)
         {
-            if (!expected.getMessage().startsWith("Cannot locate element with text: " + first454importNum))
+            if (!expected.getMessage().startsWith("Cannot locate option with text: " + first454importNum))
                 throw expected;
         }
     }
