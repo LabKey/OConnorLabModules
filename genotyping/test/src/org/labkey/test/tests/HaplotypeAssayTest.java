@@ -25,6 +25,7 @@ import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.categories.OConnor;
 import org.labkey.test.components.DomainDesignerPage;
+import org.labkey.test.components.domain.AdvancedFieldSetting;
 import org.labkey.test.components.domain.DomainFormPanel;
 import org.labkey.test.pages.ReactAssayDesignerPage;
 import org.labkey.test.params.FieldDefinition;
@@ -35,6 +36,7 @@ import org.labkey.test.util.LogMethod;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -229,14 +231,16 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
             for (String[] haplotype : extraHaplotypes)
             {
                 domainFormPanel.addField(haplotype[0] + "1")
-                    .setLabel(haplotype[1] + " 1")
-                    .showFieldOnInsertView(false)
-                    .showFieldOnUpdateView(false);
+                        .setLabel(haplotype[1] + " 1")
+                        .setAdvancedSettings(Map.of(
+                                AdvancedFieldSetting.shownInInsertView, false,
+                                AdvancedFieldSetting.shownInUpdateView, false));
 
                 domainFormPanel.addField(haplotype[0] + "2")
-                    .setLabel(haplotype[1] + " 2")
-                    .showFieldOnInsertView(false)
-                    .showFieldOnUpdateView(false);
+                        .setLabel(haplotype[1] + " 2")
+                        .setAdvancedSettings(Map.of(
+                                AdvancedFieldSetting.shownInInsertView, false,
+                                AdvancedFieldSetting.shownInUpdateView, false));
             }
         }
 
