@@ -16,13 +16,12 @@
  */
 %>
 <%@ page import="org.labkey.api.util.PageFlowUtil" %>
-<%@ page import="org.labkey.api.util.UniqueID" %>
 <%@ page import="org.labkey.api.view.ActionURL" %>
 <%@ page import="org.labkey.api.view.HttpView" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
     ActionURL url = (ActionURL)HttpView.currentModel();
-    String id = "cb_" + UniqueID.getRequestScopedUID(getViewContext().getRequest());
+    String id = "cb_" + getRequestScopedUID();
     String filter = PageFlowUtil.jsString(url.clone().replaceParameter("filterLowQualityBases", "1").getLocalURIString());
     String noFilter = PageFlowUtil.jsString(url.clone().replaceParameter("filterLowQualityBases", "0").getLocalURIString());
     String onClickScript = "window.location = document.getElementById('" + id + "').checked ? " + filter + " : " + noFilter + "; return false;";
