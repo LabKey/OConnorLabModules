@@ -159,9 +159,9 @@ public class OConnorExperimentsModule extends DefaultModule
         }
 
         @Override
-        public void fileMoved(@NotNull File src, @NotNull File dest, @Nullable User user, @Nullable Container container)
+        public int fileMoved(@NotNull File src, @NotNull File dest, @Nullable User user, @Nullable Container container)
         {
-            OConnorExperimentsManager.get().updateModified(container, user);
+            return OConnorExperimentsManager.get().updateModified(container, user);
         }
 
         @Override
