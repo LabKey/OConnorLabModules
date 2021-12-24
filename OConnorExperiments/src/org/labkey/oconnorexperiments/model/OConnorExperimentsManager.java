@@ -17,9 +17,7 @@
 package org.labkey.oconnorexperiments.model;
 
 import org.labkey.api.data.Container;
-import org.labkey.api.data.Filter;
 import org.labkey.api.data.SQLFragment;
-import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.Table;
@@ -48,47 +46,10 @@ public class OConnorExperimentsManager
         return _instance;
     }
 
-    /**
-     * Get an Experiment Entity row that only includes values from the OConnorExperiments hard-table.
-     * For example, the Created and CreatedBy values of the Experiment entity won't be available, but
-     * can be retrieved from the workbook Container object instead.
-     *
-     * @return Columns from the hard-table and not the rolled up Experiment/Container merged object.
-     */
-    public Experiment getExperiment(Container workbook)
-    {
-        if (!workbook.isWorkbook())
-            throw new IllegalArgumentException("workbook");
-
-        TableSelector selector = new TableSelector(OConnorExperimentsSchema.getInstance().createTableInfoExperiments(), null, null);
-        Experiment experiment = selector.getObject(workbook, workbook, Experiment.class);
-        return experiment;
-    }
-
-    public Experiment ensureExperiment(Container workbook, User user)
-    {
-        Experiment experiment = getExperiment(workbook);
-        if (experiment != null)
-            return experiment;
-
-        return insertExperiment(workbook, user);
-    }
-
-    public Experiment insertExperiment(Container workbook, User user)
-    {
-        if (!workbook.isWorkbook())
-            throw new IllegalArgumentException("workbook");
-
-        SchemaTableInfo table = OConnorExperimentsSchema.getInstance().createTableInfoExperiments();
-        Experiment experiment = new Experiment();
-        experiment.setContainer(workbook.getId());
-        return Table.insert(user, table, experiment);
-    }
-
-    public void updateModified(Container c, User user)
+    public int updateModified(Container c, User user)
     {
         if (c == null || user == null || !c.isWorkbook() || !c.getParent().getActiveModules().contains(ModuleLoader.getInstance().getModule(OConnorExperimentsModule.class)))
-            return;
+            return 0;
 
         Map<String, Object> row = new HashMap<>();
         row.put("Container", c.getEntityId());
@@ -96,15 +57,9 @@ public class OConnorExperimentsManager
         if (selector.exists())
         {
             Table.update(user, OConnorExperimentsSchema.getInstance().createTableInfoExperiments(), row, c.getEntityId());
+            return 1;
         }
-    }
-
-    public Collection<Container> parentExperimentContainers(Container experimentContainer)
-    {
-        Filter filter = SimpleFilter.createContainerFilter(experimentContainer);
-        TableSelector selector = new TableSelector(OConnorExperimentsSchema.getInstance().createTableInfoParentExperiments(), filter, null);
-        Container[] parentExperimentContainers = selector.getArray(Container.class);
-        return Arrays.asList(parentExperimentContainers);
+        return 0;
     }
 
     public Collection<Experiment> getParentExperiments(Container experimentContainer)
