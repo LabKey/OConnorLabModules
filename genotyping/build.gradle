@@ -6,7 +6,18 @@ plugins {
 
 dependencies 
 {
-   external "com.github.samtools:htsjdk:${htsjdkVersion}"
+   BuildUtils.addExternalDependency(
+            project,
+            new ExternalDependency(
+                    "com.github.samtools:htsjdk:${htsjdkVersion}",
+                    'htsjdk',
+                    'htsjdk',
+                    'http://samtools.github.io/htsjdk/',
+                    ExternalDependency.MIT_LICENSE_NAME,
+                    ExternalDependency.MIT_LICENSE_URL,
+                    'A Java API for high-throughput sequencing data (HTS) formats'
+            )
+    )
    implementation "net.sf.opencsv:opencsv:${opencsvVersion}"
    implementation "com.sun.mail:jakarta.mail:${javaMailVersion}"
    BuildUtils.addLabKeyDependency(project: project, config: "implementation", depProjectPath: BuildUtils.getPlatformModuleProjectPath(project.gradle, "assay"), depProjectConfig: "apiJarFile")
