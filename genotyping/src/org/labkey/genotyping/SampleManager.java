@@ -97,7 +97,7 @@ public class SampleManager
         ColumnInfo keyColumn = qHelper.getTableInfo().getColumn("Key");
         if (null == keyColumn)
             throw new IllegalStateException("SampleManager: Expected Key column to be able to get sample.");
-        FieldKey fieldKey = FieldKey.fromString(keyColumn.getAlias());
+        FieldKey fieldKey = FieldKey.fromString(keyColumn.getName());
 
         try (Results results = qHelper.select(qHelper.getTableInfo().getDefaultVisibleColumns(), null))
         {
