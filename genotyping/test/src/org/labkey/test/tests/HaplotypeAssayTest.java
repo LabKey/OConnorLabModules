@@ -30,8 +30,11 @@ import org.labkey.test.components.domain.DomainFormPanel;
 import org.labkey.test.pages.ReactAssayDesignerPage;
 import org.labkey.test.params.FieldDefinition;
 import org.labkey.test.util.DataRegionTable;
+import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.ListHelper;
 import org.labkey.test.util.LogMethod;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 
 import java.io.File;
 import java.util.Arrays;
@@ -439,52 +442,64 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
                 "Enter the animal IDs separated by whitespace, comma, or semicolon:");
 
         // test a single ID
-        setFormElement(Locator.name("idsTextArea"), "ID-3");
-        fireEvent(Locator.name("idsTextArea"), SeleniumEvent.blur);
-        sleep(500); // entering text enables the submit button
-        clickButton("Submit", 0);
-        DataRegionTable drt = new DataRegionTable("report", this);
-        List<String> haplotypeColData = drt.getColumnDataAsText("Haplotype");
+        final DataRegionTable drt = submitAssignmentReport("ID-3", null);
         verifyColumnDataValues(drt, "Haplotype","A001", "B001c", "B017a");
         verifyColumnDataValues(drt, "ID-3", "2", "1", "1");
+
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Client Animal ID");
-        clickButton("Submit", 0);
-        waitForText("x345");
-        drt = new DataRegionTable("report", this);
-        assertTextPresentInThisOrder("A001", "B001c", "B017a");
+        submitAssignmentReport(null, drt);
+        verifyColumnDataValues(drt, "Haplotype","A001", "B001c", "B017a");
         verifyColumnDataValues(drt, "x345", "2", "1", "1");
 
         // test with IDs that only have one result
         _ext4Helper.selectComboBoxItem("Search for animal IDs by:", "Client Animal ID");
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Lab Animal ID");
-        setFormElement(Locator.name("idsTextArea"), "x123,x234;x345 x678 x789");
-        fireEvent(Locator.name("idsTextArea"), SeleniumEvent.blur);
-        clickButton("Submit", 0);
+        submitAssignmentReport("x123,x234;x345 x678 x789", drt);
         waitForElement(Locator.paginationText(11));
-        assertTextPresentInThisOrder("ID-1", "ID-2", "ID-3", "ID-6", "ID-7");
-        drt = new DataRegionTable("report", this);
-        drt.setFilter("ID-1::Counts", "Equals", "1", 0);
-        waitForText("ID-1::Counts = 1");
-        assertTextPresentInThisOrder("A001", "A023", "B015c", "B025a");
-        assertTextNotPresent("A004");
-        drt.clearFilter("ID-1::Counts", 0);
-        drt.setFilter("ID-6::Counts", "Equals", "2", 0);
-        waitForText("ID-6::Counts = 2");
-        assertTextPresentInThisOrder("A033", "B012b");
-        assertTextNotPresent("A001");
-        drt.clearFilter("ID-6::Counts", 0);
+        assertEquals("Table columns", List.of("Haplotype", "ID-1", "ID-2", "ID-3", "ID-6", "ID-7"), drt.getColumnLabels());
+        drt.setFilter("ID-1::Counts", "Equals", "1");
+        verifyColumnDataValues(drt, "Haplotype", "A001", "A023", "B015c", "B025a");
+        drt.clearFilter("ID-1::Counts");
+        drt.setFilter("ID-6::Counts", "Equals", "2");
+        verifyColumnDataValues(drt, "Haplotype", "A033", "B012b");
+        drt.clearFilter("ID-6::Counts");
 
         // test with IDs that have duplicate reocrds
         _ext4Helper.selectComboBoxItem("Search for animal IDs by:", "Lab Animal ID");
         _ext4Helper.selectComboBoxItem("Show report column headers as:", "Lab Animal ID");
-        setFormElement(Locator.name("idsTextArea"), "ID-4,ID-5");
-        fireEvent(Locator.name("idsTextArea"), SeleniumEvent.blur);
-        clickButton("Submit", 0);
+        submitAssignmentReport("ID-4,ID-5", drt);
         waitForElement(Locator.paginationText(1, 8, 8));
         waitForText("Warning: multiple enabled assay results were found for the following IDs: ID-4 (2), ID-5 (2)");
-        drt = new DataRegionTable("report", this);
         verifyColumnDataValues(drt, "ID-4", "1", " ", "1", "2", " ", "2", "1", "1");
         verifyColumnDataValues(drt, "ID-5", "1", "2", " ", " ", "3", " ", " ", " ");
+    }
+
+    private DataRegionTable submitAssignmentReport(String idsText, DataRegionTable drt)
+    {
+        if (idsText != null)
+        {
+            WebElement idsTextArea = Locator.name("idsTextArea").findElement(getDriver());
+            setFormElement(idsTextArea, idsText);
+            new Actions(getDriver())
+                    .moveToElement(idsTextArea, idsTextArea.getSize().getWidth() + 5, 0)
+                    .click() // click outside of text area
+                    .perform();
+        }
+
+        WebElement submitButton = Ext4Helper.Locators.ext4Button("Submit").findElement(getDriver());
+        if (drt == null)
+        {
+            shortWait().until(wd -> !submitButton.getAttribute("class").contains("disabled"));
+            submitButton.click();
+            drt = new DataRegionTable.DataRegionFinder(getDriver()).withName("report").waitFor();
+            drt.setAsync(true);
+            return drt;
+        }
+        else
+        {
+            drt.doAndWaitForUpdate(submitButton::click);
+            return drt;
+        }
     }
 
     @LogMethod
