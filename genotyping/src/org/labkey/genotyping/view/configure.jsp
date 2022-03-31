@@ -124,7 +124,7 @@
             <td>External source of DNA reference sequences&nbsp;&nbsp;</td>
             <td><div id="sequencesQueryDiv"></div></td>
             <td>
-                <%=link("configure").href("#").onClick("chooseView('Choose DNA reference sequences query', 'Select a query that represents an external source of DNA reference sequences. This query will be used periodically to replace the reference sequences that link to results.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateSequencesQuery(query);}, queries['sequencesQuery'], includeSchema);return false;").id("id")%>
+                <%=link("configure").href("#").onClick("chooseView('Choose DNA reference sequences query', 'Select a query that represents an external source of DNA reference sequences. This query will be used periodically to replace the reference sequences that link to results.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateSequencesQuery(query);}, queries['sequencesQuery'], includeSchema);return false;")%>
                 <input type="hidden" name="sequencesQuery" id="sequencesQuery">
             </td>
         </tr>
@@ -132,7 +132,7 @@
             <td>Runs</td>
             <td><div id="runsQueryDiv"></div></td>
             <td>
-                <%=link("configure").href("#").onClick("chooseView('Choose runs query', 'Select a query where runs are stored.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateRunsQuery(query);}, queries['runsQuery'], includeSchema);return false;").id("id")%>
+                <%=link("configure").href("#").onClick("chooseView('Choose runs query', 'Select a query where runs are stored.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateRunsQuery(query);}, queries['runsQuery'], includeSchema);return false;")%>
                 <input type="hidden" name="runsQuery" id="runsQuery">
             </td>
         </tr>
@@ -140,7 +140,7 @@
             <td>Samples</td>
             <td><div id="samplesQueryDiv"></div></td>
             <td>
-                <%=link("configure").href("#").onClick("chooseView('Choose samples query', 'Select a query that provides a list of samples. This query is filtered by the library number specified in the run to produce the sample.txt file.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateSamplesQuery(query);}, queries['samplesQuery'], includeSchema);return false;").id("id")%>
+                <%=link("configure").href("#").onClick("chooseView('Choose samples query', 'Select a query that provides a list of samples. This query is filtered by the library number specified in the run to produce the sample.txt file.', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateSamplesQuery(query);}, queries['samplesQuery'], includeSchema);return false;")%>
                 <input type="hidden" name="samplesQuery" id="samplesQuery">
             </td>
         </tr>
@@ -148,7 +148,7 @@
             <td>Haplotype Definitions</td>
             <td><div id="haplotypesQueryDiv"></div></td>
             <td>
-                <%=link("configure").href("#").onClick("chooseView('Choose haplotype definition query', 'Select a query that provides a list of haplotype definitions. ', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateHaplotypesQuery(query);}, queries['haplotypesQuery'], includeSchema);return false;").id("id")%>
+                <%=link("configure").href("#").onClick("chooseView('Choose haplotype definition query', 'Select a query that provides a list of haplotype definitions. ', '" + GenotypingFolderSettings.SEPARATOR + "', function(query){updateHaplotypesQuery(query);}, queries['haplotypesQuery'], includeSchema);return false;")%>
                 <input type="hidden" name="haplotypesQuery" id="haplotypesQuery">
             </td>
         </tr>
