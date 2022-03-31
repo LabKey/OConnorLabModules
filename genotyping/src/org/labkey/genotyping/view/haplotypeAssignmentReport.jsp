@@ -34,7 +34,7 @@
     GenotypingController.AssignmentReportBean bean = me.getModelBean();
     final String idEntryFormDivId = "idEntryForm" + getRequestScopedUID();
     final String queryWebPartDivId = "queryWebPart" + getRequestScopedUID();
-    final String duplicatesDivId = "duplicates" + getRequestScopedUID();
+    final String duplicatesDivId = "duplicates3"; // TESTBUG 45133 + getRequestScopedUID();
     final String assayName = bean.getAssayName();
     String initialIds = StringUtils.join(bean.getIds(), ";");
 %>
