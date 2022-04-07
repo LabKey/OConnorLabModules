@@ -57,7 +57,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
 {
     private final File _sampleFile;
     private List<File> _fastqFiles;
-    private String _fastqPrefix;
+    private final String _fastqPrefix;
 
     @JsonCreator
     protected ImportIlluminaReadsJob(@JsonProperty("_sampleFile") File sampleFile, @JsonProperty("_fastqFiles") List<File> fastqFiles,
@@ -122,12 +122,12 @@ public class ImportIlluminaReadsJob extends ReadsJob
 
             try (CSVReader reader = new CSVReader(Readers.getReader(_sampleFile)))
             {
-                Set<String> columns = new HashSet<String>()
+                Set<String> columns = new HashSet<>()
                 {{
-                        add(SampleManager.MID5_COLUMN_NAME);
-                        add(SampleManager.MID3_COLUMN_NAME);
-                        add(SampleManager.AMPLICON_COLUMN_NAME);
-                    }};
+                    add(SampleManager.MID5_COLUMN_NAME);
+                    add(SampleManager.MID3_COLUMN_NAME);
+                    add(SampleManager.AMPLICON_COLUMN_NAME);
+                }};
 
                 SampleManager.SampleIdFinder finder = new SampleManager.SampleIdFinder(_run, getUser(), columns, "importing reads");
 
