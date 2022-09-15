@@ -54,7 +54,7 @@ public class GalaxyServer
     private final String _serverUrl;
     private final String _baseUrl;
     private final String _key;
-    private final HttpClient _client;
+    private final CloseableHttpClient _client;
 
 
     public GalaxyServer(String serverUrl, String key)
@@ -62,7 +62,7 @@ public class GalaxyServer
         _serverUrl = !serverUrl.endsWith("/") ? serverUrl : serverUrl.substring(0, serverUrl.length() - 1);
         _baseUrl = _serverUrl + "/api/libraries";
         _key = key;
-        _client = new DefaultHttpClient();  // Note: not thread-safe; assumes GalaxyServer is used in a single thread
+        _client = HttpClientBuilder.create().build();  // Note: not thread-safe; assumes GalaxyServer is used in a single thread
     }
 
 
@@ -97,13 +97,13 @@ public class GalaxyServer
     }
 
 
-    private String execute(HttpRequestBase request) throws IOException
+    private String execute(HttpUriRequestBase request) throws IOException
     {
-        HttpResponse response = _client.execute(request);
+        CloseableHttpResponse response = _client.execute(request);
         HttpEntity entity = response.getEntity();
         String contents = PageFlowUtil.getStreamContentsAsString(entity.getContent());
 
-        if (HttpStatus.SC_OK != response.getStatusLine().getStatusCode())
+        if (HttpStatus.SC_OK != response.getCode())
             throw new IOException("HTTP " + request.getMethod() + " Failed: " + response);
 
         return contents;
@@ -158,7 +158,7 @@ public class GalaxyServer
     private String post(String relativeUrl, String body) throws IOException
     {
         HttpPost post = new HttpPost(makeUrl(relativeUrl));
-        post.setEntity(new StringEntity(body, "application/json", null));
+        post.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
         post.setHeader("Content-Type", "application/json");
 
         return execute(post);
