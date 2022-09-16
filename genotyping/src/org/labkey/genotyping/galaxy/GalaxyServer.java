@@ -15,16 +15,16 @@
  */
 package org.labkey.genotyping.galaxy;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.logging.log4j.Logger;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +37,6 @@ import org.labkey.api.util.URLHelper;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +54,7 @@ public class GalaxyServer
     private final String _serverUrl;
     private final String _baseUrl;
     private final String _key;
-    private final HttpClient _client;
+    private final CloseableHttpClient _client;
 
 
     public GalaxyServer(String serverUrl, String key)
@@ -63,7 +62,7 @@ public class GalaxyServer
         _serverUrl = !serverUrl.endsWith("/") ? serverUrl : serverUrl.substring(0, serverUrl.length() - 1);
         _baseUrl = _serverUrl + "/api/libraries";
         _key = key;
-        _client = new DefaultHttpClient();  // Note: not thread-safe; assumes GalaxyServer is used in a single thread
+        _client = HttpClientBuilder.create().build();  // Note: not thread-safe; assumes GalaxyServer is used in a single thread
     }
 
 
@@ -98,16 +97,18 @@ public class GalaxyServer
     }
 
 
-    private String execute(HttpRequestBase request) throws IOException
+    private String execute(HttpUriRequestBase request) throws IOException
     {
-        HttpResponse response = _client.execute(request);
-        HttpEntity entity = response.getEntity();
-        String contents = PageFlowUtil.getStreamContentsAsString(entity.getContent());
+        try (CloseableHttpResponse response = _client.execute(request))
+        {
+            HttpEntity entity = response.getEntity();
+            String contents = PageFlowUtil.getStreamContentsAsString(entity.getContent());
 
-        if (HttpStatus.SC_OK != response.getStatusLine().getStatusCode())
-            throw new IOException("HTTP " + request.getMethod() + " Failed: " + response);
+            if (HttpStatus.SC_OK != response.getCode())
+                throw new IOException("HTTP " + request.getMethod() + " Failed: " + response);
 
-        return contents;
+            return contents;
+        }
     }
 
 
@@ -159,7 +160,7 @@ public class GalaxyServer
     private String post(String relativeUrl, String body) throws IOException
     {
         HttpPost post = new HttpPost(makeUrl(relativeUrl));
-        post.setEntity(new StringEntity(body, "application/json", null));
+        post.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
         post.setHeader("Content-Type", "application/json");
 
         return execute(post);
@@ -288,7 +289,7 @@ public class GalaxyServer
             String json = post(getId() + "/contents", writer.toString());
             JSONArray array = new JSONArray(json);
 
-            return new Folder(this, (JSONObject)array.get(0)); 
+            return new Folder(this, (JSONObject)array.get(0));
         }
     }
 
