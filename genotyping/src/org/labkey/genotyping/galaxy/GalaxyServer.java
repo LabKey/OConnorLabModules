@@ -99,14 +99,16 @@ public class GalaxyServer
 
     private String execute(HttpUriRequestBase request) throws IOException
     {
-        CloseableHttpResponse response = _client.execute(request);
-        HttpEntity entity = response.getEntity();
-        String contents = PageFlowUtil.getStreamContentsAsString(entity.getContent());
+        try (CloseableHttpResponse response = _client.execute(request))
+        {
+            HttpEntity entity = response.getEntity();
+            String contents = PageFlowUtil.getStreamContentsAsString(entity.getContent());
 
-        if (HttpStatus.SC_OK != response.getCode())
-            throw new IOException("HTTP " + request.getMethod() + " Failed: " + response);
+            if (HttpStatus.SC_OK != response.getCode())
+                throw new IOException("HTTP " + request.getMethod() + " Failed: " + response);
 
-        return contents;
+            return contents;
+        }
     }
 
 
@@ -287,7 +289,7 @@ public class GalaxyServer
             String json = post(getId() + "/contents", writer.toString());
             JSONArray array = new JSONArray(json);
 
-            return new Folder(this, (JSONObject)array.get(0)); 
+            return new Folder(this, (JSONObject)array.get(0));
         }
     }
 
