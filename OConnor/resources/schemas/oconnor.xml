@@ -209,6 +209,7 @@
             <column columnName="invoiced_by"/>
             <column columnName="comment"/>
             <column columnName="keyword"/>
+            <column columnName="pcard"/>
         </columns>
     </table>
     <table tableName="miseq_mhc_reads" tableDbType="TABLE">
@@ -584,6 +585,7 @@
             <column columnName="vendor_quote_number"/>
             <column columnName="vendor_quote_expiration_date"/>
             <column columnName="vendor_quote_comments"/>
+            <column columnName="grant_id"/>
         </columns>
     </table>
     <table tableName="inventory" tableDbType="TABLE">
@@ -747,6 +749,7 @@
             <column columnName="po"/>
             <column columnName="comments"/>
             <column columnName="account_number"/>
+            <column columnName="mds"/>
         </columns>
     </table>
     <table tableName="diff_snp" tableDbType="TABLE">
