@@ -17,7 +17,7 @@ package org.labkey.oconnorexperiments.query;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.json.old.JSONArray;
+import org.json.JSONArray;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.RowMapFactory;
 import org.labkey.api.data.ColumnInfo;
@@ -86,8 +86,7 @@ import java.util.Map;
 /**
  * User: kevink
  * Date: 5/17/13
- *
- * Adds experiments columns to core.Workbooks table.
+ * Adds experiment columns to core.Workbooks table.
  */
 public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperimentsUserSchema>
 {
@@ -106,7 +105,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         Container container = userSchema.getContainer();
         if (container.isWorkbook())
         {
-            FilteredTable table = (FilteredTable)_workbooksTable;
+            FilteredTable<?> table = (FilteredTable)_workbooksTable;
             // For query performance reasons, we're relying on the container filter on the core.containers table (which is
             // INNER JOINed to the oconnorexperiment.experiments table). We don't want to include workbooks from the parent
             // when viewing the query, which isn't the normal behavior, so explicitly limit to the current workbook
@@ -145,7 +144,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
     public void addColumns()
     {
         var containerCol = addWrapColumn(getRealTable().getColumn("Container"));
-        QueryForeignKey containerFK = new QueryForeignKey(_workbooksTable, null, "EntityId", null);
+        QueryForeignKey containerFK = new QueryForeignKey(_workbooksTable, "EntityId", null);
         containerFK.setJoinType(LookupColumn.JoinType.inner);
         containerCol.setFk(containerFK);
         containerCol.setHidden(true);
@@ -279,7 +278,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
     {
         private final AbstractQueryUpdateService _wrapped;
 
-        public ExperimentsQueryUpdateService(SimpleUserSchema.SimpleTable queryTable, TableInfo dbTable, AbstractQueryUpdateService wrapped)
+        public ExperimentsQueryUpdateService(SimpleUserSchema.SimpleTable<OConnorExperimentsUserSchema> queryTable, TableInfo dbTable, AbstractQueryUpdateService wrapped)
         {
             super(queryTable, dbTable);
             _wrapped = wrapped;
@@ -292,7 +291,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
             deleteParentExperiments(user, container, rows, configParameters, extraScriptContext);
             try
             {
-                insertParentExperiments(user, container, rows, configParameters, extraScriptContext);
+                insertParentExperiments(user, rows, configParameters, extraScriptContext);
             }
             catch (DuplicateKeyException e)
             {
@@ -302,12 +301,12 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         }
 
         @Override
-        public List<Map<String, Object>> deleteRows(User user, Container container, List<Map<String, Object>> keys, @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext) throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
+        public List<Map<String, Object>> deleteRows(User user, Container container, List<Map<String, Object>> keys, @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext)
         {
             throw new UnsupportedOperationException("Deletion must be performed via standard container delete APIs");
         }
 
-        private void insertParentExperiments(User user, Container container, List<Map<String, Object>> rows, Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException, QueryUpdateServiceException, BatchValidationException, DuplicateKeyException
+        private void insertParentExperiments(User user, List<Map<String, Object>> rows, Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException, QueryUpdateServiceException, BatchValidationException, DuplicateKeyException
         {
             TableInfo parentExperimentsTable = getUserSchema().getTable(OConnorExperimentsUserSchema.Table.ParentExperiments.name());
             QueryUpdateService parentExperimentsQUS = parentExperimentsTable.getUpdateService();
@@ -324,9 +323,9 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
                     else if (v instanceof JSONArray)
                     {
                         ArrayList<String> s = new ArrayList<>();
-                        for (Object o : ((JSONArray)v).toArray())
+                        for (Object o : ((JSONArray)v).toList())
                             s.add(o.toString());
-                        parentExperiments = s.toArray(new String[s.size()]);
+                        parentExperiments = s.toArray(new String[0]);
                     }
 
                     Container innerContainer = ContainerManager.getForId(c);
@@ -435,7 +434,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
     // TODO: Handle MultiValueFK junction entries in SimpleTable's persistRows() instead of here.
     private class _DataIterator extends SimpleTranslator
     {
-        private DataIteratorContext _context;
+        private final DataIteratorContext _context;
         private final Integer _containerCol;
         private final Integer _parentExperimentsCol;
         private final Integer _experimentNumberCol;
@@ -490,7 +489,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
             if (c == null || _parentExperimentsCol == null || get(_parentExperimentsCol) == null)
                 return true;
 
-            if (c == null || !c.isWorkbook())
+            if (!c.isWorkbook())
             {
                 addFieldError("ParentExperiment", "Current container must be a workbook");
                 return true;
@@ -501,7 +500,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
             Object o = get(_parentExperimentsCol);
             if (!(o instanceof Collection))
             {
-                addFieldError("ParentExperiment", "Expected list of ParentExperiments: " + String.valueOf(o));
+                addFieldError("ParentExperiment", "Expected list of ParentExperiments: " + o);
                 return true;
             }
 
@@ -536,11 +535,11 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
             }
 
             // Prepare the iterator context and copy the rows into ParentExperiments table
-            ListofMapsDataIterator source = new ListofMapsDataIterator(new HashSet(colNames), rows);
+            ListofMapsDataIterator source = new ListofMapsDataIterator(new HashSet<>(colNames), rows);
             source.setDebugName("ExperimentsTable.ParentExperiments");
 
             // Perform the insert to ParentExperiments table
-            int rowCount = DataIteratorUtil.copy(_context, (DataIterator)source, _parentExperimentsTable, c, null);
+            DataIteratorUtil.copy(_context, source, _parentExperimentsTable, c, null);
 
             return true;
         }
