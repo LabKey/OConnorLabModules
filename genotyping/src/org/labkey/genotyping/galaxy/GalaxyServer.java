@@ -28,10 +28,10 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.json.old.JSONArray;
-import org.json.old.JSONObject;
-import org.json.old.JSONStringer;
-import org.json.old.JSONWriter;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONStringer;
+import org.json.JSONWriter;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.URLHelper;
 
@@ -336,7 +336,7 @@ public class GalaxyServer
         public Map<String, Object> getProperties() throws IOException
         {
             String body = get(getParent().getId() + "/contents/" + getId());
-            return new JSONObject(body);
+            return new JSONObject(body).toMap();
         }
     }
 }
