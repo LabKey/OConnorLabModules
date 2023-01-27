@@ -285,7 +285,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         }
 
         @Override
-        public List<Map<String, Object>> updateRows(User user, Container container, List<Map<String, Object>> rows, List<Map<String, Object>> oldKeys, @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
+        public List<Map<String, Object>> updateRows(User user, Container container, List<Map<String, Object>> rows, List<Map<String, Object>> oldKeys, BatchValidationException errors, @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
         {
             // TODO: Handle MultiValueFK junction entries in SimpleQueryUpdateService instead of here...
             deleteParentExperiments(user, container, rows, configParameters, extraScriptContext);
@@ -297,7 +297,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
             {
                 throw new QueryUpdateServiceException(e);
             }
-            return _wrapped.updateRows(user, container, rows, oldKeys, configParameters, extraScriptContext);
+            return _wrapped.updateRows(user, container, rows, oldKeys, errors, configParameters, extraScriptContext);
         }
 
         @Override
