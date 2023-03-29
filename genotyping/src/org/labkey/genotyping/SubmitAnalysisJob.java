@@ -17,9 +17,9 @@ package org.labkey.genotyping;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.labkey.api.data.Selector;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TSVWriter;
 import org.labkey.api.data.Table;
@@ -43,7 +43,6 @@ import org.labkey.genotyping.sequences.SequenceManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -104,7 +103,7 @@ public class SubmitAnalysisJob extends PipelineJob
         if (!_analysisDir.mkdir())
             throw new MinorConfigurationException("Can't create analysis directory: " + _analysisDir.getPath());
 
-        setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")));
+        setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")).toPath());
         info("Creating analysis directory: " + _analysisDir.getName());
         _analysis.setPath(_analysisDir.getAbsolutePath());
         _analysis.setFileName(_analysisDir.getName());
@@ -184,22 +183,21 @@ public class SubmitAnalysisJob extends PipelineJob
         // Need a custom writer since TSVGridWriter does not work in background threads
         try (TSVWriter writer = new TSVWriter() {
             @Override
-            protected void write()
+            protected int write()
             {
                 _pw.println("name\tsample\tsequence\tquality");
 
                 TableInfo ti = GenotypingSchema.get().getReadsTable();
                 SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("run"), _analysis.getRun());
                 filter.addInClause(FieldKey.fromParts("SampleId"), _sampleIds);
+                MutableInt rows = new MutableInt();
 
-                new TableSelector(ti, ti.getColumns("name,sampleid,sequence,quality"), filter, null).forEach(new Selector.ForEachBlock<ResultSet>()
-                {
-                    @Override
-                    public void exec(ResultSet rs) throws SQLException
-                    {
-                        _pw.println(rs.getString(1) + "\t" + rs.getInt(2) + "\t" + rs.getString(3) + "\t" + rs.getString(4));
-                    }
+                new TableSelector(ti, ti.getColumns("name,sampleid,sequence,quality"), filter, null).forEach(rs -> {
+                    _pw.println(rs.getString(1) + "\t" + rs.getInt(2) + "\t" + rs.getString(3) + "\t" + rs.getString(4));
+                    rows.increment();
                 });
+
+                return rows.getValue();
             }
         })
         {
