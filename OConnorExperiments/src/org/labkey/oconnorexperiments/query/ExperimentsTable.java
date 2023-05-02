@@ -320,10 +320,10 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
                     String[] parentExperiments = null;
                     if (v instanceof String[])
                         parentExperiments = (String[])v;
-                    else if (v instanceof JSONArray)
+                    else if (v instanceof JSONArray ja)
                     {
                         ArrayList<String> s = new ArrayList<>();
-                        for (Object o : ((JSONArray)v).toList())
+                        for (Object o : ja.toList())
                             s.add(o.toString());
                         parentExperiments = s.toArray(new String[0]);
                     }
