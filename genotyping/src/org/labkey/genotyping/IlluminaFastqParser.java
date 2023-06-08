@@ -15,6 +15,7 @@
  */
 package org.labkey.genotyping;
 
+import com.rometools.utils.IO;
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.commons.collections4.ListValuedMap;
@@ -35,6 +36,7 @@ import org.labkey.api.module.ModuleLoader;
 import org.labkey.api.pipeline.PipelineJob;
 import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.test.TestWhen;
+import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.JunitUtil;
 import org.labkey.api.util.Pair;
 import org.labkey.api.util.TestContext;
@@ -117,97 +119,123 @@ public class IlluminaFastqParser
         int index = 1;
         for (File f : _files)
         {
-            if(job != null)
+            if (job != null)
                 job.setStatus("PARSING FILE " + index + " OF " + _files.size());
 
-            if(f.length() == 0)
+            long length = f.length();
+            if (length == 0)
             {
                 _logger.info("File " + f.getName() + " has no content to parse.");
                 continue;
             }
-            _logger.info("Beginning to parse file: " + f.getName());
-            try (FastqReader reader = new FastqReader(f))
+
+            File tempFile = null;
+
+            try
             {
-                File targetDir = f.getParentFile();
-                String fileName = f.getName();
+                // Copy to a temp file for parsing for perf reasons. See issue 48029
+                // Ideally we'd avoid the copy when the file is already on a local file system, but there's no
+                // good way to check if a file is truly local
+                tempFile = FileUtil.createTempFile(FileUtil.getBaseName(f), FileUtil.getExtension(f));
+                tempFile.deleteOnExit();
+                _logger.debug("Copying to temp file, size is " + f.length() + " bytes");
+                FileUtil.copyFile(f, tempFile);
 
-                int sampleIdx = Integer.MIN_VALUE;
-                String sampleName = null;
-                int pairNumber = Integer.MIN_VALUE;
-                int totalReads = 0;
-                while (reader.hasNext())
+                _logger.info("Beginning to parse file: " + f.getName());
+                try (FastqReader reader = new FastqReader(f))
                 {
-                    FastqRecord fq = reader.next();
-                    String header = fq.getReadName();
-                    IlluminaReadHeader parsedHeader = new IlluminaReadHeader(header, fileName);
-                    if(parsedHeader.getSampleName() != null)  // may be new header format, so let's try alternate lookup
-                    {
-                        sampleName = parsedHeader.getSampleName();
+                    File targetDir = f.getParentFile();
+                    String fileName = f.getName();
 
-                        // First try to resolve as a sample name
-                        Integer sampleId = _sampleNameToIdMap.get(parsedHeader.getSampleName());
-                        if (sampleId == null)
+                    int sampleIdx = Integer.MIN_VALUE;
+                    String sampleName = null;
+                    int pairNumber = Integer.MIN_VALUE;
+                    int totalReads = 0;
+                    while (reader.hasNext())
+                    {
+                        FastqRecord fq = reader.next();
+                        String header = fq.getReadName();
+                        IlluminaReadHeader parsedHeader = new IlluminaReadHeader(header, fileName);
+                        if (parsedHeader.getSampleName() != null)  // may be new header format, so let's try alternate lookup
                         {
-                            try
+                            sampleName = parsedHeader.getSampleName();
+
+                            // First try to resolve as a sample name
+                            Integer sampleId = _sampleNameToIdMap.get(parsedHeader.getSampleName());
+                            if (sampleId == null)
                             {
-                                sampleId = Integer.parseInt(parsedHeader.getSampleName());
+                                try
+                                {
+                                    sampleId = Integer.parseInt(parsedHeader.getSampleName());
+                                }
+                                catch (NumberFormatException e)
+                                {
+                                    throw new PipelineJobException("Could not resolve sample ID for sample named '" + parsedHeader.getSampleName() + "'. Sample map is: " + _sampleNameToIdMap);
+                                }
+                                Integer sampleIndex = _sampleIdToIndexMap.get(sampleId);
+                                if (sampleIndex == null)
+                                {
+                                    throw new PipelineJobException("Could not resolve Sample Index for Sample ID: " + sampleId + ". Id to Index mapping is: " + _sampleIdToIndexMap);
+                                }
+                                parsedHeader.setSampleNum(sampleIndex.intValue());
                             }
-                            catch(NumberFormatException e)
-                            {
-                                throw new PipelineJobException("Could not resolve sample ID for sample named '" + parsedHeader.getSampleName() + "'. Sample map is: " + _sampleNameToIdMap);
-                            }
-                            Integer sampleIndex = _sampleIdToIndexMap.get(sampleId);
-                            if (sampleIndex == null)
-                            {
-                                throw new PipelineJobException("Could not resolve Sample Index for Sample ID: " + sampleId + ". Id to Index mapping is: " + _sampleIdToIndexMap);
-                            }
-                            parsedHeader.setSampleNum(sampleIndex.intValue());
                         }
+                        if ((sampleIdx != Integer.MIN_VALUE && sampleIdx != parsedHeader.getSampleNum()) ||
+                                (pairNumber != Integer.MIN_VALUE && pairNumber != parsedHeader.getPairNumber()))
+                            throw new IllegalStateException("Only one sample ID is allowed per fastq file.");
+                        sampleIdx = parsedHeader.getSampleNum();
+                        pairNumber = parsedHeader.getPairNumber();
+                        totalReads++;
                     }
-                    if ((sampleIdx != Integer.MIN_VALUE && sampleIdx != parsedHeader.getSampleNum()) ||
-                            (pairNumber != Integer.MIN_VALUE && pairNumber != parsedHeader.getPairNumber()))
-                        throw new IllegalStateException("Only one sample ID is allowed per fastq file.");
-                    sampleIdx = parsedHeader.getSampleNum();
-                    pairNumber = parsedHeader.getPairNumber();
-                    totalReads++;
-                }
 
-                String error = addToPairingInfoMap(fileName, fileNameWithoutPairingInfoMap, totalReads);
-                if(null != error)
-                {
-                    _logger.error(error);
-                    reader.close();
-                    throw new PipelineJobException();
-                }
-                else if(reader.getLineNumber() == 1 && totalReads == 0 && !f.getName().contains("null"))//empty file
-                {
-                    _logger.warn("File " + fileName + " has no content to parse.");
-                    reader.close();
-                    continue;
-                }
-                else
-                {
-                    reader.close();
-                    Integer sampleId = _sampleIndexToIdMap.get(sampleIdx);
-                    if (sampleIdx != 0 && sampleId == null && sampleName == null)
+                    String error = addToPairingInfoMap(fileName, fileNameWithoutPairingInfoMap, totalReads);
+                    if (null != error)
                     {
-                        throw new PipelineJobException("Could not resolve id for sample at index " + sampleIdx + ". Sample map is: " + _sampleIndexToIdMap);
+                        _logger.error(error);
+                        reader.close();
+                        throw new PipelineJobException();
                     }
-                    if (sampleId == null && sampleName != null)
+                    else if (reader.getLineNumber() == 1 && totalReads == 0 && !f.getName().contains("null"))//empty file
                     {
-                        sampleId = _sampleNameToIdMap.get(sampleName);
+                        _logger.warn("File " + fileName + " has no content to parse.");
+                        reader.close();
+                        continue;
                     }
-                    String name = (_outputPrefix == null ? "Reads" : _outputPrefix) + "-R" + pairNumber + "-" + (sampleIdx == 0 ? "Control" : sampleId) + ".fastq.gz";
-                    File newFile = new File(targetDir, name);
+                    else
+                    {
+                        reader.close();
+                        Integer sampleId = _sampleIndexToIdMap.get(sampleIdx);
+                        if (sampleIdx != 0 && sampleId == null && sampleName == null)
+                        {
+                            throw new PipelineJobException("Could not resolve id for sample at index " + sampleIdx + ". Sample map is: " + _sampleIndexToIdMap);
+                        }
+                        if (sampleId == null && sampleName != null)
+                        {
+                            sampleId = _sampleNameToIdMap.get(sampleName);
+                        }
+                        String name = (_outputPrefix == null ? "Reads" : _outputPrefix) + "-R" + pairNumber + "-" + (sampleIdx == 0 ? "Control" : sampleId) + ".fastq.gz";
+                        File newFile = new File(targetDir, name);
 
-                    if (!f.equals(newFile))
-                    {
-                        filesToMove.put(f, newFile);
-                    }
-                    Pair<Integer, Integer> key = Pair.of(sampleId, pairNumber);
-                    _fileInfo.put(key, new FileInfo(newFile, totalReads));
+                        if (!f.equals(newFile))
+                        {
+                            filesToMove.put(f, newFile);
+                        }
+                        Pair<Integer, Integer> key = Pair.of(sampleId, pairNumber);
+                        _fileInfo.put(key, new FileInfo(newFile, totalReads));
 
-                    _logger.info("Finished parsing file: " + f.getName());
+                        _logger.info("Finished parsing file: " + f.getName());
+                    }
+                }
+            }
+            catch (IOException e)
+            {
+                throw new PipelineJobException(e);
+            }
+            finally
+            {
+                if (tempFile != null)
+                {
+                    tempFile.delete();
                 }
             }
             index++;
