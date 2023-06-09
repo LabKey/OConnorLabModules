@@ -15,7 +15,6 @@
  */
 package org.labkey.genotyping;
 
-import com.rometools.utils.IO;
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.commons.collections4.ListValuedMap;
