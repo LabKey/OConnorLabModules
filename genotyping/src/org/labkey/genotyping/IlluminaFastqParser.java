@@ -137,7 +137,7 @@ public class IlluminaFastqParser
                 // good way to check if a file is truly local
                 tempFile = FileUtil.createTempFile(FileUtil.getBaseName(f), FileUtil.getExtension(f));
                 tempFile.deleteOnExit();
-                _logger.debug("Copying to temp file, size is " + f.length() + " bytes");
+                _logger.debug("Copying to temp file " + tempFile + ", size is " + f.length() + " bytes");
                 FileUtil.copyFile(f, tempFile);
 
                 _logger.info("Beginning to parse file: " + f.getName());
