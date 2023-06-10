@@ -141,7 +141,7 @@ public class IlluminaFastqParser
                 FileUtil.copyFile(f, tempFile);
 
                 _logger.info("Beginning to parse file: " + f.getName());
-                try (FastqReader reader = new FastqReader(f))
+                try (FastqReader reader = new FastqReader(tempFile))
                 {
                     File targetDir = f.getParentFile();
                     String fileName = f.getName();
