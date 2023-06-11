@@ -135,7 +135,7 @@ public class IlluminaFastqParser
                 // Copy to a temp file for parsing for perf reasons. See issue 48029
                 // Ideally we'd avoid the copy when the file is already on a local file system, but there's no
                 // good way to check if a file is truly local
-                tempFile = FileUtil.createTempFile(FileUtil.getBaseName(f), FileUtil.getExtension(f));
+                tempFile = FileUtil.createTempFile(FileUtil.getBaseName(f) + ".", "." + FileUtil.getExtension(f));
                 tempFile.deleteOnExit();
                 _logger.debug("Copying to temp file " + tempFile + ", size is " + f.length() + " bytes");
                 FileUtil.copyFile(f, tempFile);
