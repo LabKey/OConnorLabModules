@@ -117,7 +117,7 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
         DataRegionTable drt = new DataRegionTable("query", this);
 
         // NOTE: clear old values (as they are not container scoped)
-        drt.setFilter("specimen_type", "Equals One Of (example usage: a;b;c)", StringUtils.join(ArrayUtils.addAll(SPECIMEN_TYPES, DISABLED_SPECIMEN_TYPES), ';'));
+        drt.setFilter("specimen_type", "Equals One Of", StringUtils.join(ArrayUtils.addAll(SPECIMEN_TYPES, DISABLED_SPECIMEN_TYPES), ';'));
         if (drt.getDataRowCount() > 0)
         {
             drt.checkAll();
