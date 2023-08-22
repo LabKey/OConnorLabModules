@@ -52,7 +52,7 @@ FROM
                  GROUP BY aa.AnimalId, h.Type
              ) x
         GROUP BY HiddenAnimalId, Type
-            PIVOT Haplotype1, Haplotype2 BY Type
+            PIVOT Haplotype1, Haplotype2 BY Type IN (SELECT DISTINCT Type FROM genotyping.Haplotype)
     ) iht
              ON a.RowId = iht.HiddenAnimalId
 
