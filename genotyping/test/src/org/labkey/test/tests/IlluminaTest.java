@@ -349,10 +349,14 @@ public class IlluminaTest extends GenotypingBaseTest
             Ext4FieldRef.getForLabel(this, a[0]).setValue(a[1]);
         }
         Ext4FieldRef combo = Ext4FieldRef.getForLabel(this, "Template");
+
+        waitFor(() ->
+                3 == ((Long)combo.getEval("store.getCount()")).intValue(),
+                "Combo store does not have correct record number. Should be 3, but was " + ((Long)combo.getEval("store.getCount()")).intValue(),
+                WAIT_FOR_JAVASCRIPT);
+
         combo.setValue(TEMPLATE_NAME);
 
-        int count = ((Long)combo.getEval("store.getCount()")).intValue();
-        assertEquals("Combo store does not have correct record number", 3, count);
         sleep(50);
         assertEquals("Field value not set correctly", TEMPLATE_NAME, Ext4FieldRef.getForLabel(this, "Template").getValue());
         _ext4Helper.clickTabContainingText("Preview Header");
