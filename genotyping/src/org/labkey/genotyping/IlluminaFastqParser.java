@@ -395,7 +395,7 @@ public class IlluminaFastqParser
         @Before
         public void preTest() throws Exception
         {
-            container = ContainerManager.createContainer(JunitUtil.getTestContainer(), FOLDER_NAME);
+            container = ContainerManager.createContainer(JunitUtil.getTestContainer(), FOLDER_NAME, TestContext.get().getUser());
 
             FileContentService svc = FileContentService.get();
             _testRoot = svc.getFileRoot(container);
