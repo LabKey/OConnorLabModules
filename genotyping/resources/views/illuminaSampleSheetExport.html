@@ -2,7 +2,7 @@
     LABKEY.requiresExt4ClientAPI();
     LABKEY.requiresScript('/genotyping/IlluminaExportPanel.js');
 </script>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=scriptNonce%>">
 
 Ext4.onReady(function(){
     var webpart = <%=webpartContext%>;

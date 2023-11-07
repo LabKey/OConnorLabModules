@@ -42,7 +42,7 @@
 <labkey:errors/>
 <div id="form"></div>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=getScriptNonce()%>">
     var samples = [
 <%
     String sep = "";
