@@ -44,7 +44,7 @@
 <br/>
 <div id='<%=h(queryWebPartDivId)%>'></div>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=getScriptNonce()%>">
 
     Ext4.onReady(function(){
         // lookup the Animal IDs if there were any selected from the results grid

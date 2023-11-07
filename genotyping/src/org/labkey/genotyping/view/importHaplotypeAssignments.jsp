@@ -39,7 +39,7 @@
 %>
 <div id="<%=h(copyPasteDivId)%>"></div>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=getScriptNonce()%>">
     var expectedHeaders = [];
     <%
     for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties(bean.getProtocol()).entrySet())
