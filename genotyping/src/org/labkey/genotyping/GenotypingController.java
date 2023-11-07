@@ -2247,7 +2247,7 @@ public class GenotypingController extends SpringActionController
                 return name;
             }
             // Strip off subtype suffix, if any
-            while (name.length() > 0 && !Character.isDigit(name.charAt(name.length() - 1)))
+            while (!name.isEmpty() && !Character.isDigit(name.charAt(name.length() - 1)))
             {
                 name = name.substring(0, name.length() - 1);
             }
@@ -2266,19 +2266,19 @@ public class GenotypingController extends SpringActionController
     public static class STRDiscrepancies extends ProtocolIdForm
     {
         private boolean ignoreSubtype;
-        private Map<String, Set<String>> discrepancies;
+        private final Map<String, Set<String>> discrepancies;
 
         public STRDiscrepancies()
         {
             this.discrepancies = new TreeMap<>();
         }
 
-        public void insertDiscrepancy(String name, String disrepancy)
+        public void insertDiscrepancy(String name, String discrepancy)
         {
             if (!discrepancies.containsKey(name))
                 discrepancies.put(name, new TreeSet<>());
             //NOTE: this might be better as a set...
-            discrepancies.get(name).add(disrepancy);
+            discrepancies.get(name).add(discrepancy);
         }
 
         public boolean isEmpty()
@@ -2303,7 +2303,7 @@ public class GenotypingController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class AggregatedResultsReportAction extends BaseAssayAction<ProtocolIdForm>
+    public static class AggregatedResultsReportAction extends BaseAssayAction<ProtocolIdForm>
     {
         private ExpProtocol _protocol;
 
@@ -2337,8 +2337,6 @@ public class GenotypingController extends SpringActionController
         {
             if (form.getRowId() == -1)
                 errors.reject(ERROR_MSG, "Error: Please provide an rowId for the AnimalAnalysis table.");
-
-
 
             return new JspView<>("/org/labkey/genotyping/view/editHaplotypeAssignment.jsp", form, errors);
         }

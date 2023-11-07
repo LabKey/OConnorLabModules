@@ -39,13 +39,13 @@ import java.util.List;
 @BaseWebDriverTest.ClassTimeout(minutes = 5)
 public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTest
 {
-    private static String PROJECT_NAME = "OConnorTestProject";
-    private static String FOLDER_ZIP_FILE = "OConnor_Test.folder.zip";
-    private static String[] MODULES = {"OConnor", "OConnorExperiments"};
-    private static String[] SPECIMEN_TYPES = {"type1", "type2", "type3", "type4"};
-    private static String[] EXPERIMENT_TYPES = {"name1", "name2", "name3", "name4"};
-    private static String[] DISABLED_SPECIMEN_TYPES = {"disabledtype1", "disabledtype2"};
-    private static String[] DISABLED_EXPERIMENT_TYPES = {"disabledname1", "disabledname2"};
+    private static final String PROJECT_NAME = "OConnorTestProject";
+    private static final String FOLDER_ZIP_FILE = "OConnor_Test.folder.zip";
+    private static final String[] MODULES = {"OConnor", "OConnorExperiments"};
+    private static final String[] SPECIMEN_TYPES = {"type1", "type2", "type3", "type4"};
+    private static final String[] EXPERIMENT_TYPES = {"name1", "name2", "name3", "name4"};
+    private static final String[] DISABLED_SPECIMEN_TYPES = {"disabledtype1", "disabledtype2"};
+    private static final String[] DISABLED_EXPERIMENT_TYPES = {"disabledname1", "disabledname2"};
 
     @Nullable
     @Override
@@ -176,7 +176,7 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
             assertTextNotPresent(d_option);
         }
         //check available specimen types
-        beginAt("/oconnor/OConnorTestProject/inventory_specimen_available.view?");
+        beginAt("/OConnorTestProject/oconnor-inventory_specimen_available.view");
         waitForText("Inventory Specimen Available");
         shortWait().until(ExpectedConditions.elementToBeClickable(Locator.linkWithSpan("Add new specimens")));
         click(Locator.linkWithSpan("Add new specimens"));

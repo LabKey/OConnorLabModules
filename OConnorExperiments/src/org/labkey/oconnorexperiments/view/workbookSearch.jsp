@@ -46,7 +46,7 @@
     <%=button("Search").submit(true)%>
 </form>
 </td></tr></table>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=getScriptNonce()%>">
     Ext.onReady(function(){
         new Ext.form.TextField({
             applyTo: 'wbsearch-id',

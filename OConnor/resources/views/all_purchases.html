@@ -1,12 +1,12 @@
 <html>
 <head>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=scriptNonce%>">
 LABKEY.requiresScript("oconnor/oconnorAlabrityConfig.js");
 </script>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=scriptNonce%>">
 LABKEY.requiresScript("oconnor/oconnorPurchaseCommon.js");
 </script>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=scriptNonce%>">
 Ext.onReady(function(){
 
 createGrid(dbSchemaName, 'all_orders', 'all', '', 'a', 'b','');

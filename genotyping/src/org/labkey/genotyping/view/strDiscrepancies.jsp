@@ -35,10 +35,10 @@
 <p>
     <form method="GET" action="<%= h(reportURL)%>">
         <input type="hidden" name="rowId" value="<%= model.getRowId() %>" />
-        <input type="checkbox" name="ignoreSubtype" <%= text(model.isIgnoreSubtype() ? "checked" : "") %> onclick="this.form.submit();" /> Ignore haplotype subtype distinctions ('a', 'b', 'c', etc suffixes on the haplotype names)
+        <input type="checkbox" name="ignoreSubtype" id="ignoreSubtype"<%=checked(model.isIgnoreSubtype())%>/> Ignore haplotype subtype distinctions ('a', 'b', 'c', etc suffixes on the haplotype names)
     </form>
 </p>
-
+<%addHandler("ignoreSubtype", "click", "this.form.submit();");%>
 <table class="labkey-data-region labkey-show-borders">
     <tr>
         <td class="labkey-column-header">Animal Id</td>
