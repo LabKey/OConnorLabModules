@@ -10,7 +10,7 @@
     <p id="errorText" class="labkey-error"></p>
 </div>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="<%=scriptNonce%>">
     var initPanel = function(data){
         if (data.rows.length > 0) {
             var experimentData = data.rows[0];
