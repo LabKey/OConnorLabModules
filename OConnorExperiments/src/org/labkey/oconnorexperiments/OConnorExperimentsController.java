@@ -54,6 +54,7 @@ import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.util.DOM;
 import org.labkey.api.util.FileStream;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.Path;
@@ -552,7 +553,7 @@ public class OConnorExperimentsController extends SpringActionController
                 throw new RedirectException(container.getStartURL(getUser()));
 
             //otherwise, return a workbooks list with the search view
-            HtmlView message = new HtmlView("<p class='labkey-error'>Could not find a workbook with id '" + form.getId() + "' in this folder or subfolders. Try searching or entering a different id.</p>");
+            HtmlView message = new HtmlView(DOM.P(DOM.cl( "labkey-error"), "Could not find a workbook with id '" + form.getId() + "' in this folder or subfolders. Try searching or entering a different id."));
             UserSchema schema = QueryService.get().getUserSchema(getUser(), getContainer(), OConnorExperimentsSchema.NAME);
             org.labkey.oconnorexperiments.WorkbookQueryView wbqview = new WorkbookQueryView(getViewContext(), schema);
             return new VBox(message, new JspView<>("/org/labkey/oconnorexperiments/view/workbookSearch.jsp", new WorkbookSearchBean(wbqview, null)), wbqview);
