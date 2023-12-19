@@ -7,7 +7,7 @@
 Ext4.onReady(function(){
     var webpart = <%=webpartContext%>;
 
-    var pks = LABKEY.ActionURL.getParameterArray('pks');
+    var pks = LABKEY.ActionURL.getParameterArray('pks') || [];
     var schemaName = 'lists';
     var queryName = 'Samples';
 
@@ -26,7 +26,12 @@ Ext4.onReady(function(){
                  }).render(webpart.wrapperDivId);
              }
              else {
-                 alert('No rows found')
+                 Ext4.Msg.show({
+                     title:'ERROR',
+                     msg: 'No rows found',
+                     buttons: Ext4.Msg.OK,
+                     icon: Ext4.MessageBox.ERROR
+                 });
              }
          }
      });
