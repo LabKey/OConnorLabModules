@@ -159,7 +159,7 @@ public class GenotypingQuerySchema extends UserSchema
                         SQLFragment sql = new SQLFragment("Run IN (SELECT r.RowId FROM ");
                         sql.append(GS.getRunsTable(), "r");
                         sql.append(" WHERE ");
-                        sql.append(filter.getSQLFragment(getSchema(), new SQLFragment("r.Container"), getContainer()));
+                        sql.append(filter.getSQLFragment(getSchema(), new SQLFragment("r.Container")));
                         sql.append(")");
                         addCondition(sql, containerFieldKey);
                     }
@@ -261,7 +261,7 @@ public class GenotypingQuerySchema extends UserSchema
                         SQLFragment sql = new SQLFragment("Run IN (SELECT r.RowId FROM ");
                         sql.append(GS.getRunsTable(), "r");
                         sql.append(" WHERE ");
-                        sql.append(filter.getSQLFragment(getSchema(), new SQLFragment("r.Container"), getContainer()));
+                        sql.append(filter.getSQLFragment(getSchema(), new SQLFragment("r.Container")));
                         sql.append(")");
                         addCondition(sql, containerFieldKey);
                     }
@@ -383,7 +383,7 @@ public class GenotypingQuerySchema extends UserSchema
                         SQLFragment sql = new SQLFragment("Run IN (SELECT r.RowId FROM ");
                         sql.append(GS.getRunsTable(), "r");
                         sql.append(" WHERE ");
-                        sql.append(filter.getSQLFragment(getSchema(), new SQLFragment("r.Container"), getContainer()));
+                        sql.append(filter.getSQLFragment(getSchema(), new SQLFragment("r.Container")));
                         sql.append(")");
                         addCondition(sql, containerFieldKey);
                     }
@@ -603,7 +603,7 @@ public class GenotypingQuerySchema extends UserSchema
                         SQLFragment sql = new SQLFragment("RunId IN (SELECT RowId FROM ");
                         sql.append(ExperimentService.get().getTinfoExperimentRun(), "r");
                         sql.append(" WHERE ");
-                        sql.append(filter.getSQLFragment(getSchema(), new SQLFragment("r.Container"), getContainer()));
+                        sql.append(filter.getSQLFragment(getSchema(), new SQLFragment("r.Container")));
                         sql.append(")");
                         addCondition(sql, containerFieldKey);
                     }
@@ -656,7 +656,7 @@ public class GenotypingQuerySchema extends UserSchema
                         sql.append(ExperimentService.get().getTinfoExperimentRun(), "r");
                         sql.append(" ON aa.RunId = r.RowId ");
                         sql.append(" WHERE ");
-                        sql.append(filter.getSQLFragment(getSchema(), new SQLFragment("r.Container"), getContainer()));
+                        sql.append(filter.getSQLFragment(getSchema(), new SQLFragment("r.Container")));
                         sql.append(")");
                         addCondition(sql, containerFieldKey);
                     }
