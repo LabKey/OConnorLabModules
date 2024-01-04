@@ -2196,3 +2196,9 @@ CREATE INDEX IDX_purchases_status ON oconnor.purchases(status);
 CREATE INDEX IDX_purchases_vendor ON oconnor.purchases(vendor);
 
 CREATE INDEX IDX_quotes_vendor ON oconnor.quotes(vendor);
+
+/* 22.xxx SQL scripts */
+
+ALTER TABLE oconnor.purchases ADD COLUMN IF NOT EXISTS pcard INT DEFAULT 0;
+ALTER TABLE oconnor.quotes ADD COLUMN IF NOT EXISTS grant_id VARCHAR(255);
+ALTER TABLE oconnor.vendors ADD COLUMN IF NOT EXISTS mds INT DEFAULT 0;
