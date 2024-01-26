@@ -2,6 +2,8 @@
        title="Blood Draws"
        frame="none"
        >
-       
-       
+
+       <dependencies>
+              <dependency path="oconnor/moreInfo.js" />
+       </dependencies>
 </view>
