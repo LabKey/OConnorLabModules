@@ -2,6 +2,9 @@
        title="Matrix ELISpot Analysis"
        frame="none"
        >
-       
-       
+
+       <dependencies>
+              <dependency path="oconnor/oconnorFunctions.js" />
+       </dependencies>
+
 </view>
