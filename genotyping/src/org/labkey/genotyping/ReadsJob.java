@@ -15,6 +15,7 @@
  */
 package org.labkey.genotyping;
 
+import jakarta.mail.MessagingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.DbScope;
@@ -35,7 +36,6 @@ import org.labkey.api.util.MailHelper;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ViewBackgroundInfo;
 
-import javax.mail.MessagingException;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;

@@ -15,16 +15,16 @@
  */
 package org.labkey.genotyping;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.labkey.api.exp.ExperimentException;
-import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.assay.AbstractTempDirDataCollector;
 import org.labkey.api.assay.AssayRunUploadContext;
+import org.labkey.api.exp.ExperimentException;
+import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
