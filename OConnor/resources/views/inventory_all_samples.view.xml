@@ -1,0 +1,6 @@
+<view xmlns="http://labkey.org/data/xml/view">
+       <dependencies>
+              <dependency path="oconnor/oconnorAlabrityConfig.js" />
+              <dependency path="oconnor/oconnorFreezerCommon.js" />
+       </dependencies>
+</view>
