@@ -3,7 +3,7 @@
 
 <div>
     <span id="createdSpan"></span>
-    [<a href="<%=contextPath%>/ocexp<%=containerPath%>/history.view">history</a>]
+    [<a href="<%=contextPath%><%=containerPath%>/ocexp-history.view">history</a>]
 </div>
 
 <div id="errorBox">
@@ -19,7 +19,7 @@
             var parentExperiments = experimentData['ParentExperiments/ExperimentNumber'];
             var parentLinks = [];
             for (var index = 0; index < parentExperiments.length; index++) {
-                parentLinks.push({title: 'Parent ' + parentExperiments[index], url: "<%=contextPath%>/project<%=containerPath%>/../" + parentExperiments[index] + "/begin.view"});
+                parentLinks.push({title: 'Parent ' + parentExperiments[index], url: "<%=contextPath%><%=containerPath%>/../" + parentExperiments[index] + "/project-begin.view"});
             }
             // Set the navtrail and page title
             LABKEY.NavTrail.setTrail("Experiment " + LABKEY.container.title, parentLinks, "Experiment " + LABKEY.container.title);
