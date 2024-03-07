@@ -280,7 +280,12 @@ function jump(){
 	   theWindow.show();      
 
 }
-    
+
+LABKEY.Utils.onReady(function(){
+    document.getElementById('previousButton')['click'] = previous;
+    document.getElementById('nextButton')['click'] = next;
+    document.getElementById('jumpButton')['click'] = jump;
+});
 </script>
 <body>
 <div align="center">
@@ -288,14 +293,14 @@ function jump(){
 <table>
 <tr>
 <td>
-<input value='Previous' type='button' onclick='previous()'>
+<input value='Previous' type='button' id='previousButton'>
 </td>
 <td id="week"></td>
 <td>
-<input value='Next' type='button' onclick='next()'>
+<input value='Next' type='button' id='nextButton'>
 </td>
 <td>
-<input value='Jump To' type='button' onclick='jump()'>
+<input value='Jump To' type='button' id='jumpButton'>
 </td>
 </tr>
 <tr>
@@ -309,6 +314,7 @@ function jump(){
 </div>
 <br>
 <table width = '900 '><tr><td>*Unsubmitted</td></tr></table>
+</div>
 
 </body>
 </html>
