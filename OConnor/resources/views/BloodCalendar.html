@@ -282,9 +282,9 @@ function jump(){
 }
 
 LABKEY.Utils.onReady(function(){
-    document.getElementById('previousButton')['click'] = previous;
-    document.getElementById('nextButton')['click'] = next;
-    document.getElementById('jumpButton')['click'] = jump;
+    document.getElementById('previousButton')['onclick'] = previous;
+    document.getElementById('nextButton')['onclick'] = next;
+    document.getElementById('jumpButton')['onclick'] = jump;
 });
 </script>
 <body>
