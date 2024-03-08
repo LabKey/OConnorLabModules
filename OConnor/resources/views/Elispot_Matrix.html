@@ -16,7 +16,6 @@ function toExperiment(experiment){
     });
 }
 
-
 var trad1 = '';
 var trad2 = '';
 var matrix1 = '';
@@ -25,10 +24,6 @@ var table;
 var rows;
 
 Ext.onReady(main);
-
-
-
-
 
 function main(){		
 
@@ -63,8 +58,7 @@ function main(){
         success: runPeptides, 
         
     });
-	
-	
+
 	function runPeptides(d){
 			
 		matrixPeptides = [];
@@ -108,154 +102,134 @@ function main(){
 		});
 	}
 
-function getPeptides(d){
-	
-	table = document.getElementById('dataregion_theTable');	
-	rows = table.childNodes[3].getElementsByTagName('tr');
+    function getPeptides(d){
+        table = document.getElementById('dataregion_theTable');
+        rows = table.childNodes[3].getElementsByTagName('tr');
 
-		
-	
-	var tradArray = [];
-	var matrixArray = [];
-	
-	for(var i = 0; i < d.rows.length; i++){
-		for(var t = 0; t < matrixPeptides.length; t++){
-			if(d.rows[i].peptide_number == matrixPeptides[t]){
-				var tempString = d.rows[i].pool_contents;
-				tempString = tempString.replace(/\s+/g,"");
-				matrixArray.push(tempString.split(','));
-			}
-		
-		}
-		for(var t = 0; t < traditionalPeptides.length; t++){
-			if(d.rows[i].peptide_number == traditionalPeptides[t]){
-				var tempString = d.rows[i].pool_contents;
-				tempString = tempString.replace(/\s+/g,"");
-				
-				if (tempString.indexOf('-') != -1){
-					var idx = tempString.indexOf('-');
-					var tempArray = [];
-					
-					var start = +tempString.substring(0,idx);
-					var end = +tempString.substring(idx+1,tempString.length);
-					
-					for(var p = start; p <= end; p++){
-						tempArray.push(p);
-					}
-									
-					tradArray.push(tempArray);
+        var tradArray = [];
+        var matrixArray = [];
 
-				}else{
-					tradArray.push(tempString.split(','));
-				}	
-			}
-		
-		}
-	}
-	
-	
-	
-	var allMatrix = [];
-	
-	for(var i = 0; i < matrixArray.length; i++){
-		for(var t = 0; t < matrixArray[i].length; t++){
-			allMatrix.push(matrixArray[i][t]);
-		}
-	}
-	
-	var allTrad = [];
-	
-	for(var i = 0; i < tradArray.length; i++){
-		for(var t = 0; t < tradArray[i].length; t++){
-			allTrad.push(tradArray[i][t]);
-		}
-	}
-	
-	var shared = [];
-	
-	for(var i = 0; i < allMatrix.length; i++){
-		for(var t = 0; t < allTrad.length; t++){
-			if(allMatrix[i] == allTrad[t])
-				shared.push(allMatrix[i]);
-		}
-	}
-	
-	
-	
-	
-	
-	
-	for(var i = 0; i < matrixArray.length; i++)
-		highlight(matrixArray[i],"#00FF00");
-	
-	for(var i = 0; i < tradArray.length; i++)
-		highlight(tradArray[i],"#FF3333");
-	
-	highlight(shared,"#FFFF00");
+        for (var i = 0; i < d.rows.length; i++){
+            for (var t = 0; t < matrixPeptides.length; t++){
+                if(d.rows[i].peptide_number == matrixPeptides[t]){
+                    var tempString = d.rows[i].pool_contents;
+                    tempString = tempString.replace(/\s+/g,"");
+                    matrixArray.push(tempString.split(','));
+                }
+            }
+            for (var t = 0; t < traditionalPeptides.length; t++){
+                if(d.rows[i].peptide_number == traditionalPeptides[t]){
+                    var tempString = d.rows[i].pool_contents;
+                    tempString = tempString.replace(/\s+/g,"");
 
-	makeQuery(shared);
-	
-	
-	function highlight(highPep,color){
+                    if (tempString.indexOf('-') != -1){
+                        var idx = tempString.indexOf('-');
+                        var tempArray = [];
 
-		for (var i = 0; i < rows.length; i++){
-			if(rows[i].className == 'labkey-row' || rows[i].className == 'labkey-alternate-row'){					
-				for(var t = 0; t < rows[i].childNodes.length; t++){
-					
-					for(var p = 0; p < highPep.length; p++){
-						if(rows[i].childNodes[t].innerHTML.indexOf(highPep[p]) != -1)
-							rows[i].childNodes[t].style.backgroundColor = color;	
-					}
-				}
-				
-			}
-			
-		}
-	
-	}
-	
-	
-	function makeQuery(peptides){
-		
-		var qwp2 = new LABKEY.QueryWebPart({
-		    renderTo: 'peptides',
-		    schemaName: 'oconnor',
-	        queryName: 'peptides',
-			containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
-		    frame: 'none',
-		    buttonBarPosition: 'top',
-		    allowChooseQuery: false,
-		    showDeleteButton: false,
-		    showInsertNewButton: false,
-		    showUpdateColumn: false,
-		    showDetailsColumn : false,
-		    showRecordSelectors : true,
-			filterArray: [LABKEY.Filter.create('peptide_number', peptides.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
-			containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+                        var start = +tempString.substring(0,idx);
+                        var end = +tempString.substring(idx+1,tempString.length);
 
-		});
-		
-		
-	}
-	
-	
-}
+                        for(var p = start; p <= end; p++){
+                            tempArray.push(p);
+                        }
 
+                        tradArray.push(tempArray);
+                    }
+                    else
+                    {
+                        tradArray.push(tempString.split(','));
+                    }
+                }
+            }
+        }
+
+        var allMatrix = [];
+
+        for(var i = 0; i < matrixArray.length; i++){
+            for(var t = 0; t < matrixArray[i].length; t++){
+                allMatrix.push(matrixArray[i][t]);
+            }
+        }
+
+        var allTrad = [];
+
+        for(var i = 0; i < tradArray.length; i++){
+            for(var t = 0; t < tradArray[i].length; t++){
+                allTrad.push(tradArray[i][t]);
+            }
+        }
+
+        var shared = [];
+
+        for(var i = 0; i < allMatrix.length; i++){
+            for(var t = 0; t < allTrad.length; t++){
+                if(allMatrix[i] == allTrad[t])
+                    shared.push(allMatrix[i]);
+            }
+        }
+
+        for(var i = 0; i < matrixArray.length; i++)
+            highlight(matrixArray[i],"#00FF00");
+
+        for(var i = 0; i < tradArray.length; i++)
+            highlight(tradArray[i],"#FF3333");
+
+        highlight(shared,"#FFFF00");
+
+        makeQuery(shared);
+
+        function highlight(highPep,color){
+
+            for (var i = 0; i < rows.length; i++){
+                if(rows[i].className == 'labkey-row' || rows[i].className == 'labkey-alternate-row'){
+                    for(var t = 0; t < rows[i].childNodes.length; t++){
+
+                        for(var p = 0; p < highPep.length; p++){
+                            if(rows[i].childNodes[t].innerHTML.indexOf(highPep[p]) != -1)
+                                rows[i].childNodes[t].style.backgroundColor = color;
+                        }
+                    }
+                }
+            }
+        }
+
+        function makeQuery(peptides){
+
+            var qwp2 = new LABKEY.QueryWebPart({
+                renderTo: 'peptides',
+                schemaName: 'oconnor',
+                queryName: 'peptides',
+                containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+                frame: 'none',
+                buttonBarPosition: 'top',
+                allowChooseQuery: false,
+                showDeleteButton: false,
+                showInsertNewButton: false,
+                showUpdateColumn: false,
+                showDetailsColumn : false,
+                showRecordSelectors : true,
+                filterArray: [LABKEY.Filter.create('peptide_number', peptides.join(';'), LABKEY.Filter.Types.EQUALS_ONE_OF)],
+                containerPath: 'WNPRC/WNPRC_Laboratories/oconnor/',
+            });
+        }
+    }
 }
 	
 function newExps(){
 	matrixElispotSelection(null, matrix1, matrix2, trad1, trad2);	
 }
 
-
+LABKEY.Utils.onReady(function(){
+    document.getElementById('newExps')['onclick'] = newExps;
+});
 </script>
-<INPUT style="font-size:16px;" type="button" value="New Experiments" name="button6" onClick='newExps()'> 
+<INPUT style="font-size:16px;" type="button" value="New Experiments" name="button6" id='newExps'>
 <span id="experiments" style="font-size:18px; line-height:16px; vertical-align:text-bottom;"></span>
-<br></br>
+<br>
 <div id="matches" style="font-size:20px"> 
 </div>
 <div id="peptides"></div>
-<br></br>
+<br>
 <div id="matrix"></div>
 </html>
 
