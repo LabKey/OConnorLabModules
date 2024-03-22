@@ -46,7 +46,7 @@ function main(){
 		
 	if(matrixExps != undefined || tradExps != undefined){
 		document.getElementById('matches').innerHTML = 'Possible Matches';	
-		document.getElementById('experiments').innerHTML = '&nbsp Trad. 1: ' + '<a id="trad1">' + trad1 + '</a>' + '&nbsp Trad. 2: ' + '<a id="trad2">' + trad2 + '</a>' + '&nbsp Matrix 1: ' + '<a id="matrix1">' + matrix1 + '</a>' + '&nbsp Matrix 2: ' + '<a id="matrix2">' + matrix2 + '</a>';
+		document.getElementById('experiments').innerHTML = '&nbsp Trad. 1: ' + '<a id="trad1">' + LABKEY.Utils.encodeHtml(trad1) + '</a>' + '&nbsp Trad. 2: ' + '<a id="trad2">' + LABKEY.Utils.encodeHtml(trad2) + '</a>' + '&nbsp Matrix 1: ' + '<a id="matrix1">' + LABKEY.Utils.encodeHtml(matrix1) + '</a>' + '&nbsp Matrix 2: ' + '<a id="matrix2">' + LABKEY.Utils.encodeHtml(matrix2) + '</a>';
         document.getElementById('trad1')['onclick'] = function() { toExperiment(trad1) };
         document.getElementById('trad2')['onclick'] = function() { toExperiment(trad2) }
         document.getElementById('matrix1')['onclick'] = function() { toExperiment(matrix1) };
