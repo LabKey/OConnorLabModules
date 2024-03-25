@@ -197,7 +197,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
         //UserSchema targetSchema = getUserSchema().getContainer().isWorkbook() ? new OConnorExperimentsUserSchema(getUserSchema().getUser(), getUserSchema().getContainer().getParent()) : getUserSchema();
         MultiValuedForeignKey parentExperimentsFk = new MultiValuedForeignKey(
                 QueryForeignKey
-                        .from(getUserSchema(), getContainerFilter())
+                        .from(getUserSchema(), getContainer().isWorkbook() ? ContainerFilter.Type.CurrentAndFirstChildren.create(getContainer().getParent(), getUserSchema().getUser()) : getContainerFilter())
                         .schema(OConnorExperimentsUserSchema.NAME, getContainer().isWorkbook() ? getContainer().getParent() : getContainer())
                         .to(OConnorExperimentsUserSchema.Table.ParentExperiments.name(), "Container", null),
                 "ParentExperiment");
