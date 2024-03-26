@@ -114,6 +114,10 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         updateViaExperimentWebpart(0, null, "type3", "1,2");
         verifyExperimentWebpart(0, "updated description 3", "type3", 1, 2);
 
+        // Make sure the values round-trip if they're not explicitly set
+        updateViaExperimentWebpart(0, null, null, null);
+        verifyExperimentWebpart(0, "updated description 3", "type3", 1, 2);
+
         testBulkUpdate();
 
         // delete via the webpart
