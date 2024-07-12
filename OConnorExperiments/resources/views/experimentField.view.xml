@@ -1,9 +1,9 @@
 <view xmlns="http://labkey.org/data/xml/view"
         title="Experiment Overview"
         frame="none">
-    <permissions>
-        <permission name="read"/>
-    </permissions>
+    <permissionClasses>
+        <permissionClass name="org.labkey.api.security.permissions.ReadPermission"/>
+    </permissionClasses>
     <dependencies>
         <dependency path="Ext4"/>
         <dependency path="/ocexp/internal/Experiment.js"/>
