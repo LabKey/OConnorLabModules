@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.AtomicDatabaseInteger;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
+import org.labkey.api.data.PropertyManager.WritablePropertyMap;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlExecutor;
@@ -115,7 +116,7 @@ public class GenotypingManager
 
     public void saveSettings(Container c, GenotypingFolderSettings settings)
     {
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(c, FOLDER_CATEGORY, true);
+        WritablePropertyMap map = PropertyManager.getWritableProperties(c, FOLDER_CATEGORY, true);
         map.put(Setting.ReferenceSequencesQuery.getKey(), settings.getSequencesQuery());
         map.put(Setting.RunsQuery.getKey(), settings.getRunsQuery());
         map.put(Setting.SamplesQuery.getKey(), settings.getSamplesQuery());
