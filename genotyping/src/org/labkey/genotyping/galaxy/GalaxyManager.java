@@ -16,10 +16,11 @@
 
 package org.labkey.genotyping.galaxy;
 
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
+import org.labkey.api.data.PropertyManager.WritablePropertyMap;
 import org.labkey.api.security.User;
 
 import java.util.Map;
@@ -50,7 +51,7 @@ public class GalaxyManager
 
     public void saveSettings(Container c, GalaxyFolderSettings settings)
     {
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(c, FOLDER_CATEGORY, true);
+        WritablePropertyMap map = PropertyManager.getWritableProperties(c, FOLDER_CATEGORY, true);
         map.put(GALAXY_URL, settings.getGalaxyURL());
         map.save();
     }
@@ -73,7 +74,7 @@ public class GalaxyManager
 
     public void saveUserSettings(Container c, User user, GalaxyUserSettings userSettings)
     {
-        PropertyManager.PropertyMap map = PropertyManager.getWritableProperties(user, c, USER_CATEGORY, true);
+        WritablePropertyMap map = PropertyManager.getWritableProperties(user, c, USER_CATEGORY, true);
         map.put(GALAXY_KEY, userSettings.getGalaxyKey());
         map.save();
     }
