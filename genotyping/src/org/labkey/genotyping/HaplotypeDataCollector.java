@@ -24,9 +24,9 @@ import org.labkey.api.exp.ExperimentException;
 import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
+import org.labkey.vfs.FileLike;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,7 +71,7 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
 
     @NotNull
     @Override
-    public Map<String, File> createData(ContextType context) throws IOException, ExperimentException
+    public Map<String, FileLike> createData(ContextType context) throws IOException, ExperimentException
     {
         ExpProtocol protocol = context.getProtocol();
         String data = context.getRequest().getParameter(HaplotypeAssayProvider.DATA_PROPERTY_NAME);
@@ -95,11 +95,11 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
         }
 
         // NOTE: We use a 'tmp' file extension so that DataLoaderService will sniff the file type by parsing the file's header.
-        File dir = getFileTargetDir(context);
-        File file = createFile(protocol, dir, "tmp");
+        FileLike dir = getFileTargetDir(context);
+        FileLike file = createFile(protocol, dir, "tmp");
         ByteArrayInputStream bIn = new ByteArrayInputStream(data.getBytes(context.getRequest().getCharacterEncoding()));
 
-        writeFile(bIn, file);
+        writeFile(bIn, file.toNioPathForWrite().toFile());
         return Collections.singletonMap(PRIMARY_FILE, file);
     }
 
