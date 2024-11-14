@@ -28,6 +28,7 @@ import org.labkey.test.TestTimeoutException;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LogMethod;
+import org.labkey.test.util.PostgresOnlyTest;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +36,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-abstract public class GenotypingBaseTest extends BaseWebDriverTest
+abstract public class GenotypingBaseTest extends BaseWebDriverTest implements PostgresOnlyTest
 {
     private static final File pipelineLoc = TestFileUtils.getSampleData("genotyping");
     protected static int pipelineJobCount = 0;
