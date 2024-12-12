@@ -23,7 +23,6 @@ import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.exp.PropertyType;
-import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpProtocol;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.DomainProperty;
@@ -56,7 +55,6 @@ import org.labkey.api.view.NavTree;
 import org.labkey.api.view.ViewContext;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -263,7 +261,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     }
 
     @Override
-    public void changeDomain(User user, ExpProtocol protocol, GWTDomain<GWTPropertyDescriptor> orig, GWTDomain<GWTPropertyDescriptor> update)
+    public void beforeDomainChange(User user, ExpProtocol protocol, GWTDomain<GWTPropertyDescriptor> orig, GWTDomain<GWTPropertyDescriptor> update)
     {
         GenotypingSchema gs = GenotypingSchema.get();
         SqlExecutor executor = new SqlExecutor(gs.getSchema());
