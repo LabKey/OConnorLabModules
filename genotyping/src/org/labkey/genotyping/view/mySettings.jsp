@@ -48,6 +48,6 @@
         <tr><td>&nbsp;</td></tr>
         <tr><td>Galaxy web API key</td><td><input size="40" name="galaxyKey" value="<%=h(form.getGalaxyKey())%>"></td></tr>
         <tr><td>&nbsp;</td></tr>
-        <tr><td><%= button("Submit").submit(true) %> <%= button("Cancel").href(form.getReturnURLHelper()) %><%=generateReturnUrlFormField(form)%></td></tr>
+        <tr><td><%= button("Submit").submit(true) %> <%= button("Cancel").href(form.getReturnUrlHelper()) %><%=generateReturnUrlFormField(form)%></td></tr>
     </table>
 </labkey:form>

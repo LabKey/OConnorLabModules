@@ -143,7 +143,7 @@
                 {
                     text: 'Cancel',
                     handler: function(){
-                        window.location = <%=q(bean.getReturnURL())%>;
+                        window.location = <%=q(bean.getReturnUrl())%>;
                     }
                 }
             ],

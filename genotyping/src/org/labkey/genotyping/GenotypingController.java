@@ -385,7 +385,7 @@ public class GenotypingController extends SpringActionController
         public URLHelper getSuccessURL(ReturnUrlForm form)
         {
             ActionURL begin = PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer());
-            return form.getReturnURLHelper(begin);
+            return form.getReturnUrlHelper(begin);
         }
     }
 
@@ -494,18 +494,18 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    private ActionURL getAdminURL(String message, ActionURL returnURL)
+    private ActionURL getAdminURL(String message, ActionURL returnUrl)
     {
-        ActionURL url = getAdminURL(getContainer(), returnURL);
+        ActionURL url = getAdminURL(getContainer(), returnUrl);
         url.addParameter("message", message);
         return url;
     }
 
 
-    public static ActionURL getAdminURL(Container c, ActionURL returnURL)
+    public static ActionURL getAdminURL(Container c, ActionURL returnUrl)
     {
         ActionURL url = new ActionURL(AdminAction.class, c);
-        url.addReturnURL(returnURL);
+        url.addReturnUrl(returnUrl);
         return url;
     }
 
@@ -684,10 +684,10 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static ActionURL getMySettingsURL(Container c, ActionURL returnURL)
+    public static ActionURL getMySettingsURL(Container c, ActionURL returnUrl)
     {
         ActionURL url = new ActionURL(MySettingsAction.class, c);
-        url.addReturnURL(returnURL);
+        url.addReturnUrl(returnUrl);
         return url;
     }
 
@@ -752,7 +752,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public URLHelper getSuccessURL(MySettingsForm form)
         {
-            return form.getReturnURLHelper();
+            return form.getReturnUrlHelper();
         }
 
         @Override
@@ -1110,7 +1110,7 @@ public class GenotypingController extends SpringActionController
     {
         ActionURL url = new ActionURL(AnalyzeAction.class, getContainer());
         url.addParameter("run", runId);
-        url.addReturnURL(cancelURL);
+        url.addReturnUrl(cancelURL);
         return url;
     }
 
@@ -1232,13 +1232,13 @@ public class GenotypingController extends SpringActionController
     {
         private final SortedSet<CustomView> _sequencesViews;
         private final Map<Integer, Pair<String, String>> _sampleMap;
-        private final ActionURL _returnURL;
+        private final ActionURL _returnUrl;
 
-        private AnalyzeBean(SortedSet<CustomView> sequenceViews, Map<Integer, Pair<String, String>> sampleMap, ActionURL returnURL)
+        private AnalyzeBean(SortedSet<CustomView> sequenceViews, Map<Integer, Pair<String, String>> sampleMap, ActionURL returnUrl)
         {
             _sequencesViews = sequenceViews;
             _sampleMap = sampleMap;
-            _returnURL = returnURL;
+            _returnUrl = returnUrl;
         }
 
         public SortedSet<CustomView> getSequencesViews()
@@ -1251,9 +1251,9 @@ public class GenotypingController extends SpringActionController
             return _sampleMap;
         }
 
-        public ActionURL getReturnURL()
+        public ActionURL getReturnUrl()
         {
-            return _returnURL;
+            return _returnUrl;
         }
     }
 
@@ -2015,13 +2015,13 @@ public class GenotypingController extends SpringActionController
     {
         private final Collection<Integer> _ids;
         private final String _assayName;
-        private final ActionURL _returnURL;
+        private final ActionURL _returnUrl;
 
-        public AssignmentReportBean(Collection<Integer> ids, String assayName, ActionURL returnURL)
+        public AssignmentReportBean(Collection<Integer> ids, String assayName, ActionURL returnUrl)
         {
             _ids = ids;
             _assayName = assayName;
-            _returnURL = returnURL;
+            _returnUrl = returnUrl;
         }
 
         public Collection<Integer> getIds()
@@ -2034,9 +2034,9 @@ public class GenotypingController extends SpringActionController
             return _assayName;
         }
 
-        public ActionURL getReturnURL()
+        public ActionURL getReturnUrl()
         {
-            return _returnURL;
+            return _returnUrl;
         }
     }
 
@@ -2057,10 +2057,10 @@ public class GenotypingController extends SpringActionController
             AssayHeaderView header = new AssayHeaderView(form.getProtocol(), form.getProvider(), false, true, null);
             result.addView(header);
 
-            ActionURL returnURL = form.getReturnActionURL(PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer()));
+            ActionURL returnUrl = form.getReturnActionURL(PageFlowUtil.urlProvider(ProjectUrls.class).getBeginURL(getContainer()));
 
-            AssignmentReportBean bean = new AssignmentReportBean(selected, _protocol.getName(), returnURL);
-            JspView report = new JspView<>("/org/labkey/genotyping/view/haplotypeAssignmentReport.jsp", bean);
+            AssignmentReportBean bean = new AssignmentReportBean(selected, _protocol.getName(), returnUrl);
+            JspView<?> report = new JspView<>("/org/labkey/genotyping/view/haplotypeAssignmentReport.jsp", bean);
             result.addView(report);
 
             return result;
@@ -2360,11 +2360,6 @@ public class GenotypingController extends SpringActionController
         public void setRowId(int rowId)
         {
             _rowId = rowId;
-        }
-
-        public void setSrcURL(String srcURL)
-        {
-            ReturnUrlForm.throwBadParam();
         }
     }
 }
