@@ -34,7 +34,7 @@
     GenotypingController.AssignmentForm bean = me.getModelBean();
     final String formDivId = "form" + getRequestScopedUID();
 
-    ActionURL returnURL = bean.getReturnActionURL(urlProvider(ProjectUrls.class).getBeginURL(getContainer()));
+    ActionURL returnUrl = bean.getReturnActionURL(urlProvider(ProjectUrls.class).getBeginURL(getContainer()));
 %>
 <%
     if (getErrors("form").hasErrors())
@@ -111,7 +111,7 @@
                             commands: commands,
                             success: function(data) {
                                 assignmentForm.getEl().unmask();
-                                window.location = <%=q(returnURL)%>
+                                window.location = <%=q(returnUrl)%>
                             },
                             failure: function(response) {
                                 alert(response.exception);
@@ -123,7 +123,7 @@
                 {
                     text: 'Cancel',
                     handler: function(){
-                        window.location = <%=q(returnURL)%>
+                        window.location = <%=q(returnUrl)%>
                     }
                 }
             ],

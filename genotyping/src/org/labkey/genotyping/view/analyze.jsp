@@ -133,7 +133,7 @@ var f = new LABKEY.ext.FormPanel({
         description,
         selectedSamples
     ],
-    buttons:[{text:'Submit', type:'submit', handler:submit}, {text:'Cancel', handler:function() {document.location = <%=q(bean.getReturnURL())%>;}}],
+    buttons:[{text:'Submit', type:'submit', handler:submit}, {text:'Cancel', handler:function() {document.location = <%=q(bean.getReturnUrl())%>;}}],
     buttonAlign:'left'
 });
 

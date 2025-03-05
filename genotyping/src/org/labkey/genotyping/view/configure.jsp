@@ -39,11 +39,11 @@
 
     ActionURL animalQueryURL = QueryService.get().urlFor(getUser(), getContainer(), QueryAction.executeQuery, "genotyping", "Animal");
     ActionURL animalEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Animal.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Animal.name(), getContainer(), getUser());
-    animalEditDomainURL.addReturnURL(getActionURL());
+    animalEditDomainURL.addReturnUrl(getActionURL());
 
     ActionURL haplotypeQueryURL = QueryService.get().urlFor(getUser(), getContainer(), QueryAction.executeQuery, "genotyping", "Haplotype");
     ActionURL haplotypeEditDomainURL = PropertyService.get().getDomainKind(schema.getDomainURI(GenotypingQuerySchema.TableType.Haplotype.name())).urlCreateDefinition(GenotypingQuerySchema.NAME, GenotypingQuerySchema.TableType.Haplotype.name(), getContainer(), getUser());
-    haplotypeEditDomainURL.addReturnURL(getActionURL());
+    haplotypeEditDomainURL.addReturnUrl(getActionURL());
 %>
 <script type="text/javascript" nonce="<%=getScriptNonce()%>">
     var queries = {};
@@ -166,6 +166,6 @@
             </td>
         </tr>
         <tr><td>&nbsp;</td></tr>
-        <tr><td><%= button("Submit").submit(true) %> <%= button("Done").href(form.getReturnURLHelper()) %><%=generateReturnUrlFormField(form)%></td></tr>
+        <tr><td><%= button("Submit").submit(true) %> <%= button("Done").href(form.getReturnUrlHelper()) %><%=generateReturnUrlFormField(form)%></td></tr>
     </table>
 </form>
