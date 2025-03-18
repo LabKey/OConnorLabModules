@@ -23,18 +23,15 @@ import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.FieldKey;
-import org.labkey.api.util.PageFlowUtil;
+import org.labkey.api.util.Link;
 import org.labkey.api.view.ActionURL;
+import org.labkey.api.writer.HtmlWriter;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.util.List;
 import java.util.Set;
 
 /**
  * Render the concatenated haplotypes with each value linking to the haplotype definition list, if configured
- * Created by: jeckels
- * Date: 4/12/15
  */
 public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
 {
@@ -66,7 +63,7 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
     }
 
     @Override
-    public void renderGridCellContents(RenderContext ctx, Writer out) throws IOException
+    public void renderGridCellContents(RenderContext ctx, HtmlWriter out)
     {
         Object o = getValue(ctx);
         if (o == null)
@@ -105,14 +102,8 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
                 }
                 filter.applyToURL(url, "query");
                 String evaluatedURL = url.getURIString();
-                out.write("<a target=\"_blank\" href=\"");
-                out.write(PageFlowUtil.filter(evaluatedURL));
-                out.write("\">");
-                out.write(PageFlowUtil.filter(haplotype));
-                out.write("</a>");
+                out.write(new Link.LinkBuilder(haplotype).href(evaluatedURL).target("_blank").clearClasses());
             }
         }
     }
-
-
 }
