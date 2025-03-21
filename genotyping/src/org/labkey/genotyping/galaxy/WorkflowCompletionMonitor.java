@@ -16,12 +16,13 @@
 package org.labkey.genotyping.galaxy;
 
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 import org.labkey.api.util.ContextListener;
+import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.ShutdownListener;
+import org.labkey.api.util.logging.LogHelper;
 import org.labkey.genotyping.GenotypingManager;
+import org.labkey.vfs.FileLike;
 
-import java.io.File;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -42,11 +43,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class WorkflowCompletionMonitor implements ShutdownListener
 {
-    private static final Logger LOG = LogManager.getLogger(WorkflowCompletionMonitor.class);
+    private static final Logger LOG = LogHelper.getLogger(WorkflowCompletionMonitor.class, "Logger for Genotyping workflow completion monitor");
     private static final WorkflowCompletionMonitor INSTANCE = new WorkflowCompletionMonitor();
 
     private final ScheduledExecutorService _executor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "Genotyping Workflow Completion Monitor"));
-    private final List<File> _pendingCompletionFiles = new CopyOnWriteArrayList<>();
+    private final List<FileLike> _pendingCompletionFiles = new CopyOnWriteArrayList<>();
 
 
     static
@@ -82,10 +83,10 @@ public class WorkflowCompletionMonitor implements ShutdownListener
     }
 
 
-    public void monitor(File completionFile)
+    public void monitor(FileLike completionFile)
     {
         _pendingCompletionFiles.add(completionFile);
-        LOG.info("Monitoring for " + completionFile.getAbsolutePath());
+        LOG.info("Monitoring for {}", FileUtil.getAbsolutePath(completionFile.toNioPathForRead()));
     }
 
 
@@ -94,12 +95,6 @@ public class WorkflowCompletionMonitor implements ShutdownListener
     {
         return "Genotyping workflow completion monitor";
     }
-
-    @Override
-    public void shutdownPre()
-    {
-    }
-
 
     @Override
     public void shutdownStarted()
@@ -117,35 +112,38 @@ public class WorkflowCompletionMonitor implements ShutdownListener
 
             if (size > 0)
             {
-                LOG.info("Checking for completion of " +  size + " analys" + (1 == size ? "is" : "es"));
+                LOG.info("Checking for completion of {} analys{}", size, 1 == size ? "is" : "es");
 
-                for (File file : _pendingCompletionFiles)
+                for (FileLike file : _pendingCompletionFiles)
                 {
                     if (file.exists())
                     {
                         try
                         {
                             // Load analysis properties
-                            Properties props = GenotypingManager.get().readProperties(file.getParentFile());
+                            Properties props = GenotypingManager.get().readProperties(file.getParent());
 
                             // POST to the provided URL to signal LabKey Server that the workflow is complete
-                            String url = (String)props.get("url");
-                            String analysisId = (String)props.get("analysis");
-                            LOG.info("Detected completion file for analysis " + analysisId + "; attempting to signal LabKey Server at " + url);
-                            HttpClient client = HttpClient.newHttpClient();
-                            HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create(url))
-                                .POST(HttpRequest.BodyPublishers.noBody())
-                                .build();
-                            BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8);
-                            HttpResponse<String> response = client.send(request, bodyHandler);
-                            String message = response.body();
+                            String url = (String) props.get("url");
+                            String analysisId = (String) props.get("analysis");
+                            LOG.info("Detected completion file for analysis {}; attempting to signal LabKey Server at {}", analysisId, url);
 
-                            LOG.info("LabKey response to analysis " + analysisId + " completion: \"" + message + "\"");
+                            try (HttpClient client = HttpClient.newHttpClient())
+                            {
+                                HttpRequest request = HttpRequest.newBuilder()
+                                        .uri(URI.create(url))
+                                        .POST(HttpRequest.BodyPublishers.noBody())
+                                        .build();
+                                BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8);
+                                HttpResponse<String> response = client.send(request, bodyHandler);
+                                String message = response.body();
+
+                                LOG.info("LabKey response to analysis {} completion: \"{}\"", analysisId, message);
+                            }
                         }
                         catch (Throwable t)
                         {
-                            LOG.error("Exception while completing " + file.getAbsolutePath(), t);
+                            LOG.error("Exception while completing {}", file.toNioPathForRead().toAbsolutePath(), t);
                         }
                         finally
                         {

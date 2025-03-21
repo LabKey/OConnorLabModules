@@ -32,13 +32,12 @@ import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryHelper;
 import org.labkey.api.security.User;
+import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.SafeToRenderEnum;
 import org.labkey.api.view.NotFoundException;
+import org.labkey.vfs.FileLike;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -124,7 +123,7 @@ public class GenotypingManager
         map.save();
     }
 
-    public GenotypingRun createRun(Container c, User user, Integer metaDataId, File readsFile, String platform)
+    public GenotypingRun createRun(Container c, User user, Integer metaDataId, FileLike readsFile, String platform)
     {
         MetaDataRun mdRun = null;
 
@@ -281,31 +280,23 @@ public class GenotypingManager
     }
 
 
-    public void writeProperties(Properties props, File directory) throws IOException
+    public void writeProperties(Properties props, FileLike directory) throws IOException
     {
-        File propXml = new File(directory, PROPERTIES_FILE_NAME);
-        OutputStream os = null;
-        try
+        try (OutputStream os = directory.resolveChild(PROPERTIES_FILE_NAME).openOutputStream())
         {
-            os = new FileOutputStream(propXml);
             props.storeToXML(os, null);
-        }
-        finally
-        {
-            if (null != os)
-                os.close();
         }
     }
 
-    public Properties readProperties(File directory) throws IOException
+    public Properties readProperties(FileLike directory) throws IOException
     {
         if (!directory.exists())
-            throw new FileNotFoundException(directory.getAbsolutePath() + " does not exist");
+            throw new FileNotFoundException(FileUtil.getAbsolutePath(directory.toNioPathForRead()) + " does not exist");
 
         if (!directory.isDirectory())
-            throw new FileNotFoundException(directory.getAbsolutePath() + " is not a directory");
+            throw new FileNotFoundException(FileUtil.getAbsolutePath(directory.toNioPathForRead()) + " is not a directory");
 
-        File properties = new File(directory, PROPERTIES_FILE_NAME);
+        FileLike properties = directory.resolveChild(PROPERTIES_FILE_NAME);
 
         // Load properties to determine the run.
         Properties props = new Properties();
@@ -313,7 +304,7 @@ public class GenotypingManager
 
         try
         {
-            is = new FileInputStream(properties);
+            is = properties.openInputStream();
             props.loadFromXML(is);
         }
         finally

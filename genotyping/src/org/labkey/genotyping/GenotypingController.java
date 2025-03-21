@@ -18,7 +18,6 @@ package org.labkey.genotyping;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,10 +85,12 @@ import org.labkey.api.security.permissions.InsertPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.permissions.UpdatePermission;
 import org.labkey.api.util.DateUtil;
+import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.MinorConfigurationException;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.Pair;
 import org.labkey.api.util.URLHelper;
+import org.labkey.api.util.logging.LogHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
 import org.labkey.api.view.DetailsView;
@@ -110,6 +111,8 @@ import org.labkey.genotyping.galaxy.GalaxyUserSettings;
 import org.labkey.genotyping.sequences.FastqGenerator;
 import org.labkey.genotyping.sequences.FastqWriter;
 import org.labkey.genotyping.sequences.SequenceManager;
+import org.labkey.vfs.FileLike;
+import org.labkey.vfs.FileSystemLike;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
@@ -122,6 +125,7 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -139,7 +143,7 @@ import java.util.TreeSet;
 
 public class GenotypingController extends SpringActionController
 {
-    private static final Logger LOG = LogManager.getLogger(GenotypingController.class);
+    private static final Logger LOG = LogHelper.getLogger(GenotypingController.class, "Logger for Genotyping Controller");
     @SuppressWarnings({"unchecked"})
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(GenotypingController.class);
 
@@ -1007,7 +1011,7 @@ public class GenotypingController extends SpringActionController
 
             try
             {
-                File readsFile = new File(form.getReadsPath());
+                FileLike readsFile = new FileSystemLike.Builder(FileUtil.createUri(form.getReadsPath())).readonly().root();
                 GenotypingRun run;
 
                 try
@@ -1178,7 +1182,7 @@ public class GenotypingController extends SpringActionController
         public boolean handlePost(AnalyzeForm form, BindException errors) throws Exception
         {
             GenotypingRun run = GenotypingManager.get().getRun(getContainer(), form.getRun());
-            File readsPath = new File(run.getPath(), run.getFileName());
+            FileLike readsPath = run.getWorkingDir().resolveChild(run.getFileName());
             ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
             PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
 
@@ -1293,7 +1297,8 @@ public class GenotypingController extends SpringActionController
             try
             {
                 int analysisId = form.getAnalysis();
-                File analysisDir = new File(form.getPath());
+                FileLike analysisDir = new FileSystemLike.Builder(Paths.get(form.getPath())).readwrite().root();
+
                 User user = getUser();
 
                 if (user.isGuest())
@@ -1379,8 +1384,8 @@ public class GenotypingController extends SpringActionController
         public boolean handlePost(PipelinePathForm form, BindException errors) throws IOException, PipelineValidationException
         {
             // Manual upload of genotyping analysis; pipeline provider posts to this action with matches file.
-            File matches = form.getValidatedSingleFile(getContainer());
-            File analysisDir = matches.getParentFile();
+            FileLike matches = FileSystemLike.wrapFile(form.getValidatedSingleFile(getContainer()));
+            FileLike analysisDir = matches.getParent();
 
             // Load properties to determine the run.
             Properties props = GenotypingManager.get().readProperties(analysisDir);
@@ -1398,13 +1403,13 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    private void importAnalysis(int analysisId, File pipelineDir, User user) throws IOException, PipelineValidationException
+    private void importAnalysis(int analysisId, FileLike pipelineDir, User user) throws IOException, PipelineValidationException
     {
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(getContainer(), analysisId);
-        File analysisDir = new File(analysis.getPath());
+        FileLike analysisDir = new FileSystemLike.Builder(Paths.get(analysis.getPath())).readwrite().root();
 
-        String pipelinePath = pipelineDir.getCanonicalPath();
-        String analysisPath = analysisDir.getCanonicalPath();
+        String pipelinePath = FileUtil.getAbsoluteCaseSensitiveFile(pipelineDir.toNioPathForRead().toFile()).getAbsolutePath();
+        String analysisPath = FileUtil.getAbsoluteCaseSensitiveFile(analysisDir.toNioPathForRead().toFile()).getAbsolutePath();
 
         if (!pipelinePath.equals(analysisPath))
             throw new FileNotFoundException("Analysis path (\"" + analysisPath +

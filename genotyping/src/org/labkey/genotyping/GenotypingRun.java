@@ -18,10 +18,9 @@ package org.labkey.genotyping;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
-import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.MemTracker;
+import org.labkey.vfs.FileLike;
 
-import java.io.File;
 import java.util.Date;
 
 /**
@@ -35,7 +34,7 @@ public class GenotypingRun
     private Container _container;
     private int _createdBy;
     private Date _created;
-    private String _path;
+    private FileLike _workingDir;
     private String _platform;
     private String _fileName;
     private Integer _metaDataId = null;
@@ -46,11 +45,11 @@ public class GenotypingRun
         MemTracker.getInstance().put(this);
     }
 
-    public GenotypingRun(Container c, File readsFile, @Nullable MetaDataRun metaDataRun, String platform)
+    public GenotypingRun(Container c, FileLike readsFile, @Nullable MetaDataRun metaDataRun, String platform)
     {
         this();
         setContainer(c);
-        setPath(FileUtil.getAbsoluteCaseSensitiveFile(readsFile.getParentFile()).getPath());
+        setWorkingDir(readsFile.getParent());
         setFileName(readsFile.getName());
         setPlatform(platform);
 
@@ -118,14 +117,14 @@ public class GenotypingRun
         _created = created;
     }
 
-    public String getPath()
+    public FileLike getWorkingDir()
     {
-        return _path;
+        return _workingDir;
     }
 
-    public void setPath(String path)
+    public void setWorkingDir(FileLike path)
     {
-        _path = path;
+        _workingDir = path;
     }
 
     public String getPlatform()

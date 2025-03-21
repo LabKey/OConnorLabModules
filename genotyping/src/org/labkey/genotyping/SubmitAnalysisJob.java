@@ -39,9 +39,11 @@ import org.labkey.genotyping.galaxy.GalaxyServer;
 import org.labkey.genotyping.galaxy.GalaxyUtils;
 import org.labkey.genotyping.galaxy.WorkflowCompletionMonitor;
 import org.labkey.genotyping.sequences.SequenceManager;
+import org.labkey.vfs.FileLike;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -56,13 +58,13 @@ import java.util.Set;
  */
 public class SubmitAnalysisJob extends PipelineJob
 {
-    private final File _dir;
+    private final FileLike _dir;
     private final GenotypingAnalysis _analysis;
-    private final File _analysisDir;
+    private final FileLike _analysisDir;
     private final Set<Integer> _sampleIds;
 
     private URLHelper _galaxyURL = null;
-    private File _completionFile = null;   // Used for dev mode only
+    private FileLike _completionFile = null;   // Used for dev mode only
 
     // In dev mode only, we'll test the ability to connect to the Galaxy server once; if this connection fails, we'll
     // skip trying to submit to Galaxy on subsequent attempts (until server restart).
@@ -70,12 +72,12 @@ public class SubmitAnalysisJob extends PipelineJob
 
     @JsonCreator
     protected SubmitAnalysisJob(
-            @JsonProperty("_dir") File dir,
+            @JsonProperty("_dir") FileLike dir,
             @JsonProperty("_analysis") GenotypingAnalysis analysis,
-            @JsonProperty("_analysisDir") File analysisDir,
+            @JsonProperty("_analysisDir") FileLike analysisDir,
             @JsonProperty("_sampleIds") Set<Integer> sampleIds,
             @JsonProperty("_galaxyURL") URLHelper galaxyURL,
-            @JsonProperty("_completionFile") File completionFile,
+            @JsonProperty("_completionFile") FileLike completionFile,
             @JsonProperty("_useGalaxy") Boolean useGalaxy
     )
     {
@@ -88,24 +90,30 @@ public class SubmitAnalysisJob extends PipelineJob
         _useGalaxy = useGalaxy;
     }
     
-    public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingAnalysis analysis, @NotNull Set<Integer> sampleIds)
+    public SubmitAnalysisJob(ViewBackgroundInfo info, PipeRoot root, FileLike reads, GenotypingAnalysis analysis, @NotNull Set<Integer> sampleIds)
     {
         super("Submit Analysis", info, root);      // No pipeline provider
-        _dir = reads.getParentFile();
+        _dir = reads.getParent();
         _analysis = analysis;
         _sampleIds = sampleIds;
 
-        _analysisDir = new File(_dir, "analysis_" + _analysis.getRowId());
+        _analysisDir = _dir.resolveChild("analysis_" + _analysis.getRowId());
 
         if (_analysisDir.exists())
             throw new MinorConfigurationException("Analysis directory already exists: " + _analysisDir.getPath());
 
-        if (!_analysisDir.mkdir())
+        try
+        {
+            _analysisDir.mkdir();
+        }
+        catch(IOException e)
+        {
             throw new MinorConfigurationException("Can't create analysis directory: " + _analysisDir.getPath());
+        }
 
-        setLogFile(new File(_analysisDir, FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")).toPath());
+        setLogFile(_analysisDir.resolveChild(FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")).toNioPathForWrite());
         info("Creating analysis directory: " + _analysisDir.getName());
-        _analysis.setPath(_analysisDir.getAbsolutePath());
+        _analysis.setPath(_analysisDir.getPath().toString());
         _analysis.setFileName(_analysisDir.getName());
         Table.update(getUser(), GenotypingSchema.get().getAnalysesTable(), PageFlowUtil.map("Path", _analysis.getPath(), "FileName", _analysis.getFileName()), _analysis.getRowId());
     }
@@ -199,9 +207,9 @@ public class SubmitAnalysisJob extends PipelineJob
 
                 return rows.getValue();
             }
-        })
+        }; OutputStream os = _analysisDir.resolveChild("reads.txt").openOutputStream())
         {
-            writer.write(new File(_analysisDir, "reads.txt"));
+            writer.write(os);
         }
     }
 
@@ -220,7 +228,7 @@ public class SubmitAnalysisJob extends PipelineJob
         // the Galaxy server can't communicate via HTTP with LabKey Server, so watch for this file as a backup plan.
         if (AppProps.getInstance().isDevMode() || null == server)
         {
-            _completionFile = new File(_analysisDir, "analysis_complete.txt");
+            _completionFile = _analysisDir.resolveChild("analysis_complete.txt");
 
             if (_completionFile.exists())
                 throw new IllegalStateException("Completion file already exists: " + _completionFile.getPath());
@@ -236,7 +244,7 @@ public class SubmitAnalysisJob extends PipelineJob
     {
         info("Writing FASTA file");
         setStatus("WRITING FASTA");
-        File fastaFile = new File(_analysisDir, GenotypingManager.SEQUENCES_FILE_NAME);
+        File fastaFile = _analysisDir.resolveChild(GenotypingManager.SEQUENCES_FILE_NAME).toNioPathForWrite().toFile();
         SequenceManager.get().writeFasta(getContainer(), getUser(), _analysis.getSequencesView(), fastaFile);
     }
 
@@ -261,11 +269,11 @@ public class SubmitAnalysisJob extends PipelineJob
             // in /matches into the data library.
             if (AppProps.getInstance().isDevMode())
             {
-                File matchesDir = new File(_dir, "matches");
+                FileLike matchesDir = _dir.resolveChild("matches");
 
                 if (matchesDir.exists())
                 {
-                    File matchesFile = new File(matchesDir, GenotypingManager.MATCHES_FILE_NAME);
+                    FileLike matchesFile = matchesDir.resolveChild(GenotypingManager.MATCHES_FILE_NAME);
 
                     if (matchesFile.exists())
                         root.uploadFromImportDirectory(_dir.getName() + "/matches", "txt", null, true);
