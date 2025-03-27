@@ -125,6 +125,7 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -1009,9 +1010,13 @@ public class GenotypingController extends SpringActionController
             if (null == form.getPlatform())
                 return "You must specify a sequence platform";
 
+            PipeRoot root = PipelineService.get().getPipelineRootSetting(getContainer());
+            if (!root.getRootFileLike().isDescendant(FileUtil.createUri(form.getReadsPath())))
+                return "File must be a descendant of a pipeline";
+
             try
             {
-                FileLike readsFile = new FileSystemLike.Builder(FileUtil.createUri(form.getReadsPath())).readonly().root();
+                FileLike readsFile = root.resolvePathToFileLike(root.relativePath(Paths.get(form.getReadsPath())));
                 GenotypingRun run;
 
                 try
@@ -1027,7 +1032,6 @@ public class GenotypingController extends SpringActionController
                 }
 
                 ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
-                PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
                 ImportReadsForm.Platforms platform = ImportReadsForm.Platforms.valueOf(form.getPlatform());
 
                 platform.prepareAndQueueRunJob(vbi, root, new File(form.getReadsPath()), run, form.getPrefix());
@@ -1182,9 +1186,17 @@ public class GenotypingController extends SpringActionController
         public boolean handlePost(AnalyzeForm form, BindException errors) throws Exception
         {
             GenotypingRun run = GenotypingManager.get().getRun(getContainer(), form.getRun());
-            FileLike readsPath = run.getWorkingDir().resolveChild(run.getFileName());
-            ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
+            if (run == null)
+            {
+                errors.rejectValue("run", ERROR_MSG, "No run found");
+                return false;
+            }
+
             PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
+
+            FileLike readsPath = run.getWorkingDir();
+            FileLike readsFile = readsPath.resolveChild(run.getFileName());
+            ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
 
             String sequencesViewName = form.getSequencesView();
             String description = form.getDescription();
@@ -1206,7 +1218,7 @@ public class GenotypingController extends SpringActionController
             GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, description, sequencesView);
             try
             {
-                PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsPath, analysis, sampleKeys);
+                PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsFile, analysis, sampleKeys);
                 PipelineService.get().queueJob(analysisJob);
             }
             catch (MinorConfigurationException e)
@@ -1296,8 +1308,12 @@ public class GenotypingController extends SpringActionController
 
             try
             {
+                PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
+                if (!root.getRootFileLike().isDescendant(FileUtil.createUri(form.getPath())))
+                    throw new FileNotFoundException("Import folder not found." + form.getPath());
+
                 int analysisId = form.getAnalysis();
-                FileLike analysisDir = new FileSystemLike.Builder(Paths.get(form.getPath())).readwrite().root();
+                FileLike analysisDir = root.resolvePathToFileLike(form.getPath());
 
                 User user = getUser();
 
@@ -1383,16 +1399,26 @@ public class GenotypingController extends SpringActionController
         @Override
         public boolean handlePost(PipelinePathForm form, BindException errors) throws IOException, PipelineValidationException
         {
+            Container container = getContainer();
             // Manual upload of genotyping analysis; pipeline provider posts to this action with matches file.
-            FileLike matches = FileSystemLike.wrapFile(form.getValidatedSingleFile(getContainer()));
-            FileLike analysisDir = matches.getParent();
+            Path singleFile = form.getValidatedSinglePath(container);
 
-            // Load properties to determine the run.
-            Properties props = GenotypingManager.get().readProperties(analysisDir);
-            int analysisId = Integer.parseInt((String)props.get("analysis"));
-            importAnalysis(analysisId, analysisDir, getUser());
+            if (form.getPipeRoot(container).getRootFileLike().isDescendant(singleFile.toUri()))
+            {
 
-            return true;
+                FileLike matches = form.getPipeRoot(container).resolvePathToFileLike(singleFile.toString());
+                FileLike analysisDir = matches.getParent();
+
+                // Load properties to determine the run.
+                Properties props = GenotypingManager.get().readProperties(analysisDir);
+                int analysisId = Integer.parseInt((String) props.get("analysis"));
+                importAnalysis(analysisId, analysisDir, getUser());
+
+                return true;
+            }
+
+            errors.reject(ERROR_MSG, "File was not found under the pipeline root");
+            return false;
         }
 
         @Override

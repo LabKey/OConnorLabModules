@@ -130,7 +130,7 @@ public class GenotypingManager
         if (null != metaDataId)
             mdRun = getMetaDataRun(c, user, metaDataId, "importing reads");
 
-        GenotypingRun run = new GenotypingRun(c, readsFile, mdRun, platform);
+        GenotypingRun run = new GenotypingRun(c, readsFile.toNioPathForWrite().toFile(), mdRun, platform);
         return Table.insert(user, GenotypingSchema.get().getRunsTable(), run);
     }
 

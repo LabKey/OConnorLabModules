@@ -113,7 +113,7 @@ public class SubmitAnalysisJob extends PipelineJob
 
         setLogFile(_analysisDir.resolveChild(FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")).toNioPathForWrite());
         info("Creating analysis directory: " + _analysisDir.getName());
-        _analysis.setPath(_analysisDir.getPath().toString());
+        _analysis.setPath(FileUtil.getAbsolutePath(_analysisDir.toNioPathForRead()));
         _analysis.setFileName(_analysisDir.getName());
         Table.update(getUser(), GenotypingSchema.get().getAnalysesTable(), PageFlowUtil.map("Path", _analysis.getPath(), "FileName", _analysis.getFileName()), _analysis.getRowId());
     }
