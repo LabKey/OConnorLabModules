@@ -67,6 +67,8 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import static org.labkey.api.query.ExprColumn.STR_TABLE_ALIAS;
+
 /**
  * User: adam
  * Date: Oct 4, 2010
@@ -136,7 +138,7 @@ public class GenotypingQuerySchema extends UserSchema
             {
                 FilteredTable table = new FilteredTable<>(GS.getSequencesTable(), schema, cf);
                 table.wrapAllColumns(true);
-                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM ").append(GS.getDictionariesTable().getFromSQL("d")).append(" WHERE d.RowId = ").append(GS.getSequencesTable()).append(".Dictionary) = ?");
+                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM ").append(GS.getDictionariesTable().getFromSQL("d")).append(" WHERE d.RowId = ").append(STR_TABLE_ALIAS).append(".Dictionary) = ?");
                 containerCondition.add(schema.getContainer().getId());
                 table.addCondition(containerCondition);
                 removeFromDefaultVisibleColumns(table, "Dictionary");
@@ -270,7 +272,7 @@ public class GenotypingQuerySchema extends UserSchema
 
                 table.wrapAllColumns(true);
                 table.getMutableColumn("CreatedBy").setFk(new UserIdQueryForeignKey(schema, true));
-                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + GS.getAnalysesTable() + ".Run) = ?");
+                SQLFragment containerCondition = new SQLFragment("(SELECT Container FROM " + GS.getRunsTable() + " r WHERE r.RowId = " + STR_TABLE_ALIAS + ".Run) = ?");
                 containerCondition.add(schema.getContainer().getId());
                 table.addCondition(containerCondition);
                 setDefaultVisibleColumns(table, "RowId, Run, Created, CreatedBy, Description, SequenceDictionary, SequencesView");
