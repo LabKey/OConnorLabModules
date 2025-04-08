@@ -128,8 +128,10 @@ public class WorkflowCompletionMonitor implements ShutdownListener
                             String analysisId = (String) props.get("analysis");
                             LOG.info("Detected completion file for analysis {}; attempting to signal LabKey Server at {}", analysisId, url);
 
-                            try (HttpClient client = HttpClient.newHttpClient())
+                            HttpClient client = null;
+                            try
                             {
+                                client = HttpClient.newHttpClient();
                                 HttpRequest request = HttpRequest.newBuilder()
                                         .uri(URI.create(url))
                                         .POST(HttpRequest.BodyPublishers.noBody())
@@ -139,6 +141,12 @@ public class WorkflowCompletionMonitor implements ShutdownListener
                                 String message = response.body();
 
                                 LOG.info("LabKey response to analysis {} completion: \"{}\"", analysisId, message);
+                            }
+                            finally
+                            {
+                                // Unclear to me why this can't be used with the try-with-resources...
+                                if (client != null)
+                                    client.close();
                             }
                         }
                         catch (Throwable t)
