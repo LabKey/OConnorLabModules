@@ -1194,8 +1194,7 @@ public class GenotypingController extends SpringActionController
 
             PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
 
-            FileLike readsPath = run.getWorkingDir();
-            FileLike readsFile = readsPath.resolveChild(run.getFileName());
+            FileLike readsFile = run.getWorkingDir().resolveChild(run.getFileName());
             ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
 
             String sequencesViewName = form.getSequencesView();
