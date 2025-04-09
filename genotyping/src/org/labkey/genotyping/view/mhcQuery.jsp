@@ -29,7 +29,7 @@
 SELECT  reads.sampleid,
         alleles,
         CAST(COUNT(*) AS INT) AS reads,
-        CAST(COUNT(*) AS REAL)/total_reads AS <%=dialect.getColumnSelectName("percent")%>,
+        CAST(COUNT(*) AS REAL)/total_reads AS <%=dialect.getColumnSelectName("percent").getRawSQL()%>,
         AVG(avg_length) AS avg_length,
         CAST(SUM(pos_reads) AS INT) AS pos_reads,
         CAST(SUM(neg_reads) AS INT) AS neg_reads,
