@@ -23,7 +23,7 @@ import org.labkey.api.data.RenderContext;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.FieldKey;
-import org.labkey.api.util.Link;
+import org.labkey.api.util.LinkBuilder;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.writer.HtmlWriter;
 
@@ -102,7 +102,7 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
                 }
                 filter.applyToURL(url, "query");
                 String evaluatedURL = url.getURIString();
-                out.write(new Link.LinkBuilder(haplotype).href(evaluatedURL).target("_blank").clearClasses());
+                out.write(new LinkBuilder(haplotype).href(evaluatedURL).target("_blank").clearClasses());
             }
         }
     }
