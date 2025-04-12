@@ -101,8 +101,7 @@ public class ConcatenatedHaplotypesDisplayColumn extends DataColumn
                     filter.addCondition(FieldKey.fromParts("Species"), speciesValue);
                 }
                 filter.applyToURL(url, "query");
-                String evaluatedURL = url.getURIString();
-                out.write(new LinkBuilder(haplotype).href(evaluatedURL).target("_blank").clearClasses());
+                out.write(LinkBuilder.simpleLink(haplotype, url).target("_blank"));
             }
         }
     }
