@@ -128,26 +128,18 @@ public class WorkflowCompletionMonitor implements ShutdownListener
                             String analysisId = (String) props.get("analysis");
                             LOG.info("Detected completion file for analysis {}; attempting to signal LabKey Server at {}", analysisId, url);
 
-                            HttpClient client = null;
-                            try
-                            {
-                                client = HttpClient.newHttpClient();
-                                HttpRequest request = HttpRequest.newBuilder()
-                                        .uri(URI.create(url))
-                                        .POST(HttpRequest.BodyPublishers.noBody())
-                                        .build();
-                                BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8);
-                                HttpResponse<String> response = client.send(request, bodyHandler);
-                                String message = response.body();
+                            // TODO: with Java 21 this should be moved to an autoclosable
+                            HttpClient client = HttpClient.newHttpClient();
+                            HttpRequest request = HttpRequest.newBuilder()
+                                    .uri(URI.create(url))
+                                    .POST(HttpRequest.BodyPublishers.noBody())
+                                    .build();
+                            BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8);
+                            HttpResponse<String> response = client.send(request, bodyHandler);
+                            String message = response.body();
 
-                                LOG.info("LabKey response to analysis {} completion: \"{}\"", analysisId, message);
-                            }
-                            finally
-                            {
-                                // Unclear to me why this can't be used with the try-with-resources...
-                                if (client != null)
-                                    client.close();
-                            }
+                            LOG.info("LabKey response to analysis {} completion: \"{}\"", analysisId, message);
+
                         }
                         catch (Throwable t)
                         {
