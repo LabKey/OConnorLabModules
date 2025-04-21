@@ -1307,15 +1307,10 @@ public class GenotypingController extends SpringActionController
 
             try
             {
-                PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
-                if (!root.getRootFileLike().isDescendant(FileUtil.createUri(form.getPath())))
-                    throw new FileNotFoundException("Import folder not found." + form.getPath());
-
+                FileLike analysisDir = FileSystemLike.getVerifiedFileLike(getContainer(), form.getPath());
                 int analysisId = form.getAnalysis();
-                FileLike analysisDir = root.resolvePathToFileLike(form.getPath());
 
                 User user = getUser();
-
                 if (user.isGuest())
                 {
                     Properties props = GenotypingManager.get().readProperties(analysisDir);
