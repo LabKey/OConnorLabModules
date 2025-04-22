@@ -69,7 +69,7 @@ public class ImportPacBioReadsJob extends ReadsJob
         super(ImportPacBioReadsPipelineProvider.NAME, info, root, run);
         _sampleFile = sampleFile;
         _fastqPrefix = fastqPrefix;
-        setLogFile(new File(_sampleFile.getParentFile(), FileUtil.makeFileNameWithTimestamp("import_pacbio_reads", "log")));
+        setLogFile(FileUtil.appendName(_sampleFile.getAbsoluteFile(), FileUtil.makeFileNameWithTimestamp("import_pacbio_reads", "log")));
     }
 
     @Override
