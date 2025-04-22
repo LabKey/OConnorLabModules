@@ -39,6 +39,8 @@ import org.labkey.api.pipeline.PipelineJobException;
 import org.labkey.api.reader.Readers;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.view.ViewBackgroundInfo;
+import org.labkey.vfs.FileLike;
+import org.labkey.vfs.FileSystemLike;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -51,6 +53,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class ImportPacBioReadsJob extends ReadsJob
@@ -67,9 +70,10 @@ public class ImportPacBioReadsJob extends ReadsJob
     public ImportPacBioReadsJob(ViewBackgroundInfo info, PipeRoot root, File sampleFile, GenotypingRun run, @Nullable String fastqPrefix)
     {
         super(ImportPacBioReadsPipelineProvider.NAME, info, root, run);
-        _sampleFile = sampleFile;
+        FileLike verifiedFileLike = FileSystemLike.getVerifiedFileLike(root.getContainer(), sampleFile.getAbsolutePath());
+        _sampleFile = FileSystemLike.toFile(verifiedFileLike);
         _fastqPrefix = fastqPrefix;
-        setLogFile(FileUtil.appendName(_sampleFile.getAbsoluteFile(), FileUtil.makeFileNameWithTimestamp("import_pacbio_reads", "log")));
+        setLogFile(verifiedFileLike.getParent().resolveChild(FileUtil.makeFileNameWithTimestamp("import_pacbio_reads", "log")).toNioPathForWrite());
     }
 
     @Override
@@ -117,7 +121,7 @@ public class ImportPacBioReadsJob extends ReadsJob
         collectFastqFilesAsPools();
 
         //error if no pools were found and no fastq files were found to parse
-        if (_pools.size() == 0)
+        if (_pools.isEmpty())
             getLogger().warn("No pools/FASTQ files" + (_fastqPrefix == null ? "" : " matching the prefix '" + _fastqPrefix + "'") + " were found. Check that files are under a 'poolX' directory");
 
         persistPacBioPoolRecords(sampleNameSampleIdMap);
@@ -193,7 +197,7 @@ public class ImportPacBioReadsJob extends ReadsJob
 
                 if (_fastqPrefix != null)//filter files w/prefix (if prefix is provided)
                 {
-                    for (File f : sampleSheetRootFolder.listFiles())
+                    for (File f : Objects.requireNonNull(sampleSheetRootFolder.listFiles()))
                     {
                         Collection<File> filteredWithPrefixFastqFiles = new LinkedList<>();
 
@@ -264,15 +268,15 @@ public class ImportPacBioReadsJob extends ReadsJob
 
     private int extractPoolNumFromDirectoryName(String dirName)
     {
-        String[] splitStr = dirName.split("_"); //expected directory name pattern to be "pool1_barcoded_fastq", "123_pool2_..."
+        String[] splitStr = dirName.split("_"); //expected the directory name pattern to be "pool1_barcoded_fastq", "123_pool2_..."
 
         //extract pool num
-        for(int i = 0 ; i < splitStr.length ; i++)
+        for (String s : splitStr)
         {
-            if (splitStr[i].contains(_dirSubstring))
-                return Integer.valueOf(splitStr[i].substring(_dirSubstring.length()));
+            if (s.contains(_dirSubstring))
+                return Integer.valueOf(s.substring(_dirSubstring.length()));
         }
-        return 1; //if pool num is not found, then default pool num to be 1.
+        return 1; //if the pool num is not found, then the default pool num is 1.
     }
 
     private int getSampleId(File file, Map<String, Integer> sampleNameSampleIdMap)
@@ -292,7 +296,6 @@ public class ImportPacBioReadsJob extends ReadsJob
 
     public Integer getNumReads(File fastqFile, int fileNum, int poolNum)
     {
-        FastqReader reader = null;
         int totalReads = 0;
 
         setStatus("PARSING FILE " + fileNum + " in Pool " + poolNum);
@@ -305,7 +308,7 @@ public class ImportPacBioReadsJob extends ReadsJob
 
         _logger.info("Beginning to parse file: " + fastqFile.getName());
 
-        reader = new FastqReader(fastqFile);
+        FastqReader reader = new FastqReader(fastqFile);
         while (reader.hasNext())
         {
             try

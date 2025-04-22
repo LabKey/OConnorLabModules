@@ -34,6 +34,8 @@ import org.labkey.api.reader.Readers;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.Pair;
 import org.labkey.api.view.ViewBackgroundInfo;
+import org.labkey.vfs.FileLike;
+import org.labkey.vfs.FileSystemLike;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,9 +73,10 @@ public class ImportIlluminaReadsJob extends ReadsJob
     public ImportIlluminaReadsJob(ViewBackgroundInfo info, PipeRoot root, File sampleFile, GenotypingRun run, @Nullable String fastqPrefix)
     {
         super(ImportIlluminaReadsPipelineProvider.NAME, info, root, run);
-        _sampleFile = sampleFile;
+        FileLike verifiedFileLike = FileSystemLike.getVerifiedFileLike(root.getContainer(), sampleFile.getAbsolutePath());
+        _sampleFile = FileSystemLike.toFile(verifiedFileLike);
         _fastqPrefix = fastqPrefix;
-        setLogFile(new File(_sampleFile.getParentFile(), FileUtil.makeFileNameWithTimestamp("import_reads", "log")));
+        setLogFile(verifiedFileLike.getParent().resolveChild(FileUtil.makeFileNameWithTimestamp("import_reads", "log")).toNioPathForWrite());
     }
 
     @Override

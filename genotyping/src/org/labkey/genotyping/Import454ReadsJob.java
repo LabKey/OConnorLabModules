@@ -30,6 +30,8 @@ import org.labkey.api.util.Compress;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.Formats;
 import org.labkey.api.view.ViewBackgroundInfo;
+import org.labkey.vfs.FileLike;
+import org.labkey.vfs.FileSystemLike;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,8 +67,9 @@ public class Import454ReadsJob extends ReadsJob
     public Import454ReadsJob(ViewBackgroundInfo info, PipeRoot root, File reads, GenotypingRun run)
     {
         super(Import454ReadsPipelineProvider.NAME, info, root, run);
-        _reads = reads;
-        setLogFile(new File(_reads.getParentFile(), FileUtil.makeFileNameWithTimestamp("import_reads", "log")));
+        FileLike verifiedFileLike = FileSystemLike.getVerifiedFileLike(root.getContainer(), reads.getAbsolutePath());
+        _reads = FileSystemLike.toFile(verifiedFileLike);
+        setLogFile(verifiedFileLike.getParent().resolveChild(FileUtil.makeFileNameWithTimestamp("import_reads", "log")).toNioPathForWrite());
     }
 
     @Override
