@@ -207,9 +207,9 @@ public class SubmitAnalysisJob extends PipelineJob
 
                 return rows.getValue();
             }
-        }; OutputStream os = _analysisDir.resolveChild("reads.txt").openOutputStream())
+        })
         {
-            writer.write(os);
+            writer.write(_analysisDir.resolveChild("reads.txt").toNioPathForWrite().toFile());
         }
     }
 

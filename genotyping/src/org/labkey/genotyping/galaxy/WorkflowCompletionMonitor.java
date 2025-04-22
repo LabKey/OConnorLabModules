@@ -114,6 +114,9 @@ public class WorkflowCompletionMonitor implements ShutdownListener
             {
                 LOG.info("Checking for completion of {} analys{}", size, 1 == size ? "is" : "es");
 
+                // TODO: with Java 21 this should be moved to an autoclosable
+                HttpClient client = HttpClient.newHttpClient();
+
                 for (FileLike file : _pendingCompletionFiles)
                 {
                     if (file.exists())
@@ -128,8 +131,6 @@ public class WorkflowCompletionMonitor implements ShutdownListener
                             String analysisId = (String) props.get("analysis");
                             LOG.info("Detected completion file for analysis {}; attempting to signal LabKey Server at {}", analysisId, url);
 
-                            // TODO: with Java 21 this should be moved to an autoclosable
-                            HttpClient client = HttpClient.newHttpClient();
                             HttpRequest request = HttpRequest.newBuilder()
                                     .uri(URI.create(url))
                                     .POST(HttpRequest.BodyPublishers.noBody())
@@ -139,7 +140,6 @@ public class WorkflowCompletionMonitor implements ShutdownListener
                             String message = response.body();
 
                             LOG.info("LabKey response to analysis {} completion: \"{}\"", analysisId, message);
-
                         }
                         catch (Throwable t)
                         {
