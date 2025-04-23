@@ -36,8 +36,8 @@ import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.genotyping.sequences.SequenceDictionary;
 import org.labkey.genotyping.sequences.SequenceManager;
+import org.labkey.vfs.FileLike;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Map;
@@ -50,21 +50,21 @@ import java.util.Set;
  */
 public class ImportAnalysisJob extends PipelineJob
 {
-    private File _dir;
+    private FileLike _dir;
     private GenotypingAnalysis _analysis;
 
     // For serialization
     protected ImportAnalysisJob() {}
 
-    public ImportAnalysisJob(ViewBackgroundInfo info, PipeRoot root, File pipelineDir, GenotypingAnalysis analysis)
+    public ImportAnalysisJob(ViewBackgroundInfo info, PipeRoot root, FileLike pipelineDir, GenotypingAnalysis analysis)
     {
         super("Import Analysis", info, root);
         _dir = pipelineDir;
         _analysis = analysis;
-        setLogFile(new File(_dir, FileUtil.makeFileNameWithTimestamp("import_analysis", "log")));
+        setLogFile(_dir.resolveChild(FileUtil.makeFileNameWithTimestamp("import_analysis", "log")).toNioPathForWrite());
 
         if (!_dir.exists())
-            throw new IllegalArgumentException("Pipeline directory does not exist: " + _dir.getAbsolutePath());
+            throw new IllegalArgumentException("Pipeline directory does not exist: " + _dir.toNioPathForRead().toAbsolutePath());
 
         if (null == _analysis)
             throw new IllegalArgumentException("Analysis was not specified");
@@ -92,7 +92,7 @@ public class ImportAnalysisJob extends PipelineJob
 
         try
         {
-            File sourceMatches = new File(_dir, GenotypingManager.MATCHES_FILE_NAME);
+            FileLike sourceMatches = _dir.resolveChild(GenotypingManager.MATCHES_FILE_NAME);
             GenotypingSchema gs = GenotypingSchema.get();
             DbSchema schema = gs.getSchema();
             TempTableInfo matches = null;
@@ -180,9 +180,9 @@ public class ImportAnalysisJob extends PipelineJob
 
 
     // columnNames: comma-separated list of column names to include; null means include all columns
-    private TempTableInfo createTempTable(File file, @Nullable String columnNames) throws IOException, SQLException
+    private TempTableInfo createTempTable(FileLike file, @Nullable String columnNames) throws IOException, SQLException
     {
-        try (TabLoader loader = new TabLoader(file, true))
+        try (TabLoader loader = new TabLoader(file.toNioPathForRead().toFile(), true))
         {
             // Load only the specified columns
             if (null != columnNames)

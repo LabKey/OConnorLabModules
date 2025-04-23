@@ -35,8 +35,8 @@ import org.labkey.api.util.FileType;
 import org.labkey.api.util.MailHelper;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ViewBackgroundInfo;
+import org.labkey.vfs.FileLike;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,7 +79,7 @@ public abstract class ReadsJob extends PipelineJob
         {
             try
             {
-                File file = new File(_run.getPath(), _run.getFileName());
+                FileLike file = _run.getWorkingDir().resolveChild(_run.getFileName());
                 GenotypingRun newRun = GenotypingManager.get().createRun(getContainer(), getUser(), _run.getMetaDataId(), file, _run.getPlatform());
                 _run.setRowId(newRun.getRowId());
             }

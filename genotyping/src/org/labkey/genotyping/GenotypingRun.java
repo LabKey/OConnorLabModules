@@ -15,13 +15,17 @@
  */
 package org.labkey.genotyping;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
+import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.security.User;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.MemTracker;
+import org.labkey.vfs.FileLike;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Date;
 
 /**
@@ -166,5 +170,11 @@ public class GenotypingRun
     public void setStatusEnum(Status statusEnum)
     {
         _status = statusEnum.getStatusId();
+    }
+
+    @JsonIgnore
+    public FileLike getWorkingDir()
+    {
+        return PipelineService.get().findPipelineRoot(getContainer()).resolvePathToFileLike(PipelineService.get().findPipelineRoot(getContainer()).relativePath(Paths.get(getPath())));
     }
 }
