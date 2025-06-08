@@ -102,7 +102,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
     @Override
     public @Nullable TableInfo createDataTable(ContainerFilter cf, boolean includeCopiedToStudyColumns)
     {
-        FilteredTable table = (FilteredTable)new GenotypingQuerySchema(getUser(), getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name(), cf,true, true);
+        FilteredTable<?> table = (FilteredTable)new GenotypingQuerySchema(getUser(), getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name(), cf,true, true);
         List<FieldKey> keys = new ArrayList<>(table.getDefaultVisibleColumns());
         HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
         List<? extends DomainProperty> props = HaplotypeAssayProvider.getDomainProps(getProtocol());
@@ -132,7 +132,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
 
         table.setDefaultVisibleColumns(keys);
 
-        table.getMutableColumn("RunId").setFk(new LookupForeignKey()
+        table.getMutableColumnOrThrow("RunId").setFk(new LookupForeignKey()
         {
             @Override
             public TableInfo getLookupTableInfo()
@@ -143,7 +143,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
         return table;
     }
 
-    private ExprColumn makeColumnFromRunField(DomainProperty prop, boolean max, SQLFragment selectStatement, FilteredTable table){
+    private ExprColumn makeColumnFromRunField(DomainProperty prop, boolean max, SQLFragment selectStatement, FilteredTable<?> table){
 
         String field = prop.getName();
         String label = prop.getLabel() != null ? prop.getLabel() : ColumnInfo.labelFromName(prop.getName());

@@ -133,7 +133,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     }
 
     @Override
-    public HttpView getDataDescriptionView(AssayRunUploadForm form)
+    public HttpView<?> getDataDescriptionView(AssayRunUploadForm form)
     {
         return new HtmlView("");
     }

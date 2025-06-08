@@ -64,7 +64,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     private static final String TABLE_NAME = "Experiments";
     private static final String EXPERIMENT_TYPE_TABLE_NAME = "ExperimentType";
     private static final String EXPERIMENT_SAVE_SIGNAL = "experimentDataSave"; // See experimentField.html
-    private ArrayList<String> pkeys = new ArrayList<>();
+    private final ArrayList<String> pkeys = new ArrayList<>();
 
     @Nullable
     @Override
@@ -327,7 +327,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
             DeleteRowsCommand cmd = new DeleteRowsCommand(SCHEMA_NAME, TABLE_NAME);
             Connection cn = WebTestHelper.getRemoteApiConnection();
             for (String pk : pkeys)
-                cmd.addRow(Collections.singletonMap("container", (Object) pk));
+                cmd.addRow(Collections.singletonMap("container", pk));
 
             SaveRowsResponse resp = cmd.execute(cn, getProjectName());
             assertEquals("Expected to delete " + pkeys.size() + " rows", pkeys.size(), resp.getRowsAffected().intValue());

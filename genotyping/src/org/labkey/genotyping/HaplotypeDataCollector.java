@@ -86,10 +86,10 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
         for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties(protocol).entrySet())
         {
             String value = context.getRequest().getParameter(property.getKey());
-            if (property.getValue().isRequired() && (value == null || value.equals("")))
+            if (property.getValue().isRequired() && (value == null || value.isEmpty()))
                 errorColHeaders.add(property.getValue().getLabel());
         }
-        if (errorColHeaders.size() > 0)
+        if (!errorColHeaders.isEmpty())
         {
             throw new ExperimentException("Column header mapping missing for: " + StringUtils.join(errorColHeaders, ", "));
         }

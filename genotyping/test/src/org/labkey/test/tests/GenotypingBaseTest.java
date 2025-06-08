@@ -134,7 +134,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest implements Po
     {
         Connection cn = WebTestHelper.getRemoteApiConnection();
         DeleteRowsCommand cmd = new DeleteRowsCommand("genotyping", "IlluminaTemplates");
-        cmd.addRow(Collections.singletonMap("Name", (Object) TEMPLATE_NAME));
+        cmd.addRow(Collections.singletonMap("Name", TEMPLATE_NAME));
         SaveRowsResponse resp;
         try
         {

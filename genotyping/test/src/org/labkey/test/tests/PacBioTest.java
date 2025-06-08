@@ -47,23 +47,23 @@ public class PacBioTest extends GenotypingBaseTest
     private static final String PAC_BIO_RUN = "2";
 
     private static final Map<Integer, List<String>> POOL1_DATA =
-            Collections.unmodifiableMap(new HashMap<Integer, List<String>>()
+            Collections.unmodifiableMap(new HashMap<>()
             {{
-                    put(0, Arrays.asList("lbc1--lbc1.fastq", "1858", "5", "1"));
-                    put(1, Arrays.asList("lbc2--lbc2.fastq", "1859", "12", "1"));
-                }});
+                put(0, Arrays.asList("lbc1--lbc1.fastq", "1858", "5", "1"));
+                put(1, Arrays.asList("lbc2--lbc2.fastq", "1859", "12", "1"));
+            }});
     private static final Map<Integer, List<String>> POOL2_DATA =
-            Collections.unmodifiableMap(new HashMap<Integer, List<String>>()
+            Collections.unmodifiableMap(new HashMap<>()
             {{
-                    put(0, Arrays.asList("lbc14--lbc14.fastq.gz", "1871", "7", "2"));
-                    put(1, Arrays.asList("lbc15--lbc15.fastq.gz", "1872", "6", "2"));
-                    put(2, Arrays.asList("lbc16--lbc16.fastq.gz", "1873", "0", "2"));
-                }});
+                put(0, Arrays.asList("lbc14--lbc14.fastq.gz", "1871", "7", "2"));
+                put(1, Arrays.asList("lbc15--lbc15.fastq.gz", "1872", "6", "2"));
+                put(2, Arrays.asList("lbc16--lbc16.fastq.gz", "1873", "0", "2"));
+            }});
 
     @BeforeClass
     public static void setupProject()
     {
-        PacBioTest init = (PacBioTest)getCurrentTest();
+        PacBioTest init = getCurrentTest();
         init.doSetup();
     }
 

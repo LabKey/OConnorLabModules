@@ -443,7 +443,7 @@ public class GenotypingManager
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(c, analysisId);
 
         // Verify that matches were posted
-        if (matchIds.size() < 1)
+        if (matchIds.isEmpty())
             throw new IllegalStateException("No matches were selected");
 
         // Count the corresponding matches in the database, making sure they belong to this analysis

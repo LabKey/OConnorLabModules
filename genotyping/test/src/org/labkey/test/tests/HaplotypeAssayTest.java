@@ -65,7 +65,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
     @BeforeClass
     public static void setupProject()
     {
-        HaplotypeAssayTest init = (HaplotypeAssayTest)getCurrentTest();
+        HaplotypeAssayTest init = getCurrentTest();
         init.doSetup();
     }
 
