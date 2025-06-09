@@ -60,9 +60,9 @@ public class ImportPacBioReadsJob extends ReadsJob
 {
     private File _sampleFile;
     private String _fastqPrefix;
-    private List<PacBioPool> _pools = new LinkedList<>();
-    private String _dirSubstring = "pool";
-    private String[] _extensions = {"fastq.gz", "fastq"};
+    private final List<PacBioPool> _pools = new LinkedList<>();
+    private final String _dirSubstring = "pool";
+    private final String[] _extensions = {"fastq.gz", "fastq"};
 
     // For serialization
     protected ImportPacBioReadsJob() {}
@@ -332,7 +332,7 @@ public class ImportPacBioReadsJob extends ReadsJob
         return totalReads;
     }
 
-    class PacBioPool
+    static class PacBioPool
     {
         int poolNum;
         List<File> fastqFiles = new ArrayList<>();

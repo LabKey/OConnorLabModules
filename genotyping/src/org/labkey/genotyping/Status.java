@@ -40,9 +40,9 @@ public enum Status
         return _map.get(statusId);
     }
 
-    private int _statusId;
+    private final int _statusId;
 
-    private Status(int statusId)
+    Status(int statusId)
     {
         _statusId = statusId;
     }

@@ -70,7 +70,7 @@ public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTe
     @LogMethod
     public static void setup()
     {
-        OConnorListTest initTest = (OConnorListTest)getCurrentTest();
+        OConnorListTest initTest = getCurrentTest();
         initTest.setupOConnorProject();
     }
 

@@ -17,7 +17,6 @@
 package org.labkey.oconnorexperiments;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
@@ -93,7 +92,7 @@ public class OConnorExperimentsController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class BeginAction extends SimpleViewAction
+    public static class BeginAction extends SimpleViewAction<Object>
     {
         @Override
         public ModelAndView getView(Object o, BindException errors)
@@ -108,7 +107,7 @@ public class OConnorExperimentsController extends SpringActionController
     }
 
     @RequiresPermission(AdminPermission.class)
-    public class MigrateDataAction extends FormViewAction<UserForm>
+    public static class MigrateDataAction extends FormViewAction<UserForm>
     {
         @Override
         public void validateCommand(UserForm target, Errors errors)
@@ -234,7 +233,7 @@ public class OConnorExperimentsController extends SpringActionController
                     // Move files
                     File sourceFile = new File(fileContentService.getFileRoot(sourceContainer).getPath() + File.separator + "@files", databaseMap.get("expnumber").toString());
                     File targetDir = new File(fileContentService.getFileRoot(targetContainer).getPath() + File.separator + databaseMap.get("expnumber").toString() + File.separator + "@files");
-                    LogManager.getLogger(OConnorExperimentsController.class).info("Copy from file '" + sourceFile.toString() + "' to directory '" + targetDir.toString() +"'" );
+                    LogManager.getLogger(OConnorExperimentsController.class).info("Copy from file '" + sourceFile + "' to directory '" + targetDir +"'" );
                     if (sourceFile.exists())
                     {
                         FileUtils.copyDirectory(sourceFile, targetDir);
@@ -258,7 +257,7 @@ public class OConnorExperimentsController extends SpringActionController
                     Map<String, Object> map = new CaseInsensitiveHashMap<>();
                     map.put("container", databaseMap.get("ContainerStr"));
 
-                    String[] parents = new String[0];
+                    String[] parents;
                     ArrayList<String> parentsEntityId = new ArrayList<>();
                     if (databaseMap.get("expParent") != null)
                     {
@@ -280,9 +279,9 @@ public class OConnorExperimentsController extends SpringActionController
                                 }
                             }
                         }
-                        if (parentsEntityId.size() > 0)
+                        if (!parentsEntityId.isEmpty())
                         {
-                            map.put("ParentExperiments", parentsEntityId.toArray(new String[parentsEntityId.size()]));
+                            map.put("ParentExperiments", parentsEntityId.toArray(new String[0]));
 
                             // workaround, pass user, container - databaseMap.get("Container"), singleton list
                             LogManager.getLogger(OConnorExperimentsController.class).info("Update rows on experiment " + databaseMap.get("expnumber"));
@@ -423,7 +422,7 @@ public class OConnorExperimentsController extends SpringActionController
      */
     @RequiresLogin
     @RequiresPermission(InsertPermission.class)
-    public class InsertExperimentAction extends FormHandlerAction
+    public static class InsertExperimentAction extends FormHandlerAction<Object>
     {
         private Container newExperiment;
 
@@ -465,7 +464,7 @@ public class OConnorExperimentsController extends SpringActionController
 
     @RequiresLogin
     @RequiresPermission(ReadPermission.class)
-    public class GetExperimentAction extends ReadOnlyApiAction
+    public static class GetExperimentAction extends ReadOnlyApiAction<Object>
     {
         @Override
         public ApiResponse execute(Object o, BindException errors) throws Exception
@@ -474,7 +473,7 @@ public class OConnorExperimentsController extends SpringActionController
             TableInfo table = schema.getTable(OConnorExperimentsUserSchema.Table.Experiments.name());
             QueryUpdateService qus = table.getUpdateService();
 
-            List<Map<String, Object>> pks = Collections.singletonList(Collections.singletonMap("Container", (Object)getContainer().getId()));
+            List<Map<String, Object>> pks = Collections.singletonList(Collections.singletonMap("Container", getContainer().getId()));
             List<Map<String, Object>> result = qus.getRows(getUser(), getContainer(), pks);
 
             ApiSimpleResponse resp = new ApiSimpleResponse();
@@ -495,14 +494,14 @@ public class OConnorExperimentsController extends SpringActionController
     }
 
     @RequiresPermission(UpdatePermission.class)
-    public class HistoryAction extends SimpleViewAction
+    public static class HistoryAction extends SimpleViewAction<Object>
     {
         @Override
         public ModelAndView getView(Object o, BindException errors)
         {
             getPageConfig().setNoIndex();
             getPageConfig().setNoFollow();
-            return new JspView("/org/labkey/oconnorexperiments/view/history.jsp", null, errors);
+            return new JspView<>("/org/labkey/oconnorexperiments/view/history.jsp", null, errors);
         }
 
         @Override
@@ -528,7 +527,7 @@ public class OConnorExperimentsController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class LookupWorkbookAction extends SimpleViewAction<LookupWorkbookForm>
+    public static class LookupWorkbookAction extends SimpleViewAction<LookupWorkbookForm>
     {
         @Override
         public ModelAndView getView(LookupWorkbookForm form, BindException errors)

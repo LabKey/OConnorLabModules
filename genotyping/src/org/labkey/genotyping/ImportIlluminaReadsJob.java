@@ -144,7 +144,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
                 Map<String, Integer> sampleNameToIdMap = new HashMap<>();
                 sampleIndexToIdMap.put(0, 0); //placeholder for control and unmapped reads
                 sampleIdToIndexMap.put(0, 0);
-                Boolean inSamples = false;
+                boolean inSamples = false;
                 int sampleIdx = 0;
 
                 while ((nextLine = reader.readNext()) != null)
@@ -206,7 +206,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
                     _fastqFiles = IlluminaFastqParser.inferIlluminaInputsFromPath(_sampleFile.getParent(), _fastqPrefix);
                 }
 
-                if (_fastqFiles.size() == 0)
+                if (_fastqFiles.isEmpty())
                 {
                     throw new PipelineJobException("No FASTQ files" + (_fastqPrefix == null ? "" : " matching the prefix '" + _fastqPrefix) + "' were found");
                 }

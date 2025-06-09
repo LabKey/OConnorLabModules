@@ -151,7 +151,7 @@ public class Import454ReadsJob extends ReadsJob
 
             columns.add(new ColumnDescriptor("run", Integer.class, _run.getRowId()));
             columns.add(new ColumnDescriptor("sampleid", Integer.class));
-            loader.setColumns(columns.toArray(new ColumnDescriptor[columns.size()]));
+            loader.setColumns(columns.toArray(new ColumnDescriptor[0]));
 
             SampleManager.SampleIdFinder finder = new SampleManager.SampleIdFinder(_run, getUser(), sampleKeyColumns, "importing reads");
 

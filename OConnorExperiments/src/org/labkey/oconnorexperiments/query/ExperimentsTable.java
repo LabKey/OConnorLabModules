@@ -505,7 +505,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
             }
 
             Collection<String> parentExperiments = (Collection<String>)o;
-            if (parentExperiments.size() == 0)
+            if (parentExperiments.isEmpty())
                 return true;
 
             // Validate each ParentExperiment is a workbook and create list of maps for insertion

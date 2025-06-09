@@ -151,7 +151,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema, ContainerFilter cf)
             {
-                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getReadsTable(), schema, cf)
+                FilteredTable table = new FilteredTable<>(GS.getReadsTable(), schema, cf)
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -253,7 +253,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema, ContainerFilter cf)
             {
-                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getAnalysesTable(), schema, cf)
+                FilteredTable table = new FilteredTable<>(GS.getAnalysesTable(), schema, cf)
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -375,7 +375,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(final GenotypingQuerySchema schema, ContainerFilter cf)
             {
-                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getSequenceFilesTable(), schema, cf)
+                FilteredTable table = new FilteredTable<>(GS.getSequenceFilesTable(), schema, cf)
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -528,14 +528,14 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(final GenotypingQuerySchema schema, ContainerFilter cf)
             {
-                FilteredTable table = new FilteredTable<GenotypingQuerySchema>(GS.getIlluminaTemplatesTable(), schema, cf)
+                FilteredTable table = new FilteredTable<>(GS.getIlluminaTemplatesTable(), schema, cf)
                 {
                     @Override
                     public QueryUpdateService getUpdateService()
                     {
                         TableInfo table = getRealTable();
                         return (table != null && table.getTableType() == DatabaseTableType.TABLE ?
-                                new DefaultQueryUpdateService(this, table):
+                                new DefaultQueryUpdateService(this, table) :
                                 null);
                     }
 
@@ -595,7 +595,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema, ContainerFilter cf)
             {
-                SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable<GenotypingQuerySchema>(schema, GS.getAnimalAnalysisTable(), cf)
+                SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable<>(schema, GS.getAnimalAnalysisTable(), cf)
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -645,7 +645,7 @@ public class GenotypingQuerySchema extends UserSchema
             @Override
             FilteredTable createTable(GenotypingQuerySchema schema, ContainerFilter cf)
             {
-                SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable<GenotypingQuerySchema>(schema, GS.getAnimalHaplotypeAssignmentTable(), cf)
+                SimpleUserSchema.SimpleTable table = new SimpleUserSchema.SimpleTable<>(schema, GS.getAnimalHaplotypeAssignmentTable(), cf)
                 {
                     @Override
                     protected void applyContainerFilter(ContainerFilter filter)
@@ -805,7 +805,7 @@ public class GenotypingQuerySchema extends UserSchema
         // We need to strip out the unassigned, empty markers
         // Example concatenated values, pre-replacement, are '~, A001, ~, B004, B023, ~'; '~, ~, ~, ~, ~, ~'
         SQLFragment concatSQL = new SQLFragment("REPLACE(REPLACE(REPLACE(");
-        concatSQL.append(table.getSqlDialect().concatenate(haplotypeSQLs.toArray(new SQLFragment[haplotypeSQLs.size()])));
+        concatSQL.append(table.getSqlDialect().concatenate(haplotypeSQLs.toArray(new SQLFragment[0])));
         concatSQL.append(", '" + NULL_HAPLOTYPE_MARKER + ", ', ''), ', " + NULL_HAPLOTYPE_MARKER + "', ''), '" + NULL_HAPLOTYPE_MARKER + "', '')");
 
         ExprColumn result = new ExprColumn(table, "ConcatenatedHaplotypes", concatSQL, JdbcType.VARCHAR);

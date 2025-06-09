@@ -26,11 +26,11 @@
 <%@ taglib prefix="labkey" uri="http://www.labkey.org/taglib" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
 <%
-    JspView<HaplotypeProtocolBean> me = (JspView<HaplotypeProtocolBean>) HttpView.currentView();
+    JspView<HaplotypeProtocolBean> me = HttpView.currentView();
     HaplotypeProtocolBean bean = me.getModelBean();
     HaplotypeDataCollector dataCollector = bean.getDataCollector();
     String[] reshowData = {};
-    if (dataCollector.getReshowValue("data") != null && !dataCollector.getReshowValue("data").equals(""))
+    if (dataCollector.getReshowValue("data") != null && !dataCollector.getReshowValue("data").isEmpty())
     {
         reshowData = dataCollector.getReshowValue("data").split("\\r?\\n");
     }

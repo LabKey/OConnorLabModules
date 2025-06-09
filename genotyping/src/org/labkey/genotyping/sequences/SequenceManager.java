@@ -30,7 +30,6 @@ import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryHelper;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AdminPermission;
-import org.labkey.api.util.ResultSetUtil;
 import org.labkey.api.view.NotFoundException;
 import org.labkey.api.writer.FastaEntry;
 import org.labkey.api.writer.FastaWriter;

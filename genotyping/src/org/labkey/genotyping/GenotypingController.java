@@ -154,7 +154,7 @@ public class GenotypingController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class BeginAction extends SimpleRedirectAction
+    public static class BeginAction extends SimpleRedirectAction<Object>
     {
         @Override
         public ActionURL getRedirectURL(Object o)
@@ -222,7 +222,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(ReadPermission.class)
-    public class AnalysisAction extends QueryViewAction<AnalysisForm, QueryView>
+    public static class AnalysisAction extends QueryViewAction<AnalysisForm, QueryView>
     {
         private GenotypingAnalysis _analysis = null;
 
@@ -316,7 +316,7 @@ public class GenotypingController extends SpringActionController
 
     // TODO: Delete this action? No longer used?
     @RequiresPermission(DeletePermission.class)
-    public class DeleteMatchesAction extends FormHandlerAction<MatchesForm>
+    public static class DeleteMatchesAction extends FormHandlerAction<MatchesForm>
     {
         private int _count = 0;
         private String _error = null;
@@ -363,7 +363,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(AdminPermission.class)
-    public class LoadSequencesAction extends FormHandlerAction<ReturnUrlForm>
+    public static class LoadSequencesAction extends FormHandlerAction<ReturnUrlForm>
     {
         @Override
         public void validateCommand(ReturnUrlForm target, Errors errors)
@@ -581,7 +581,7 @@ public class GenotypingController extends SpringActionController
 
     @RequiresPermission(ReadPermission.class)
     @IgnoresTermsOfUse
-    public class MergeFastqFilesAction extends ExportAction<MergeFastqFilesForm>
+    public static class MergeFastqFilesAction extends ExportAction<MergeFastqFilesForm>
     {
         @Override
         public void export(MergeFastqFilesForm form, HttpServletResponse response, BindException errors) throws Exception
@@ -698,7 +698,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(ReadPermission.class)
-    public class MySettingsAction extends FormViewAction<MySettingsForm>
+    public static class MySettingsAction extends FormViewAction<MySettingsForm>
     {
         @Override
         public void validateCommand(MySettingsForm form, Errors errors)
@@ -890,10 +890,10 @@ public class GenotypingController extends SpringActionController
 
     public static class ImportReadsBean
     {
-        private List<Integer> _runs;
-        private SEQUENCE_PLATFORMS _platform;
-        private String _readsPath;
-        private String _path;
+        private final List<Integer> _runs;
+        private final SEQUENCE_PLATFORMS _platform;
+        private final String _readsPath;
+        private final String _path;
         private String _prefix;
 
         private ImportReadsBean(List<Integer> runs, String readsPath, String path, @Nullable String platform, @Nullable String prefix)
@@ -1124,7 +1124,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(InsertPermission.class)
-    public class AnalyzeAction extends FormViewAction<AnalyzeForm>
+    public static class AnalyzeAction extends FormViewAction<AnalyzeForm>
     {
         @Override
         public void validateCommand(AnalyzeForm target, Errors errors)
@@ -1501,7 +1501,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(ReadPermission.class)
-    public class SequencesAction extends QueryViewAction<SequencesForm, QueryView>
+    public static class SequencesAction extends QueryViewAction<SequencesForm, QueryView>
     {
         public SequencesAction()
         {
@@ -1563,7 +1563,7 @@ public class GenotypingController extends SpringActionController
 
     @SuppressWarnings({"UnusedDeclaration"})  // URL defined on sequences.rowId column in genotyping.xml
     @RequiresPermission(ReadPermission.class)
-    public class SequenceAction extends SimpleViewAction<SequenceForm>
+    public static class SequenceAction extends SimpleViewAction<SequenceForm>
     {
         @Override
         public ModelAndView getView(SequenceForm form, BindException errors)
@@ -1607,7 +1607,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(ReadPermission.class)
-    public class RunsAction extends QueryViewAction<QueryExportForm, QueryView>
+    public static class RunsAction extends QueryViewAction<QueryExportForm, QueryView>
     {
         public RunsAction()
         {
@@ -1636,7 +1636,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(ReadPermission.class)
-    public class AnalysesAction extends QueryViewAction<QueryExportForm, QueryView>
+    public static class AnalysesAction extends QueryViewAction<QueryExportForm, QueryView>
     {
         public AnalysesAction()
         {
@@ -1727,7 +1727,7 @@ public class GenotypingController extends SpringActionController
     public static final String FASTQ_FILE_FORMAT = "FASTQ_FILE";
     public static final String FASTQ_FORMAT = "FASTQ";
 
-    private abstract class ReadsAction<FORM extends RunForm> extends QueryViewAction<FORM, QueryView>
+    private abstract static class ReadsAction<FORM extends RunForm> extends QueryViewAction<FORM, QueryView>
     {
         private static final String DATA_REGION_NAME = "Reads";
 
@@ -1905,7 +1905,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(AdminPermission.class)
-    public class DeleteRunsAction extends FormHandlerAction
+    public static class DeleteRunsAction extends FormHandlerAction<Object>
     {
         @Override
         public void validateCommand(Object target, Errors errors)
@@ -1936,7 +1936,7 @@ public class GenotypingController extends SpringActionController
 
 
     @RequiresPermission(DeletePermission.class)
-    public class DeleteAnalysesAction extends FormHandlerAction
+    public static class DeleteAnalysesAction extends FormHandlerAction<Object>
     {
         @Override
         public void validateCommand(Object target, Errors errors)
@@ -2036,7 +2036,7 @@ public class GenotypingController extends SpringActionController
         }
     }
 
-    public class AssignmentReportBean
+    public static class AssignmentReportBean
     {
         private final Collection<Integer> _ids;
         private final String _assayName;
@@ -2101,7 +2101,7 @@ public class GenotypingController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class DuplicateAssignmentReportAction extends BaseAssayAction<ProtocolIdForm>
+    public static class DuplicateAssignmentReportAction extends BaseAssayAction<ProtocolIdForm>
     {
         private ExpProtocol _protocol;
 
@@ -2128,7 +2128,7 @@ public class GenotypingController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class STRDiscrepanciesAssignmentReportAction extends SimpleViewAction<STRDiscrepancies>
+    public static class STRDiscrepanciesAssignmentReportAction extends SimpleViewAction<STRDiscrepancies>
     {
         private ExpProtocol _protocol;
         private static final String DELIM = "[;,/]";
@@ -2355,7 +2355,7 @@ public class GenotypingController extends SpringActionController
     }
 
     @RequiresPermission(UpdatePermission.class)
-    public class EditHaplotypeAssignmentAction extends SimpleViewAction<AssignmentForm>
+    public static class EditHaplotypeAssignmentAction extends SimpleViewAction<AssignmentForm>
     {
         @Override
         public ModelAndView getView(AssignmentForm form, BindException errors)
