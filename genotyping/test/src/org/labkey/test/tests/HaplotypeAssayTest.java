@@ -28,6 +28,7 @@ import org.labkey.test.components.DomainDesignerPage;
 import org.labkey.test.components.domain.DomainFormPanel;
 import org.labkey.test.pages.ReactAssayDesignerPage;
 import org.labkey.test.params.FieldDefinition;
+import org.labkey.test.tests.study.AssayTest;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.ListHelper;
@@ -587,7 +588,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
     {
         log("Importing Haplotype Run: " + assayId);
         goToAssayImport(assayName);
-        setFormElement(Locator.name("name"), assayId);
+        setFormElement(AssayTest.ASSAY_NAME_FIELD_LOCATOR, assayId);
         checkCheckbox(Locator.name("enabled"));
         selectOptionByText(Locator.name("speciesId"), "mamu");
         // NOTE: consider breaking these into seperate tests...
