@@ -286,7 +286,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         verifyColumnDataValues(drt, "Animal", "ID-1", "ID-2", "ID-3", "ID-4", "ID-5");
         verifyColumnDataValues(drt, "TotalReads", "1000", "2000", "3000", "4000", "5000");
         verifyColumnDataValues(drt, "IdentifiedReads", "300", "1000", "600", "2500", "3250");
-        verifyColumnDataValues(drt, "%Unknown", "70.0", "50.0", "80.0", "37.5", "35.0");
+        verifyColumnDataValues(drt, "PercentUnknown", "70.0", "50.0", "80.0", "37.5", "35.0");
         verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
         verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", "A021", "A001", "A023", "A002a");
         verifyColumnDataValues(drt, "MHC-BHaplotype1", "B015c", "B012b", "B001c", "B012b", "B002");
@@ -344,7 +344,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         verifyColumnDataValues(drt, "Animal", "ID-4", "ID-5", "ID-6", "ID-7", "ID-8", "ID-9");
         verifyColumnDataValues(drt, "TotalReads", "4000", "5000", "6000", "7000", " ", "0");
         verifyColumnDataValues(drt, "IdentifiedReads", "2500", "3250", "3000", "3500", " ", "1");
-        verifyColumnDataValues(drt, "%Unknown", "37.5", "35.0", "50.0", "50.0", " ", " ");
+        verifyColumnDataValues(drt, "PercentUnknown", "37.5", "35.0", "50.0", "50.0", " ", " ");
         verifyColumnDataValues(drt, prefix+"-AHaplotype1", "A001", " ", "A033", "A004", "A004", "A004");
         verifyColumnDataValues(drt, prefix+"-AHaplotype2", "A023", " ", "A033", " ", "A004", "A004");
         verifyColumnDataValues(drt, prefix+"-BHaplotype1", "B015c", " ", "B012b", "B033", "B033", "B033");
