@@ -325,7 +325,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
 
         // validate extra column in view
         DataRegionTable drt = new DataRegionTable("Data", this);
-        verifyColumnDataValues(drt, "ClientAnimalId", "x456", "x567", "x678", "x789", "x888", "x999");
+        verifyColumnDataValues(drt, "AnimalId/ClientAnimalId", "x456", "x567", "x678", "x789", "x888", "x999");
 
         // verify that the animal and haplotype rows were properly inserted
         goToQuery("Animal");
@@ -345,10 +345,10 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         verifyColumnDataValues(drt, "TotalReads", "4000", "5000", "6000", "7000", " ", "0");
         verifyColumnDataValues(drt, "IdentifiedReads", "2500", "3250", "3000", "3500", " ", "1");
         verifyColumnDataValues(drt, "PercentUnknown", "37.5", "35.0", "50.0", "50.0", " ", " ");
-        verifyColumnDataValues(drt, prefix+"-AHaplotype1", "A001", " ", "A033", "A004", "A004", "A004");
-        verifyColumnDataValues(drt, prefix+"-AHaplotype2", "A023", " ", "A033", " ", "A004", "A004");
-        verifyColumnDataValues(drt, prefix+"-BHaplotype1", "B015c", " ", "B012b", "B033", "B033", "B033");
-        verifyColumnDataValues(drt, prefix+"-BHaplotype2", "B025a", " ", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, prefix+"AHaplotype1", "A001", " ", "A033", "A004", "A004", "A004");
+        verifyColumnDataValues(drt, prefix+"AHaplotype2", "A023", " ", "A033", " ", "A004", "A004");
+        verifyColumnDataValues(drt, prefix+"BHaplotype1", "B015c", " ", "B012b", "B033", "B033", "B033");
+        verifyColumnDataValues(drt, prefix+"BHaplotype2", "B025a", " ", "B012b", "B033", "B033", "B033");
         verifyColumnDataValues(drt, "Enabled", "true", "true", "true", "true", "true", "true");
 
         // verify concatenated haplotype strings
