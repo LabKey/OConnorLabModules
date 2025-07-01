@@ -160,10 +160,10 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         clickAndWait(Locator.linkWithText(DRB_RUN));
         DataRegionTable drt = new DataRegionTable("Data", this);
 
-        verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
-        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", "A021", "A001", "A023", "A002a");
-        verifyColumnDataValues(drt, "MHC-DRB Haplotype 1", "D025a", "D012b", "D001c", "D012b", "D002");
-        verifyColumnDataValues(drt, "MHC-DRB Haplotype 2", "D015c", "D017a", "D017a", "D012b", "D002");
+        verifyColumnDataValues(drt, "mhcAHaplotype1", "A001", "A023", "A001", "A004", "A002a");
+        verifyColumnDataValues(drt, "mhcAHaplotype2", "A023", "A021", "A001", "A023", "A002a");
+        verifyColumnDataValues(drt, "mhcDRBHaplotype1", "D025a", "D012b", "D001c", "D012b", "D002");
+        verifyColumnDataValues(drt, "mhcDRBHaplotype2", "D015c", "D017a", "D017a", "D012b", "D002");
 
         importRun(STR_RUN, DRB_ASSAY, STR_RUN_FILE, true);
 
@@ -398,14 +398,14 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         waitForElement(Locator.paginationText(1, 39, 39));
 
         // ADD: animal ID-5, haplotype A001
-        DataRegionTable.findDataRegion(this).clickInsertNewRow();
+        DataRegionTable.DataRegion(getDriver()).find().clickInsertNewRow();
         selectOptionByText(Locator.name("quf_HaplotypeId"), "A001");
         selectOptionByText(Locator.name("quf_AnimalAnalysisId"), animalAnalysisId);
         setFormElement(Locator.name("quf_DiploidNumber"), "1");
         clickButton("Submit");
 
         // ADD: animal ID-5, haplotype B002
-        DataRegionTable.findDataRegion(this).clickInsertNewRow();
+        DataRegionTable.DataRegion(getDriver()).find().clickInsertNewRow();
         selectOptionByText(Locator.name("quf_HaplotypeId"), "B002");
         selectOptionByText(Locator.name("quf_AnimalAnalysisId"), animalAnalysisId);
         setFormElement(Locator.name("quf_DiploidNumber"), "1");
@@ -416,10 +416,10 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         goToAssayRun("first run");
         drt = new DataRegionTable("Data", this);
         drt.setFilter("AnimalId", "Equals", "ID-5");
-        verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001");
-        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A002a");
-        verifyColumnDataValues(drt, "MHC-BHaplotype1", "B002");
-        verifyColumnDataValues(drt, "MHC-BHaplotype2", "B002");
+        verifyColumnDataValues(drt, "mhcAHaplotype1", "A001");
+        verifyColumnDataValues(drt, "mhcAHaplotype2", "A002a");
+        verifyColumnDataValues(drt, "mhcBHaplotype1", "B002");
+        verifyColumnDataValues(drt, "mhcBHaplotype2", "B002");
         drt.clearFilter("AnimalId");
 
         // NOTE: this should clean up what it has done in order to make the test more modular...
