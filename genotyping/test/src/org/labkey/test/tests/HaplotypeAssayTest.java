@@ -287,12 +287,12 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         verifyColumnDataValues(drt, "TotalReads", "1000", "2000", "3000", "4000", "5000");
         verifyColumnDataValues(drt, "IdentifiedReads", "300", "1000", "600", "2500", "3250");
         verifyColumnDataValues(drt, "PercentUnknown", "70.0", "50.0", "80.0", "37.5", "35.0");
-        verifyColumnDataValues(drt, "MHC-AHaplotype1", "A001", "A023", "A001", "A004", "A002a");
-        verifyColumnDataValues(drt, "MHC-AHaplotype2", "A023", "A021", "A001", "A023", "A002a");
-        verifyColumnDataValues(drt, "MHC-BHaplotype1", "B015c", "B012b", "B001c", "B012b", "B002");
-        verifyColumnDataValues(drt, "MHC-BHaplotype2", "B025a", "B017a", "B017a", "B012b", "B002");
+        verifyColumnDataValues(drt, "mhcAHaplotype1", "A001", "A023", "A001", "A004", "A002a");
+        verifyColumnDataValues(drt, "mhcAHaplotype2", "A023", "A021", "A001", "A023", "A002a");
+        verifyColumnDataValues(drt, "mhcBHaplotype1", "B015c", "B012b", "B001c", "B012b", "B002");
+        verifyColumnDataValues(drt, "mhcBHaplotype2", "B025a", "B017a", "B017a", "B012b", "B002");
         verifyColumnDataValues(drt, "Enabled", "true", "true", "true", "true", "true");
-        verifyColumnDataValues(drt, "ClientAnimalId", "x123", "x234", "x345", "x456", "x567");
+        verifyColumnDataValues(drt, "AnimalId/ClientAnimalId", "x123", "x234", "x345", "x456", "x567");
 
         // verify concatenated haplotype strings
         List<String> concatenated = drt.getColumnDataAsText("ConcatenatedHaplotypes");
@@ -307,8 +307,8 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
         goToQuery("Animal");
         drt = new DataRegionTable("query", this);
         assertEquals("Unexpected number of Animal records", 5, drt.getDataRowCount());
-        verifyColumnDataValues(drt, "Lab Animal Id", "ID-1", "ID-2", "ID-3", "ID-4", "ID-5");
-        verifyColumnDataValues(drt, "Client Animal Id", "x123", "x234", "x345", "x456", "x567");
+        verifyColumnDataValues(drt, "LabAnimalId", "ID-1", "ID-2", "ID-3", "ID-4", "ID-5");
+        verifyColumnDataValues(drt, "ClientAnimalId", "x123", "x234", "x345", "x456", "x567");
 
         verifyHaplotypeRecordsByType(11, 5, 6);
     }
