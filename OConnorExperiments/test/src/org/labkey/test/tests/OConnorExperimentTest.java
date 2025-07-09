@@ -146,7 +146,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         assertEquals(description, table.getDataAsText(row, "Description"));
         if (type != null)
         {
-            assertEquals(type, table.getDataAsText(row, "ExperimentType"));
+            assertEquals(type, table.getDataAsText(row, "ExperimentTypeId"));
         }
 
         // Make sure each component of the ParentExperiments column is rendered with a link to the begin page for that experiment
