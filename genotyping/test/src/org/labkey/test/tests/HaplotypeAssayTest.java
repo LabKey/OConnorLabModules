@@ -25,6 +25,7 @@ import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.categories.OConnor;
 import org.labkey.test.components.DomainDesignerPage;
+import org.labkey.test.components.assay.AssayConstants;
 import org.labkey.test.components.domain.DomainFormPanel;
 import org.labkey.test.pages.ReactAssayDesignerPage;
 import org.labkey.test.params.FieldDefinition;
@@ -587,7 +588,7 @@ public class HaplotypeAssayTest extends GenotypingBaseTest
     {
         log("Importing Haplotype Run: " + assayId);
         goToAssayImport(assayName);
-        setFormElement(Locator.name("name"), assayId);
+        setFormElement(AssayConstants.ASSAY_NAME_FIELD_LOCATOR, assayId);
         checkCheckbox(Locator.name("enabled"));
         selectOptionByText(Locator.name("speciesId"), "mamu");
         // NOTE: consider breaking these into seperate tests...
