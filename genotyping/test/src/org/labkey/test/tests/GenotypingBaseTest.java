@@ -20,7 +20,7 @@ import org.junit.BeforeClass;
 import org.labkey.remoteapi.CommandException;
 import org.labkey.remoteapi.Connection;
 import org.labkey.remoteapi.query.DeleteRowsCommand;
-import org.labkey.remoteapi.query.SaveRowsResponse;
+import org.labkey.remoteapi.query.RowsResponse;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
@@ -135,7 +135,7 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest implements Po
         Connection cn = WebTestHelper.getRemoteApiConnection();
         DeleteRowsCommand cmd = new DeleteRowsCommand("genotyping", "IlluminaTemplates");
         cmd.addRow(Collections.singletonMap("Name", TEMPLATE_NAME));
-        SaveRowsResponse resp;
+        RowsResponse resp;
         try
         {
             resp = cmd.execute(cn, getProjectName());
