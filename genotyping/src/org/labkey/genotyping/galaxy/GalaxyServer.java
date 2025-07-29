@@ -167,7 +167,7 @@ public class GalaxyServer
     }
 
 
-    public class Item
+    public static class Item
     {
         private final ItemType _type;
         private final String _apiUrl;

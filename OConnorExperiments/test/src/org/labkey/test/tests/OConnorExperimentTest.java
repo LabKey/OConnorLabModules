@@ -23,7 +23,7 @@ import org.labkey.remoteapi.Connection;
 import org.labkey.remoteapi.query.DeleteRowsCommand;
 import org.labkey.remoteapi.query.Filter;
 import org.labkey.remoteapi.query.InsertRowsCommand;
-import org.labkey.remoteapi.query.SaveRowsResponse;
+import org.labkey.remoteapi.query.RowsResponse;
 import org.labkey.remoteapi.query.SelectRowsCommand;
 import org.labkey.remoteapi.query.SelectRowsResponse;
 import org.labkey.remoteapi.query.UpdateRowsCommand;
@@ -64,7 +64,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
     private static final String TABLE_NAME = "Experiments";
     private static final String EXPERIMENT_TYPE_TABLE_NAME = "ExperimentType";
     private static final String EXPERIMENT_SAVE_SIGNAL = "experimentDataSave"; // See experimentField.html
-    private ArrayList<String> pkeys = new ArrayList<>();
+    private final ArrayList<String> pkeys = new ArrayList<>();
 
     @Nullable
     @Override
@@ -146,7 +146,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         assertEquals(description, table.getDataAsText(row, "Description"));
         if (type != null)
         {
-            assertEquals(type, table.getDataAsText(row, "ExperimentType"));
+            assertEquals(type, table.getDataAsText(row, "ExperimentTypeId"));
         }
 
         // Make sure each component of the ParentExperiments column is rendered with a link to the begin page for that experiment
@@ -274,7 +274,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
             Connection cn = WebTestHelper.getRemoteApiConnection();
             InsertRowsCommand insertCmd = new InsertRowsCommand(SCHEMA_NAME, TABLE_NAME);
             insertCmd.addRow(rowMap);
-            SaveRowsResponse resp = insertCmd.execute(cn, getProjectName());
+            RowsResponse resp = insertCmd.execute(cn, getProjectName());
             for (int i = 0; i < insertCmd.getRows().size(); i++)
             {
                 Map<String, Object> row = resp.getRows().get(i);
@@ -301,7 +301,7 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
             rowMap.put("Description", "API Description Edited");
             rowMap.put("ExperimentType", "API Type Edited");
             Connection cn = WebTestHelper.getRemoteApiConnection();
-            SaveRowsResponse resp = cmd.execute(cn, getProjectName());
+            RowsResponse resp = cmd.execute(cn, getProjectName());
             assertEquals("Expected to update " + rowMap.size() + " rows", rowMap.size(), resp.getRowsAffected().intValue());
             goToProjectHome();
         }
@@ -327,9 +327,9 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
             DeleteRowsCommand cmd = new DeleteRowsCommand(SCHEMA_NAME, TABLE_NAME);
             Connection cn = WebTestHelper.getRemoteApiConnection();
             for (String pk : pkeys)
-                cmd.addRow(Collections.singletonMap("container", (Object) pk));
+                cmd.addRow(Collections.singletonMap("container", pk));
 
-            SaveRowsResponse resp = cmd.execute(cn, getProjectName());
+            RowsResponse resp = cmd.execute(cn, getProjectName());
             assertEquals("Expected to delete " + pkeys.size() + " rows", pkeys.size(), resp.getRowsAffected().intValue());
 
             SelectRowsCommand selectCmd = new SelectRowsCommand(SCHEMA_NAME, TABLE_NAME);

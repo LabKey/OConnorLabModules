@@ -45,7 +45,7 @@ public class GenotypingTest extends GenotypingBaseTest
     @BeforeClass
     public static void setupProject()
     {
-        GenotypingTest init = (GenotypingTest)getCurrentTest();
+        GenotypingTest init = getCurrentTest();
         init.doSetup();
     }
 

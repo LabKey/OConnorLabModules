@@ -43,7 +43,6 @@ import org.labkey.vfs.FileLike;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.HashMap;

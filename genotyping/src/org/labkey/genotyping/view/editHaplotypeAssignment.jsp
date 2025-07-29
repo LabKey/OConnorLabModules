@@ -30,7 +30,7 @@
     }
 %>
 <%
-    JspView<GenotypingController.AssignmentForm> me = (JspView<GenotypingController.AssignmentForm>) HttpView.currentView();
+    JspView<GenotypingController.AssignmentForm> me = HttpView.currentView();
     GenotypingController.AssignmentForm bean = me.getModelBean();
     final String formDivId = "form" + getRequestScopedUID();
 

@@ -133,7 +133,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     }
 
     @Override
-    public HttpView getDataDescriptionView(AssayRunUploadForm form)
+    public HttpView<?> getDataDescriptionView(AssayRunUploadForm form)
     {
         return new HtmlView("");
     }
@@ -157,7 +157,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     }
 
     @Override
-    public Domain getResultsDomain(ExpProtocol protocol)
+    public Domain getResultsDomain(ExpProtocol protocol, boolean forUpdate)
     {
         return null;
     }

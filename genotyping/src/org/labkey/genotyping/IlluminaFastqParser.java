@@ -65,13 +65,13 @@ import java.util.Set;
  */
 public class IlluminaFastqParser
 {
-    private String _outputPrefix;
-    private Map<Integer, Integer> _sampleIndexToIdMap;
-    private Map<Integer, Integer> _sampleIdToIndexMap;
-    private Map<String, Integer> _sampleNameToIdMap;
-    private List<File> _files;
-    private Map<Pair<Integer, Integer>, FileInfo> _fileInfo = new HashMap<>();
-    private Logger _logger;
+    private final String _outputPrefix;
+    private final Map<Integer, Integer> _sampleIndexToIdMap;
+    private final Map<Integer, Integer> _sampleIdToIndexMap;
+    private final Map<String, Integer> _sampleNameToIdMap;
+    private final List<File> _files;
+    private final Map<Pair<Integer, Integer>, FileInfo> _fileInfo = new HashMap<>();
+    private final Logger _logger;
 
     public IlluminaFastqParser(@Nullable String outputPrefix, Map<Integer, Integer> sampleIndexToIdMap, Map<Integer, Integer> sampleIdToIndexMap, Map<String, Integer> sampleNameToIdMap, Logger logger, List<File> files)
     {

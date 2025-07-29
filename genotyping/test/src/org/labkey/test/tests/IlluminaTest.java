@@ -60,7 +60,7 @@ public class IlluminaTest extends GenotypingBaseTest
     @BeforeClass
     public static void setupProject()
     {
-        IlluminaTest init = (IlluminaTest)getCurrentTest();
+        IlluminaTest init = getCurrentTest();
         init.doSetup();
     }
 
@@ -213,8 +213,8 @@ public class IlluminaTest extends GenotypingBaseTest
         ZIP("ZIP Archive of Individual Files", ".zip"),
         FASTQ("Merge into Single FASTQ File", ".fastq.gz");
 
-        private String _radioLabel;
-        private String _fileSuffix;
+        private final String _radioLabel;
+        private final String _fileSuffix;
 
         ExportType(String radioLabel, String fileSuffix)
         {
@@ -415,7 +415,7 @@ public class IlluminaTest extends GenotypingBaseTest
 
     }
 
-    private class OutputFilter implements FilenameFilter
+    private static class OutputFilter implements FilenameFilter
     {
         @Override
         public boolean accept(File dir, String name)
@@ -431,7 +431,7 @@ public class IlluminaTest extends GenotypingBaseTest
 
         assertEquals(30, files.length);
         DataRegionTable d = new DataRegionTable("Reads", this);
-        assertEquals(d.getDataRowCount(), 30);
+        assertEquals(30, d.getDataRowCount());
         assertTextPresent("Read Count");
         assertEquals("9", d.getDataAsText(d.getIndexWhereDataAppears("IlluminaSamples-R1-4947.fastq.gz", "Filename") + 1, "Read Count"));
     }

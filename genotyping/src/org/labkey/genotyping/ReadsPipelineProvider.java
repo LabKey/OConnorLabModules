@@ -30,7 +30,7 @@ import java.io.FileFilter;
 public class ReadsPipelineProvider extends PipelineProvider
 {
     String _platform;
-    FileFilter _readsFilter = null;
+    FileFilter _readsFilter;
 
     public ReadsPipelineProvider(String name, Module owningModule, String platform)
     {

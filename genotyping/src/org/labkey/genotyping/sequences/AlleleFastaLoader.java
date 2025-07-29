@@ -28,7 +28,8 @@ public class AlleleFastaLoader extends FastaLoader<Allele>
 {
     protected AlleleFastaLoader(File fastaFile)
     {
-        super(fastaFile, new FastaIteratorElementFactory<Allele>() {
+        super(fastaFile, new FastaIteratorElementFactory<>()
+        {
             @Override
             public Allele createNext(String header, byte[] body)
             {

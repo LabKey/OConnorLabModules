@@ -128,7 +128,7 @@ public class OConnorExperimentsModule extends DefaultModule
     }
 
     // Listener that just updates the experiment changed date when a wiki is modified.
-    private class OConnorWikiChangeListener implements WikiChangeListener
+    private static class OConnorWikiChangeListener implements WikiChangeListener
     {
         @Override
         public void wikiCreated(User user, Container c, String name)
@@ -150,7 +150,7 @@ public class OConnorExperimentsModule extends DefaultModule
     }
 
     // Listener that just updates the experiment changed date when a file is uploaded/renamed.
-    private class OConnorFileChangeListener implements FileListener
+    private static class OConnorFileChangeListener implements FileListener
     {
         @Override
         public void fileCreated(@NotNull File created, @Nullable User user, @Nullable Container container)
