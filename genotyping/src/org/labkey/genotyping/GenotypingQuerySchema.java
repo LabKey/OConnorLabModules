@@ -85,7 +85,7 @@ public class GenotypingQuerySchema extends UserSchema
 
     private SortedMap<Integer, Map<String, String>> _allHaplotypes;
 
-    @Nullable private final Integer _analysisId;
+    @Nullable private final Long _analysisId;
 
     public enum TableType
     {
@@ -289,7 +289,7 @@ public class GenotypingQuerySchema extends UserSchema
             }
 
             @Override
-            public FilteredTable createTable(final GenotypingQuerySchema schema, ContainerFilter cf, @Nullable final Integer analysisId)
+            public FilteredTable createTable(final GenotypingQuerySchema schema, ContainerFilter cf, @Nullable final Long analysisId)
             {
                 FilteredTable table = new FilteredTable<>(GS.getMatchesTable(), schema, cf);
                 //TODO: filter on container??
@@ -686,7 +686,7 @@ public class GenotypingQuerySchema extends UserSchema
         }
 
         // Special factory method for Matches table, to pass through analysis id (if present)
-        FilteredTable createTable(GenotypingQuerySchema schema, ContainerFilter cf, @Nullable Integer analysisId)
+        FilteredTable createTable(GenotypingQuerySchema schema, ContainerFilter cf, @Nullable Long analysisId)
         {
             return createTable(schema, cf);
         }
@@ -887,7 +887,7 @@ public class GenotypingQuerySchema extends UserSchema
         this(user, container, null);
     }
 
-    public GenotypingQuerySchema(User user, Container container, @Nullable Integer analysisId)
+    public GenotypingQuerySchema(User user, Container container, @Nullable Long analysisId)
     {
         super(NAME, "Contains genotyping data", user, container, GS.getSchema());
         _analysisId = analysisId;
@@ -899,7 +899,7 @@ public class GenotypingQuerySchema extends UserSchema
         // Special handling for Matches -- need to pass in Analysis
         if (name.startsWith(TableType.Matches.name()))
         {
-            Integer analysisId = _analysisId;
+            Long analysisId = _analysisId;
 
             if (null == analysisId)
             {
@@ -909,7 +909,7 @@ public class GenotypingQuerySchema extends UserSchema
                 {
                     if (split.length == 2 && TableType.Matches.name().equals(split[0]))
                     {
-                        analysisId = Integer.parseInt(split[1]);
+                        analysisId = Long.parseLong(split[1]);
                     }
                     else
                     {

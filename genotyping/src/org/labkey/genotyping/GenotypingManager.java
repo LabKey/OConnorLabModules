@@ -134,7 +134,7 @@ public class GenotypingManager
         return Table.insert(user, GenotypingSchema.get().getRunsTable(), run);
     }
 
-    public @Nullable GenotypingRun getRun(Container c, int runId)
+    public @Nullable GenotypingRun getRun(Container c, long runId)
     {
         return new TableSelector(GenotypingSchema.get().getRunsTable()).getObject(c, runId, GenotypingRun.class);
     }
@@ -156,7 +156,7 @@ public class GenotypingManager
         return Table.insert(user, GenotypingSchema.get().getAnalysesTable(), new GenotypingAnalysis(c, user, run, description, sequencesViewName));
     }
 
-    public @NotNull GenotypingAnalysis getAnalysis(Container c, Integer analysisId)
+    public @NotNull GenotypingAnalysis getAnalysis(Container c, Long analysisId)
     {
         if (null == analysisId)
             throw new NotFoundException("Analysis parameter is missing");
@@ -437,7 +437,7 @@ public class GenotypingManager
         return matchId;
     }
 
-    public int deleteMatches(Container c, User user, int analysisId, List<Integer> matchIds)
+    public int deleteMatches(Container c, User user, long analysisId, List<Integer> matchIds)
     {
         // Validate analysis was posted and exists in this container
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(c, analysisId);
