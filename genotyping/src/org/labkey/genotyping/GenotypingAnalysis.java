@@ -30,7 +30,7 @@ import java.util.Date;
  */
 public class GenotypingAnalysis
 {
-    private int _rowId;
+    private long _rowId;
     private Container _container;
     private int _run;
     private int _createdBy;
@@ -57,12 +57,12 @@ public class GenotypingAnalysis
         setSequencesView(sequencesView);
     }
 
-    public int getRowId()
+    public long getRowId()
     {
         return _rowId;
     }
 
-    public void setRowId(int rowId)
+    public void setRowId(long rowId)
     {
         _rowId = rowId;
     }

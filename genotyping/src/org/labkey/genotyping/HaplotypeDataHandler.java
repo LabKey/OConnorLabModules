@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.CaseInsensitiveTreeMap;
+import org.labkey.api.collections.IntHashMap;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
@@ -356,7 +357,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
         throwFirstError(errors);
 
          // return a mapping from the AnimalId to the AnimalAnalysis RowId
-         Map<Integer, Integer> map = new HashMap<>();
+         Map<Integer, Integer> map = new IntHashMap<>();
          for (Map<String, Object> insertedRow : insertedRows)
          {
              map.put(Integer.parseInt(insertedRow.get("animalid").toString()), Integer.parseInt(insertedRow.get("RowId").toString()));
@@ -476,7 +477,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
     }
 
     @Override
-    public void runMoved(ExpData newData, Container container, Container targetContainer, String oldRunLSID, String newRunLSID, User user, int oldDataRowID)
+    public void runMoved(ExpData newData, Container container, Container targetContainer, String oldRunLSID, String newRunLSID, User user, long oldDataRowID)
     {
         throw new UnsupportedOperationException();
     }

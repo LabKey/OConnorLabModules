@@ -172,7 +172,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    public static ActionURL getAnalysisURL(Container c, int analysisId)
+    public static ActionURL getAnalysisURL(Container c, long analysisId)
     {
         ActionURL url = new ActionURL(AnalysisAction.class, c);
         url.addParameter("analysis", analysisId);
@@ -182,17 +182,17 @@ public class GenotypingController extends SpringActionController
 
     public static class AnalysisForm extends QueryExportForm
     {
-        private Integer _analysis = null;
+        private Long _analysis = null;
         private Integer _highlightId = null;
         private String _error = null;
 
-        public Integer getAnalysis()
+        public Long getAnalysis()
         {
             return _analysis;
         }
 
         @SuppressWarnings({"UnusedDeclaration"})
-        public void setAnalysis(Integer analysis)
+        public void setAnalysis(Long analysis)
         {
             _analysis = analysis;
         }
@@ -1423,7 +1423,7 @@ public class GenotypingController extends SpringActionController
     }
 
 
-    private void importAnalysis(int analysisId, FileLike pipelineDir, User user) throws IOException, PipelineValidationException
+    private void importAnalysis(long analysisId, FileLike pipelineDir, User user) throws IOException, PipelineValidationException
     {
         GenotypingAnalysis analysis = GenotypingManager.get().getAnalysis(getContainer(), analysisId);
         FileLike analysisDir = new FileSystemLike.Builder(Paths.get(analysis.getPath())).readwrite().root();
@@ -1916,9 +1916,9 @@ public class GenotypingController extends SpringActionController
         public boolean handlePost(Object o, BindException errors)
         {
             GenotypingManager gm = GenotypingManager.get();
-            Set<Integer> runs = DataRegionSelection.getSelectedIntegers(getViewContext(), true);
+            Set<Long> runs = DataRegionSelection.getSelectedIntegers(getViewContext(), true);
 
-            for (Integer runId : runs)
+            for (Long runId : runs)
             {
                 GenotypingRun run = gm.getRun(getContainer(), runId);
                 gm.deleteRun(run);
@@ -1948,7 +1948,7 @@ public class GenotypingController extends SpringActionController
         {
             GenotypingManager gm = GenotypingManager.get();
 
-            for (Integer analysisId : DataRegionSelection.getSelectedIntegers(getViewContext(), true))
+            for (Long analysisId : DataRegionSelection.getSelectedIntegers(getViewContext(), true))
             {
                 GenotypingAnalysis analysis = gm.getAnalysis(getContainer(), analysisId);
                 gm.deleteAnalysis(analysis);
@@ -1968,7 +1968,7 @@ public class GenotypingController extends SpringActionController
     public static class MatchReadsForm extends RunForm
     {
         private int _match = 0;
-        private int _analysis = 0;
+        private long _analysis = 0;
 
         public int getMatch()
         {
@@ -1981,13 +1981,13 @@ public class GenotypingController extends SpringActionController
             _match = run;
         }
 
-        public int getAnalysis()
+        public long getAnalysis()
         {
             return _analysis;
         }
 
         @SuppressWarnings({"UnusedDeclaration"})
-        public void setAnalysis(int analysis)
+        public void setAnalysis(long analysis)
         {
             _analysis = analysis;
         }
@@ -2038,18 +2038,18 @@ public class GenotypingController extends SpringActionController
 
     public static class AssignmentReportBean
     {
-        private final Collection<Integer> _ids;
+        private final Collection<Long> _ids;
         private final String _assayName;
         private final ActionURL _returnUrl;
 
-        public AssignmentReportBean(Collection<Integer> ids, String assayName, ActionURL returnUrl)
+        public AssignmentReportBean(Collection<Long> ids, String assayName, ActionURL returnUrl)
         {
             _ids = ids;
             _assayName = assayName;
             _returnUrl = returnUrl;
         }
 
-        public Collection<Integer> getIds()
+        public Collection<Long> getIds()
         {
             return _ids;
         }
@@ -2076,7 +2076,7 @@ public class GenotypingController extends SpringActionController
             _protocol = form.getProtocol();
 
             // when coming from the results grid, we use the selected rows as the initial set of IDs for the report form
-            Set<Integer> selected = DataRegionSelection.getSelectedIntegers(getViewContext(), false);
+            Set<Long> selected = DataRegionSelection.getSelectedIntegers(getViewContext(), false);
 
             VBox result = new VBox();
             AssayHeaderView header = new AssayHeaderView(form.getProtocol(), form.getProvider(), false, true, null);

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
+import org.labkey.api.collections.IntHashMap;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
@@ -137,9 +138,9 @@ public class ImportIlluminaReadsJob extends ReadsJob
                 //parse the samples file
                 String[] nextLine;
                 /* Index is the number of the sample as ordered in SampleType CSV, mapped to the unique RowId for each sample */
-                Map<Integer, Integer> sampleIndexToIdMap = new HashMap<>();
+                Map<Integer, Integer> sampleIndexToIdMap = new IntHashMap<>();
                 /* Unique RowId for each sample mapped to the index is the number of the sample as ordered in SampleType CSV */
-                Map<Integer, Integer> sampleIdToIndexMap = new HashMap<>();
+                Map<Integer, Integer> sampleIdToIndexMap = new IntHashMap<>();
                 /* Name for each sample, mapped to the RowId of the sample */
                 Map<String, Integer> sampleNameToIdMap = new HashMap<>();
                 sampleIndexToIdMap.put(0, 0); //placeholder for control and unmapped reads

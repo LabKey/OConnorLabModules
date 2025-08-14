@@ -15,6 +15,8 @@
  */
 package org.labkey.genotyping;
 
+import org.labkey.api.collections.IntHashMap;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +29,7 @@ public enum Status
 {
     NotSubmitted(0), Submitted(1), Importing(2), Complete(3);
 
-    private static final Map<Integer, Status> _map = new HashMap<>();
+    private static final Map<Integer, Status> _map = new IntHashMap<>();
 
     static
     {
