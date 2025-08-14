@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.labkey.api.exp.api.ExperimentService.asInteger;
+
 public class GenotypingManager
 {
     private static final GenotypingManager _instance = new GenotypingManager();
@@ -405,7 +407,7 @@ public class GenotypingManager
 
         Map<String, Object> matchOut = Table.insert(user, gs.getMatchesTable(), row);
 
-        int matchId = (Integer)matchOut.get("RowId");
+        int matchId = asInteger(matchOut.get("RowId"));
 
         // Insert all the alleles in this group into AllelesJunction table
         if (alleleIds.length > 0)
