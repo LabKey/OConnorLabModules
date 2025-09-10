@@ -739,7 +739,7 @@
             <column columnName="vendor"/>
             <column columnName="enabled"/>
             <column columnName="phone"/>
-            <column columnName="fax"/>
+            <column columnName="shopUW"/>
             <column columnName="email"/>
             <column columnName="url"/>
             <column columnName="address"/>
