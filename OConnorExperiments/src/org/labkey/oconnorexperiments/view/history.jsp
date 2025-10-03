@@ -24,10 +24,8 @@
 <%@ page import="org.labkey.api.query.QueryView" %>
 <%@ page import="org.labkey.api.query.UserSchema" %>
 <%@ page import="org.labkey.api.security.User" %>
-<%@ page import="org.labkey.api.services.ServiceRegistry" %>
 <%@ page import="org.labkey.api.view.ViewContext" %>
 <%@ page import="org.labkey.api.view.WebPartView" %>
-<%@ page import="org.labkey.api.view.template.ClientDependencies" %>
 <%@ page import="org.labkey.api.wiki.WikiService" %>
 <%@ page import="org.labkey.oconnorexperiments.query.OConnorExperimentsUserSchema" %>
 <%@ page extends="org.labkey.api.jsp.JspBase" %>
@@ -86,7 +84,7 @@
 <h3>Notes History</h3>
 <%
     {
-        WebPartView view = WikiService.get().getHistoryView(c, "default");
+        WebPartView<?> view = WikiService.get().getHistoryView(c, "default");
         if (view != null)
             include(view, out);
     }

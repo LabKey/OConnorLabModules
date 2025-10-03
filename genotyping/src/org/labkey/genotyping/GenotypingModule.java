@@ -140,16 +140,14 @@ public class GenotypingModule extends DefaultModule
         return Collections.singleton(GenotypingSchema.get().getSchemaName());
     }
 
-    @NotNull
     @Override
-    public Set<Class> getUnitTests()
+    public @NotNull Set<Class<?>> getUnitTests()
     {
         return PageFlowUtil.set(HaplotypeDataHandler.TestCase.class, IlluminaFastqParser.DupeTestCase.class);
     }
 
-    @NotNull
     @Override
-    public Set<Class> getIntegrationTests()
+    public @NotNull Set<Class<?>> getIntegrationTests()
     {
         return PageFlowUtil.set(IlluminaFastqParser.HeaderTestCase.class, ImportAnalysisJob.TestCase.class);
     }
