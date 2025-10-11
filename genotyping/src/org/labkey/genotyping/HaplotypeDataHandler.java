@@ -47,6 +47,7 @@ import org.labkey.api.assay.AssayProvider;
 import org.labkey.api.assay.AssayService;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
+import org.labkey.vfs.FileLike;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,17 +71,17 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
     }
 
     @Override
-    public void importFile(@NotNull ExpData data, File dataFile, @NotNull ViewBackgroundInfo info, @NotNull Logger log, @NotNull XarContext context) throws ExperimentException
+    public void importFile(@NotNull ExpData data, @NotNull FileLike dataFile, @NotNull ViewBackgroundInfo info, @NotNull Logger log, @NotNull XarContext context) throws ExperimentException
     {
         if (!dataFile.exists())
         {
-            log.warn("Could not find file " + dataFile.getAbsolutePath() + " on disk for data with LSID " + data.getLSID());
+            log.warn("Could not find file " + dataFile + " on disk for data with LSID " + data.getLSID());
             return;
         }
         ExpRun expRun = data.getRun();
         if (expRun == null)
         {
-            throw new ExperimentException("Could not load haplotype file " + dataFile.getAbsolutePath() + " because it is not owned by an experiment run");
+            throw new ExperimentException("Could not load haplotype file " + dataFile + " because it is not owned by an experiment run");
         }
 
         try
@@ -100,7 +101,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
             Map<String, String> animalIds = new CaseInsensitiveTreeMap<>();
             List<HaplotypeIdentifier> haplotypes = new ArrayList<>();
             List<HaplotypeAssignmentDataRow> dataRows = new ArrayList<>();
-            TabLoader tabLoader = new TabLoader(dataFile, true);
+            TabLoader tabLoader = new TabLoader(dataFile.openInputStream(), true, data.getContainer());
             List<Map<String, Object>> rowsMap = tabLoader.load();
             parseHaplotypeData(protocol, rowsMap, runPropertyValues, animalIds, haplotypes, dataRows);
 
