@@ -214,7 +214,7 @@ public class IlluminaFastqParser
                             sampleId = _sampleNameToIdMap.get(sampleName);
                         }
                         String name = (_outputPrefix == null ? "Reads" : _outputPrefix) + "-R" + pairNumber + "-" + (sampleIdx == 0 ? "Control" : sampleId) + ".fastq.gz";
-                        File newFile = new File(targetDir, name);
+                        File newFile = FileUtil.appendName(targetDir, name);
 
                         if (!f.equals(newFile))
                         {
@@ -408,9 +408,7 @@ public class IlluminaFastqParser
         {
             Module module = ModuleLoader.getInstance().getModule("genotyping");
             File newHeaderPath = JunitUtil.getSampleData(module, "genotyping/illumina_newHeader");
-            String newHeaderSampledataLoc = newHeaderPath.toString();
             File oldHeaderPath = JunitUtil.getSampleData(module, "genotyping");
-            String oldHeaderSampledataLoc = oldHeaderPath.toString();
             final List<String> filenamesOldHeader = Arrays.asList(
                     "IlluminaSamples-R1-4892.fastq.gz",
                     "IlluminaSamples-R1-4893.fastq.gz",
@@ -472,8 +470,7 @@ public class IlluminaFastqParser
                     "IlluminaSamplesNewHeader-R2-4905.fastq.gz"
             );
 
-            final Pair[] pairs =
-            {
+            final var pairs = List.of(
                 new Pair<>(4892, 1),
                 new Pair<>(4893, 1),
                 new Pair<>(4894, 1),
@@ -501,11 +498,10 @@ public class IlluminaFastqParser
                 new Pair<>(4902, 2),
                 new Pair<>(4903, 2),
                 new Pair<>(4904, 2),
-                new Pair<>(4905, 2)
-            };
+                new Pair<>(4905, 2));
 
             int i = 0;
-            int numOfPairs = pairs.length;
+            int numOfPairs = pairs.size();
             Set<Pair<Integer, Integer>> expectedOutputs = new HashSet<>();
             Map<Integer, Integer> sampleIndexToIdMap = new IntHashMap<>();
             sampleIndexToIdMap.put(0, 0);
@@ -516,15 +512,15 @@ public class IlluminaFastqParser
 
             for (String fn : filenamesOldHeader)
             {
-                File target = new File(_testRoot, fn);
-                FileUtils.copyFile(new File(oldHeaderSampledataLoc, fn), target);
-                expectedOutputs.add((Pair<Integer, Integer>) pairs[i]);
+                File target = FileUtil.appendName(_testRoot, fn);
+                FileUtils.copyFile(FileUtil.appendName(oldHeaderPath, fn), target);
+                expectedOutputs.add(pairs.get(i));
                 oldHeaderFiles.add(target);
 
                 if (i < (numOfPairs / 2))
                 {
-                    sampleIndexToIdMap.put(i + 1, (Integer)pairs[i].getKey());
-                    sampleIdToIndexMap.put((Integer)pairs[i].getKey(), i + 1);
+                    sampleIndexToIdMap.put(i + 1, pairs.get(i).getKey());
+                    sampleIdToIndexMap.put(pairs.get(i).getKey(), i + 1);
                 }
                 i++;
             }
@@ -537,28 +533,14 @@ public class IlluminaFastqParser
 
             for (String fn : filenamesNewHeader)
             {
-                File target = new File(_testRoot, fn);
-                FileUtils.copyFile(new File(newHeaderSampledataLoc, fn), target);
+                File target = FileUtil.appendName(_testRoot, fn);
+                FileUtils.copyFile(FileUtil.appendName(newHeaderPath, fn), target);
                 newHeaderFiles.add(target);
             }
 
             parser = new IlluminaFastqParser(null, sampleIndexToIdMap, sampleIdToIndexMap, Collections.emptyMap(), LogManager.getLogger(HeaderTestCase.class), newHeaderFiles);
             outputs = parser.parseFastqFiles(null);
             Assert.assertEquals("Outputs from parseFastqFiles with new headers were not as expected.", expectedOutputs, outputs.keySet());
-        }
-
-        // @After // TODO: Disabling to debug gradle failure on TeamCity
-        public void cleanup() throws IOException
-        {
-            if (container != null)
-            {
-                ContainerManager.delete(container, TestContext.get().getUser());
-            }
-
-            if (_testRoot != null)
-            {
-                FileUtils.deleteDirectory(_testRoot);
-            }
         }
     }
 }
