@@ -43,7 +43,7 @@ public class HaplotypeDataCollector<ContextType extends AssayRunUploadContext<Ha
     private Map<String, String> _reshowMap;
 
     @Override
-    public HttpView getView(ContextType context)
+    public HttpView<?> getView(ContextType context)
     {
         // if reshowing on error, get the data param out of the context for the JSP to use
         HttpServletRequest request = context.getRequest();

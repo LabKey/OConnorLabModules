@@ -46,6 +46,7 @@ import org.labkey.api.assay.AssayTableMetadata;
 import org.labkey.api.assay.AssayUrls;
 import org.labkey.api.study.assay.ParticipantVisitResolverType;
 import org.labkey.api.util.FileType;
+import org.labkey.api.util.HtmlString;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.Pair;
 import org.labkey.api.view.ActionURL;
@@ -135,7 +136,7 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     @Override
     public HttpView<?> getDataDescriptionView(AssayRunUploadForm form)
     {
-        return new HtmlView("");
+        return new HtmlView(HtmlString.EMPTY_STRING);
     }
 
     @Override
@@ -205,26 +206,18 @@ public class HaplotypeAssayProvider extends AbstractAssayProvider
     {
         Map<String, Set<String>> domainMap = super.getRequiredDomainProperties();
 
-        Set<String> runProperties = domainMap.get(ExpProtocol.ASSAY_DOMAIN_RUN);
-        if (runProperties == null)
-        {
-            runProperties = new HashSet<>();
-            domainMap.put(ExpProtocol.ASSAY_DOMAIN_RUN, runProperties);
-        }
+        Set<String> runProperties = domainMap.computeIfAbsent(ExpProtocol.ASSAY_DOMAIN_RUN, k -> new HashSet<>());
         runProperties.add(ENABLED_PROPERTY_NAME);
-        for (String propName : getColumnMappingProperties(true).keySet())
-        {
-            runProperties.add(propName);
-        }
+        runProperties.addAll(getColumnMappingProperties(true).keySet());
         runProperties.add(SPECIES_COLUMN.getName());
 
         return domainMap;
     }
 
     @Override
-    public List<AssayDataCollector> getDataCollectors(@Nullable Map<String, File> uploadedFiles, AssayRunUploadForm context)
+    public List<AssayDataCollector> getDataCollectors(@Nullable Map<String, org.labkey.vfs.FileLike> uploadedFiles, AssayRunUploadForm context)
     {
-        return Collections.singletonList(new HaplotypeDataCollector());
+        return Collections.singletonList(new HaplotypeDataCollector<>());
     }
 
     @Override
