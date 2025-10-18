@@ -973,8 +973,8 @@ public class GenotypingController extends SpringActionController
         {
             if (null == form.getReadsPath())
             {
-                File readsFile = form.getValidatedSingleFile(getContainer());
-                form.setReadsPath(readsFile.getPath());
+                FileLike readsFile = form.getValidatedSingleFile(getContainer());
+                form.setReadsPath(readsFile.toNioPathForRead().toFile().getPath());
                 return false;
             }
 
