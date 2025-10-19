@@ -77,7 +77,7 @@ public class ImportIlluminaReadsJob extends ReadsJob
         FileLike verifiedFileLike = FileSystemLike.getVerifiedFileLike(root.getContainer(), sampleFile.getAbsolutePath());
         _sampleFile = FileSystemLike.toFile(verifiedFileLike);
         _fastqPrefix = fastqPrefix;
-        setLogFile(verifiedFileLike.getParent().resolveChild(FileUtil.makeFileNameWithTimestamp("import_reads", "log")).toNioPathForWrite());
+        setLogFile(verifiedFileLike.getParent().resolveChild(FileUtil.makeFileNameWithTimestamp("import_reads", "log")));
     }
 
     @Override
