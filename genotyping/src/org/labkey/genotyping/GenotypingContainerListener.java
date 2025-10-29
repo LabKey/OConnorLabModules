@@ -20,7 +20,7 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.security.User;
 
-public class GenotypingContainerListener extends ContainerManager.AbstractContainerListener
+public class GenotypingContainerListener implements ContainerManager.ContainerListener
 {
     @Override
     public void containerDeleted(Container c, User user)
