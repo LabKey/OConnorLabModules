@@ -110,7 +110,7 @@ public class SubmitAnalysisJob extends PipelineJob
             throw new MinorConfigurationException("Can't create analysis directory: " + _analysisDir.getPath());
         }
 
-        setLogFile(_analysisDir.resolveChild(FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")).toNioPathForWrite());
+        setLogFile(_analysisDir.resolveChild(FileUtil.makeFileNameWithTimestamp("submit_analysis", "log")));
         info("Creating analysis directory: " + _analysisDir.getName());
         _analysis.setPath(FileUtil.getAbsolutePath(_analysisDir.toNioPathForRead()));
         _analysis.setFileName(_analysisDir.getName());

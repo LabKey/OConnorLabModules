@@ -61,7 +61,7 @@ public class ImportAnalysisJob extends PipelineJob
         super("Import Analysis", info, root);
         _dir = pipelineDir;
         _analysis = analysis;
-        setLogFile(_dir.resolveChild(FileUtil.makeFileNameWithTimestamp("import_analysis", "log")).toNioPathForWrite());
+        setLogFile(_dir.resolveChild(FileUtil.makeFileNameWithTimestamp("import_analysis", "log")));
 
         if (!_dir.exists())
             throw new IllegalArgumentException("Pipeline directory does not exist: " + _dir.toNioPathForRead().toAbsolutePath());

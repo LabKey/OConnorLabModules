@@ -73,7 +73,7 @@ public class ImportPacBioReadsJob extends ReadsJob
         FileLike verifiedFileLike = FileSystemLike.getVerifiedFileLike(root.getContainer(), sampleFile.getAbsolutePath());
         _sampleFile = FileSystemLike.toFile(verifiedFileLike);
         _fastqPrefix = fastqPrefix;
-        setLogFile(verifiedFileLike.getParent().resolveChild(FileUtil.makeFileNameWithTimestamp("import_pacbio_reads", "log")).toNioPathForWrite());
+        setLogFile(verifiedFileLike.getParent().resolveChild(FileUtil.makeFileNameWithTimestamp("import_pacbio_reads", "log")));
     }
 
     @Override

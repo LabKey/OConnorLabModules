@@ -973,8 +973,8 @@ public class GenotypingController extends SpringActionController
         {
             if (null == form.getReadsPath())
             {
-                File readsFile = form.getValidatedSingleFile(getContainer());
-                form.setReadsPath(readsFile.getPath());
+                FileLike readsFile = form.getValidatedSingleFile(getContainer());
+                form.setReadsPath(readsFile.toNioPathForRead().toFile().getPath());
                 return false;
             }
 
@@ -1395,24 +1395,15 @@ public class GenotypingController extends SpringActionController
         {
             Container container = getContainer();
             // Manual upload of genotyping analysis; pipeline provider posts to this action with matches file.
-            Path singleFile = form.getValidatedSinglePath(container);
+            FileLike singleFile = form.getValidatedSingleFile(container);
+            FileLike analysisDir = singleFile.getParent();
 
-            if (form.getPipeRoot(container).getRootFileLike().isDescendant(singleFile.toUri()))
-            {
+            // Load properties to determine the run.
+            Properties props = GenotypingManager.get().readProperties(analysisDir);
+            int analysisId = Integer.parseInt((String) props.get("analysis"));
+            importAnalysis(analysisId, analysisDir, getUser());
 
-                FileLike matches = form.getPipeRoot(container).resolvePathToFileLike(singleFile.toString());
-                FileLike analysisDir = matches.getParent();
-
-                // Load properties to determine the run.
-                Properties props = GenotypingManager.get().readProperties(analysisDir);
-                int analysisId = Integer.parseInt((String) props.get("analysis"));
-                importAnalysis(analysisId, analysisDir, getUser());
-
-                return true;
-            }
-
-            errors.reject(ERROR_MSG, "File was not found under the pipeline root");
-            return false;
+            return true;
         }
 
         @Override

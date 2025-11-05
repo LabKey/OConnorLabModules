@@ -17,7 +17,7 @@ package org.labkey.genotyping;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.RuntimeSQLException;
 import org.labkey.api.data.Table;
@@ -69,7 +69,7 @@ public class Import454ReadsJob extends ReadsJob
         super(Import454ReadsPipelineProvider.NAME, info, root, run);
         FileLike verifiedFileLike = FileSystemLike.getVerifiedFileLike(root.getContainer(), reads.getAbsolutePath());
         _reads = FileSystemLike.toFile(verifiedFileLike);
-        setLogFile(verifiedFileLike.getParent().resolveChild(FileUtil.makeFileNameWithTimestamp("import_reads", "log")).toNioPathForWrite());
+        setLogFile(verifiedFileLike.getParent().resolveChild(FileUtil.makeFileNameWithTimestamp("import_reads", "log")));
     }
 
     @Override
@@ -91,7 +91,7 @@ public class Import454ReadsJob extends ReadsJob
             }
             catch (SQLException se)
             {
-                if (RuntimeSQLException.isConstraintException(se) && StringUtils.containsIgnoreCase(se.getMessage(), "uq_reads_name"))
+                if (RuntimeSQLException.isConstraintException(se) && Strings.CI.contains(se.getMessage(), "uq_reads_name"))
                     throw new RuntimeException("A readname in this file already exists in the database; this run may have been imported previously", se);
                 else
                     throw se;
@@ -126,8 +126,7 @@ public class Import454ReadsJob extends ReadsJob
 
         try (TabLoader loader = new TabLoader(_reads, true))
         {
-            List<ColumnDescriptor> columns = new ArrayList<>();
-            columns.addAll(Arrays.asList(loader.getColumns()));
+            List<ColumnDescriptor> columns = new ArrayList<>(Arrays.asList(loader.getColumns()));
 
             for (ColumnDescriptor col : columns)
             {
