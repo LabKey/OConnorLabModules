@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.labkey.api.util.FileUtil;
 import org.labkey.serverapi.reader.Readers;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
@@ -90,7 +91,7 @@ public class IlluminaTest extends GenotypingBaseTest
     //https://docs.google.com/a/labkey.com/file/d/0B45Fm0-0-NLtdmpDR1hKaW5jSWc/edit
     private void verifyCleanIlluminaSampleSheets()
     {
-        importFolderFromZip(new File(getPipelineLoc(), "genoCleanSamples.folder.zip"), true, 2);
+        importFolderFromZip(FileUtil.appendName(getPipelineLoc(), "genoCleanSamples.folder.zip"), true, 2);
         goToProjectHome();
         click(Locator.linkWithText("Samples"));
         waitForText("SIVkcol2");

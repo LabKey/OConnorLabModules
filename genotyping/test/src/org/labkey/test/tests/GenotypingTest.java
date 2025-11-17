@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.labkey.api.util.FileUtil;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.categories.CustomModules;
@@ -118,7 +119,7 @@ public class GenotypingTest extends GenotypingBaseTest
         String analysisFolder = "analysis_" + getRunNumber();
         for (String file: filesToCopy)
         {
-            copyFile(new File(getPipelineLoc(), file), new File(getPipelineLoc(), analysisFolder + "/" + file));
+            copyFile(FileUtil.appendName(getPipelineLoc(), file), FileUtil.appendName(FileUtil.appendName(getPipelineLoc(), analysisFolder), file));
         }
         refresh();
         waitForPipelineJobsToComplete(++pipelineJobCount, "Import genotyping analysis", false);
