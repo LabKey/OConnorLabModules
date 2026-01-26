@@ -91,21 +91,6 @@ public class OConnorExperimentsController extends SpringActionController
         setActionResolver(_actionResolver);
     }
 
-    @RequiresPermission(ReadPermission.class)
-    public static class BeginAction extends SimpleViewAction<Object>
-    {
-        @Override
-        public ModelAndView getView(Object o, BindException errors)
-        {
-            return HttpView.redirect(PageFlowUtil.urlProvider(ProjectUrls.class).getHomeURL());
-        }
-
-        @Override
-        public void addNavTrail(NavTree root)
-        {
-        }
-    }
-
     @RequiresPermission(AdminPermission.class)
     public static class MigrateDataAction extends FormViewAction<UserForm>
     {
