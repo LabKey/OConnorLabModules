@@ -391,8 +391,8 @@ public class OConnorExperimentTest extends BaseWebDriverTest implements Postgres
         }
         selectOptionByText(Locator.name("quf_ExperimentTypeId"), type);
 
-        waitForElement(Locator.name("quf_ParentExperiments"));
-        selectOptionByText(Locator.name("quf_ParentExperiments"), parentExperiment);
+        waitForElement(Locator.name("[]quf_ParentExperiments"));
+        selectOptionByText(Locator.name("[]quf_ParentExperiments"), parentExperiment);
 
         clickButton("Submit");
         goToProjectHome();
