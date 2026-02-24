@@ -15,9 +15,9 @@
  */
 package org.labkey.oconnorexperiments.query;
 
+import org.apache.commons.beanutils.ConvertUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.json.JSONArray;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.RowMapFactory;
 import org.labkey.api.data.ColumnInfo;
@@ -29,6 +29,7 @@ import org.labkey.api.data.CoreSchema;
 import org.labkey.api.data.Filter;
 import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.LookupColumn;
+import org.labkey.api.data.MultiChoice;
 import org.labkey.api.data.MultiValuedForeignKey;
 import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.SimpleFilter;
@@ -317,16 +318,10 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
                     List<Map<String, Object>> parentExperimentRows = new ArrayList<>();
                     String c = (String)row.get("container");
                     Object v = row.get("ParentExperiments");
-                    String[] parentExperiments = null;
-                    if (v instanceof String[])
-                        parentExperiments = (String[])v;
-                    else if (v instanceof JSONArray ja)
-                    {
-                        ArrayList<String> s = new ArrayList<>();
-                        for (Object o : ja.toList())
-                            s.add(o.toString());
-                        parentExperiments = s.toArray(new String[0]);
-                    }
+
+                    // use a bit of shared code for this conversion
+                    MultiChoice.Array arr = (MultiChoice.Array)ConvertUtils.convert(v, MultiChoice.Array.class);
+                    String[] parentExperiments = null == arr || arr.isEmpty() ? null : arr.getStringArray();
 
                     Container innerContainer = ContainerManager.getForId(c);
                     if (innerContainer == null)
