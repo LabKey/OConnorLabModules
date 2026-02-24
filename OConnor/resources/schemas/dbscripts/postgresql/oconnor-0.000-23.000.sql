@@ -195,22 +195,6 @@ CREATE TABLE oconnor.grants (
 
 
 --
--- Name: active_grants; Type: VIEW; Schema: oconnor; Owner: oconnor
---
-
-CREATE VIEW oconnor.active_grants AS
-    SELECT g.id, g.container, (((g.id)::text || ' - '::text) || g.title) AS displaytitle FROM oconnor.grants g WHERE ((g.enabled = true) AND (now() < g.expiration_date));
-
-
---
--- Name: active_quotes; Type: VIEW; Schema: oconnor; Owner: oconnor
---
-
-CREATE VIEW oconnor.active_quotes AS
-    SELECT g.id, g.container, (((g.id)::text || ' - '::text) || g.title) AS displaytitle FROM oconnor.grants g WHERE ((g.enabled = true) AND (now() < g.expiration_date));
-
-
---
 -- Name: oc_sequence; Type: SEQUENCE; Schema: oconnor; Owner: oconnor
 --
 
@@ -805,14 +789,6 @@ CREATE TABLE oconnor.virus_challenges (
     remark character varying(255) NOT NULL,
     challenge_type character varying(255) NOT NULL
 );
-
-
---
--- Name: max_virus_challenge_date; Type: VIEW; Schema: oconnor; Owner: oconnor
---
-
-CREATE VIEW oconnor.max_virus_challenge_date AS
-    SELECT v.id, max(v.challenge_date) AS challenge_date FROM oconnor.virus_challenges v WHERE ((v.challenge_type)::text ~~ '%SIV%'::text) GROUP BY v.id;
 
 
 --
