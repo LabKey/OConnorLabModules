@@ -122,7 +122,7 @@ public class ImportPacBioReadsJob extends ReadsJob
 
         //error if no pools were found and no fastq files were found to parse
         if (_pools.isEmpty())
-            getLogger().warn("No pools/FASTQ files" + (_fastqPrefix == null ? "" : " matching the prefix '" + _fastqPrefix + "'") + " were found. Check that files are under a 'poolX' directory");
+            getLogger().warn("No pools/FASTQ files{} were found. Check that files are under a 'poolX' directory", _fastqPrefix == null ? "" : " matching the prefix '" + _fastqPrefix + "'");
 
         persistPacBioPoolRecords(sampleNameSampleIdMap);
     }
@@ -219,7 +219,7 @@ public class ImportPacBioReadsJob extends ReadsJob
             }
             else
             {
-                getLogger().warn("Directory name '" + sampleSheetRootFolder.getName() + "' did not contain '" + _dirSubstring + "', skipping");
+                getLogger().warn("Directory name '{}' did not contain '" + _dirSubstring + "', skipping", sampleSheetRootFolder.getName());
             }
         }
     }
@@ -302,11 +302,11 @@ public class ImportPacBioReadsJob extends ReadsJob
 
         if(fastqFile.length() == 0)
         {
-            _logger.info("File " + fastqFile.getName() + " has no content to parse.");
+            _logger.info("File {} has no content to parse.", fastqFile.getName());
             return 0;
         }
 
-        _logger.info("Beginning to parse file: " + fastqFile.getName());
+        _logger.info("Beginning to parse file: {}", fastqFile.getName());
 
         FastqReader reader = new FastqReader(fastqFile);
         while (reader.hasNext())
@@ -319,13 +319,13 @@ public class ImportPacBioReadsJob extends ReadsJob
             catch(SAMException same)
             {
                 setStatus("Error parsing " + fileNum + " in Pool " + poolNum + ". See Status.");
-                _logger.error("Error parsing " + fastqFile.getName() + " in Pool " + poolNum + ", read count may be inaccurate: " + same.getMessage());
+                _logger.error("Error parsing {} in Pool {}, read count may be inaccurate: {}", fastqFile.getName(), poolNum, same.getMessage());
                 reader.close();
                 return totalReads;
             }
         }
 
-        _logger.info("Finished parsing file: " + fastqFile.getName());
+        _logger.info("Finished parsing file: {}", fastqFile.getName());
 
         reader.close();
 

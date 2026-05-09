@@ -125,7 +125,7 @@ public class IlluminaFastqParser
             long length = f.length();
             if (length == 0)
             {
-                _logger.info("File " + f.getName() + " has no content to parse.");
+                _logger.info("File {} has no content to parse.", f.getName());
                 continue;
             }
 
@@ -138,10 +138,10 @@ public class IlluminaFastqParser
                 // good way to check if a file is truly local
                 tempFile = FileUtil.createTempFile(FileUtil.getBaseName(f) + ".", "." + FileUtil.getExtension(f));
                 tempFile.deleteOnExit();
-                _logger.debug("Copying to temp file " + tempFile + ", size is " + f.length() + " bytes");
+                _logger.debug("Copying to temp file {}, size is {} bytes", tempFile, f.length());
                 FileUtil.copyFile(f, tempFile);
 
-                _logger.info("Beginning to parse file: " + f.getName());
+                _logger.info("Beginning to parse file: {}", f.getName());
                 try (FastqReader reader = new FastqReader(tempFile))
                 {
                     File targetDir = f.getParentFile();
@@ -197,7 +197,7 @@ public class IlluminaFastqParser
                     }
                     else if (reader.getLineNumber() == 1 && totalReads == 0 && !f.getName().contains("null"))//empty file
                     {
-                        _logger.warn("File " + fileName + " has no content to parse.");
+                        _logger.warn("File {} has no content to parse.", fileName);
                         reader.close();
                         continue;
                     }
@@ -223,7 +223,7 @@ public class IlluminaFastqParser
                         Pair<Integer, Integer> key = Pair.of(sampleId, pairNumber);
                         _fileInfo.put(key, new FileInfo(newFile, totalReads));
 
-                        _logger.info("Finished parsing file: " + f.getName());
+                        _logger.info("Finished parsing file: {}", f.getName());
                     }
                 }
             }
@@ -252,7 +252,7 @@ public class IlluminaFastqParser
                 File oldFile = entry.getKey();
                 File newFile = entry.getValue();
                 FileUtils.moveFile(oldFile, newFile);
-                _logger.info("Moved file " + oldFile.getName() + " to " + newFile.getName() );
+                _logger.info("Moved file {} to {}", oldFile.getName(), newFile.getName());
             }
         }
         catch (IOException e)
@@ -317,7 +317,7 @@ public class IlluminaFastqParser
             if (sourceFiles.size() > 1)
             {
                 error = true;
-                _logger.error("Multiple input files map to the target file " + targetFile + " - they are: " + sourceFiles);
+                _logger.error("Multiple input files map to the target file {} - they are: {}", targetFile, sourceFiles);
             }
         }
         if (error)

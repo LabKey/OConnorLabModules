@@ -114,7 +114,7 @@ public class PacBioTest extends GenotypingBaseTest
         DataRegionTable reads = new DataRegionTable("Reads", this);
         List<String> realRow = reads.getRowDataAsText(importCount);
         List<String> correctRow = new ArrayList<>();
-        correctRow.add(realRow.get(0));
+        correctRow.add(realRow.getFirst());
         correctRow.addAll(poolMap.get(importCount));
         assertEquals("Imported data doesn't match expected for (0-based count) import " + importCount, correctRow, realRow);
     }
