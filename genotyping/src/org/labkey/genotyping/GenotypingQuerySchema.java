@@ -17,8 +17,8 @@ package org.labkey.genotyping;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.collections.Sets;
 import org.labkey.api.data.*;
@@ -952,7 +952,7 @@ public class GenotypingQuerySchema extends UserSchema
     }
 
     @Override
-    public QueryView createView(ViewContext context, QuerySettings settings, BindException errors)
+    public @NotNull QueryView createView(ViewContext context, QuerySettings settings, BindException errors)
     {
         TableType type = findTableType(settings.getQueryName());
         return type == null ? super.createView(context, settings, errors) : type.createQueryView(context, settings, errors, this);

@@ -16,6 +16,7 @@
 package org.labkey.oconnorexperiments.query;
 
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.collections.Sets;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerFilter;
@@ -139,7 +140,7 @@ public class OConnorExperimentsUserSchema extends UserSchema
     }
 
     @Override
-    public QueryView createView(ViewContext context, QuerySettings settings, BindException errors)
+    public @NotNull QueryView createView(ViewContext context, QuerySettings settings, BindException errors)
     {
         if (OConnorExperimentsController.EXPERIMENTS.equalsIgnoreCase(settings.getQueryName()))
         {

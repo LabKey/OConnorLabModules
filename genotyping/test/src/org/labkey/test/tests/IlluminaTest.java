@@ -43,7 +43,6 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipFile;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @Category({CustomModules.class, OConnor.class})
 @BaseWebDriverTest.ClassTimeout(minutes = 8)
@@ -187,7 +186,7 @@ public class IlluminaTest extends GenotypingBaseTest
             }
 
             int expectedLength = 1088;
-            assertTrue("Length of file doesn't match expected value of " + expectedLength + ", was: " + count, count == expectedLength);
+            assertEquals("Length of file doesn't match expected value of " + expectedLength + ", was: " + count, count, expectedLength);
         }
     }
 

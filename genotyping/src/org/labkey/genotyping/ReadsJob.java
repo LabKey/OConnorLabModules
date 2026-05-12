@@ -85,7 +85,7 @@ public abstract class ReadsJob extends PipelineJob
             }
             catch (RuntimeSQLException e)
             {
-                getLogger().error("Run " + _run.getMetaDataId() + " has already been processed");
+                getLogger().error("Run {} has already been processed", _run.getMetaDataId());
                 return;
             }
         }

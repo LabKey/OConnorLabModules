@@ -49,7 +49,6 @@ import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.vfs.FileLike;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,7 +74,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
     {
         if (!dataFile.exists())
         {
-            log.warn("Could not find file " + dataFile + " on disk for data with LSID " + data.getLSID());
+            log.warn("Could not find file {} on disk for data with LSID {}", dataFile, data.getLSID());
             return;
         }
         ExpRun expRun = data.getRun();
@@ -226,7 +225,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
                 {
                     throw new ExperimentException("Unable to insert a row into the Animal table for " + animalKey);
                 }
-                row.put("rowid", insertedRow.get(0).get("RowId"));
+                row.put("rowid", insertedRow.getFirst().get("RowId"));
             }
         }
 
@@ -299,7 +298,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
                 {
                     throw new ExperimentException("Unable to insert a row into the Haplotype table for " + haplotypeName);
                 }
-                row.put("rowid", insertedRow.get(0).get("RowId"));
+                row.put("rowid", insertedRow.getFirst().get("RowId"));
             }
         }
 
@@ -462,7 +461,7 @@ public class HaplotypeDataHandler extends AbstractExperimentDataHandler
     {
         if (errors.hasErrors())
         {
-            throw new ExperimentException(errors.getRowErrors().get(0));
+            throw new ExperimentException(errors.getRowErrors().getFirst());
         }
     }
 

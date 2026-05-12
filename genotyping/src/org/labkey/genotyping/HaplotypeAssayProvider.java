@@ -55,7 +55,6 @@ import org.labkey.api.view.HttpView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.ViewContext;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;

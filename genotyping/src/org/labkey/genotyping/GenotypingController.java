@@ -125,7 +125,6 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -381,7 +380,7 @@ public class GenotypingController extends SpringActionController
         {
             long startTime = System.currentTimeMillis();
             SequenceManager.get().loadSequences(getContainer(), getUser());
-            LOG.info(DateUtil.formatDuration(System.currentTimeMillis() - startTime) + " to load sequences");
+            LOG.info("{} to load sequences", DateUtil.formatDuration(System.currentTimeMillis() - startTime));
 
             return true;
         }
@@ -1299,7 +1298,7 @@ public class GenotypingController extends SpringActionController
         @Override
         public Object execute(ImportAnalysisForm form, BindException errors) throws Exception
         {
-            LOG.info("Galaxy signaled the completion of analysis " + form.getAnalysis());
+            LOG.info("Galaxy signaled the completion of analysis {}", form.getAnalysis());
             String message;
 
             // Send any exceptions back to the Galaxy task so it can log it as well.
@@ -1337,7 +1336,7 @@ public class GenotypingController extends SpringActionController
                 message = FAILURE_PREFACE + "Analysis path doesn't match import path (see system log for more details)";
 
                 // But log more detail to the administrator so they're aware
-                LOG.error(FAILURE_PREFACE + fnf.getMessage());
+                LOG.error("{}{}", FAILURE_PREFACE, fnf.getMessage());
             }
             catch (Exception e)
             {
@@ -1657,11 +1656,6 @@ public class GenotypingController extends SpringActionController
         public enum Platforms{
 
             LS454 {
-                @Override
-                public String getTableName()
-                {
-                    return TableType.Reads.toString();
-                }
             },
             ILLUMINA {
                 @Override

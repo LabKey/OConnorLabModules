@@ -26,8 +26,6 @@ import org.labkey.test.categories.CustomModules;
 import org.labkey.test.categories.OConnor;
 import org.openqa.selenium.NoSuchElementException;
 
-import java.io.File;
-
 @Category({CustomModules.class, OConnor.class})
 @BaseWebDriverTest.ClassTimeout(minutes = 9)
 public class GenotypingTest extends GenotypingBaseTest

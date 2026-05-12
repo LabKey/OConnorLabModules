@@ -17,7 +17,6 @@ package org.labkey.genotyping;
 
 import org.labkey.api.collections.IntHashMap;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**

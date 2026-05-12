@@ -153,7 +153,7 @@ public class GalaxyServer
 
         assert 1 == list.size();
 
-        return list.get(0);
+        return list.getFirst();
     }
 
 
