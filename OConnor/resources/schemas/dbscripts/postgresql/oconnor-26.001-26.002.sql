@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 LabKey Corporation
+ *
+ * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
+ */
 -- Dropping key [key] because it overlaps with inventorytemp_pkey [key]
 DROP INDEX oconnor.key;
 -- Dropping experiment_db_experiment_number_key [experiment_number] because it overlaps with pk_experiment_db [experiment_number]
