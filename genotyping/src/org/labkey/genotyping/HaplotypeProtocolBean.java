@@ -22,22 +22,7 @@ import org.labkey.api.exp.api.ExpProtocol;
  * Date: 12/14/12
  */
 
-public class HaplotypeProtocolBean
+public record HaplotypeProtocolBean(HaplotypeDataCollector<?> dataCollector, ExpProtocol protocol)
 {
-    private final HaplotypeDataCollector dataCollector;
-    private final ExpProtocol protocol;
-
-    public HaplotypeProtocolBean(HaplotypeDataCollector dataCollector, ExpProtocol protocol){
-        this.dataCollector = dataCollector;
-        this.protocol = protocol;
-    }
-
-    public HaplotypeDataCollector getDataCollector(){
-        return dataCollector;
-    }
-
-    public ExpProtocol getProtocol(){
-        return protocol;
-    }
 
 }

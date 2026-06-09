@@ -20,8 +20,8 @@ import htsjdk.samtools.fastq.FastqRecord;
 import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Before;
@@ -57,10 +57,6 @@ import java.util.Set;
  * This is designed to parse the FASTQ files produced by a single run on an Illumina instrument and produce one gzipped FASTQ
  * for each sample in that run.  Parsing that CSV file to obtain the sample list is upstream of this class.
  * It is designed to be called from a pipeline job, although it should not need to be.
- *
- * User: bbimber
- * Date: 4/18/12
- * Time: 11:35 AM
  */
 public class IlluminaFastqParser
 {
@@ -350,7 +346,7 @@ public class IlluminaFastqParser
                 return fileName + " has " + readCount + " reads, while its pair file is empty and has 0 reads.";
         }
         else
-            m.put(fileNameWithoutPairingInfo, Integer.valueOf(readCount));
+            m.put(fileNameWithoutPairingInfo, readCount);
 
         return null;
 
