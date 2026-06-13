@@ -71,7 +71,6 @@
             <input type="hidden" name="platform" value="<%=bean.getPlatform()%>">
             <input type="hidden" name="pipeline" value="1">
             <input type="hidden" name="readsPath" value="<%=h(bean.getReadsPath())%>">
-            <input type="hidden" name="analyze" value="0">
         </td></tr>
         <tr><td><%= button("Import Reads").submit(true) %>
             <%=platform == SEQUENCE_PLATFORMS.LS454 ? button("Import Reads And Analyze").submit(true).onClick("document.importReads.analyze.value=1;") : HtmlString.EMPTY_STRING%>

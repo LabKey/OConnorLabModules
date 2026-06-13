@@ -99,9 +99,6 @@ import org.labkey.api.view.WebPartView;
 import org.labkey.api.view.template.PageConfig;
 import org.labkey.genotyping.GenotypingManager.SEQUENCE_PLATFORMS;
 import org.labkey.genotyping.GenotypingQuerySchema.TableType;
-import org.labkey.genotyping.galaxy.GalaxyFolderSettings;
-import org.labkey.genotyping.galaxy.GalaxyManager;
-import org.labkey.genotyping.galaxy.GalaxyUserSettings;
 import org.labkey.genotyping.sequences.FastqGenerator;
 import org.labkey.genotyping.sequences.FastqWriter;
 import org.labkey.genotyping.sequences.SequenceManager;
@@ -115,9 +112,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.math.BigInteger;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
@@ -394,9 +388,8 @@ public class GenotypingController extends SpringActionController
 
 
     // TODO: Annotate getters with @Nullable
-    public static class AdminForm extends ReturnUrlForm implements GenotypingFolderSettings, GalaxyFolderSettings, HasViewContext
+    public static class AdminForm extends ReturnUrlForm implements GenotypingFolderSettings, HasViewContext
     {
-        private String _galaxyURL;
         private String _sequencesQuery;
         private String _runsQuery;
         private String _samplesQuery;
@@ -413,27 +406,12 @@ public class GenotypingController extends SpringActionController
             _runsQuery = genotypingSettings.getRunsQuery();
             _samplesQuery = genotypingSettings.getSamplesQuery();
             _haplotypesQuery = genotypingSettings.getHaplotypesQuery();
-
-            GalaxyFolderSettings galaxySettings = GalaxyManager.get().getSettings(c);
-            _galaxyURL = galaxySettings.getGalaxyURL();
         }
 
         @Override
         public ViewContext getViewContext()
         {
             throw new IllegalStateException();
-        }
-
-        @Override
-        public @Nullable String getGalaxyURL()
-        {
-            return _galaxyURL;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setGalaxyURL(@Nullable String galaxyURL)
-        {
-            _galaxyURL = galaxyURL;
         }
 
         @Override
@@ -519,20 +497,6 @@ public class GenotypingController extends SpringActionController
         @Override
         public void validateCommand(AdminForm form, Errors errors)
         {
-            String galaxyUrl = form.getGalaxyURL();
-
-            // Allow null, #11130
-            if (null != galaxyUrl)
-            {
-                try
-                {
-                    new URL(galaxyUrl);
-                }
-                catch (MalformedURLException e)
-                {
-                    errors.reject(ERROR_MSG, "Invalid Galaxy URL");
-                }
-            }
         }
 
         @Override
@@ -560,7 +524,6 @@ public class GenotypingController extends SpringActionController
         {
             // Save both the genotyping settings and Galaxy configuration settings
             GenotypingManager.get().saveSettings(getContainer(), form);
-            GalaxyManager.get().saveSettings(getContainer(), form);
             return true;
         }
 
@@ -654,124 +617,11 @@ public class GenotypingController extends SpringActionController
         }
     }
 
-    public static class MySettingsForm extends ReturnUrlForm implements GalaxyUserSettings, HasViewContext
-    {
-        private String _galaxyKey;
-
-        @Override
-        public void setViewContext(ViewContext context)
-        {
-            Container c = context.getContainer();
-            User user = context.getUser();
-            GalaxyUserSettings settings = GalaxyManager.get().getUserSettings(c, user);
-            _galaxyKey = settings.getGalaxyKey();
-        }
-
-        @Override
-        public ViewContext getViewContext()
-        {
-            throw new IllegalStateException();
-        }
-
-        @Override
-        public String getGalaxyKey()
-        {
-            return _galaxyKey;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setGalaxyKey(String galaxyKey)
-        {
-            _galaxyKey = galaxyKey;
-        }
-    }
-
-
-    public static ActionURL getMySettingsURL(Container c, ActionURL returnUrl)
-    {
-        ActionURL url = new ActionURL(MySettingsAction.class, c);
-        url.addReturnUrl(returnUrl);
-        return url;
-    }
-
-
-    @RequiresPermission(ReadPermission.class)
-    public static class MySettingsAction extends FormViewAction<MySettingsForm>
-    {
-        @Override
-        public void validateCommand(MySettingsForm form, Errors errors)
-        {
-            String key = form.getGalaxyKey();
-
-            if (null == key)
-            {
-                errors.reject(ERROR_MSG, "Please provide a Galaxy web API key. To generate this, log into your Galaxy server and visit User -> Preferences -> Manage your information.");
-            }
-            else
-            {
-                key = key.trim();
-                String advice = " Please copy the web API key from your Galaxy server account (User -> Preferences -> Manage your information) and paste it below.";
-
-                if (key.length() != 32)
-                {
-                    errors.reject(ERROR_MSG, "Galaxy web API key is the wrong length." + advice);
-                }
-                else
-                {
-                    boolean success = false;
-
-                    try
-                    {
-                        BigInteger bi = new BigInteger(key, 16);
-                        String hex = bi.toString(16);
-
-                        if (hex.equalsIgnoreCase(key))
-                            success = true;
-                    }
-                    catch (NumberFormatException e)
-                    {
-                        // Error below
-                    }
-
-                    if (!success)
-                        errors.reject(ERROR_MSG, "Galaxy web API key is not valid hexadecimal." + advice);
-                }
-            }
-        }
-
-        @Override
-        public ModelAndView getView(MySettingsForm form, boolean reshow, BindException errors)
-        {
-            return new JspView<>("/org/labkey/genotyping/view/mySettings.jsp", form, errors);
-        }
-
-        @Override
-        public boolean handlePost(MySettingsForm form, BindException errors)
-        {
-            GalaxyManager.get().saveUserSettings(getContainer(), getUser(), form);
-            return true;
-        }
-
-        @Override
-        public URLHelper getSuccessURL(MySettingsForm form)
-        {
-            return form.getReturnUrlHelper();
-        }
-
-        @Override
-        public void addNavTrail(NavTree root)
-        {
-            root.addChild("My Galaxy Settings");
-        }
-    }
-
-
     public static class ImportReadsForm extends PipelinePathForm
     {
         private String _readsPath;
         private Integer _run;
         private Integer _metaDataRun = null;
-        private boolean _analyze = false;
         private boolean _pipeline = false;
         private String _platform;
         private String _prefix;
@@ -838,17 +688,6 @@ public class GenotypingController extends SpringActionController
         public void setMetaDataRun(Integer metaDataRun)
         {
             _metaDataRun = metaDataRun;
-        }
-
-        public boolean getAnalyze()
-        {
-            return _analyze;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setAnalyze(boolean analyze)
-        {
-            _analyze = analyze;
         }
 
         public boolean getPipeline()
@@ -993,7 +832,7 @@ public class GenotypingController extends SpringActionController
                 return true;
             }
 
-            _successURL = PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());;
+            _successURL = PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
 
             return true;
         }
