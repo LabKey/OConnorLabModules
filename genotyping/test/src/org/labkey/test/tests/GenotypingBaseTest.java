@@ -92,13 +92,8 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest implements Po
         }
         if (configureSequences)
         {
-            setFormElement(Locator.name("galaxyURL"), "http://galaxy.labkey.org:8080");
             clickButton("Submit");
             clickButton("Load Sequences");
-
-            log("Configure Galaxy Server Key");
-            clickAndWait(Locator.linkWithText("My Settings"));
-            setFormElement(Locator.name("galaxyKey"), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         }
         clickButton("Submit");
     }
