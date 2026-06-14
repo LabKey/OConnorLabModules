@@ -90,12 +90,11 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest implements Po
                 _extHelper.waitForExt3MaskToDisappear(WAIT_FOR_JAVASCRIPT);
             }
         }
+        clickButton("Submit");
         if (configureSequences)
         {
-            clickButton("Submit");
             clickButton("Load Sequences");
         }
-        clickButton("Submit");
     }
 
     @Override
