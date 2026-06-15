@@ -73,7 +73,7 @@
             <input type="hidden" name="readsPath" value="<%=h(bean.getReadsPath())%>">
         </td></tr>
         <tr><td><%= button("Import Reads").submit(true) %>
-            <%=platform == SEQUENCE_PLATFORMS.LS454 ? button("Import Reads And Analyze").submit(true).onClick("document.importReads.analyze.value=1;") : HtmlString.EMPTY_STRING%>
+            <%=platform == SEQUENCE_PLATFORMS.LS454 ? button("Import Reads And Analyze").submit(true) : HtmlString.EMPTY_STRING%>
         </td></tr>
     </table>
 </form>
