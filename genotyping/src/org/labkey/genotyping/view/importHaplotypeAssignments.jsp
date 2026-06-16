@@ -28,7 +28,7 @@
 <%
     JspView<HaplotypeProtocolBean> me = HttpView.currentView();
     HaplotypeProtocolBean bean = me.getModelBean();
-    HaplotypeDataCollector dataCollector = bean.getDataCollector();
+    HaplotypeDataCollector dataCollector = bean.dataCollector();
     String[] reshowData = {};
     if (dataCollector.getReshowValue("data") != null && !dataCollector.getReshowValue("data").isEmpty())
     {
@@ -42,7 +42,7 @@
 <script type="text/javascript" nonce="<%=getScriptNonce()%>">
     var expectedHeaders = [];
     <%
-    for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties(bean.getProtocol()).entrySet())
+    for (Map.Entry<String, HaplotypeColumnMappingProperty> property : HaplotypeAssayProvider.getColumnMappingProperties(bean.protocol()).entrySet())
     {
         %>expectedHeaders.push({name: '<%=h(property.getKey())%>', label: '<%=h(property.getValue().getLabel())%>', reshowValue: '<%=h(dataCollector.getReshowValue(property.getKey()))%>', required: <%=property.getValue().isRequired()%>});<%
     }
