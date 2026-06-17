@@ -102,7 +102,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
     @Override
     public @Nullable TableInfo createDataTable(ContainerFilter cf, boolean includeCopiedToStudyColumns)
     {
-        FilteredTable<?> table = (FilteredTable)new GenotypingQuerySchema(getUser(), getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name(), cf,true, true);
+        FilteredTable<?> table = (FilteredTable<?>)new GenotypingQuerySchema(getUser(), getContainer()).getTable(GenotypingQuerySchema.TableType.AnimalAnalysis.name(), cf,true, true);
         List<FieldKey> keys = new ArrayList<>(table.getDefaultVisibleColumns());
         HashSet<String> defaults = HaplotypeAssayProvider.getDefaultColumns();
         List<? extends DomainProperty> props = HaplotypeAssayProvider.getDomainProps(getProtocol());
@@ -147,14 +147,15 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
 
         String field = prop.getName();
         String label = prop.getLabel() != null ? prop.getLabel() : ColumnInfo.labelFromName(prop.getName());
-        String type = field.substring(0, prop.getName().length()-1).replaceAll("Haplotype", ""); //ColumnInfo.labelFromName(prop.getName()).split(" ")[0];
+        String type = field.substring(0, prop.getName().length()-1).replace("Haplotype", ""); //ColumnInfo.labelFromName(prop.getName()).split(" ")[0];
 
         SQLFragment sql = new SQLFragment("(SELECT ");
         sql.append("min");
         sql.append("(x.Haplotype) FROM (");
         sql.append(selectStatement);
-        sql.append(") AS x WHERE x.DiploidNumber = ? AND x.Type = '" + type + "' AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
+        sql.append(") AS x WHERE x.DiploidNumber = ? AND x.Type = ? AND x.AnimalAnalysisId = " + ExprColumn.STR_TABLE_ALIAS + ".RowID)");
         sql.add(max ? 2 : 1);
+        sql.add(type);
         ExprColumn column = new ExprColumn(table, field, sql, JdbcType.VARCHAR);
         TableInfo haplotypeDetailsTableInfo = getHaplotypeDetailsTableInfo();
         if (haplotypeDetailsTableInfo != null && haplotypeDetailsTableInfo.getGridURL(getContainer()) != null)
@@ -180,8 +181,7 @@ public class HaplotypeProtocolSchema extends AssayProtocolSchema
             {
                 DataView result = super.createDataView();
                 DataRegion rgn = result.getDataRegion();
-
-                ButtonBar bar = result.getDataRegion().getButtonBar(DataRegion.MODE_GRID);
+                ButtonBar bar = rgn.getButtonBar(DataRegion.MODE_GRID);
                 if (!bar.isLocked())
                 {
                     ActionButton reportButton = new ActionButton(GenotypingController.HaplotypeAssignmentReportAction.class, "Produce Report");
