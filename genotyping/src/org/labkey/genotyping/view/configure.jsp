@@ -116,9 +116,6 @@
         <tr><td colspan="3"><span style="color:green;"><%=h(form.getMessage())%></span></td></tr>
         <tr><td colspan=3>&nbsp;</td></tr>
         <%  } %>
-        <tr><td><b>Configure Galaxy</b></td></tr>
-        <tr><td>Galaxy server home page URL</td><td><input size="40" name="galaxyURL" value="<%=h(form.getGalaxyURL())%>"></td></tr>
-        <tr><td>&nbsp;</td></tr>
         <tr><td><b>Configure Genotyping Queries</b></td></tr>
         <tr>
             <td>External source of DNA reference sequences&nbsp;&nbsp;</td>
