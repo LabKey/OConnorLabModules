@@ -25,7 +25,6 @@ import org.labkey.api.action.ExportAction;
 import org.labkey.api.action.FormHandlerAction;
 import org.labkey.api.action.FormViewAction;
 import org.labkey.api.action.HasViewContext;
-import org.labkey.api.action.MutatingApiAction;
 import org.labkey.api.action.QueryViewAction;
 import org.labkey.api.action.QueryViewAction.QueryExportForm;
 import org.labkey.api.action.ReturnUrlForm;
@@ -40,9 +39,11 @@ import org.labkey.api.assay.actions.AssayHeaderView;
 import org.labkey.api.assay.actions.AssayRunsAction;
 import org.labkey.api.assay.actions.BaseAssayAction;
 import org.labkey.api.assay.actions.ProtocolIdForm;
+import org.labkey.api.audit.AuditLogService;
+import org.labkey.api.audit.AuditTypeEvent;
+import org.labkey.api.audit.provider.ContainerAuditProvider;
 import org.labkey.api.data.ActionButton;
 import org.labkey.api.data.ButtonBar;
-import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DataRegion;
 import org.labkey.api.data.DataRegionSelection;
@@ -66,19 +67,14 @@ import org.labkey.api.pipeline.PipelineUrls;
 import org.labkey.api.pipeline.PipelineValidationException;
 import org.labkey.api.pipeline.browse.PipelinePathForm;
 import org.labkey.api.portal.ProjectUrls;
-import org.labkey.api.query.CustomView;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QuerySettings;
 import org.labkey.api.query.QueryView;
 import org.labkey.api.query.UserSchema;
-import org.labkey.api.security.CSRF;
 import org.labkey.api.security.IgnoresTermsOfUse;
-import org.labkey.api.security.RequiresNoPermission;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.User;
-import org.labkey.api.security.UserManager;
-import org.labkey.api.security.ValidEmail;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.DeletePermission;
 import org.labkey.api.security.permissions.InsertPermission;
@@ -88,13 +84,11 @@ import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.MinorConfigurationException;
 import org.labkey.api.util.PageFlowUtil;
-import org.labkey.api.util.Pair;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.util.logging.LogHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.DataView;
 import org.labkey.api.view.DetailsView;
-import org.labkey.api.view.HttpView;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.labkey.api.view.NotFoundException;
@@ -105,9 +99,6 @@ import org.labkey.api.view.WebPartView;
 import org.labkey.api.view.template.PageConfig;
 import org.labkey.genotyping.GenotypingManager.SEQUENCE_PLATFORMS;
 import org.labkey.genotyping.GenotypingQuerySchema.TableType;
-import org.labkey.genotyping.galaxy.GalaxyFolderSettings;
-import org.labkey.genotyping.galaxy.GalaxyManager;
-import org.labkey.genotyping.galaxy.GalaxyUserSettings;
 import org.labkey.genotyping.sequences.FastqGenerator;
 import org.labkey.genotyping.sequences.FastqWriter;
 import org.labkey.genotyping.sequences.SequenceManager;
@@ -121,24 +112,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -352,6 +337,13 @@ public class GenotypingController extends SpringActionController
             try
             {
                 _count = GenotypingManager.get().deleteMatches(getContainer(), getUser(), form.getAnalysis(), matchIds);
+
+                if (_count > 0)
+                {
+                    AuditTypeEvent event = new AuditTypeEvent(ContainerAuditProvider.CONTAINER_AUDIT_EVENT, getContainer(),
+                            "Deleted " + _count + " genotyping match(es) from analysis " + form.getAnalysis() + ": " + matchIds);
+                    AuditLogService.get().addEvent(getUser(), event);
+                }
             }
             catch (IllegalStateException e)
             {
@@ -396,9 +388,8 @@ public class GenotypingController extends SpringActionController
 
 
     // TODO: Annotate getters with @Nullable
-    public static class AdminForm extends ReturnUrlForm implements GenotypingFolderSettings, GalaxyFolderSettings, HasViewContext
+    public static class AdminForm extends ReturnUrlForm implements GenotypingFolderSettings, HasViewContext
     {
-        private String _galaxyURL;
         private String _sequencesQuery;
         private String _runsQuery;
         private String _samplesQuery;
@@ -415,27 +406,12 @@ public class GenotypingController extends SpringActionController
             _runsQuery = genotypingSettings.getRunsQuery();
             _samplesQuery = genotypingSettings.getSamplesQuery();
             _haplotypesQuery = genotypingSettings.getHaplotypesQuery();
-
-            GalaxyFolderSettings galaxySettings = GalaxyManager.get().getSettings(c);
-            _galaxyURL = galaxySettings.getGalaxyURL();
         }
 
         @Override
         public ViewContext getViewContext()
         {
             throw new IllegalStateException();
-        }
-
-        @Override
-        public @Nullable String getGalaxyURL()
-        {
-            return _galaxyURL;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setGalaxyURL(@Nullable String galaxyURL)
-        {
-            _galaxyURL = galaxyURL;
         }
 
         @Override
@@ -521,20 +497,6 @@ public class GenotypingController extends SpringActionController
         @Override
         public void validateCommand(AdminForm form, Errors errors)
         {
-            String galaxyUrl = form.getGalaxyURL();
-
-            // Allow null, #11130
-            if (null != galaxyUrl)
-            {
-                try
-                {
-                    new URL(galaxyUrl);
-                }
-                catch (MalformedURLException e)
-                {
-                    errors.reject(ERROR_MSG, "Invalid Galaxy URL");
-                }
-            }
         }
 
         @Override
@@ -562,7 +524,6 @@ public class GenotypingController extends SpringActionController
         {
             // Save both the genotyping settings and Galaxy configuration settings
             GenotypingManager.get().saveSettings(getContainer(), form);
-            GalaxyManager.get().saveSettings(getContainer(), form);
             return true;
         }
 
@@ -656,124 +617,11 @@ public class GenotypingController extends SpringActionController
         }
     }
 
-    public static class MySettingsForm extends ReturnUrlForm implements GalaxyUserSettings, HasViewContext
-    {
-        private String _galaxyKey;
-
-        @Override
-        public void setViewContext(ViewContext context)
-        {
-            Container c = context.getContainer();
-            User user = context.getUser();
-            GalaxyUserSettings settings = GalaxyManager.get().getUserSettings(c, user);
-            _galaxyKey = settings.getGalaxyKey();
-        }
-
-        @Override
-        public ViewContext getViewContext()
-        {
-            throw new IllegalStateException();
-        }
-
-        @Override
-        public String getGalaxyKey()
-        {
-            return _galaxyKey;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setGalaxyKey(String galaxyKey)
-        {
-            _galaxyKey = galaxyKey;
-        }
-    }
-
-
-    public static ActionURL getMySettingsURL(Container c, ActionURL returnUrl)
-    {
-        ActionURL url = new ActionURL(MySettingsAction.class, c);
-        url.addReturnUrl(returnUrl);
-        return url;
-    }
-
-
-    @RequiresPermission(ReadPermission.class)
-    public static class MySettingsAction extends FormViewAction<MySettingsForm>
-    {
-        @Override
-        public void validateCommand(MySettingsForm form, Errors errors)
-        {
-            String key = form.getGalaxyKey();
-
-            if (null == key)
-            {
-                errors.reject(ERROR_MSG, "Please provide a Galaxy web API key. To generate this, log into your Galaxy server and visit User -> Preferences -> Manage your information.");
-            }
-            else
-            {
-                key = key.trim();
-                String advice = " Please copy the web API key from your Galaxy server account (User -> Preferences -> Manage your information) and paste it below.";
-
-                if (key.length() != 32)
-                {
-                    errors.reject(ERROR_MSG, "Galaxy web API key is the wrong length." + advice);
-                }
-                else
-                {
-                    boolean success = false;
-
-                    try
-                    {
-                        BigInteger bi = new BigInteger(key, 16);
-                        String hex = bi.toString(16);
-
-                        if (hex.equalsIgnoreCase(key))
-                            success = true;
-                    }
-                    catch (NumberFormatException e)
-                    {
-                        // Error below
-                    }
-
-                    if (!success)
-                        errors.reject(ERROR_MSG, "Galaxy web API key is not valid hexadecimal." + advice);
-                }
-            }
-        }
-
-        @Override
-        public ModelAndView getView(MySettingsForm form, boolean reshow, BindException errors)
-        {
-            return new JspView<>("/org/labkey/genotyping/view/mySettings.jsp", form, errors);
-        }
-
-        @Override
-        public boolean handlePost(MySettingsForm form, BindException errors)
-        {
-            GalaxyManager.get().saveUserSettings(getContainer(), getUser(), form);
-            return true;
-        }
-
-        @Override
-        public URLHelper getSuccessURL(MySettingsForm form)
-        {
-            return form.getReturnUrlHelper();
-        }
-
-        @Override
-        public void addNavTrail(NavTree root)
-        {
-            root.addChild("My Galaxy Settings");
-        }
-    }
-
-
     public static class ImportReadsForm extends PipelinePathForm
     {
         private String _readsPath;
         private Integer _run;
         private Integer _metaDataRun = null;
-        private boolean _analyze = false;
         private boolean _pipeline = false;
         private String _platform;
         private String _prefix;
@@ -840,17 +688,6 @@ public class GenotypingController extends SpringActionController
         public void setMetaDataRun(Integer metaDataRun)
         {
             _metaDataRun = metaDataRun;
-        }
-
-        public boolean getAnalyze()
-        {
-            return _analyze;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setAnalyze(boolean analyze)
-        {
-            _analyze = analyze;
         }
 
         public boolean getPipeline()
@@ -995,9 +832,7 @@ public class GenotypingController extends SpringActionController
                 return true;
             }
 
-            // Successful submission via the UI... redirect either to the pipeline status grid or analyze action
-            ActionURL pipelineURL = PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
-            _successURL = form.getAnalyze() ? getAnalyzeURL(form.getRun(), pipelineURL) : pipelineURL;
+            _successURL = PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
 
             return true;
         }
@@ -1057,327 +892,6 @@ public class GenotypingController extends SpringActionController
         public void addNavTrail(NavTree root)
         {
             root.addChild("Import Reads");
-        }
-    }
-
-
-    public static class AnalyzeForm extends ReturnUrlForm
-    {
-        private int _run;
-        private String _sequencesView;
-        private String _description;
-        private String _samples;
-
-        public int getRun()
-        {
-            return _run;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setRun(int run)
-        {
-            _run = run;
-        }
-
-        public String getSequencesView()
-        {
-            return _sequencesView;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setSequencesView(String sequencesView)
-        {
-            _sequencesView = sequencesView;
-        }
-
-        public String getDescription()
-        {
-            return _description;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setDescription(String description)
-        {
-            _description = description;
-        }
-
-        public String getSamples()
-        {
-            return _samples;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setSamples(String samples)
-        {
-            _samples = samples;
-        }
-    }
-
-
-    private ActionURL getAnalyzeURL(int runId, ActionURL cancelURL)
-    {
-        ActionURL url = new ActionURL(AnalyzeAction.class, getContainer());
-        url.addParameter("run", runId);
-        url.addReturnUrl(cancelURL);
-        return url;
-    }
-
-
-    @RequiresPermission(InsertPermission.class)
-    public static class AnalyzeAction extends FormViewAction<AnalyzeForm>
-    {
-        @Override
-        public void validateCommand(AnalyzeForm target, Errors errors)
-        {
-        }
-
-        @Override
-        public ModelAndView getView(AnalyzeForm form, boolean reshow, BindException errors) throws Exception
-        {
-            GenotypingRun run = GenotypingManager.get().getRun(getContainer(), form.getRun());
-
-            // Verify that galaxy properties are set before submitting job.  This will throw NotFoundException if either URL or web API key isn't set.
-            // 12.1: relax this requirement... allow users to submit jobs without a galaxy server configured or available
-            //GalaxyUtils.get(getContainer(), getUser());
-
-            SortedSet<CustomView> views = new TreeSet<>((c1, c2) ->
-            {
-                String name1 = c1.getName();
-                String name2 = c2.getName();
-
-                return (null == name1 ? DEFAULT_VIEW_PLACEHOLDER : name1).compareTo((null == name2 ? DEFAULT_VIEW_PLACEHOLDER : name2));
-            });
-            GenotypingSchema gs = GenotypingSchema.get();
-            views.addAll(QueryService.get().getCustomViews(getUser(), getContainer(), getUser(), gs.getSchemaName(), gs.getSequencesTable().getName(), false));
-
-            Map<Integer, Pair<String, String>> sampleMap = new TreeMap<>();
-
-            try (Results results = SampleManager.get().selectSamples(getContainer(), getUser(), run, "library_sample_name, library_sample_species, key", "creating an analysis"))
-            {
-                Map<FieldKey, ColumnInfo> fieldMap = results.getFieldMap();
-                ColumnInfo sampleNameColumn = getColumnInfo(fieldMap, "library_sample_name");
-                ColumnInfo sampleSpeciesColumn = getColumnInfo(fieldMap, "library_sample_species");
-                ColumnInfo keyColumn = getColumnInfo(fieldMap, "key");
-
-                while (results.next())
-                {
-                    String sampleName = (String) sampleNameColumn.getValue(results);
-                    String species = (String) sampleSpeciesColumn.getValue(results);
-                    int sampleId = (Integer) keyColumn.getValue(results);
-                    sampleMap.put(sampleId, new Pair<>(sampleName, species));
-                }
-            }
-
-            return new JspView<>("/org/labkey/genotyping/view/analyze.jsp", new AnalyzeBean(views, sampleMap, form.getReturnActionURL()), errors);
-        }
-
-        // Throws NotFoundException if column doesn't exist
-        private ColumnInfo getColumnInfo(Map<FieldKey, ColumnInfo> fieldMap, String columnName)
-        {
-            ColumnInfo column = fieldMap.get(FieldKey.fromString(columnName));
-
-            if (null == column)
-                throw new NotFoundException("Expected to find a column named \"" + columnName + "\" in the samples query");
-
-            return column;
-        }
-
-        @Override
-        public boolean handlePost(AnalyzeForm form, BindException errors) throws Exception
-        {
-            GenotypingRun run = GenotypingManager.get().getRun(getContainer(), form.getRun());
-            if (run == null)
-            {
-                errors.rejectValue("run", ERROR_MSG, "No run found");
-                return false;
-            }
-
-            PipeRoot root = PipelineService.get().findPipelineRoot(getContainer());
-
-            FileLike readsFile = run.getWorkingDir().resolveChild(run.getFileName());
-            ViewBackgroundInfo vbi = new ViewBackgroundInfo(getContainer(), getUser(), getViewContext().getActionURL());
-
-            String sequencesViewName = form.getSequencesView();
-            String description = form.getDescription();
-            String sequencesView = DEFAULT_VIEW_PLACEHOLDER.equals(sequencesViewName) ? null : sequencesViewName;
-            String samples = form.getSamples();
-            if(samples == null)
-            {
-                errors.reject(ERROR_MSG, "Must provide a list of sample IDs");
-                return false;
-            }
-
-            Set<Integer> sampleKeys;
-            String[] keys = samples.split(",");
-            sampleKeys = new HashSet<>(keys.length);
-
-            for (String key : keys)
-                sampleKeys.add(Integer.parseInt(key));
-
-            GenotypingAnalysis analysis = GenotypingManager.get().createAnalysis(getContainer(), getUser(), run, description, sequencesView);
-            try
-            {
-                PipelineJob analysisJob = new SubmitAnalysisJob(vbi, root, readsFile, analysis, sampleKeys);
-                PipelineService.get().queueJob(analysisJob);
-            }
-            catch (MinorConfigurationException e)
-            {
-                errors.reject(ERROR_MSG, e.getMessage());
-                return false;
-            }
-
-            return true;
-        }
-
-        @Override
-        public URLHelper getSuccessURL(AnalyzeForm analyzeForm)
-        {
-            return PageFlowUtil.urlProvider(PipelineUrls.class).urlBegin(getContainer());
-        }
-
-        @Override
-        public void addNavTrail(NavTree root)
-        {
-            root.addChild("Submit Analysis");
-        }
-    }
-
-
-    public static class AnalyzeBean
-    {
-        private final SortedSet<CustomView> _sequencesViews;
-        private final Map<Integer, Pair<String, String>> _sampleMap;
-        private final ActionURL _returnUrl;
-
-        private AnalyzeBean(SortedSet<CustomView> sequenceViews, Map<Integer, Pair<String, String>> sampleMap, ActionURL returnUrl)
-        {
-            _sequencesViews = sequenceViews;
-            _sampleMap = sampleMap;
-            _returnUrl = returnUrl;
-        }
-
-        public SortedSet<CustomView> getSequencesViews()
-        {
-            return _sequencesViews;
-        }
-
-        public Map<Integer, Pair<String, String>> getSampleMap()
-        {
-            return _sampleMap;
-        }
-
-        public ActionURL getReturnUrl()
-        {
-            return _returnUrl;
-        }
-    }
-
-
-    public static ActionURL getWorkflowCompleteURL(Container c, GenotypingAnalysis analysis)
-    {
-        ActionURL url = new ActionURL(WorkflowCompleteAction.class, c);
-        url.addParameter("analysis", analysis.getRowId());
-        url.addParameter("path", analysis.getPath());
-        return url;
-    }
-
-
-    @RequiresNoPermission
-    @CSRF(CSRF.Method.NONE)
-    public class WorkflowCompleteAction extends MutatingApiAction<ImportAnalysisForm>
-    {
-        @Override
-        public void validateForm(ImportAnalysisForm form, Errors errors)
-        {
-            if (null == form.getAnalysis())
-                errors.reject(ERROR_MSG, "Must specify an analysis parameter");
-
-            if (null == form.getPath())
-                errors.reject(ERROR_MSG, "Must specify a path parameter");
-        }
-
-        @Override
-        public Object execute(ImportAnalysisForm form, BindException errors) throws Exception
-        {
-            LOG.info("Galaxy signaled the completion of analysis " + form.getAnalysis());
-            String message;
-
-            // Send any exceptions back to the Galaxy task so it can log it as well.
-            String FAILURE_PREFACE = "Failed to queue import analysis job: ";
-
-            try
-            {
-                FileLike analysisDir = FileSystemLike.getVerifiedFileLike(getContainer(), form.getPath());
-                int analysisId = form.getAnalysis();
-
-                User user = getUser();
-                if (user.isGuest())
-                {
-                    Properties props = GenotypingManager.get().readProperties(analysisDir);
-                    String email = (String)props.get("user");
-
-                    if (null != email)
-                    {
-                        // Possible that user doesn't exist or changed email (e.g., re-loading an old analysis)
-                        User test = UserManager.getUser(new ValidEmail(email));
-
-                        if (null != test)
-                            user = test;
-                    }
-                }
-
-                importAnalysis(analysisId, analysisDir, user);
-                message = "Import analysis job queued at " + new Date();
-            }
-            catch (FileNotFoundException fnf)
-            {
-                // Send back a vague, generic message in the case of all file-not-found-type problems, e.g., specified path is
-                // missing, isn't a directory, lacks a properties.xml file, or doesn't match the analysis table path. This
-                // prevents attackers from gaining any useful information about the file system.  Log the more detailed message.
-                message = FAILURE_PREFACE + "Analysis path doesn't match import path (see system log for more details)";
-
-                // But log more detail to the administrator so they're aware
-                LOG.error(FAILURE_PREFACE + fnf.getMessage());
-            }
-            catch (Exception e)
-            {
-                message = FAILURE_PREFACE + e.getMessage();
-                LOG.error(message);
-            }
-
-            // Plain text response back to Galaxy
-            sendPlainText(message);
-
-            return null;
-        }
-    }
-
-
-    public static class ImportAnalysisForm
-    {
-        private Integer _analysis = null;
-        private String _path = null;
-
-        public Integer getAnalysis()
-        {
-            return _analysis;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setAnalysis(Integer analysis)
-        {
-            _analysis = analysis;
-        }
-
-        public String getPath()
-        {
-            return _path;
-        }
-
-        @SuppressWarnings({"UnusedDeclaration"})
-        public void setPath(String path)
-        {
-            _path = path;
         }
     }
 
@@ -1829,47 +1343,22 @@ public class GenotypingController extends SpringActionController
             if (null == _run)
                 throw new NotFoundException("Run not found");
 
-            final boolean allowAnalysis = GenotypingManager.SEQUENCE_PLATFORMS.LS454.toString().equals(_run.getPlatform());
-
-            ModelAndView readsView;
-            readsView = super.getView(form, errors);
+            ModelAndView readsView = super.getView(form, errors);
 
             // Just return the view in export case
             if (form.isExport())
                 return readsView;
 
             VBox vbox = new VBox();
-            final ActionButton submitAnalysis = new ActionButton("Add Analysis", getAnalyzeURL(_run.getRowId(), getViewContext().getActionURL()));
 
             if (GenotypingManager.get().hasAnalyses(_run))
             {
-                GenotypingAnalysesView analyses = new GenotypingAnalysesView(getViewContext(), null, "Analyses", new SimpleFilter(FieldKey.fromParts("Run"), _run.getRowId()), false) {
-                    @Override
-                    protected void populateButtonBar(DataView view, ButtonBar bar)
-                    {
-                        bar.add(submitAnalysis);
-                    }
-                };
+                GenotypingAnalysesView analyses = new GenotypingAnalysesView(getViewContext(), null, "Analyses", new SimpleFilter(FieldKey.fromParts("Run"), _run.getRowId()), false);
                 analyses.setButtonBarPosition(DataRegion.ButtonBarPosition.TOP);
                 analyses.setTitle("Analyses");
                 analyses.setTitleHref(getAnalysesURL(getContainer()));
                 vbox.addView(analyses);
             }
-            else
-            {
-                vbox.addView(new HttpView() {
-                    @Override
-                    protected void renderInternal(Object model, PrintWriter out) throws Exception
-                    {
-                        if(allowAnalysis)
-                        {
-                            submitAnalysis.render(new RenderContext(getViewContext()), out);
-                            out.println("<br><br>");
-                        }
-                    }
-                });
-            }
-
             vbox.addView(readsView);
 
             return vbox;
@@ -1915,6 +1404,13 @@ public class GenotypingController extends SpringActionController
                 gm.deleteRun(run);
             }
 
+            if (!runs.isEmpty())
+            {
+                AuditTypeEvent event = new AuditTypeEvent(ContainerAuditProvider.CONTAINER_AUDIT_EVENT, getContainer(),
+                        "Deleted " + runs.size() + " genotyping run(s): " + runs);
+                AuditLogService.get().addEvent(getUser(), event);
+            }
+
             return true;
         }
 
@@ -1938,11 +1434,19 @@ public class GenotypingController extends SpringActionController
         public boolean handlePost(Object o, BindException errors) throws Exception
         {
             GenotypingManager gm = GenotypingManager.get();
+            Set<Long> analysisIds = DataRegionSelection.getSelectedIntegers(getViewContext(), true);
 
-            for (Long analysisId : DataRegionSelection.getSelectedIntegers(getViewContext(), true))
+            for (Long analysisId : analysisIds)
             {
                 GenotypingAnalysis analysis = gm.getAnalysis(getContainer(), analysisId);
                 gm.deleteAnalysis(analysis);
+            }
+
+            if (!analysisIds.isEmpty())
+            {
+                AuditTypeEvent event = new AuditTypeEvent(ContainerAuditProvider.CONTAINER_AUDIT_EVENT, getContainer(),
+                        "Deleted " + analysisIds.size() + " genotyping analysis/analyses: " + analysisIds);
+                AuditLogService.get().addEvent(getUser(), event);
             }
 
             return true;

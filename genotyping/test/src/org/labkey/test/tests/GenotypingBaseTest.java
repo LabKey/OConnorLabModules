@@ -90,17 +90,11 @@ abstract public class GenotypingBaseTest extends BaseWebDriverTest implements Po
                 _extHelper.waitForExt3MaskToDisappear(WAIT_FOR_JAVASCRIPT);
             }
         }
+        clickButton("Submit");
         if (configureSequences)
         {
-            setFormElement(Locator.name("galaxyURL"), "http://galaxy.labkey.org:8080");
-            clickButton("Submit");
             clickButton("Load Sequences");
-
-            log("Configure Galaxy Server Key");
-            clickAndWait(Locator.linkWithText("My Settings"));
-            setFormElement(Locator.name("galaxyKey"), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         }
-        clickButton("Submit");
     }
 
     @Override
