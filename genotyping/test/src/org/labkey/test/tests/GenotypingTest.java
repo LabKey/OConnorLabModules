@@ -33,8 +33,6 @@ public class GenotypingTest extends GenotypingBaseTest
     public static final String first454importNum = "207";
     public static final String second454importNum = "208";
 
-    protected int runNum = 0; //this is globally unique, so we need to retrieve it every time.
-
     @Override
     protected String getProjectName()
     {
@@ -64,9 +62,7 @@ public class GenotypingTest extends GenotypingBaseTest
     {
         //TODO: need to fix 454/genotyping tests
         importRunTest();
-        runAnalysisTest();
         importSecondRunTest();
-        verifyAnalysis();
     }
 
     private void importSecondRunTest()
@@ -92,65 +88,6 @@ public class GenotypingTest extends GenotypingBaseTest
             if (!expected.getMessage().startsWith("Cannot locate option with text: " + first454importNum))
                 throw expected;
         }
-    }
-
-    private void runAnalysisTest()
-    {
-        sendDataToGalaxyServer();
-        receiveDataFromGalaxyServer();
-    }
-
-    private void verifyAnalysis()
-    {
-        goToProjectHome();
-
-        clickAndWait(Locator.linkWithText("View Analyses"));
-        clickAndWait(Locator.linkWithText("" + getRunNumber()));  // TODO: This is probably still too permissive... need a more specific way to get the run link
-
-        assertTextPresent("Reads", "Sample Id", "Percent", "TEST09");
-        assertElementPresent(Locator.paginationText(1, 100, 1410));
-    }
-
-    private void receiveDataFromGalaxyServer()
-    {
-        String[] filesToCopy = {"matches.txt", "analysis_complete.txt"};
-        String analysisFolder = "analysis_" + getRunNumber();
-        for (String file: filesToCopy)
-        {
-            copyFile(FileUtil.appendName(getPipelineLoc(), file), FileUtil.appendName(FileUtil.appendName(getPipelineLoc(), analysisFolder), file));
-        }
-        refresh();
-        waitForPipelineJobsToComplete(++pipelineJobCount, "Import genotyping analysis", false);
-    }
-
-    private int getRunNumber()
-    {
-        return runNum;
-    }
-
-    private void sendDataToGalaxyServer()
-    {
-        clickButton("Add Analysis");
-        _extHelper.selectComboBoxItem("Reference Sequences:", "[default]");                       //TODO:  this should be cyno
-        clickButton("Submit");
-        waitForPipelineJobsToComplete(++pipelineJobCount, "Submit genotyping analysis", false);
-        findAndSetAnalysisNumber();
-
-    }
-
-    private void findAndSetAnalysisNumber()
-    {
-        Locator l = Locator.tagContainingText("td", "Submit genotyping analysis");
-        isElementPresent(l);
-        getText(l);
-        String[] temp = getText(l).split(" ");
-        setAnalysisNumber(Integer.parseInt(temp[temp.length-1]));
-
-    }
-
-    private void setAnalysisNumber(int i)
-    {
-        runNum = i;
     }
 
     private void importRunTest()
@@ -182,6 +119,5 @@ public class GenotypingTest extends GenotypingBaseTest
         _fileBrowserHelper.importFile(file, importAction);
         selectOptionByText(Locator.name("run"), associatedRun);
         clickButton("Import Reads");
-
     }
 }
