@@ -177,8 +177,13 @@ function calendar(){
     				
     				
     				var content = document.createElement('span');
-    				content.innerHTML = '<a style= "font-size :14px" href="' + urls[i][t] + '">' + animal[i][t] + week[i][t] + '</a>';
-    				
+    				// Build the anchor with DOM APIs so list-derived values (URL, animal id, entry text) can't inject markup
+    				var anchor = document.createElement('a');
+    				anchor.setAttribute('style', 'font-size:14px');
+    				anchor.setAttribute('href', urls[i][t]);
+    				anchor.appendChild(document.createTextNode(animal[i][t] + week[i][t]));
+    				content.appendChild(anchor);
+
             		row.appendChild(content);
                 	column.appendChild(row);
  

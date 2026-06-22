@@ -99,8 +99,7 @@
     </td></tr>
 
     <tr><td colspan="3" class="labkey-announcement-title"><span>Settings</span></td></tr>
-    <tr><td colspan="3" class="labkey-title-area-line"></td></tr>
-    <tr><td></td><td><%=link("My Settings", GenotypingController.getMySettingsURL(c, getActionURL()))%></td></tr><%
+    <tr><td colspan="3" class="labkey-title-area-line"></td></tr><%
     if (c.hasPermission(user, AdminPermission.class))
     {
     %>
