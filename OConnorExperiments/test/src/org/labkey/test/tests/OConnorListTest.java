@@ -29,7 +29,6 @@ import org.labkey.test.categories.OConnor;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PortalHelper;
-import org.labkey.test.util.PostgresOnlyTest;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.Arrays;
@@ -37,7 +36,7 @@ import java.util.List;
 
 @Category({CustomModules.class, OConnor.class})
 @BaseWebDriverTest.ClassTimeout(minutes = 5)
-public class OConnorListTest extends BaseWebDriverTest implements PostgresOnlyTest
+public class OConnorListTest extends BaseWebDriverTest
 {
     private static final String PROJECT_NAME = "OConnorTestProject";
     private static final String FOLDER_ZIP_FILE = "OConnor_Test.folder.zip";

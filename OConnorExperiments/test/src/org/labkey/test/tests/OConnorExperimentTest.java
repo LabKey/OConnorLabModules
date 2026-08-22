@@ -37,7 +37,6 @@ import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Ext4Helper;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.PortalHelper;
-import org.labkey.test.util.PostgresOnlyTest;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -56,7 +55,7 @@ import static org.junit.Assert.assertTrue;
 
 @Category({CustomModules.class, OConnor.class})
 @BaseWebDriverTest.ClassTimeout(minutes = 6)
-public class OConnorExperimentTest extends BaseWebDriverTest implements PostgresOnlyTest
+public class OConnorExperimentTest extends BaseWebDriverTest
 {
     private static final String PROJECT_NAME = "OConnor Experiment Project";
     private static final String MODULE_NAME = "OConnorExperiments";
