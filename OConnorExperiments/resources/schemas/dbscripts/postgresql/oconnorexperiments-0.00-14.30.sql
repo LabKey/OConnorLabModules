@@ -46,7 +46,7 @@ CREATE TABLE OConnorExperiments.ParentExperiments
 /* oconnorexperiments-13.10-13.20.sql */
 
 -- drop ParentExperiments.Container FK to allow bulk folder delete
-SELECT core.fn_dropifexists('ParentExperiments', 'OConnorExperiments', 'constraint', 'FK_ParentExperiments_Container');
+ALTER TABLE OConnorExperiments.ParentExperiments DROP CONSTRAINT IF EXISTS FK_ParentExperiments_Container;
 
 /* oconnorexperiments-13.20-13.30.sql */
 
