@@ -213,10 +213,13 @@
 
             getIdInClauseStr: function(idArr)
             {
+                if (!idArr || idArr.length === 0)
+                    return "NULL";
+
                 var str = "";
                 var sep = "";
                 Ext4.each(idArr, function(id){
-                    str += sep + "'" + id + "'";
+                    str += sep + "'" + id.replace(/'/g, "''") + "'";
                     sep = ", ";
                 });
                 return str;
