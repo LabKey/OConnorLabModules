@@ -35,7 +35,6 @@ import org.labkey.api.data.SchemaTableInfo;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Sort;
 import org.labkey.api.data.SqlExecutor;
-import org.labkey.api.data.TableExtension;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.data.UpdateableTableInfo;
@@ -73,6 +72,7 @@ import org.labkey.api.view.ActionURL;
 import org.labkey.oconnorexperiments.OConnorExperimentFolderType;
 import org.labkey.oconnorexperiments.OConnorExperimentsController;
 import org.labkey.oconnorexperiments.OConnorExperimentsSchema;
+import org.labkey.oconnorexperiments.data.TableExtension;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

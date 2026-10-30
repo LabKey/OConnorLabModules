@@ -32,6 +32,7 @@ import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.util.PageFlowUtil;
 import org.labkey.api.util.StringUtilsLabKey;
 import org.labkey.api.view.WebPartFactory;
+import org.labkey.genotyping.data.AtomicDatabaseInteger;
 import org.labkey.genotyping.sequences.SequenceManager;
 
 import java.util.Collection;
@@ -155,6 +156,6 @@ public class GenotypingModule extends DefaultModule
     @Override
     public @NotNull Set<Class<?>> getIntegrationTests()
     {
-        return PageFlowUtil.set(IlluminaFastqParser.HeaderTestCase.class, ImportAnalysisJob.TestCase.class);
+        return PageFlowUtil.set(AtomicDatabaseInteger.TestCase.class, IlluminaFastqParser.HeaderTestCase.class, ImportAnalysisJob.TestCase.class);
     }
 }

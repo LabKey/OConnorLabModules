@@ -53,6 +53,7 @@ import org.labkey.api.view.JspView;
 import org.labkey.api.view.NotFoundException;
 import org.labkey.api.view.ViewContext;
 import org.labkey.api.view.template.ClientDependency;
+import org.labkey.genotyping.data.HighlightingDisplayColumn;
 import org.springframework.validation.BindException;
 
 import java.sql.SQLException;

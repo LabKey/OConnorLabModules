@@ -18,7 +18,6 @@ package org.labkey.genotyping;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.labkey.api.data.AtomicDatabaseInteger;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.PropertyManager;
 import org.labkey.api.data.PropertyManager.WritablePropertyMap;
@@ -35,6 +34,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.util.FileUtil;
 import org.labkey.api.util.SafeToRenderEnum;
 import org.labkey.api.view.NotFoundException;
+import org.labkey.genotyping.data.AtomicDatabaseInteger;
 import org.labkey.vfs.FileLike;
 
 import java.io.FileNotFoundException;
