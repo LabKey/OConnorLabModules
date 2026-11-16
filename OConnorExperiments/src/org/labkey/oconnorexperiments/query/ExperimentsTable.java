@@ -42,8 +42,8 @@ import org.labkey.api.dataiterator.DataIterator;
 import org.labkey.api.dataiterator.DataIteratorBuilder;
 import org.labkey.api.dataiterator.DataIteratorContext;
 import org.labkey.api.dataiterator.DataIteratorUtil;
-import org.labkey.api.dataiterator.ListofMapsDataIterator;
 import org.labkey.api.dataiterator.LoggingDataIterator;
+import org.labkey.api.dataiterator.MapDataIterator;
 import org.labkey.api.dataiterator.SimpleTranslator;
 import org.labkey.api.portal.ProjectUrls;
 import org.labkey.api.query.AbstractQueryUpdateService;
@@ -530,8 +530,7 @@ public class ExperimentsTable extends SimpleUserSchema.SimpleTable<OConnorExperi
             }
 
             // Prepare the iterator context and copy the rows into ParentExperiments table
-            ListofMapsDataIterator source = new ListofMapsDataIterator(new HashSet<>(colNames), rows);
-            source.setDebugName("ExperimentsTable.ParentExperiments");
+            DataIteratorBuilder source = MapDataIterator.of(new HashSet<>(colNames), rows, "ExperimentsTable.ParentExperiments");
 
             // Perform the insert to ParentExperiments table
             DataIteratorUtil.copy(_context, source, _parentExperimentsTable, c, null);
